@@ -44,16 +44,25 @@ class GDParser {
     let canonicalFile = vscode.Uri.file(request.path);
     this._subscription.delete(canonicalFile)
     if(script.valid) { // Parse symbols
-      
+      // TODO
     }
-    if(script.errors.length != 0 ) { // Parse errors
-        let diagnostics = [];
-        script.errors.map( error => {
-          let range = new vscode.Range(error.row-1, error.column, error.row-1, error.row + 10);
-          diagnostics.push(new vscode.Diagnostic(range, error.message, DiagnosticSeverity.Error));
-        });
-        this._subscription.set(canonicalFile, diagnostics);
-    }
+    // Parse errors
+    let diagnostics = [];
+    script.errors.map( error => {
+      let range = new vscode.Range(error.row-1, error.column, error.row-1, error.row + 10);
+      diagnostics.push(new vscode.Diagnostic(range, error.message, DiagnosticSeverity.Error));
+    });
+    // Unused variables
+    const checker = (name:string, line: number) => {
+      if(request.text.indexOf(name) == request.text.lastIndexOf(name))
+        diagnostics.push(new vscode.Diagnostic(new vscode.Range(line-1, 4, line-1, 30), `${name} is never used.`, DiagnosticSeverity.Warning));
+    };
+    for (let key of Object.keys(script.members.variables))
+      checker(key, script.members.variables[key]);
+    for (let key of Object.keys(script.members.constants))
+      checker(key, script.members.constants[key]);
+    // Update diagnostics
+    this._subscription.set(canonicalFile, diagnostics);    
   }
 
   parseDocument(doc: vscode.TextDocument) {
