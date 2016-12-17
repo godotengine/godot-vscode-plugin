@@ -54,8 +54,11 @@ class GDParser {
     });
     // Unused variables
     const checker = (name:string, line: number) => {
-      if(request.text.indexOf(name) == request.text.lastIndexOf(name))
-        diagnostics.push(new vscode.Diagnostic(new vscode.Range(line-1, 4, line-1, 30), `${name} is never used.`, DiagnosticSeverity.Warning));
+      const lines = request.text.split(/\r?\n/);
+      const pattern = `[\\s\\+\\-\\*/%\\^\\(]${name}[^a-zA-Z_\\$]`;
+      var matchs = request.text.match(new RegExp(pattern, 'gi'));
+      if(matchs.length <= 1)
+        diagnostics.push(new vscode.Diagnostic(new vscode.Range(line-1, lines[line-1].indexOf(name), line-1, lines[line-1].indexOf(name) + name.length), `${name} is never used.`, DiagnosticSeverity.Warning));
     };
     for (let key of Object.keys(script.members.variables))
       checker(key, script.members.variables[key]);

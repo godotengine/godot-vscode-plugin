@@ -2,8 +2,6 @@ import {Disposable, window} from 'vscode';
 import parse from "./gdscript/parser";
 import GDParser from './gdscript/parser';
 import GDScriptCompleter from './gdscript/completion';
-import * as path from 'path';
-import * as fs from 'fs';
 
 
 interface DocumentFlag {
