@@ -1,16 +1,20 @@
 import * as vscode from 'vscode';
 import DocDataManager from './docdata';
 import godotRequest from './request';
+import GDScriptSymbolProvider from './gdscript/symbolprovider';
 
 class ToolManager {
 
   private workspaceDir: string = "";
   private docs: DocDataManager = null;
-  
+  private symbolprovider: GDScriptSymbolProvider = null;
+
   constructor(context: vscode.ExtensionContext) {
     this.workspaceDir = vscode.workspace.rootPath;
     this.validate();
     this.docs = new DocDataManager(context.extensionPath);
+    this.symbolprovider = new GDScriptSymbolProvider();
+    vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
   }
 
   validate() {
