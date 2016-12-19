@@ -28,7 +28,7 @@ interface ParseRequest {
 
 
 
-class GDParser {
+class GDScriptDiagnosticSeverity {
   private _subscription: DiagnosticCollection;
   
   constructor() {
@@ -86,4 +86,4 @@ class GDParser {
   
 }
 
-export default GDParser;
+export default GDScriptDiagnosticSeverity;

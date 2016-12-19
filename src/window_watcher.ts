@@ -1,8 +1,7 @@
 import {Disposable, window} from 'vscode';
-import parse from "./gdscript/parser";
-import GDParser from './gdscript/parser';
+import GDScriptDiagnosticSeverity from './gdscript/diagnostic';
 import GDScriptCompleter from './gdscript/completion';
-
+import config from './config';
 
 interface DocumentFlag {
   path: string,
@@ -12,7 +11,7 @@ interface DocumentFlag {
 class WindowWatcher {
   
   private _disposable: Disposable;
-  private _parser: GDParser;
+  private _diagnosticSeverity: GDScriptDiagnosticSeverity;
   private _lastText: DocumentFlag;
   private _completer: GDScriptCompleter;
 
@@ -23,9 +22,9 @@ class WindowWatcher {
     window.onDidChangeTextEditorOptions(this.onDidChangeTextEditorOptions.bind(this), this, subscriptions);
     window.onDidChangeTextEditorViewColumn(this.onDidChangeTextEditorViewColumn.bind(this), this, subscriptions);
     
-    this._parser = new GDParser();
+    this._diagnosticSeverity = new GDScriptDiagnosticSeverity();
     this._completer = new GDScriptCompleter();
-    this._disposable = Disposable.from(...subscriptions, this._parser, this._completer);
+    this._disposable = Disposable.from(...subscriptions, this._diagnosticSeverity, this._completer);
     this._lastText = {path: "-1", version: -1};
   }
 
@@ -39,11 +38,12 @@ class WindowWatcher {
    * to `undefined`.
    */
   private onDidChangeActiveTextEditor(event: any) {
-    console.log("[GodotTools]:onDidChangeActiveTextEditor", event);
-    if(window.activeTextEditor != undefined) {
+    // console.log("[GodotTools]:onDidChangeActiveTextEditor", event);
+    if(window.activeTextEditor != undefined) { 
       const doc = window.activeTextEditor.document;
-      this._parser.parseDocument(doc);
+      this._diagnosticSeverity.parseDocument(doc);
       this._lastText = {path: doc.fileName, version: doc.version};
+      config.loadSymbolsFromFile(doc.fileName);
     }
   }
 
@@ -54,9 +54,11 @@ class WindowWatcher {
     console.log("[GodotTools]:onDidChangeTextEditorSelection");
     const doc = window.activeTextEditor.document;
     const curText: DocumentFlag= {path: doc.fileName, version: doc.version};
+    // Check content changed
     if(this._lastText.path != curText.path || this._lastText.version != curText.version) {
-      this._parser.parseDocument(doc);
+      this._diagnosticSeverity.parseDocument(doc);
       this._lastText = curText;
+      config.loadSymbolsFromFile(doc.fileName);
     }
   }
 
