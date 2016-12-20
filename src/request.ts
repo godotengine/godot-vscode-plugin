@@ -1,18 +1,20 @@
 import * as http from 'http';
+import * as vscode from 'vscode';
 
 function requestGodot(body : Object) {
     let postString = JSON.stringify(body);
+    const port = vscode.workspace.getConfiguration("GodotTools").get("editorServerPort", 6996);
     const options = {
         hostname: '127.0.0.1',
-        port: 6996,
         method: 'POST',
+        port,
+        body,
         headers: {
             "Accept": "application/json",
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "Content-Length": Buffer.byteLength(postString)
-        },
-        body
+        }
     };
     let promise = new Promise((resolve, reject) => {
         var req = http.request(options, (res) => {
