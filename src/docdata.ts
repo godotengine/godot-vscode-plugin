@@ -13,14 +13,14 @@ class DocDataManager {
   constructor(dir: string) {
     version = "";
     storageDir = dir;
-    console.log(dir);
+    // console.log(dir);
     // Load documents
     DocDataManager.getDocData().then(doc=>{
       docdata = doc;
       console.log("Godot Documentations loaded.");
       // vscode.window.showInformationMessage("Godot Documentations loaded.");
     }).catch(e=>{
-      console.log(e);
+      // console.log(e);
     });
   }
 

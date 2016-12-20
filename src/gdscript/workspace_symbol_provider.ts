@@ -5,7 +5,6 @@ class GDScriptWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider 
     public provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): vscode.SymbolInformation[] {
       const scripts = config.getAllSymbols();
       const symbols: vscode.SymbolInformation[] = [];
-      console.log(query);
       for (let path of Object.keys(scripts)) {
         const queryMembers = (query, members, kind: vscode.SymbolKind, path:string)=> {
           for (let name of Object.keys(members)) {

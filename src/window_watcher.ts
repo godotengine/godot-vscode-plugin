@@ -51,7 +51,7 @@ class WindowWatcher {
    * Fires when the selection in an editor has changed.
    */
   private onDidChangeTextEditorSelection(event: any) {
-    console.log("[GodotTools]:onDidChangeTextEditorSelection");
+    // console.log("[GodotTools]:onDidChangeTextEditorSelection");
     const doc = window.activeTextEditor.document;
     const curText: DocumentFlag= {path: doc.fileName, version: doc.version};
     // Check content changed
@@ -66,14 +66,14 @@ class WindowWatcher {
    * Fires when the options of an editor have changed.
    */
   private onDidChangeTextEditorOptions(event: any) {
-    console.log("[GodotTools]:onDidChangeTextEditorOptions", event);
+    // console.log("[GodotTools]:onDidChangeTextEditorOptions", event);
   }
 
   /**
    * Fires when the view column of an editor has changed.
    */
   private onDidChangeTextEditorViewColumn(event: any) {
-    console.log("[GodotTools]:onDidChangeTextEditorViewColumn", event);
+    // console.log("[GodotTools]:onDidChangeTextEditorViewColumn", event);
   }
 }
 
