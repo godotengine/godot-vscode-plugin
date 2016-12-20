@@ -15,8 +15,7 @@ function requestGodot(body : Object) {
         body
     };
     let promise = new Promise((resolve, reject) => {
-        try {
-            var req = http.request(options, (res) => {
+        var req = http.request(options, (res) => {
             let resultString = "";
             res.setEncoding('utf8');
             res.on('data', (chunk) => {
@@ -25,15 +24,13 @@ function requestGodot(body : Object) {
             res.on('end', () => {
                 resolve(JSON.parse(resultString));
             });
-            req.on('error', (e) => {
-                reject(e);
-            });
-            });
-            req.write(postString);
-            req.end();
-        } catch (error) {
-            reject(error);
-        }
+        });
+        req.on('error', (e) => {
+            reject(e);
+        });
+        req.write(postString);
+        req.end();
+
     });
     return promise;
 }
