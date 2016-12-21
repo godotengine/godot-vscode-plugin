@@ -11,6 +11,7 @@ import {
 } from 'vscode';
 
 import requestGodot from '../request';
+import config from '../config';
 
 interface CompleteRequest {
   path: string,
@@ -36,7 +37,7 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
     // console.log("[GodotTools]:provideCompletionItems");
     const request: CompleteRequest = {
-      path: document.fileName,
+      path: config.normalizePath(document.fileName),
       text: document.getText(),
       cursor: {
         row: position.line + 1,

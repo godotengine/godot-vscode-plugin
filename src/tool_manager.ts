@@ -14,10 +14,9 @@ class ToolManager {
   private workspacesymbolprovider: GDScriptWorkspaceSymbolProvider = null;
 
   constructor(context: vscode.ExtensionContext) {
-    this.workspaceDir = vscode.workspace.rootPath;
+    this.workspaceDir = vscode.workspace.rootPath.replace(/\\/g, "/");
     this.validate();
     this.loadWorkspaceSymbols();
-    
     this.docs = new DocDataManager(context.extensionPath);
     this.symbolprovider = new GDScriptSymbolProvider();
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
@@ -32,7 +31,7 @@ class ToolManager {
       let path = res.path;
       if(path && path.length> 0 && path.endsWith("/"))
         path = path.substring(0, path.length-1)
-      if( path == self.workspaceDir)
+      if( path.toLowerCase() == self.workspaceDir.toLowerCase())
         vscode.window.showInformationMessage("Connected to godot editor server");
       else {
         vscode.window.showWarningMessage("The opened project is not same with godot editor");

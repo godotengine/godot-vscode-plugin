@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import requestGodot from './request';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import config from './config';
 
 let version: string;
 let storageDir: string;
@@ -63,7 +64,7 @@ class DocDataManager {
               if(fs.existsSync(docfile) && fs.statSync(docfile).isFile())
                 loadDocdata(docfile);
               else {
-                requestGodot({action: "editor", command: "gendoc", path: docfile}).then((res:any)=>{
+                requestGodot({action: "editor", command: "gendoc", path: config.normalizePath(docfile) }).then((res:any)=>{
                   if(res && res.done)
                     loadDocdata(docfile);
                   else

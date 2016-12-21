@@ -1,6 +1,8 @@
 import requestGodot from "../request";
 import * as vscode from 'vscode';
 import {DiagnosticCollection, DiagnosticSeverity} from 'vscode';
+import config from '../config';
+
 interface GDParseError {
   message: string,
   column: number,
@@ -72,7 +74,7 @@ class GDScriptDiagnosticSeverity {
     if(doc.languageId == 'gdscript') {
       // console.log('[GodotTools]:start parsing document ', doc);
       const self = this;
-      const request: ParseRequest = {text: doc.getText(), path: doc.fileName};
+      const request: ParseRequest = {text: doc.getText(), path: config.normalizePath(doc.fileName)};
       requestGodot({action: "parsescript",request}).then((data: any)=>{
             const result: GDScript = data.result;
             if(result && vscode.window.activeTextEditor.document == doc){

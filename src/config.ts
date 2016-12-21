@@ -30,6 +30,18 @@ class Config {
   getAllSymbols() {
     return this.symbols;
   }
+
+  normalizePath(path) {
+    let newpath = path;
+    if( path.indexOf(":") != -1){
+      let parts = path.split(":");
+      newpath = parts[0].toUpperCase()
+      for(let i=1; i<parts.length; i++)
+        newpath += parts[i].replace(/\\/g, "/");
+    }
+    return newpath;
+  }
+
 };
 
 export default new Config();
