@@ -36,33 +36,36 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
 
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
     // console.log("[GodotTools]:provideCompletionItems");
-    const request: CompleteRequest = {
-      path: config.normalizePath(document.fileName),
-      text: document.getText(),
-      cursor: {
-        row: position.line + 1,
-        column: position.character + 1
-      }
-    };
-    return new Promise((resolve, reject) => {
-      requestGodot({
-        action: "codecomplete",
-        request
-      }).then((data: any)=>{
-        const result: CompletionResult = data.result;
-        if(result && result.suggestions && result.suggestions.length > 0) {
-          const items:CompletionItem[] = [];
-          result.suggestions.map((label, i)=>{
-            items.push(new CompletionItem(label, CompletionItemKind.Field));
-          });
-          resolve(items);
-        }
-        else
-          reject("Nothing to complete");
-      }).catch(e=>{
-        reject(e);
-      });
-    });
+    // const request: CompleteRequest = {
+    //   path: config.normalizePath(document.fileName),
+    //   text: document.getText(),
+    //   cursor: {
+    //     row: position.line + 1,
+    //     column: position.character + 1
+    //   }
+    // };
+    // return new Promise((resolve, reject) => {
+    //   requestGodot({
+    //     action: "codecomplete",
+    //     request
+    //   }).then((data: any)=>{
+    //     const result: CompletionResult = data.result;
+    //     if(result && result.suggestions && result.suggestions.length > 0) {
+    //       const items:CompletionItem[] = [];
+    //       result.suggestions.map((label, i)=>{
+    //         items.push(new CompletionItem(label, CompletionItemKind.Field));
+    //       });
+    //       resolve(items);
+    //     }
+    //     else
+    //       reject("Nothing to complete");
+    //   }).catch(e=>{
+    //     reject(e);
+    //   });
+    // });
+    const items:CompletionItem[] = config.bintinSybmolInfoList;
+
+    return items;
   }
 
   resolveCompletionItem(item : CompletionItem, token : CancellationToken) : CompletionItem | Thenable < CompletionItem > {
@@ -75,12 +78,7 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
 class GDScriptCompleter {
   private _provider: Disposable;
   constructor() {
-    this._provider = languages.registerCompletionItemProvider('gdscript',
-      new GDScriptCompletionItemProvider(), 
-      '.', '\'','\"','(', '_',
-      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
-    );
+    this._provider = languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.');
   }
 
   dispose() {

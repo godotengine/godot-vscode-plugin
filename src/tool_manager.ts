@@ -1,15 +1,14 @@
 import * as vscode from 'vscode';
-import DocDataManager from './docdata';
 import godotRequest from './request';
 import GDScriptSymbolProvider from './gdscript/symbolprovider';
 import GDScriptWorkspaceSymbolProvider from './gdscript/workspace_symbol_provider';
 var glob = require("glob")
 import config from './config';
+import * as path from 'path';
 
 class ToolManager {
 
   private workspaceDir: string = "";
-  private docs: DocDataManager = null;
   private symbolprovider: GDScriptSymbolProvider = null;
   private workspacesymbolprovider: GDScriptWorkspaceSymbolProvider = null;
   private _disposable: vscode.Disposable;
@@ -18,7 +17,7 @@ class ToolManager {
     this.workspaceDir = vscode.workspace.rootPath.replace(/\\/g, "/");
     this.validate();
     this.loadWorkspaceSymbols();
-    this.docs = new DocDataManager(context.extensionPath);
+    this.loadClasses();
     this.symbolprovider = new GDScriptSymbolProvider();
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
@@ -69,6 +68,15 @@ class ToolManager {
     }).catch(e=>{
         vscode.window.showWarningMessage("Update GDScript symbols failed");
     });
+  }
+
+  loadClasses() {
+    if(config.loadClasses(path.join(this.workspaceDir, ".vscode", "classes.json"))) {
+      vscode.window.showInformationMessage("Update GDScript documentations done");
+    }
+    else {
+      vscode.window.showWarningMessage("Update GDScript documentations failed");
+    }
   }
 
   dispose() {
