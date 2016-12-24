@@ -15,6 +15,12 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
+    "commands":[
+      {
+        "command": "godot.updateWorkspaceSymbols",
+        "title": "GodotTools: Update Workspace Symbols"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Godot tools configuration",

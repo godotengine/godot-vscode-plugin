@@ -9,5 +9,6 @@ export function activate(context: ExtensionContext) {
 	tool = new ToolManager(context);
 	// context.subscriptions.push(tool);
 	context.subscriptions.push(new WindowWatch());
+	context.subscriptions.push(tool);
 	console.log("[GodotTools]: Extension Activated");
 }

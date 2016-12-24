@@ -12,6 +12,7 @@ class ToolManager {
   private docs: DocDataManager = null;
   private symbolprovider: GDScriptSymbolProvider = null;
   private workspacesymbolprovider: GDScriptWorkspaceSymbolProvider = null;
+  private _disposable: vscode.Disposable;
 
   constructor(context: vscode.ExtensionContext) {
     this.workspaceDir = vscode.workspace.rootPath.replace(/\\/g, "/");
@@ -22,7 +23,11 @@ class ToolManager {
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
-    
+
+    // Commands
+    this._disposable = vscode.Disposable.from(
+      vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this))
+    );
   }
 
   validate() {
@@ -59,15 +64,15 @@ class ToolManager {
 
   loadWorkspaceSymbols() {
     this.loadAllSymbols().then(symbols=>{
-        // vscode.window.showInformationMessage("GDScript symbols done");
+        vscode.window.showInformationMessage("Update GDScript symbols done");
         config.setAllSymbols(symbols);
     }).catch(e=>{
-        // vscode.window.showWarningMessage("GDScript symbols parse failed");
+        vscode.window.showWarningMessage("Update GDScript symbols failed");
     });
   }
 
   dispose() {
-
+    this._disposable.dispose();
   }
 };
 
