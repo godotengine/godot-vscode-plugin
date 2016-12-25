@@ -55,30 +55,34 @@ class GDScriptSymbolParser {
       return sm;
     }
     
-    let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(.*\)/gi, 1);
+    const determRange = (key:string, array: any): Range =>{
+      return new Range(array[key], lines[array[key]].indexOf(key), array[key], lines[array[key]].indexOf(key) + key.length);
+    };
+    
+    let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
     const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(.*\\)");
     for (let key of Object.keys(funcs))
-      script.functions[key] = new Range(funcs[key], 0, funcs[key],lines[funcs[key]].length);
+      script.functions[key] = determRange(key, funcs);
     
-    let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(.*\)/gi, 1);
+    let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(.*\)/g, 1);
     const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(.*\\)");
     for (let key of Object.keys(signals))
-      script.signals[key] = new Range(signals[key], 0, signals[key],lines[signals[key]].length);
+      script.signals[key] = determRange(key, signals);
     
-    let varnames = getMatches(text, /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/gi, 1);
+    let varnames = getMatches(text, /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
     const vars = findLineRanges(varnames, "var\\s+$X$\\s*");
     for (let key of Object.keys(vars))
-      script.variables[key] = new Range(vars[key], 0, vars[key],lines[vars[key]].length);
+      script.variables[key] = determRange(key, vars);
     
-    let constnames = getMatches(text, /const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/gi, 1);
+    let constnames = getMatches(text, /const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
     const consts = findLineRanges(constnames, "const\\s+$X$\\s*");
     for (let key of Object.keys(consts))
-      script.constants[key] = new Range(consts[key], 0, consts[key],lines[consts[key]].length);
+      script.constants[key] = determRange(key, consts);
     
-    let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/gi, 1);
+    let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/g, 1);
     const classes = findLineRanges(classnames, "class\\s+$X$\\s*extends\\s+");
     for (let key of Object.keys(classes))
-      script.classes[key] = new Range(classes[key], 0, classes[key],lines[classes[key]].length);
+      script.classes[key] = determRange(key, classes);
 
     return script;
   }

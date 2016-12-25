@@ -30,8 +30,8 @@ interface CompletionResult {
 }
 
 class GDScriptCompletionItemProvider implements CompletionItemProvider {
-  constructor() {
 
+  constructor() {
   }
 
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
@@ -74,16 +74,4 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
 
 }
 
-
-class GDScriptCompleter {
-  private _provider: Disposable;
-  constructor() {
-    this._provider = languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.');
-  }
-
-  dispose() {
-    this._provider.dispose();
-  }
-}
-
-export default GDScriptCompleter;
+export default GDScriptCompletionItemProvider;

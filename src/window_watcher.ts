@@ -13,7 +13,6 @@ class WindowWatcher {
   private _disposable: Disposable;
   private _diagnosticSeverity: GDScriptDiagnosticSeverity;
   private _lastText: DocumentFlag;
-  private _completer: GDScriptCompleter;
 
   constructor() {
     let subscriptions: Disposable[] = [];
@@ -23,8 +22,7 @@ class WindowWatcher {
     window.onDidChangeTextEditorViewColumn(this.onDidChangeTextEditorViewColumn.bind(this), this, subscriptions);
     
     this._diagnosticSeverity = new GDScriptDiagnosticSeverity();
-    this._completer = new GDScriptCompleter();
-    this._disposable = Disposable.from(...subscriptions, this._diagnosticSeverity, this._completer);
+    this._disposable = Disposable.from(...subscriptions, this._diagnosticSeverity);
     this._lastText = {path: "-1", version: -1};
   }
 
@@ -41,9 +39,9 @@ class WindowWatcher {
     // console.log("[GodotTools]:onDidChangeActiveTextEditor", event);
     if(window.activeTextEditor != undefined) { 
       const doc = window.activeTextEditor.document;
-      this._diagnosticSeverity.parseDocument(doc);
+      const script = config.loadSymbolsFromFile(doc.fileName);
+      this._diagnosticSeverity.validateScript(doc, script);
       this._lastText = {path: doc.fileName, version: doc.version};
-      config.loadSymbolsFromFile(doc.fileName);
     }
   }
 
@@ -56,9 +54,9 @@ class WindowWatcher {
     const curText: DocumentFlag= {path: doc.fileName, version: doc.version};
     // Check content changed
     if(this._lastText.path != curText.path || this._lastText.version != curText.version) {
-      this._diagnosticSeverity.parseDocument(doc);
+      const script = config.loadSymbolsFromFile(doc.fileName);
+      this._diagnosticSeverity.validateScript(doc, script);
       this._lastText = curText;
-      config.loadSymbolsFromFile(doc.fileName);
     }
   }
 

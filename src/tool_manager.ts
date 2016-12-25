@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import godotRequest from './request';
 import GDScriptSymbolProvider from './gdscript/symbolprovider';
 import GDScriptWorkspaceSymbolProvider from './gdscript/workspace_symbol_provider';
+import GDScriptCompletionItemProvider from './gdscript/completion';
 var glob = require("glob")
 import config from './config';
 import * as path from 'path';
@@ -25,13 +26,14 @@ class ToolManager {
       this.validate();
     }
     this.loadClasses();
-
+    // documentation symbol provider
     this.symbolprovider = new GDScriptSymbolProvider();
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
-
+    // workspace symbol provider
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
-
+    // code completion provider
+    vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
     // Commands
     this._disposable = vscode.Disposable.from(
       vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this))
