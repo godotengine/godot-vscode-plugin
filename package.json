@@ -37,7 +37,33 @@
           "description": "Controls the maximum number of problems produced by the server."
         }
       }
-    }
+    },
+    "languages": [
+      {
+        "id": "gdscript",
+        "aliases": [
+          "Godot Engine Script",
+          "gdscript"
+        ],
+        "extensions": [
+          ".gd"
+        ],
+        "configuration": "./configrations/gdscript-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gdscript",
+        "scopeName": "source.gdscript",
+        "path": "./configrations/GDScript.tmLanguage"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "gdscript",
+        "path": "./configrations/snippets.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
