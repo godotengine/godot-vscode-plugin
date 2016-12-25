@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:engine.cfg"
+    "workspaceContains:engine.cfg",
+    "onLanguage:gdscript"
   ],
   "main": "./out/src/extension",
   "contributes": {

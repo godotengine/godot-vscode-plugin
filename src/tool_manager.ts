@@ -12,14 +12,23 @@ class ToolManager {
   private symbolprovider: GDScriptSymbolProvider = null;
   private workspacesymbolprovider: GDScriptWorkspaceSymbolProvider = null;
   private _disposable: vscode.Disposable;
+  private _context: vscode.ExtensionContext;
 
   constructor(context: vscode.ExtensionContext) {
-    this.workspaceDir = vscode.workspace.rootPath.replace(/\\/g, "/");
-    this.validate();
-    this.loadWorkspaceSymbols();
+    this._context = context;
+    this.workspaceDir = vscode.workspace.rootPath;
+    if(this.workspaceDir) {
+      this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
+      this.loadWorkspaceSymbols();
+    }
+    if(0) { // TODO: EditorServer validate
+      this.validate();
+    }
     this.loadClasses();
+
     this.symbolprovider = new GDScriptSymbolProvider();
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
+
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
 
@@ -71,12 +80,13 @@ class ToolManager {
   }
 
   loadClasses() {
-    if(config.loadClasses(path.join(this.workspaceDir, ".vscode", "classes.json"))) {
-      vscode.window.showInformationMessage("Update GDScript documentations done");
-    }
-    else {
-      vscode.window.showWarningMessage("Update GDScript documentations failed");
-    }
+    let done :boolean = false;
+    if(this.workspaceDir)
+      done = config.loadClasses(path.join(this.workspaceDir, ".vscode", "classes.json"));
+    if(!done)
+      done = config.loadClasses(path.join(this._context.extensionPath, "doc", "classes.json"));
+    if(!done)
+      vscode.window.showErrorMessage("Load GDScript documentations failed");
   }
 
   dispose() {

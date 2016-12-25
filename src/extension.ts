@@ -7,8 +7,7 @@ let tool: ToolManager = null;
 
 export function activate(context: ExtensionContext) {
 	tool = new ToolManager(context);
-	// context.subscriptions.push(tool);
-	context.subscriptions.push(new WindowWatch());
 	context.subscriptions.push(tool);
+	context.subscriptions.push(new WindowWatch());
 	console.log("[GodotTools]: Extension Activated");
 }

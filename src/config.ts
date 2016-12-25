@@ -121,7 +121,6 @@ class Config {
       let items: CompletionItem[] = [];
       for (let path of Object.keys(this.symbols)) {
         const script = this.symbols[path];
-        console.log(script);
         const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol")=>{
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
@@ -130,7 +129,6 @@ class Config {
             item.documentation = `${kindName} defined in ${item.detail}`;
             _items.push(item);
           }
-          console.log(_items);
           return _items;
         }
         items = [...items, ...addScriptItems(script.classes, CompletionItemKind.Class, "Class")];
