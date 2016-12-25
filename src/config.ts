@@ -1,6 +1,6 @@
 import GDScriptSymbolParser from './gdscript/symbolparser';
 import * as fs from 'fs';
-import {CompletionItem, CompletionItemKind, TextEdit, Range} from 'vscode';
+import {CompletionItem, CompletionItemKind, TextEdit, Range, workspace} from 'vscode';
 
 class Config {
   private symbols;
@@ -100,12 +100,47 @@ class Config {
           ci.documentation = `${classdoc.name}.${c.name} = ${c.value}`;
           bintinSybmolInfoList.push(ci);
         });
-        
+        // properties
+        const properties = classdoc.properties;
+        const parseProp = (p)=>{
+          const pi = new CompletionItem(p.name, CompletionItemKind.Property);
+          pi.detail = `${p.type} of ${classdoc.name}`;
+          pi.documentation = p.description;
+          bintinSybmolInfoList.push(pi);
+        };
+        properties.map(p=>parseProp(p));
+        // theme_properties
+        const theme_properties = classdoc.theme_properties;
+        theme_properties.map(p=>parseProp(p));
       }
     }
-
     return done;
   };
+
+  getWorkspaceCompletionItems(): CompletionItem[] {
+      let items: CompletionItem[] = [];
+      for (let path of Object.keys(this.symbols)) {
+        const script = this.symbols[path];
+        console.log(script);
+        const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol")=>{
+          const _items: CompletionItem[] = [];
+          for (let name of Object.keys(items)) {
+            const item = new CompletionItem(name, kind);
+            item.detail = workspace.asRelativePath(path);
+            item.documentation = `${kindName} defined in ${item.detail}`;
+            _items.push(item);
+          }
+          console.log(_items);
+          return _items;
+        }
+        items = [...items, ...addScriptItems(script.classes, CompletionItemKind.Class, "Class")];
+        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method")];
+        items = [...items, ...addScriptItems(script.variables, CompletionItemKind.Variable, "Variable")];
+        items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
+        items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];
+      }
+      return items;
+  }
 
   getClass(name: string) {
     return this.classes[name];

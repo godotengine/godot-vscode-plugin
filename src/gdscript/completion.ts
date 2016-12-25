@@ -63,8 +63,8 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
     //     reject(e);
     //   });
     // });
-    const items:CompletionItem[] = config.bintinSybmolInfoList;
-
+    let items:CompletionItem[] = config.getWorkspaceCompletionItems();
+    items = [...items, ...config.bintinSybmolInfoList];
     return items;
   }
 
