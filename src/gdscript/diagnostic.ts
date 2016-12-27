@@ -82,8 +82,9 @@ class GDScriptDiagnosticSeverity {
       if(semicolonIndex != -1) {
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement ends with a semicolon.", DiagnosticSeverity.Warning));
       }
-      if(line.match(/if|elif|else|for|while|func|class/g) && line.indexOf(":") == -1) {
-        diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, 0, i, line.length), "':' expected at end of the line.", DiagnosticSeverity.Error));
+      if(line.match(/\s+if|elif|else|for|while|func|class\s+/g) && line.indexOf(":") == -1) {
+        if(line.indexOf("#") == -1)
+          diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, 0, i, line.length), "':' expected at end of the line.", DiagnosticSeverity.Error));
       }
     });
     return diagnostics;
