@@ -114,7 +114,7 @@
   },
 
   "function define": {
-    "prefix": "while",
+    "prefix": "func",
 		"body": [
       "func ${1:method}(${2:args}):",
       "\t${3:pass}"
@@ -160,6 +160,37 @@
     "prefix": "in",
 		"body": [
       "${1:element} in ${$2:array}"
+    ]
+  },
+
+  "GDScript template": {
+    "prefix": "gdscript",
+		"body": [
+      "extends ${1:BaseClass}",
+      "",
+      "# class member variables go here, for example:",
+      "# var a = 2",
+      "# var b = \"textvar\"",
+      "",
+      "func _ready():",
+      "\t# Called every time the node is added to the scene.",
+      "\t# Initialization here",
+      "\tpass",
+      ""
+    ]
+  },
+  
+  "Enable process function": {
+    "prefix": "process",
+		"body": [
+      "set_process(true)"
+    ]
+  },
+
+  "Enable process input function": {
+    "prefix": "processin",
+		"body": [
+      "set_process_input(true)"
     ]
   }
 }

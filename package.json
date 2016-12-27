@@ -20,6 +20,18 @@
       {
         "command": "godot.updateWorkspaceSymbols",
         "title": "GodotTools: Update Workspace Symbols"
+      },
+      {
+        "command": "godot.runWorkspace",
+        "title": "GodotTools: Run workspace as godot project"
+      },
+      {
+        "command": "godot.openWithEditor",
+        "title": "GodotTools: Open workspace with godot editor"
+      },
+      {
+        "command": "godot.runCurrentScene",
+        "title": "GodotTools: Run current scene"
       }
     ],
     "configuration": {
@@ -35,6 +47,11 @@
           "type": "number",
           "default": 100,
           "description": "Controls the maximum number of problems produced by the server."
+        },
+        "GodotTools.editorPath": {
+          "type": "string",
+          "default": "",
+          "description": "The absolute path of your godot editor"
         }
       }
     },

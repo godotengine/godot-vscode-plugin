@@ -2,15 +2,28 @@ import GDScriptSymbolParser from './gdscript/symbolparser';
 import * as fs from 'fs';
 import {CompletionItem, CompletionItemKind, TextEdit, Range, workspace} from 'vscode';
 
+interface NodeInfo {
+  name: string,
+  type: string,
+  parent: string,
+  instance: string
+};
+
 class Config {
   private symbols;
   private classes;
   public bintinSybmolInfoList: CompletionItem[];
   public parser: GDScriptSymbolParser;
+  // scriptpath : scenepath
+  public scriptSceneMap: Object;
+  // scenepath : NodeInfo[]
+  private nodeInfoMap: Object;
 
   constructor() {
     this.symbols = {};
     this.bintinSybmolInfoList = [];
+    this.nodeInfoMap = {};
+    this.scriptSceneMap = {};
     this.parser = new GDScriptSymbolParser();
   }
 
@@ -37,12 +50,12 @@ class Config {
   }
 
   normalizePath(path) {
-    let newpath = path;
+    let newpath = path.replace(/\\/g, "/");
     if( path.indexOf(":") != -1){
       let parts = path.split(":");
       newpath = parts[0].toUpperCase()
       for(let i=1; i<parts.length; i++)
-        newpath += parts[i].replace(/\\/g, "/");
+        newpath += parts[i];
     }
     return newpath;
   }
@@ -138,7 +151,89 @@ class Config {
         items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
         items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];
       }
+
+      const addSceneNodes = ()=>{
+        const _items: CompletionItem[] = [];
+        for (let scnenepath of Object.keys(this.nodeInfoMap)) {
+          const nodes: NodeInfo[] = this.nodeInfoMap[scnenepath];
+          nodes.map((n=>{
+            const item = new CompletionItem(n.name, CompletionItemKind.Reference);
+            item.detail = n.type;
+            item.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
+            _items.push(item);
+
+            const fullitem = new CompletionItem(`${n.parent}/${n.name}`, CompletionItemKind.Reference);
+            fullitem.detail = n.type;
+            fullitem.filterText = n.name;
+            fullitem.sortText = n.name;
+            fullitem.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
+            _items.push(fullitem);
+          }));
+        }
+        return _items;
+      };
+      items = [...items, ...addSceneNodes()];
+
       return items;
+  }
+
+  loadScene(scenePath: string) {
+    console.log(scenePath);
+    if(fs.existsSync(scenePath) && fs.statSync(scenePath).isFile()) {
+      try {
+        const content: string = fs.readFileSync(scenePath, 'utf-8');
+        if(content) {
+          // extern resources
+          const exteres = {};
+          let reg = /ext_resource path="res:\/\/(.*)" type="(.*)" id=(\d+)/g;
+          let match = reg.exec(content);
+          while (match != null) {
+            const path = match[1];
+            const type = match[2];
+            const id = match[3];
+            exteres[id] = {path, type};
+            if (type == "Script") {
+              let workspacescenepath = scenePath;
+              if(workspace)
+                workspacescenepath = workspace.asRelativePath(scenePath);
+              this.scriptSceneMap[path] = workspacescenepath;
+            }
+            match = reg.exec(content);
+          }
+          // nodes
+          const nodes: NodeInfo[] = [];
+          reg = /node\s+name="(.*)"\s+type="(.*)"\s+parent="(.*)"/g;
+          match = reg.exec(content);
+          while (match != null) {
+            nodes.push({
+              name : match[1],
+              type : match[2],
+              parent : match[3],
+              instance: ""
+            });
+            match = reg.exec(content);
+          }
+          // packed scenes
+          reg = /node name="(.*)" parent="(.*)" instance=ExtResource\(\s*(\d+)\s*\)/g;
+          match = reg.exec(content);
+          while (match != null) {
+            const id = match[3];
+            nodes.push({
+              name : match[1],
+              type : exteres[id].type,
+              parent : match[2],
+              instance: exteres[id].path
+            });
+            match = reg.exec(content);
+          }
+          if(workspace)
+            scenePath = workspace.asRelativePath(scenePath);
+          this.nodeInfoMap[scenePath] = nodes;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 
   getClass(name: string) {

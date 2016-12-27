@@ -59,7 +59,7 @@ class GDScriptDiagnosticSeverity {
     const text = doc.getText();
     
     const check = (name:string, range: vscode.Range) => {
-      const pattern = `[\\s\\+\\-\\*/%\\^\\(\\[\\{]${name}[^0-9A-Za-z_]\\s*`;
+      const pattern = `[\\s\\+\\-\\*/%\\^\\(\\[\\{\.]${name}[^0-9A-Za-z_]\\s*`;
       var matchs = text.match(new RegExp(pattern, 'g'));
       if(matchs.length <= 1)
         diagnostics.push(new vscode.Diagnostic(range, `${name} is never used.`, DiagnosticSeverity.Warning));
@@ -81,7 +81,7 @@ class GDScriptDiagnosticSeverity {
       if(semicolonIndex != -1) {
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement ends with a semicolon.", DiagnosticSeverity.Warning));
       }
-      if(line.match(/\s+if|elif|else|for|while|func|class\s+/g) && line.indexOf(":") == -1) {
+      if(line.match(/\s*(if|elif|else|for|while|func|class)\s/g) && line.indexOf(":") == -1) {
         if(line.indexOf("#") == -1)
           diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, 0, i, line.length), "':' expected at end of the line.", DiagnosticSeverity.Error));
       }

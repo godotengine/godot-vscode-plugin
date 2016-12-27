@@ -6,6 +6,8 @@ import GDScriptCompletionItemProvider from './gdscript/completion';
 var glob = require("glob")
 import config from './config';
 import * as path from 'path';
+import * as fs from 'fs';
+const cmd = require('node-cmd');
 
 class ToolManager {
 
@@ -36,7 +38,10 @@ class ToolManager {
     vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
     // Commands
     this._disposable = vscode.Disposable.from(
-      vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this))
+      vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this)),
+      vscode.commands.registerCommand('godot.runWorkspace', ()=>{this.openWorkspaceWithEditor()}),
+      vscode.commands.registerCommand('godot.openWithEditor', ()=>{this.openWorkspaceWithEditor("-e")}),
+      vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScenr.bind(this))
     );
   }
 
@@ -59,11 +64,33 @@ class ToolManager {
   loadAllSymbols(): Promise<any> {
     const self = this;
     return new Promise((resolve, reject) => {
-      glob( this.workspaceDir +"/**/*.gd", (err, files)=>{
+      glob( self.workspaceDir +"/**/*.gd", (err, files)=>{
         if(!err) {
           const symbols = {};
           for(let i=0; i< files.length; i++)
             symbols[files[i]] = config.loadSymbolsFromFile(files[i]);
+          // load autoloads from engin.cfg
+          const engincfg = path.join(self.workspaceDir, "engine.cfg");
+          if(fs.existsSync(engincfg) && fs.statSync(engincfg).isFile()) {
+            try {
+              const script = { constants: {}, functions: {}, variables: {}, signals: {}, classes: {}, base: "Object", native: "Object"};
+              let content: string = fs.readFileSync(engincfg, 'utf-8');
+              if(content && content.indexOf("[autoload]") != -1) {
+                content = content.substring(content.indexOf("[autoload]")+"[autoload]".length, content.length);
+                content = content.substring(0, content.indexOf("["));
+                const lines = content.split(/\r?\n/);
+                lines.map(l=>{
+                  if(l.indexOf("=") != 0) {
+                    const name = l.substring(0, l.indexOf("="));
+                    script.constants[name] = new vscode.Range(0, 0, 0,0);
+                  }
+                });
+              }
+              symbols["autoload"] = script;
+            } catch (error) {
+              console.error(error);       
+            }
+          }
           resolve(symbols);
         }
         else
@@ -72,13 +99,64 @@ class ToolManager {
     });
   }
 
-  loadWorkspaceSymbols() {
+  private loadAllNodesInWorkspace() {
+    glob( this.workspaceDir +"/**/*.tscn", (err, files)=>{
+      if(!err) {
+        const symbols = {};
+        for(let i=0; i< files.length; i++)
+          config.loadScene(files[i]);
+      }
+    });
+  }
+
+  private loadWorkspaceSymbols() {
+    this.loadAllNodesInWorkspace();
     this.loadAllSymbols().then(symbols=>{
         vscode.window.showInformationMessage("Update GDScript symbols done");
         config.setAllSymbols(symbols);
     }).catch(e=>{
         vscode.window.showWarningMessage("Update GDScript symbols failed");
     });
+  }
+
+  private openWorkspaceWithEditor(params="") {
+    let workspaceValid = false
+    if(this.workspaceDir) {
+      let cfg = path.join(this.workspaceDir, "engine.cfg");
+      if( fs.existsSync(cfg) && fs.statSync(cfg).isFile())
+        workspaceValid = true;
+    }
+    if(workspaceValid)
+      this.runEditor(`-path ${this.workspaceDir} ${params}`);
+    else
+      vscode.window.showErrorMessage("Current workspace is not a godot project");
+  }
+
+  private runEditor(params="") {
+    const editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
+    if(!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
+      vscode.window.showErrorMessage("Invalid editor path to run the project");
+    }
+    else {
+      cmd.run(`${editorPath} ${params}`);
+    }
+  }
+
+  private runCurrentScenr() {
+    let scenePath = null
+    if(vscode.window.activeTextEditor)
+      scenePath = vscode.workspace.asRelativePath(vscode.window.activeTextEditor.document.uri);
+    console.log("======================", scenePath);
+    console.log(Object.keys(config.scriptSceneMap).toString());
+    if(scenePath.endsWith(".gd"))
+      scenePath = config.scriptSceneMap[config.normalizePath(scenePath)];
+    console.log("======================", scenePath);
+    if(scenePath && (scenePath.endsWith(".tscn") || scenePath.endsWith(".scn"))) {
+      scenePath = ` res://${scenePath} `;
+      this.openWorkspaceWithEditor(scenePath);
+    }
+    else
+      vscode.window.showErrorMessage("Current document is not a scene file");
   }
 
   loadClasses() {
