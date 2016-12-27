@@ -42,6 +42,7 @@ class GDScriptSymbolParser {
       symbols.map((name:string)=>{
         let line = 0;
         let curline = 0;
+        if(Object.keys(sm).indexOf(name) != -1) return;
         lines.map(l=>{
           const nreg = reg.replace("$X$", name);
           if(l.match(nreg) != null) {
@@ -63,13 +64,13 @@ class GDScriptSymbolParser {
       return new Range(line, startAt, line, startAt + key.length);
     };
     
-    let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(.*\)/g, 1);
-    const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(.*\\)");
+    let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
+    const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(");
     for (let key of Object.keys(funcs))
       script.functions[key] = determRange(key, funcs);
     
-    let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(.*\)/g, 1);
-    const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(.*\\)");
+    let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
+    const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(");
     for (let key of Object.keys(signals))
       script.signals[key] = determRange(key, signals);
 

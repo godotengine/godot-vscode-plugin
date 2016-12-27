@@ -37,7 +37,7 @@ class GDScriptDiagnosticSeverity {
     this._subscription = vscode.languages.createDiagnosticCollection("gdscript")
   }
 
-  dispose() {
+  dispose() {    
     this._subscription.dispose()
   }
 
@@ -49,7 +49,6 @@ class GDScriptDiagnosticSeverity {
           ...(this.validateExpression(doc)),
           ...(this.validateUnusedSymbols(doc, script)),
         ];
-        // Update diagnostics
         this._subscription.set(doc.uri, diagnostics);
       }
     }
@@ -58,7 +57,7 @@ class GDScriptDiagnosticSeverity {
   private validateUnusedSymbols(doc: vscode.TextDocument,script) {
     let diagnostics = [];
     const text = doc.getText();
-
+    
     const check = (name:string, range: vscode.Range) => {
       const pattern = `[\\s\\+\\-\\*/%\\^\\(\\[\\{]${name}[^0-9A-Za-z_]\\s*`;
       var matchs = text.match(new RegExp(pattern, 'g'));
@@ -69,7 +68,7 @@ class GDScriptDiagnosticSeverity {
     for (let key of Object.keys(script.variables))
       check(key, script.variables[key]);
     for (let key of Object.keys(script.constants))
-      check(key, script.variables[key]);
+      check(key, script.constants[key]);
     return diagnostics;    
   }
 
