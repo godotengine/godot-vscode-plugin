@@ -5,8 +5,18 @@ Tools for Visual Studio Code to make game development better with the [Godot Gam
 The plugin make it is possible to code GDScript with Visual Studio Code feel like in Godot Editor.
 
 * GDScript syntax highlight
-* Static code validating
+* `tres` and `tscn` syntax highlight
 * Code completion
+* Static code validating
+* Run project or opened scene
+
+## Commands
+
+* Update Workspace Symbols
+* Run workspace as godot project
+* Open workspace with godot editor
+* Run current scene
+
 
 ## Requirements
 
@@ -24,6 +34,8 @@ This extension contributes the following settings:
 
 
 * `GodotTools.maxNumberOfProblems`: The maxmum number of problems in your workspace 
+
+*  `GodotTools.editorPath`: The absolute path of your godot editor to run projects and scenes
 
 ## Known Issues
 
