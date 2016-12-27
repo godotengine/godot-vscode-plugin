@@ -91,7 +91,7 @@ class Config {
         methods.map(m=>parsMethod(m, CompletionItemKind.Method));
         // signals
         const signals = classdoc.signals;
-        signals.map(s=>parsMethod(s, CompletionItemKind.Interface, (name)=>`"${name}"`));
+        signals.map(s=>parsMethod(s, CompletionItemKind.Interface));
         // constants
         const constants = classdoc.constants;
         constants.map(c=>{
@@ -121,18 +121,19 @@ class Config {
       let items: CompletionItem[] = [];
       for (let path of Object.keys(this.symbols)) {
         const script = this.symbols[path];
-        const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol")=>{
+        const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol", insertText = (n)=>n)=>{
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
             const item = new CompletionItem(name, kind);
             item.detail = workspace.asRelativePath(path);
+            item.insertText = insertText(name);
             item.documentation = `${kindName} defined in ${item.detail}`;
             _items.push(item);
           }
           return _items;
         }
         items = [...items, ...addScriptItems(script.classes, CompletionItemKind.Class, "Class")];
-        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method")];
+        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method", (t)=>`${t}()`)];
         items = [...items, ...addScriptItems(script.variables, CompletionItemKind.Variable, "Variable")];
         items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
         items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];
