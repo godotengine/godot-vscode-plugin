@@ -109,10 +109,6 @@
       "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
     },
     {
-      "match": "\\b([A-Z_0-9]+)\\b",
-      "name": "constant.other.gdscript"
-    },
-    {
       "captures": {
         "1": {
           "name": "entity.name.type.instance.gdscript"

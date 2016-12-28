@@ -43,6 +43,11 @@ Please feel free to open issues and pull requirests on github about the [Godot-T
 
 ## Release Notes
 
+### 0.1.2
+* Multiline string and `StringName` highlight support
+* Builtin classes, properties, functions and constants highlight support
+* Fix errors in code snipt
+
 ### 0.1.1
 * Better syntax highlit with GDScript
 
