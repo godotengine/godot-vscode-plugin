@@ -1,0 +1,196 @@
+{
+  "fileTypes": [
+    "gd"
+  ],
+  "scopeName": "source.gdscript",
+  "name": "Godot Engine GDScript",
+  "patterns": [
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#const_vars"
+    },
+    {
+      "include": "#self"
+    },
+    {
+      "match": "(#).*$\\n?",
+      "name": "punctuation.definition.comment.gdscript"
+    },
+    {
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|and|in|is|not|or|return|onready|setget|breakpoint)\\b",
+      "name": "keyword.control.gdscript"
+    },
+    {
+      "match": "\\b(&&|!|\\|\\|)\\b",
+      "name": "keyword.operator.logical.gdscript"
+    },
+    {
+      "match": "<=|>=|==|<|>|!=",
+      "name": "keyword.operator.comparison.gdscript"
+    },
+    {
+      "match": "\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*|/|%|\\+|-|<<|>>|&|\\||\\^|~",
+      "name": "keyword.operator.arithmetic.gdscript"
+    },
+    {
+      "match": "=",
+      "name": "keyword.operator.assignment.gdscript"
+    },
+    {
+      "match": "\\b(?i:class|extends|assert|signal)\\b",
+      "name": "keyword.other.gdscript"
+    },
+    {
+      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+      "name": "entity.other.inherited-class.gdscript"
+    },
+    {
+      "match": "\\b(?i:true|false|null)\\b",
+      "name": "constant.language.gdscript"
+    },
+    {
+      "match": "\\b(?i:export|tool|yield)\\b",
+      "name": "storage.modifier.static.gdscript"
+    },
+    {
+      "match": "\\bvar\\b",
+      "name": "storage.type.var.gdscript"
+    },
+    {
+      "match": "(?<![^.]\\.|:)\\b(sin|cos|tan|sinh|cosh|tanh|asin|acos|atan|atan2|sqrt|fmod|fposmod|floor|ceil|round|abs|sign|pow|log|exp|isnan|isinf|ease|decimals|stepify|lerp|dectime|randomize|randi|randf|rand_range|seed|rand_seed|deg2rad|rad2deg|linear2db|db2linear|max|min|clamp|nearest_po2|weakref|funcref|convert|typeof|str|print|printt|prints|printerr|printraw|var2str|str2var|var2bytes|bytes2var|range|load|inst2dict|dict2inst|hash|Color8|print_stack|instance_from_id|preload|yield|assert)\\b(?=(\\()([^)]*)(\\)))",
+      "name": "support.function.gdscript"
+    },
+    {
+      "match": "(?<![^.]\\.|:)\\b(print|set_\\w+|get_\\w+)\\b(?=(\\()([^)]*)(\\)))",
+      "name": "support.function.library.gdscript"
+    },
+    {
+      "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
+      "name": "support.function.any-method.gdscript"
+    },
+    {
+      "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
+      "name": "variable.other.property.gdscript"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "entity.name.type.class.gdscript"
+        }
+      },
+      "match": "(?<=^class)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "storage.type.const.gdscript"
+        },
+        "2": {
+          "name": "constant.other.gdscript"
+        }
+      },
+      "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "entity.name.type.instance.gdscript"
+        },
+        "2": {
+          "name": "keyword.operator.new.gdscript"
+        }
+      },
+      "match": "\\s*\\b(\\w+)\\.(new)\\b"
+    },
+    {
+      "begin": "^\\s*(static)?\\s*(func)\\s+([a-zA-Z_]\\w*)s*(\\()",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.static.gdscript"
+        },
+        "2": {
+          "name": "storage.type.function.gdscript"
+        },
+        "3": {
+          "name": "entity.name.function.gdscript"
+        },
+        "4": {
+          "name": "punctuation.definition.parameters.begin.bracket.round.gdscript"
+        }
+      },
+      "end": "(\\))\\s*:",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.parameters.end.bracket.round.gdscript"
+        }
+      },
+      "patterns": [
+        {
+          "match": "[a-zA-Z_][a-zA-Z_0-9]*",
+          "name": "variable.parameter.function.gdscript"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.definition.parameters.comma.gdscript"
+        },
+        {
+          "match": "\\s*",
+          "name": "punctuation.definition.parameters.space.gdscript"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "self": {
+      "match": "\\bself\\b",
+      "name": "variable.language.gdscript"
+    },
+    "const_vars": {
+      "match": "\\b([A-Z_0-9]+)\\b",
+      "name": "constant.other.gdscript"
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "\"",
+          "end": "(?<!\\\\)\"",
+          "name": "string.quoted.double.gdscript"
+        },
+        {
+          "begin": "'",
+          "end": "(?<!\\\\)'",
+          "name": "string.quoted.single.gdscript"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b(?i:0x\\h*)\\b",
+          "name": "constant.numeric.integer.hexadecimal.gdscript"
+        },
+        {
+          "match": "\\b(?i:(\\d+\\.\\d*(e[\\-\\+]?\\d+)?))\\b",
+          "name": "constant.numeric.float.gdscript"
+        },
+        {
+          "match": "\\b(?i:(\\.\\d+(e[\\-\\+]?\\d+)?))\\b",
+          "name": "constant.numeric.float.gdscript"
+        },
+        {
+          "match": "\\b(?i:(\\d+e[\\-\\+]?\\d+))\\b",
+          "name": "constant.numeric.float.gdscript"
+        },
+        {
+          "match": "\\b\\d+\\b",
+          "name": "constant.numeric.integer.gdscript"
+        }
+      ]
+    }
+  }
+}

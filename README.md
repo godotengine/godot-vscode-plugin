@@ -43,4 +43,8 @@ Please feel free to open issues and pull requirests on github about the [Godot-T
 
 ## Release Notes
 
-### 0.1.0 Initialize publish
+### 0.1.1
+* Better syntax highlit with GDScript
+
+### 0.1.0
+* Initial release
