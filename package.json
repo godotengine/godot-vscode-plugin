@@ -1,8 +1,9 @@
 {
   "name": "godot-tools",
   "displayName": "Godot Tools",
+  "icon": "icon.png",
   "description": "\"Tools for game development with godot game engine\"",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "geequlim",
   "engines": {
     "vscode": "^1.5.0"
@@ -72,7 +73,7 @@
       {
         "language": "gdscript",
         "scopeName": "source.gdscript",
-        "path": "./configrations/GDScript.tmLanguage"
+        "path": "./configrations/GDScript.tmLanguage.json"
       }
     ],
     "snippets": [
