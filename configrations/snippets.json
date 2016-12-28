@@ -7,7 +7,7 @@
 	"Subclass": {
 		"prefix": "class",
 		"body": [
-			"class '$1' extends ${2:Reference}",
+			"class $1 extends ${2:Reference}",
 			"\t$3"
 		]
 	},
