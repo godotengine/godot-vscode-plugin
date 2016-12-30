@@ -17,11 +17,14 @@ class Config {
   // scriptpath : scenepath
   public scriptSceneMap: Object;
   // scenepath : NodeInfo[]
-  private nodeInfoMap: Object;
+  public nodeInfoMap: Object;
+  // symbolname: CompletionItem
+  public builtinSymbolInfoMap: Object;
 
   constructor() {
     this.symbols = {};
     this.bintinSybmolInfoList = [];
+    this.builtinSymbolInfoMap = {};
     this.nodeInfoMap = {};
     this.scriptSceneMap = {};
     this.parser = new GDScriptSymbolParser();
@@ -78,11 +81,13 @@ class Config {
       for (let key of Object.keys(this.classes)) {
         const classdoc = this.classes[key];
         const bintinSybmolInfoList = this.bintinSybmolInfoList;
+        const builtinSymbolInfoMap = this.builtinSymbolInfoMap;
         // class
         const item: CompletionItem = new CompletionItem(classdoc.name, CompletionItemKind.Class);
         item.detail = 'Native Class';
         item.documentation = classdoc.brief_description + " \n\n" +classdoc.description;
         bintinSybmolInfoList.push(item);
+        builtinSymbolInfoMap[classdoc.name] = item;
         // methods
         const methods = classdoc.methods
         const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name+"()")=>{
@@ -100,6 +105,7 @@ class Config {
           mdoc += m.description;
           mi.documentation = mdoc;
           bintinSybmolInfoList.push(mi);
+          builtinSymbolInfoMap[`${classdoc.name}.${m.name}`] = mi;
         };
         methods.map(m=>parsMethod(m, CompletionItemKind.Method));
         // signals
@@ -112,6 +118,7 @@ class Config {
           ci.detail = c.value;
           ci.documentation = `${classdoc.name}.${c.name} = ${c.value}`;
           bintinSybmolInfoList.push(ci);
+          builtinSymbolInfoMap[`${classdoc.name}.${c.name}`] = ci;
         });
         // properties
         const properties = classdoc.properties;
@@ -120,6 +127,7 @@ class Config {
           pi.detail = `${p.type} of ${classdoc.name}`;
           pi.documentation = p.description;
           bintinSybmolInfoList.push(pi);
+          builtinSymbolInfoMap[`${classdoc.name}.${p.name}`] = pi;
         };
         properties.map(p=>parseProp(p));
         // theme_properties

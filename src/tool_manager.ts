@@ -4,6 +4,8 @@ import GDScriptSymbolProvider from './gdscript/symbolprovider';
 import GDScriptWorkspaceSymbolProvider from './gdscript/workspace_symbol_provider';
 import GDScriptCompletionItemProvider from './gdscript/completion';
 import GDScriptDefinitionProivder from './gdscript/definitionprovider';
+import GDScriptHoverProvider from './gdscript/hoverprovider';
+
 var glob = require("glob")
 import config from './config';
 import * as path from 'path';
@@ -37,6 +39,8 @@ class ToolManager {
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
     // definition provider
     vscode.languages.registerDefinitionProvider('gdscript', new GDScriptDefinitionProivder());
+    // hover provider
+    vscode.languages.registerHoverProvider('gdscript', new GDScriptHoverProvider());
     // code completion provider
     vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
     // Commands

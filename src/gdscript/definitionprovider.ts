@@ -12,6 +12,7 @@ import {
 import * as path from 'path';
 import * as fs from 'fs';
 import config from '../config';
+import {isStr, getSelectedContent, getStrContent} from './utils';
 
 class GDScriptDefinitionProivder implements DefinitionProvider {
     constructor() {
@@ -19,22 +20,6 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
     }
 
     provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Definition | Thenable < Definition > {
-        const isStr = (content:string) => (content.startsWith("'") || content.startsWith('"') || content.startsWith('@"') ) && (content.endsWith("'") || content.endsWith('"'));
-        const getSelectedContent = ():string =>{
-            const line = document.lineAt(position);
-            const wordRange = document.getWordRangeAtPosition(position) ;
-            const machs = line.text.match(/[A-z_]+[A-z_0-9]*|".*"|'.*'|@".*"/g)
-            let res = line.text.substring(wordRange.start.character, wordRange.end.character);
-            machs.map(m=>{
-                if(m) {
-                    if(isStr(m)){
-                        res = m;
-                        return;
-                    }
-                }
-            });
-            return res;
-        };
         const getDefinitions = (content: string):Location[]| Location => {
             if(content.startsWith("res://")) {
                 content = content.replace("res://", "");
@@ -57,6 +42,7 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
                         for (let name of Object.keys(items)) {
                             if(name == content) {
                                 _items.push(new Location(Uri.file(path), items[name]));
+                                break;
                             }
                         }
                         return _items;
@@ -72,13 +58,12 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
                 return locations;
             }
         };
-
-
-        let selStr = getSelectedContent();
+        
+        let selStr = getSelectedContent(document, position);
         if(selStr) {
             // For strings
             if(isStr(selStr)) {
-                selStr = selStr.replace(/"|'|@"/g,"");
+                selStr =  getStrContent(selStr);
                 let fpath = path.join(path.dirname(document.uri.fsPath), selStr)
                 console.log(fpath);
                 if(fs.existsSync(fpath) && fs.statSync(fpath).isFile())
