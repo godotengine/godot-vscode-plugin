@@ -65,7 +65,6 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
             if(isStr(selStr)) {
                 selStr =  getStrContent(selStr);
                 let fpath = path.join(path.dirname(document.uri.fsPath), selStr)
-                console.log(fpath);
                 if(fs.existsSync(fpath) && fs.statSync(fpath).isFile())
                     selStr = fpath
             }

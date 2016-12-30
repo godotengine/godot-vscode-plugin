@@ -9,6 +9,8 @@ The plugin make it is possible to code GDScript with Visual Studio Code feel lik
 * Code completion
 * Static code validating
 * Run project or opened scene
+* Hover to show documentations, definition and so on
+* Go to difinitions with Ctrl+Click or show all definition in workspace
 
 ## Commands
 
@@ -42,6 +44,12 @@ This extension contributes the following settings:
 Please feel free to open issues and pull requirests on github about the [Godot-Tools](https://github.com/GodotExplorer/godot-tools) plugin and [the modules](https://github.com/GodotExplorer/editor-server). 
 
 ## Release Notes
+
+### 0.1.3
+
+* Better syntax highlight for GDScript
+* Add mouse hover information support
+* Add definition provider for GDScript
 
 ### 0.1.2
 * Multiline string and `StringName` highlight support

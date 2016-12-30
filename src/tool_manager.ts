@@ -153,11 +153,8 @@ class ToolManager {
     let scenePath = null
     if(vscode.window.activeTextEditor)
       scenePath = vscode.workspace.asRelativePath(vscode.window.activeTextEditor.document.uri);
-    console.log("======================", scenePath);
-    console.log(Object.keys(config.scriptSceneMap).toString());
     if(scenePath.endsWith(".gd"))
       scenePath = config.scriptSceneMap[config.normalizePath(scenePath)];
-    console.log("======================", scenePath);
     if(scenePath && (scenePath.endsWith(".tscn") || scenePath.endsWith(".scn"))) {
       scenePath = ` res://${scenePath} `;
       this.openWorkspaceWithEditor(scenePath);
