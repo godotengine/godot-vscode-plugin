@@ -178,7 +178,6 @@ class Config {
   }
 
   loadScene(scenePath: string) {
-    console.log(scenePath);
     if(fs.existsSync(scenePath) && fs.statSync(scenePath).isFile()) {
       try {
         const content: string = fs.readFileSync(scenePath, 'utf-8');

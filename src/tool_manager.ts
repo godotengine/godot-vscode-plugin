@@ -3,6 +3,7 @@ import godotRequest from './request';
 import GDScriptSymbolProvider from './gdscript/symbolprovider';
 import GDScriptWorkspaceSymbolProvider from './gdscript/workspace_symbol_provider';
 import GDScriptCompletionItemProvider from './gdscript/completion';
+import GDScriptDefinitionProivder from './gdscript/definitionprovider';
 var glob = require("glob")
 import config from './config';
 import * as path from 'path';
@@ -34,6 +35,8 @@ class ToolManager {
     // workspace symbol provider
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
+    // definition provider
+    vscode.languages.registerDefinitionProvider('gdscript', new GDScriptDefinitionProivder());
     // code completion provider
     vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
     // Commands
