@@ -2,7 +2,7 @@ A complete set of tools to code games with the [Godot game engine](http://www.go
 
 ## Features
 
-_The plug-in comes with a wealth of features to make your programming experience as comfortable as possible._
+The plug-in comes with a wealth of features to make your programming experience as comfortable as possible
 
 - Syntax highlighting for the GDscript language
 - Syntax highlighting for the tscn and tres scene formats
@@ -14,7 +14,7 @@ _The plug-in comes with a wealth of features to make your programming experience
 
 ## Available commands
 
-The plug-ins adds a few entries to the command palette.
+The plug-ins adds a few entries to the command palette
 
 - Update Workspace Symbols
 - Run workspace as godot project
