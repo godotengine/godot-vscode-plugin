@@ -1,63 +1,72 @@
-Tools for Visual Studio Code to make game development better with the [Godot Game Engine](http://www.godotengine.org/).
+A complete set of tools to code games with the [Godot game engine](http://www.godotengine.org/) in Visual Studio Code.
 
 ## Features
 
-The plugin make it is possible to code GDScript with Visual Studio Code feel like in Godot Editor.
+_The plug-in comes with a wealth of features to make your programming experience as comfortable as possible._
 
-* GDScript syntax highlight
-* `tres` and `tscn` syntax highlight
-* Code completion
-* Static code validating
-* Run project or opened scene
-* Hover to show documentations, definition and so on
-* Go to difinitions with Ctrl+Click or show all definition in workspace
+- Syntax highlighting for the GDscript language
+- Syntax highlighting for the tscn and tres scene formats
+- Function definitions and documentation on hover
+- Rich auto completion
+- Static code validation
+- Open projects and scenes in Godot from VScode
+- Ctrl click on a variable or method call to jump to its definition (_new in 0.1.3_)
 
-## Commands
+## Available commands
 
-* Update Workspace Symbols
-* Run workspace as godot project
-* Open workspace with godot editor
-* Run current scene
+The plug-ins adds a few entries to the command palette.
 
+- Update Workspace Symbols
+- Run workspace as godot project
+- Open workspace with godot editor
+- Run current scene
 
-## Requirements
+## Settings
 
-Optional modules for godot editor should improve the functionality of the tools 
+You can use the following settings to setup the Godot Tools:
 
-* [EditorServer](https://github.com/GodotExplorer/editor-server/tree/master/editor_server) provide a informations from godot editor by HTTP requirests
-* [VSCode](https://github.com/GodotExplorer/editor-server/tree/master/vscode_tools) to generate settings for your projects into `.vscode` which could be used by this plugin
-* [TOML](https://marketplace.visualstudio.com/items?itemName=be5invis.toml) language for syntax highlight with text resources
-
-## Extension Settings
-
-This extension contributes the following settings:
-
-* `GodotTools.editorServerPort`: The http server port of the EditorServer module plugin 
+- GodotTools.editorServerPort: The http server port used by the EditorServer Godot module (_see Extra Functionality below_)
+- GodotTools.maxNumberOfProblems: Sets the limit for the issues reported by the static code validator
+- GodotTools.editorPath: An absolute path pointing at the Godot Editor executable file. Required to run the project and test scenes from VScode
 
 
-* `GodotTools.maxNumberOfProblems`: The maxmum number of problems in your workspace 
+## Extra functionality
 
-*  `GodotTools.editorPath`: The absolute path of your godot editor to run projects and scenes
+If you want to get an even better experience with this plug-in, you can extend its functionality using the following modules and VScode extensions:
 
-## Known Issues
+### Godot modules
 
-Please feel free to open issues and pull requirests on github about the [Godot-Tools](https://github.com/GodotExplorer/godot-tools) plugin and [the modules](https://github.com/GodotExplorer/editor-server). 
+These are modules for the goats editor itself, programmed in C++. In order to use them, you have to create a [custom build](http://docs.godotengine.org/en/stable/reference/compiling_for_windows.html) of the engine. Only do that if you know what you're doing.
+
+- [EditorServer](https://github.com/GodotExplorer/editor-server/tree/master/editor_server): Using HTTP requests, this module gets extra information from Godot to improve autocompletion.
+- [VSCode](https://github.com/GodotExplorer/editor-server/tree/master/vscode_tools): The VS code module generates a setting file that Visual Studio code can use to generate Tasks automatically.
+
+### VScode extensions
+
+- [TOML language](https://marketplace.visualstudio.com/items?itemName=be5invis.toml): Godot uses this minimal language to store settings. For example in your project config file. If you want to get syntax highlighting for these files, you will have to install the TOML language extension.
+
+## Issues and contributions
+
+The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [engine modules](https://github.com/GodotExplorer/editor-server) are all hosted on GitHub. Feel free to open issues there and create pull requests anytime.
 
 ## Release Notes
 
 ### 0.1.3
 
-* Better syntax highlight for GDScript
-* Add mouse hover information support
-* Add definition provider for GDScript
+- Better syntax highlight for GDScript
+- Add mouse hover information support
+- Add definition provider for GDScript
 
 ### 0.1.2
-* Multiline string and `StringName` highlight support
-* Builtin classes, properties, functions and constants highlight support
-* Fix errors in code snipt
+
+- Multiline string and StringName highlight support
+- Builtin classes, properties, functions and constants highlight support
+- Fix errors in code snipt
 
 ### 0.1.1
-* Better syntax highlit with GDScript
+
+- Better syntax highlit with GDScript
 
 ### 0.1.0
-* Initial release
+
+- Initial release
