@@ -5,6 +5,7 @@ import GDScriptWorkspaceSymbolProvider from './gdscript/workspace_symbol_provide
 import GDScriptCompletionItemProvider from './gdscript/completion';
 import GDScriptDefinitionProivder from './gdscript/definitionprovider';
 import GDScriptHoverProvider from './gdscript/hoverprovider';
+import GDScriptDocumentContentProvider from './gdscript/docprovider';
 
 var glob = require("glob")
 import config from './config';
@@ -23,7 +24,8 @@ class ToolManager {
   constructor(context: vscode.ExtensionContext) {
     this._context = context;
     this.workspaceDir = vscode.workspace.rootPath;
-    if(this.workspaceDir) {
+    if(vscode.workspace && this.workspaceDir) {
+      vscode.workspace.registerTextDocumentContentProvider('godotdoc', new GDScriptDocumentContentProvider());
       this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
       this.loadWorkspaceSymbols();
     }

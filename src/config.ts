@@ -18,7 +18,7 @@ class Config {
   public scriptSceneMap: Object;
   // scenepath : NodeInfo[]
   public nodeInfoMap: Object;
-  // symbolname: CompletionItem
+  // symbolname: {completionItem: CompletionItem, rowDoc: docdata}
   public builtinSymbolInfoMap: Object;
 
   constructor() {
@@ -87,7 +87,7 @@ class Config {
         item.detail = 'Native Class';
         item.documentation = classdoc.brief_description + " \n\n" +classdoc.description;
         bintinSybmolInfoList.push(item);
-        builtinSymbolInfoMap[classdoc.name] = item;
+        builtinSymbolInfoMap[classdoc.name] = {completionItem: item, rowDoc: classdoc};
         // methods
         const methods = classdoc.methods
         const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name+"()")=>{
@@ -105,7 +105,7 @@ class Config {
           mdoc += m.description;
           mi.documentation = mdoc;
           bintinSybmolInfoList.push(mi);
-          builtinSymbolInfoMap[`${classdoc.name}.${m.name}`] = mi;
+          builtinSymbolInfoMap[`${classdoc.name}.${m.name}`] = {completionItem: mi, rowDoc: m};
         };
         methods.map(m=>parsMethod(m, CompletionItemKind.Method));
         // signals
@@ -118,7 +118,7 @@ class Config {
           ci.detail = c.value;
           ci.documentation = `${classdoc.name}.${c.name} = ${c.value}`;
           bintinSybmolInfoList.push(ci);
-          builtinSymbolInfoMap[`${classdoc.name}.${c.name}`] = ci;
+          builtinSymbolInfoMap[`${classdoc.name}.${c.name}`] = {completionItem: ci, rowDoc: c};
         });
         // properties
         const properties = classdoc.properties;
@@ -127,7 +127,7 @@ class Config {
           pi.detail = `${p.type} of ${classdoc.name}`;
           pi.documentation = p.description;
           bintinSybmolInfoList.push(pi);
-          builtinSymbolInfoMap[`${classdoc.name}.${p.name}`] = pi;
+          builtinSymbolInfoMap[`${classdoc.name}.${p.name}`] = {completionItem: pi, rowDoc: p};
         };
         properties.map(p=>parseProp(p));
         // theme_properties
@@ -245,6 +245,15 @@ class Config {
 
   getClass(name: string) {
     return this.classes[name];
+  }
+
+  getBuiltinClassNameList() {
+    let namelist = null;
+    if(this.classes)
+      namelist = Object.keys(this.classes);
+    if(!namelist)
+      namelist = [];
+    return namelist;
   }
 
 };

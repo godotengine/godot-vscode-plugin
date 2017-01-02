@@ -55,6 +55,10 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
                     locations = [...locations, ...scriptitems];
                 }
                 // check from builtin
+                if(config.getClass(content) != null) {
+                    const uri = encodeURI('command:vscode.previewHtml?' + JSON.stringify(Uri.parse(`godotdoc://${content}`)));
+                    locations.push(new Location(Uri.parse(uri), new Range(0,0,0,0)));
+                }
                 return locations;
             }
         };
