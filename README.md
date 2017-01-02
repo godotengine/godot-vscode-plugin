@@ -12,6 +12,8 @@ The plug-in comes with a wealth of features to make your programming experience 
 - Open projects and scenes in Godot from VScode
 - Ctrl click on a variable or method call to jump to its definition (_new in 0.1.3_)
 
+[Showing the documentation on hover feature](godot-tools/img/documentation on hover.png)
+
 ## Available commands
 
 The plug-ins adds a few entries to the command palette
