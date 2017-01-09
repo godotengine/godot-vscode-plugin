@@ -35,29 +35,30 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         const request = uri.authority;
         let classname = request;
         let membername = null;
-       
-        if(request.indexOf(".") != -1) {
-            classname = request.substring(0, request.indexOf("."));
-            if(!request.endsWith("."))
-                membername = request.substring(request.indexOf(".")+1, request.length);
-        }
-        if(classname.length >= 1) {
-            for(let key of config.getBuiltinClassNameList()) {
-                if(key.toLowerCase() == classname) {
-                    classname = key;
-                    break;
+        const self = this;
+        return new Promise((resolve, reject) => {
+            if(request.indexOf(".") != -1) {
+                classname = request.substring(0, request.indexOf("."));
+                if(!request.endsWith("."))
+                    membername = request.substring(request.indexOf(".")+1, request.length);
+            }
+            if(classname.length >= 1) {
+                for(let key of config.getBuiltinClassNameList()) {
+                    if(key.toLowerCase() == classname) {
+                        classname = key;
+                        break;
+                    }
                 }
             }
-        }
 
-        console.log(classname, membername);
-        if(classname && classname.length > 0) {
-            if(membername && membername.length >0 )
-                return this.genMemberDoc(classname, membername);
-            else
-                return this.genClassDoc(config.getClass(classname));
-        }
-        return null;
+            if(classname && classname.length > 0) {
+                if(membername && membername.length >0 )
+                    resolve(self.genMemberDoc(classname, membername)) ;
+                else
+                    resolve(self.genClassDoc(config.getClass(classname)));
+            }
+            reject(new Error("Open Documentation Failed!"));
+        });
     }
 
     genMethodDoc(mDoc:any):string {

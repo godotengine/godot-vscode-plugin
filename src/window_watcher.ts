@@ -40,7 +40,7 @@ class WindowWatcher {
     if(window.activeTextEditor != undefined) { 
       const doc = window.activeTextEditor.document;
       const script = config.loadSymbolsFromFile(doc.fileName);
-      this._diagnosticSeverity.validateScript(doc, script);
+      this._diagnosticSeverity.validateScript(doc, script).then(()=>{});
       this._lastText = {path: doc.fileName, version: doc.version};
     }
   }
@@ -55,7 +55,7 @@ class WindowWatcher {
     // Check content changed
     if(this._lastText.path != curText.path || this._lastText.version != curText.version) {
       const script = config.loadSymbolsFromFile(doc.fileName);
-      this._diagnosticSeverity.validateScript(doc, script);
+      this._diagnosticSeverity.validateScript(doc, script).then(()=>{});
       this._lastText = curText;
     }
   }

@@ -63,18 +63,21 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
             }
         };
         
-        let selStr = getSelectedContent(document, position);
-        if(selStr) {
-            // For strings
-            if(isStr(selStr)) {
-                selStr =  getStrContent(selStr);
-                let fpath = path.join(path.dirname(document.uri.fsPath), selStr)
-                if(fs.existsSync(fpath) && fs.statSync(fpath).isFile())
-                    selStr = fpath
+        return new Promise((resolve, reject) => {
+            let selStr = getSelectedContent(document, position);
+            if(selStr) {
+                // For strings
+                if(isStr(selStr)) {
+                    selStr =  getStrContent(selStr);
+                    let fpath = path.join(path.dirname(document.uri.fsPath), selStr)
+                    if(fs.existsSync(fpath) && fs.statSync(fpath).isFile())
+                        selStr = fpath
+                }
+                resolve(getDefinitions(selStr));
             }
-            return getDefinitions(selStr);
-        }
-        return null;
+            else
+                reject(new Error("Empty selection"));
+        });
     }
 }
 

@@ -35,37 +35,13 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
   }
 
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
-    // console.log("[GodotTools]:provideCompletionItems");
-    // const request: CompleteRequest = {
-    //   path: config.normalizePath(document.fileName),
-    //   text: document.getText(),
-    //   cursor: {
-    //     row: position.line + 1,
-    //     column: position.character + 1
-    //   }
-    // };
-    // return new Promise((resolve, reject) => {
-    //   requestGodot({
-    //     action: "codecomplete",
-    //     request
-    //   }).then((data: any)=>{
-    //     const result: CompletionResult = data.result;
-    //     if(result && result.suggestions && result.suggestions.length > 0) {
-    //       const items:CompletionItem[] = [];
-    //       result.suggestions.map((label, i)=>{
-    //         items.push(new CompletionItem(label, CompletionItemKind.Field));
-    //       });
-    //       resolve(items);
-    //     }
-    //     else
-    //       reject("Nothing to complete");
-    //   }).catch(e=>{
-    //     reject(e);
-    //   });
-    // });
-    let items:CompletionItem[] = config.getWorkspaceCompletionItems();
-    items = [...items, ...config.bintinSybmolInfoList];
-    return items;
+    
+    return new Promise((resolve, reject) => {
+        let items:CompletionItem[] = config.getWorkspaceCompletionItems();
+        items = [...items, ...config.bintinSybmolInfoList];
+        resolve(items);
+    });
+    
   }
 
   resolveCompletionItem(item : CompletionItem, token : CancellationToken) : CompletionItem | Thenable < CompletionItem > {

@@ -41,17 +41,18 @@ class GDScriptDiagnosticSeverity {
     this._subscription.dispose()
   }
 
-  validateScript(doc: vscode.TextDocument, script: any) {
+  async validateScript(doc: vscode.TextDocument, script: any) {
     if(doc.languageId == 'gdscript') {
       if(script) {
-        
         let diagnostics = [
           ...(this.validateExpression(doc)),
           ...(this.validateUnusedSymbols(doc, script)),
         ];
         this._subscription.set(doc.uri, diagnostics);
+        return true;
       }
     }
+    return false;
   }
 
   private validateUnusedSymbols(doc: vscode.TextDocument,script) {
