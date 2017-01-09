@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.1.4
+
+* Add documentation support for builtin Symbols.
+* Improve speed of syntax parsing and other actions
+
 ### 0.1.3
 
 * Better syntax highlight for GDScript
