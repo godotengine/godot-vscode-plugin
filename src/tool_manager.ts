@@ -6,7 +6,7 @@ import GDScriptCompletionItemProvider from './gdscript/completion';
 import GDScriptDefinitionProivder from './gdscript/definitionprovider';
 import GDScriptHoverProvider from './gdscript/hoverprovider';
 import GDScriptDocumentContentProvider from './gdscript/docprovider';
-
+import GDScriptSignatureHelpProvider from './gdscript/signature_helper';
 var glob = require("glob")
 import config from './config';
 import * as path from 'path';
@@ -45,6 +45,8 @@ class ToolManager {
     vscode.languages.registerHoverProvider('gdscript', new GDScriptHoverProvider());
     // code completion provider
     vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
+    // signature help provider
+    vscode.languages.registerSignatureHelpProvider('gdscript', new GDScriptSignatureHelpProvider(), '(', ',');
     // Commands
     this._disposable = vscode.Disposable.from(
       vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this)),

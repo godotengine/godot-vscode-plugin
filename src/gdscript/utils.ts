@@ -29,3 +29,13 @@ export function getStrContent(rawstr: string):string {
     }
     return ss;
 }
+
+export function countSubStr(str:string, sub:string): number {
+    let count = 0;
+    let pos = str.indexOf(sub);
+    while (pos !== -1) {
+        count++;
+        pos = str.indexOf(sub, pos + sub.length);
+    }
+    return count;
+}

@@ -20,6 +20,8 @@ class Config {
   public nodeInfoMap: Object;
   // symbolname: {completionItem: CompletionItem, rowDoc: docdata}
   public builtinSymbolInfoMap: Object;
+  // path.function: signature
+  public workspaceMethodSignatureMap: Object;
 
   constructor() {
     this.symbols = {};
@@ -90,7 +92,7 @@ class Config {
         builtinSymbolInfoMap[classdoc.name] = {completionItem: item, rowDoc: classdoc};
         // methods
         const methods = classdoc.methods
-        const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name+"()")=>{
+        const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name)=>{
           const mi = new CompletionItem(m.name, kind);
           mi.insertText = insertAction(m.name)
           mi.filterText = m.name
@@ -154,7 +156,7 @@ class Config {
           return _items;
         }
         items = [...items, ...addScriptItems(script.classes, CompletionItemKind.Class, "Class")];
-        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method", (t)=>`${t}()`)];
+        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method", (f)=>f+`${script.signatures[f]}`)];
         items = [...items, ...addScriptItems(script.variables, CompletionItemKind.Variable, "Variable")];
         items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
         items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];

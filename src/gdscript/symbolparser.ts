@@ -8,7 +8,8 @@ interface GDScript {
   signals: {},
   classes: {},
   base: string,
-  native: string
+  native: string,
+  signatures: {}
 }
 
 class GDScriptSymbolParser {
@@ -23,7 +24,8 @@ class GDScriptSymbolParser {
         signals: {},
         classes: {},
         base: "Object",
-        native: "Object"
+        native: "Object",
+        signatures: {}
     }
     const text  = content;
     const lines = text.split(/\r?\n/);
@@ -66,8 +68,18 @@ class GDScriptSymbolParser {
     
     let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
     const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(");
-    for (let key of Object.keys(funcs))
-      script.functions[key] = determRange(key, funcs);
+    for (let key of Object.keys(funcs)) {
+      let r: Range = determRange(key, funcs);
+      script.functions[key] = r;
+      const line = lines[r.start.line];
+      if(line.indexOf("(")!= -1 && line.indexOf(")")!=-1) {
+        const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
+        if(signature && signature.length >0) {
+          script.signatures[key] = signature;
+          // console.log(key, signature);
+        }
+      }
+    }
     
     let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
     const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(");
