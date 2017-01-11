@@ -76,15 +76,23 @@ class GDScriptSymbolParser {
         const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
         if(signature && signature.length >0) {
           script.signatures[key] = signature;
-          // console.log(key, signature);
         }
       }
     }
     
     let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
     const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(");
-    for (let key of Object.keys(signals))
-      script.signals[key] = determRange(key, signals);
+    for (let key of Object.keys(signals)) {
+      let r: Range = determRange(key, signals);
+      script.signals[key] = r;
+      const line = lines[r.start.line];
+      if(line.indexOf("(")!= -1 && line.indexOf(")")!=-1) {
+        const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
+        if(signature && signature.length >0) {
+          script.signatures[key] = signature;
+        }
+      }
+    }
 
     let varnames = getMatches(text, /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
     const vars = findLineRanges(varnames, "var\\s+$X$\\s*");

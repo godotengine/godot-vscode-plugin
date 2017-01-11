@@ -1,5 +1,11 @@
 # Change Log
 
+### 0.1.5
+
+* Add function signature hint support
+* Better syntax grammar checking
+* Better hover hint message for workspace methods and signals
+
 ### 0.1.4
 
 * Add documentation support for builtin Symbols.
