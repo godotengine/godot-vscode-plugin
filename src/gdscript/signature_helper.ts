@@ -6,13 +6,21 @@ import {
   SignatureInformation,
   SignatureHelp,
   CompletionItemKind,
-  ParameterInformation
+  ParameterInformation,
+  workspace
 } from 'vscode';
 import config from '../config';
 import { countSubStr } from './utils';
 class GDScriptSignatureHelpProvider implements SignatureHelpProvider {
   constructor() {}
 
+  provideSignatureHelp(document : TextDocument, position : Position, token : CancellationToken) : SignatureHelp | Thenable < SignatureHelp > {
+    const self = this;
+    return new Promise((resolve, reject) => {
+      const res = self.do_provideSignatureHelp(document, position);
+      resolve(res);
+    });
+  }
   /**
    * Provide help for the signature at the given position and document.
    *
@@ -22,7 +30,7 @@ class GDScriptSignatureHelpProvider implements SignatureHelpProvider {
    * @return Signature help or a thenable that resolves to such. The lack of a result can be
    * signaled by returning `undefined` or `null`.
    */
-  provideSignatureHelp(document : TextDocument, position : Position, token : CancellationToken) : SignatureHelp | Thenable < SignatureHelp > {
+  do_provideSignatureHelp(document : TextDocument, position : Position) : SignatureHelp | Thenable < SignatureHelp > {
     const range = document.getWordRangeAtPosition(position);
     let funcname = "";
     let curparam = 0;
@@ -47,11 +55,7 @@ class GDScriptSignatureHelpProvider implements SignatureHelpProvider {
 
     checkPosition();
 
-    let help: SignatureHelp = {
-      signatures: [],
-      activeSignature: 0,
-      activeParameter: curparam
-    };
+    let resultSignatures: SignatureInformation[] = [];
 
     if (funcname.length > 0) {
       // Builtin functions
@@ -65,27 +69,38 @@ class GDScriptSignatureHelpProvider implements SignatureHelpProvider {
               let param: ParameterInformation = new ParameterInformation(`${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value:''}`, "");
               signatureInfor.parameters.push(param);
             }
-            help.signatures.push(signatureInfor);
+            resultSignatures.push(signatureInfor);
           }
         }
       }
       // workspace functions
-    //   for (let path of Object.keys(config.getAllSymbols())) {
-    //       const script = config.getSymbols(path);
-    //       for(let f of Object.keys(script.signatures)) {
-    //         if(f == funcname) {
-    //           let signatureInfor: SignatureInformation = new SignatureInformation(`func ${f}${script.signatures[f]}`, `Method defined in ${path}`);
-    //           let param: ParameterInformation = new ParameterInformation(script.signatures[f], "");
-    //           signatureInfor.parameters.push(param);
-    //           help.signatures.push(signatureInfor);
-    //         }
-    //       }
-    //   }
-    
+      for (let path of Object.keys(config.getAllSymbols())) {
+          let script = config.getSymbols(path);
+          if(!script.signatures)
+            continue
+          let relaPath = path;
+          if(workspace && workspace.rootPath)
+            relaPath = workspace.asRelativePath(relaPath);
+          
+          for(let f of Object.keys(script.signatures)) {
+            if(f == funcname) {
+              const signatureStr = script.signatures[f];
+              let signature: SignatureInformation = new SignatureInformation(`func ${f}${signatureStr}`, `Method defined in ${relaPath}`);
+              const params = (signatureStr.substring(signatureStr.indexOf("(")+1, signatureStr.indexOf(")"))).split(",");
+              for(let p of params)
+                signature.parameters.push(new ParameterInformation(p, ""));
+              resultSignatures.push(signature);
+            }
+          }
+      }
     }
-    if(help.signatures.length>0)
-      return help;
-
+    if(resultSignatures.length > 0) {
+      return ({
+        signatures: resultSignatures,
+        activeSignature: 0,
+        activeParameter: curparam
+      });
+    }
     return null
 }
 
