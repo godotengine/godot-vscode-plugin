@@ -53,6 +53,12 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.1.6
+
+* Reorder mouse hover tips, builtin methods are at top of workspace methods
+* Show callabel signatures with documente symbols and workspace symbols
+* Syntax highlight support for signal paramaters
+
 ### 0.1.5
 
 * Add function signature hint support
