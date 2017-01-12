@@ -53,6 +53,12 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.1.8
+
+* Show signatures on completion label
+* More reliable unused variable and constant checking in documente
+* Show workspace documentations and function signatures in completions
+
 ### 0.1.7
 
 * Show documentations parsed from GDScripts in hover tips
