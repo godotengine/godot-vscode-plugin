@@ -148,7 +148,8 @@ class Config {
             const item = new CompletionItem(name, kind);
             item.detail = workspace.asRelativePath(path);
             item.insertText = insertText(name);
-            item.documentation = `${kindName} defined in ${item.detail}`;
+            item.documentation = (script.documents && script.documents[name])?script.documents[name]+"\r\n":"";
+            item.documentation += `${kindName} defined in ${item.detail}`;
             _items.push(item);
           }
           return _items;

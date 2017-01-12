@@ -121,7 +121,10 @@ class GDScriptSymbolParser {
     for (let key of Object.keys(vars)){
       const r:Range = determRange(key, vars)
       script.variables[key] = r;
-      script.documents[key] = parseDocument(r);
+      let newdoc = parseDocument(r);
+      if(newdoc == "" && script.documents[key])
+        newdoc = script.documents[key];
+      script.documents[key] = newdoc;
     }
     
     let constnames = getMatches(text, /const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
@@ -129,7 +132,10 @@ class GDScriptSymbolParser {
     for (let key of Object.keys(consts)){
       const r:Range = determRange(key, consts)
       script.constants[key] = r;
-      script.documents[key] = parseDocument(r);
+      let newdoc = parseDocument(r);
+      if(newdoc == "" && script.documents[key])
+        newdoc = script.documents[key];
+      script.documents[key] = newdoc;
     }
     
     let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/g, 1);

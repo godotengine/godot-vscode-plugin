@@ -60,9 +60,11 @@ class GDScriptDiagnosticSeverity {
     const text = doc.getText();
     
     const check = (name:string, range: vscode.Range) => {
-      const pattern = `[^0-9A-Za-z_]\\s*${name}[^0-9A-Za-z_]\\s*`;
-      var matchs = text.match(new RegExp(pattern, 'g'));
-      if(matchs.length <= 1)
+      var matchs = text.match(new RegExp(`[^0-9A-Za-z_]\\s*${name}[^0-9A-Za-z_]\\s*`, 'g'));
+      let count = matchs?matchs.length:0;
+      var incomment = text.match(new RegExp(`#[^0-9A-z_]*${name}[^0-9A-z_]`, 'g'));
+      count -= incomment?incomment.length:0;
+      if(count <= 1)
         diagnostics.push(new vscode.Diagnostic(range, `${name} is never used.`, DiagnosticSeverity.Warning));
     };
     // Unused variables
