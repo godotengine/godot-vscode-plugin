@@ -53,6 +53,10 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.1.7
+
+* Show documentations parsed from GDScripts in hover tips
+
 ### 0.1.6
 
 * Reorder mouse hover tips, builtin methods are at top of workspace methods
