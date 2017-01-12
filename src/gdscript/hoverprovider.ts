@@ -45,11 +45,14 @@ class GDScriptHoverProvider implements HoverProvider {
                             let dfile = path;
                             if (workspace && workspace.asRelativePath(dfile))
                                 dfile = workspace.asRelativePath(dfile);
-                            let extra = "";
+                            let signature = "";
                             if(type == "func"|| type == "signal" && script.signatures[name])
-                                extra = script.signatures[name];
-                            _items.push({language:'gdscript', value:`${type} ${name}${extra}`});
-                            _items.push(`Defined in *[${dfile}](${Uri.file(path).toString()})*`)
+                                signature = script.signatures[name];
+                            _items.push({language:'gdscript', value:`${type} ${name}${signature}`});
+                            let doc = script.documents[name];
+                            doc = doc?doc+"\r\n\r\n":"";
+                            doc += `*Defined in [${dfile}](${Uri.file(path).toString()}).*`
+                            _items.push(doc)
                             break;
                         }
                     }

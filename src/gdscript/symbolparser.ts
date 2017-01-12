@@ -9,7 +9,9 @@ interface GDScript {
   classes: {},
   base: string,
   native: string,
-  signatures: {}
+  signatures: {},
+  // symbol: marked string
+  documents: {}
 }
 
 class GDScriptSymbolParser {
@@ -25,7 +27,8 @@ class GDScriptSymbolParser {
         classes: {},
         base: "Object",
         native: "Object",
-        signatures: {}
+        signatures: {},
+        documents: {}
     }
     const text  = content;
     const lines = text.split(/\r?\n/);
@@ -65,19 +68,43 @@ class GDScriptSymbolParser {
       if(startAt < 0) startAt = 0;
       return new Range(line, startAt, line, startAt + key.length);
     };
+
+    const parseSignature = (range: Range):string => {
+      let res = "";
+      const line = lines[range.start.line];
+      if(line.indexOf("(")!= -1 && line.indexOf(")")!=-1) {
+        const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
+        if(signature && signature.length >0)
+          res = signature;
+      }
+      return res;
+    };
+
+    const parseDocument = (range: Range):string => {
+      let mdoc = ""
+      let line = range.start.line;
+      while( line > 0){
+        const linecontent = lines[line];
+        let match = linecontent.match(/\s*#\s*(.*)/);
+        const commentAtEnd = linecontent.match(/[A-z0-8,\[\{]+\s*#\s*(.*)/);
+        if(!match && line != range.start.line)
+          break;
+        if(commentAtEnd && line != range.start.line)
+          break;
+        if(match)
+          mdoc = match[1] + "\r\n\r\n" + mdoc;
+        --line;
+      }
+      return mdoc;
+    }
     
     let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
     const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(");
     for (let key of Object.keys(funcs)) {
       let r: Range = determRange(key, funcs);
       script.functions[key] = r;
-      const line = lines[r.start.line];
-      if(line.indexOf("(")!= -1 && line.indexOf(")")!=-1) {
-        const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
-        if(signature && signature.length >0) {
-          script.signatures[key] = signature;
-        }
-      }
+      script.signatures[key] = parseSignature(r);
+      script.documents[key] = parseDocument(r);
     }
     
     let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
@@ -85,29 +112,33 @@ class GDScriptSymbolParser {
     for (let key of Object.keys(signals)) {
       let r: Range = determRange(key, signals);
       script.signals[key] = r;
-      const line = lines[r.start.line];
-      if(line.indexOf("(")!= -1 && line.indexOf(")")!=-1) {
-        const signature = line.substring(line.indexOf("("), line.indexOf(")")+1);
-        if(signature && signature.length >0) {
-          script.signatures[key] = signature;
-        }
-      }
+      script.signatures[key] = parseSignature(r);
+      script.documents[key] = parseDocument(r);
     }
 
     let varnames = getMatches(text, /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
     const vars = findLineRanges(varnames, "var\\s+$X$\\s*");
-    for (let key of Object.keys(vars))
-      script.variables[key] = determRange(key, vars);
+    for (let key of Object.keys(vars)){
+      const r:Range = determRange(key, vars)
+      script.variables[key] = r;
+      script.documents[key] = parseDocument(r);
+    }
     
     let constnames = getMatches(text, /const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
     const consts = findLineRanges(constnames, "const\\s+$X$\\s*");
-    for (let key of Object.keys(consts))
-      script.constants[key] = determRange(key, consts);
+    for (let key of Object.keys(consts)){
+      const r:Range = determRange(key, consts)
+      script.constants[key] = r;
+      script.documents[key] = parseDocument(r);
+    }
     
     let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/g, 1);
     const classes = findLineRanges(classnames, "class\\s+$X$\\s*extends\\s+");
-    for (let key of Object.keys(classes))
+    for (let key of Object.keys(classes)) {
+      const r:Range = determRange(key, classes)
       script.classes[key] = determRange(key, classes);
+      script.documents[key] = parseDocument(r);
+    }
 
     return script;
   }
