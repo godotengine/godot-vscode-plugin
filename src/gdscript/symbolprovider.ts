@@ -21,15 +21,16 @@ class GDScriptSymbolProvider implements DocumentSymbolProvider {
 
     const symbols: SymbolInformation[] = [];
     const script = this.parser.parseContent(document.getText());
+    const signatures = script.signatures;
     config.setSymbols(document.fileName, script);
 
     const funcs = script.functions;
     for (let key of Object.keys(funcs))
-      symbols.push(new SymbolInformation(key, SymbolKind.Function, funcs[key]));
+      symbols.push(new SymbolInformation(key+signatures[key], SymbolKind.Function, funcs[key]));
     
     const signals = script.signals;
     for (let key of Object.keys(signals))
-      symbols.push(new SymbolInformation(key, SymbolKind.Interface, signals[key]));
+      symbols.push(new SymbolInformation(key+signatures[key], SymbolKind.Interface, signals[key]));
 
     const vars = script.variables;
     for (let key of Object.keys(vars))

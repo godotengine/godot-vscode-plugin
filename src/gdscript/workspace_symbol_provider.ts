@@ -6,12 +6,12 @@ class GDScriptWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider 
       const scripts = config.getAllSymbols();
       const symbols: vscode.SymbolInformation[] = [];
       for (let path of Object.keys(scripts)) {
-        const queryMembers = (query, members, kind: vscode.SymbolKind, path:string)=> {
+        const queryMembers = (query, members, kind: vscode.SymbolKind, path:string, extra=(text)=>text)=> {
           for (let name of Object.keys(members)) {
             const range: vscode.Range = members[name];
             if(name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
               const symbol: vscode.SymbolInformation = {
-                name,
+                name: extra(name),
                 kind,
                 containerName: "",
                 location: {
@@ -24,8 +24,9 @@ class GDScriptWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider 
           }
         }
         const scrip = scripts[path];
-        queryMembers(query, scrip.functions, vscode.SymbolKind.Function, path);
-        queryMembers(query, scrip.signals, vscode.SymbolKind.Interface, path);
+        const signatures = scrip.signatures;
+        queryMembers(query, scrip.functions, vscode.SymbolKind.Function, path, (name)=>(name+signatures[name]));
+        queryMembers(query, scrip.signals, vscode.SymbolKind.Interface, path, (name)=>(name+signatures[name]));
         queryMembers(query, scrip.variables, vscode.SymbolKind.Variable, path);
         queryMembers(query, scrip.constants, vscode.SymbolKind.Constant, path);
         queryMembers(query, scrip.classes, vscode.SymbolKind.Class, path);
