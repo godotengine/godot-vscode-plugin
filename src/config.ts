@@ -95,11 +95,12 @@ class Config {
           mi.insertText = insertAction(m.name)
           mi.filterText = m.name
           mi.sortText = m.name
-          mi.detail = `${classdoc.name}.${m.name}`;
+          mi.detail = m.return_type;
           let argstr = "";
           m.arguments.map(arg=>{
             argstr += `${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value.length:''}${m.arguments.indexOf(arg)==m.arguments.length-1?'':', '}`;
           });
+          mi.label=`${m.name}(${argstr}) ${m.qualifiers}`;
           let mdoc = `${m.return_type} ${classdoc.name}.${m.name}(${argstr}) ${m.qualifiers}`;
           mdoc += " \n\n";
           mdoc += m.description;
@@ -145,7 +146,10 @@ class Config {
         const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol", insertText = (n)=>n)=>{
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
-            const item = new CompletionItem(name, kind);
+            const signature = (script.signatures && script.signatures[name])?script.signatures[name]:"";
+            const item = new CompletionItem(name+signature, kind);
+            item.sortText = name;
+            item.filterText = name;
             item.detail = workspace.asRelativePath(path);
             item.insertText = insertText(name);
             item.documentation = (script.documents && script.documents[name])?script.documents[name]+"\r\n":"";
