@@ -92,7 +92,7 @@ class Config {
         const methods = classdoc.methods
         const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name)=>{
           const mi = new CompletionItem(m.name, kind);
-          mi.insertText = insertAction(m.name)
+          mi.insertText = insertAction(m.name) + (m.arguments.length==0?"()":"");
           mi.filterText = m.name
           mi.sortText = m.name
           mi.detail = m.return_type;
@@ -100,7 +100,7 @@ class Config {
           m.arguments.map(arg=>{
             argstr += `${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value.length:''}${m.arguments.indexOf(arg)==m.arguments.length-1?'':', '}`;
           });
-          mi.label=`${m.name}(${argstr}) ${m.qualifiers}`;
+          // mi.label=`${m.name}(${argstr}) ${m.qualifiers}`;
           let mdoc = `${m.return_type} ${classdoc.name}.${m.name}(${argstr}) ${m.qualifiers}`;
           mdoc += " \n\n";
           mdoc += m.description;
@@ -151,7 +151,7 @@ class Config {
             item.sortText = name;
             item.filterText = name;
             item.detail = workspace.asRelativePath(path);
-            item.insertText = insertText(name);
+            item.insertText = insertText(name) + (signature=="()"?"()":"");
             item.documentation = (script.documents && script.documents[name])?script.documents[name]+"\r\n":"";
             item.documentation += `${kindName} defined in ${item.detail}`;
             _items.push(item);

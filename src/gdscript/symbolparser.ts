@@ -93,6 +93,8 @@ class GDScriptSymbolParser {
           break;
         if(match)
           mdoc = match[1] + "\r\n\r\n" + mdoc;
+        else if(line != range.start.line)
+          break
         --line;
       }
       return mdoc;
