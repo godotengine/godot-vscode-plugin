@@ -1,6 +1,12 @@
 import {TextDocumentContentProvider, DocumentLinkProvider, Uri, CancellationToken } from 'vscode';
 import config from '../config';
 
+const linkStyle = `
+<style>
+    a { color: #6e8ae7; text-decoration: none;}
+</style>
+`;
+
 function genLink(title:string, uri:string, span=true):string {
     const u = encodeURI('command:vscode.previewHtml?' + JSON.stringify(Uri.parse(`godotdoc://${uri}`)));
     let link = `<a href="${u}">${title}</a>`;
@@ -153,6 +159,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             return null;
         
         let doc = `
+            ${linkStyle}
             <h2>Documentation of ${genLink(classname, classname)}.${membername}</h2>
             <ul>${realDoc}</ul>
         `;
@@ -220,6 +227,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             constants = `<h3>Constants</h3><ul>${constants}</ul>`
         
         let doc = `
+            ${linkStyle}
             <h1>Native Class ${classname}</h1>
             <p>${category}</p>
             <p>${inherits}</p>
