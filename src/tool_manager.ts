@@ -12,7 +12,6 @@ import config from './config';
 import * as path from 'path';
 import * as fs from 'fs';
 const cmd = require('node-cmd');
-
 class ToolManager {
 
   private workspaceDir: string = "";
@@ -84,22 +83,33 @@ class ToolManager {
           const engincfg = path.join(self.workspaceDir, "engine.cfg");
           if(fs.existsSync(engincfg) && fs.statSync(engincfg).isFile()) {
             try {
-              const script = { constants: {}, functions: {}, variables: {}, signals: {}, classes: {}, base: "Object", native: "Object"};
+              const script = { constants: {}, functions: {}, variables: {}, signals: {}, classes: {}, base: "Object", native: "Object", constpathes: {}, documents: {}, constvalues: {}};
               let content: string = fs.readFileSync(engincfg, 'utf-8');
               if(content && content.indexOf("[autoload]") != -1) {
                 content = content.substring(content.indexOf("[autoload]")+"[autoload]".length, content.length);
                 content = content.substring(0, content.indexOf("["));
                 const lines = content.split(/\r?\n/);
-                lines.map(l=>{
+                lines.map((l)=>{
                   if(l.indexOf("=") != 0) {
                     const name = l.substring(0, l.indexOf("="));
-                    script.constants[name] = new vscode.Range(0, 0, 0,0);
+                    
+                    let gdpath = l.substring(l.indexOf("res://")+"res://".length, l.indexOf(".gd")+".gd".length);
+                    gdpath = path.join( self.workspaceDir, gdpath);
+                    let showgdpath = vscode.workspace.asRelativePath(gdpath);
+                    
+                    let doc = "Auto loaded instance of " + `[${showgdpath}](${vscode.Uri.file(gdpath).toString()})`;
+                    doc = doc.replace(/"/g, " ");
+
+                    script.constants[name] = new vscode.Range(0, 0, 0, 0);
+                    script.constvalues[name] = "autoload";
+                    script.documents[name] = doc;
+                    script.constpathes[name] = gdpath;
                   }
                 });
               }
               symbols["autoload"] = script;
             } catch (error) {
-              console.error(error);       
+              console.error(error);
             }
           }
           resolve(symbols);

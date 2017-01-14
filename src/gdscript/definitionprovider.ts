@@ -36,6 +36,8 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
                 // check from workspace
                 for (let path of Object.keys(workspaceSymbols)) {
                     const script = workspaceSymbols[path];
+                    if(path == "autoload" && script.constpathes && script.constpathes[content])
+                        path = script.constpathes[content];
                     let scriptitems: Location[] = [];
                     const checkDifinition = (items)=>{
                         const _items: Location[] = [];

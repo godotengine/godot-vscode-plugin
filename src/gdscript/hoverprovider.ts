@@ -53,7 +53,8 @@ class GDScriptHoverProvider implements HoverProvider {
                             _items.push({language:'gdscript', value:`${type} ${name}${signature}`});
                             let doc = script.documents[name];
                             doc = doc?doc+"\r\n\r\n":"";
-                            doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`
+                            if(path != "autoload")
+                                doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`;
                             _items.push(doc)
                             break;
                         }
