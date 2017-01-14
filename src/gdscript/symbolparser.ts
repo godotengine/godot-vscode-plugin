@@ -11,7 +11,9 @@ interface GDScript {
   native: string,
   signatures: {},
   // symbol: marked string
-  documents: {}
+  documents: {},
+  // name : value
+  constvalues: {}
 }
 
 class GDScriptSymbolParser {
@@ -28,7 +30,8 @@ class GDScriptSymbolParser {
         base: "Object",
         native: "Object",
         signatures: {},
-        documents: {}
+        documents: {},
+        constvalues: {}
     }
     const text  = content;
     const lines = text.split(/\r?\n/);
@@ -86,7 +89,7 @@ class GDScriptSymbolParser {
       while( line > 0){
         const linecontent = lines[line];
         let match = linecontent.match(/\s*#\s*(.*)/);
-        const commentAtEnd = linecontent.match(/[A-z0-8,\[\{]+\s*#\s*(.*)/);
+        const commentAtEnd = linecontent.match(/[\w'",\[\{\]\}\(\)]+\s*#\s*(.*)/);
         if(!match && line != range.start.line)
           break;
         if(commentAtEnd && line != range.start.line)
@@ -138,6 +141,11 @@ class GDScriptSymbolParser {
       if(newdoc == "" && script.documents[key])
         newdoc = script.documents[key];
       script.documents[key] = newdoc;
+      
+      const linecontent = lines[r.start.line];
+      const match = linecontent.match(/const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*=\s*([\w+]+\(.*\)|"[^"]*"|\-?\d+\.?\d*|\[.*\]|\{.*\})/);
+      if(match && match.length && match.length >1)
+        script.constvalues[key] = match[2];
     }
     
     let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/g, 1);

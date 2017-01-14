@@ -147,13 +147,14 @@ class Config {
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
             const signature = (script.signatures && script.signatures[name])?script.signatures[name]:"";
+            const cvalue = (script.constvalues && script.constvalues[name])?script.constvalues[name]:""; 
             const item = new CompletionItem(name+signature, kind);
             item.sortText = name;
             item.filterText = name;
-            item.detail = workspace.asRelativePath(path);
+            item.detail = cvalue;
             item.insertText = insertText(name) + (signature=="()"?"()":"");
             item.documentation = (script.documents && script.documents[name])?script.documents[name]+"\r\n":"";
-            item.documentation += `${kindName} defined in ${item.detail}`;
+            item.documentation += `${kindName} defined in ${workspace.asRelativePath(path)}`;
             _items.push(item);
           }
           return _items;

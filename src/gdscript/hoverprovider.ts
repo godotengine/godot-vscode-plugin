@@ -48,10 +48,12 @@ class GDScriptHoverProvider implements HoverProvider {
                             let signature = "";
                             if(type == "func"|| type == "signal" && script.signatures[name])
                                 signature = script.signatures[name];
+                            if(type == "const" && script.constvalues[name])
+                                signature = ` = ${script.constvalues[name]}`;
                             _items.push({language:'gdscript', value:`${type} ${name}${signature}`});
                             let doc = script.documents[name];
                             doc = doc?doc+"\r\n\r\n":"";
-                            doc += `*Defined in [${dfile}](${Uri.file(path).toString()}).*`
+                            doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`
                             _items.push(doc)
                             break;
                         }
