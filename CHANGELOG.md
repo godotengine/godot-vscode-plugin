@@ -1,5 +1,12 @@
 # Change Log
 
+### 0.1.9
+
+* Show workspace constant value in hover tips and completion items
+* More readable style for links in documentation preview page
+* Improve code completion sort order and auto insert `()` for functions without paramaters
+* Fix bugs with workspace documentation parsing
+
 ### 0.1.8
 
 * Show signatures on completion label
