@@ -37,11 +37,11 @@ class Config {
   }
 
   setSymbols(path, s) {
-    this.symbols[path] = s;
+    this.symbols[this.normalizePath(path)] = s;
   }
 
   getSymbols(path) {
-    return this.symbols[path];
+    return this.symbols[this.normalizePath(path)];
   }
 
   setAllSymbols(s) {
@@ -53,13 +53,15 @@ class Config {
   }
 
   normalizePath(path) {
-    let newpath = path.replace(/\\/g, "/");
+    let newpath = path;
     if( path.indexOf(":") != -1){
       let parts = path.split(":");
-      newpath = parts[0].toUpperCase()
+      newpath = parts[0].toUpperCase();
+      newpath += ":";
       for(let i=1; i<parts.length; i++)
         newpath += parts[i];
     }
+    newpath = newpath.replace(/\\/g, "/");
     return newpath;
   }
 

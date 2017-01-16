@@ -78,7 +78,7 @@ class ToolManager {
         if(!err) {
           const symbols = {};
           for(let i=0; i< files.length; i++)
-            symbols[files[i]] = config.loadSymbolsFromFile(files[i]);
+            symbols[config.normalizePath(files[i])] = config.loadSymbolsFromFile(files[i]);
           // load autoloads from engin.cfg
           const engincfg = path.join(self.workspaceDir, "engine.cfg");
           if(fs.existsSync(engincfg) && fs.statSync(engincfg).isFile()) {
