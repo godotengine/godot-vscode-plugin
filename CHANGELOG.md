@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.2.0
+
+* Show autoloads informations in hover tips and go to autoloads' definitions are supported now
+* Fix the bug that workspace symbols resoved twice on Windows
+
 ### 0.1.9
 
 * Show workspace constant value in hover tips and completion items

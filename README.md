@@ -53,6 +53,11 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.0
+
+* Show autoloads informations in hover tips and go to autoloads' definitions are supported now
+* Fix the bug that workspace symbols resoved twice on Windows
+
 ### 0.1.9
 
 * Show workspace constant value in hover tips and completion items
@@ -65,9 +70,5 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * Show signatures on completion label
 * More reliable unused variable and constant checking in documente
 * Show workspace documentations and function signatures in completions
-
-### 0.1.7
-
-* Show documentations parsed from GDScripts in hover tips
 
 [Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
