@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.2.1
+* Support markdown render in hover tips for documentations in workspace symbols
+* Add configuration `GodotTools.workspaceDocumentWithMarkdown` to control workspace documentation rendering
+
 ### 0.2.0
 
 * Show autoloads informations in hover tips and go to autoloads' definitions are supported now

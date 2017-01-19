@@ -95,7 +95,7 @@ class GDScriptSymbolParser {
         if(commentAtEnd && line != range.start.line)
           break;
         if(match)
-          mdoc = match[1] + "\r\n\r\n" + mdoc;
+          mdoc = match[1] + "\r\n" + mdoc;
         else if(line != range.start.line)
           break
         --line;

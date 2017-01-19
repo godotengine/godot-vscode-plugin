@@ -30,7 +30,7 @@ You can use the following settings to setup the Godot Tools:
 - GodotTools.editorServerPort: The http server port used by the EditorServer Godot module (_see Extra Functionality below_)
 - GodotTools.maxNumberOfProblems: Sets the limit for the issues reported by the static code validator
 - GodotTools.editorPath: An absolute path pointing at the Godot Editor executable file. Required to run the project and test scenes from VScode
-
+- GodotTools.workspaceDocumentWithMarkdown: Control the documentations of workspace symbols should be rendered as plain text or html from markdown
 
 ## Extra functionality
 
@@ -52,6 +52,10 @@ These are modules for the goats editor itself, programmed in C++. In order to us
 The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [engine modules](https://github.com/GodotExplorer/editor-server) are all hosted on GitHub. Feel free to open issues there and create pull requests anytime.
 
 ## Release Notes
+
+### 0.2.1
+* Support markdown render in hover tips for documentations in workspace symbols
+* Add configuration `GodotTools.workspaceDocumentWithMarkdown` to control workspace documentation rendering
 
 ### 0.2.0
 

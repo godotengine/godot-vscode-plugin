@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "icon.png",
   "description": "\"Tools for game development with godot game engine\"",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "geequlim",
   "engines": {
     "vscode": "^1.5.0"
@@ -53,6 +53,11 @@
           "type": "string",
           "default": "",
           "description": "The absolute path of your godot editor"
+        },
+        "GodotTools.workspaceDocumentWithMarkdown": {
+          "type": "boolean",
+          "default": false,
+          "description": "Render workspace documentations as markdown content"
         }
       }
     },

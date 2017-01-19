@@ -33,6 +33,8 @@ class GDScriptHoverProvider implements HoverProvider {
             hoverText = getStrContent(hoverText);
         const workspaceSymbols = config.getAllSymbols();
         let tips: MarkedString[] = [];
+        const withMarkdwon = workspace.getConfiguration("GodotTools").get("workspaceDocumentWithMarkdown", false);
+
         // check from workspace
         const genWorkspaceTips = ()=> {
             for (let path of Object.keys(workspaceSymbols)) {
@@ -52,6 +54,8 @@ class GDScriptHoverProvider implements HoverProvider {
                                 signature = ` = ${script.constvalues[name]}`;
                             _items.push({language:'gdscript', value:`${type} ${name}${signature}`});
                             let doc = script.documents[name];
+                            if(!withMarkdwon)
+                                doc = "```plaintext\r\n"+doc+"\r\n```";
                             doc = doc?doc+"\r\n\r\n":"";
                             if(path != "autoload")
                                 doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`;
