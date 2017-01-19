@@ -72,7 +72,7 @@ class GDScriptDiagnosticSeverity {
       check(key, script.variables[key]);
     for (let key of Object.keys(script.constants))
       check(key, script.constants[key]);
-    return diagnostics;    
+    return diagnostics;
   }
 
   private validateExpression(doc: vscode.TextDocument) {
@@ -80,13 +80,41 @@ class GDScriptDiagnosticSeverity {
     const text = doc.getText();
     const lines = text.split(/\r?\n/);
     lines.map((line:string, i: number) =>{
-      const semicolonIndex = line.indexOf(';');
-      if(semicolonIndex != -1) {
-        diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement ends with a semicolon.", DiagnosticSeverity.Warning));
+      let matchstart = /[^\s]+.*/.exec(line);
+      let curLineStartAt = 0;
+      if(matchstart)
+        curLineStartAt = matchstart.index;
+      
+      // normalize line content
+      line = "\t" + line + "\t";
+
+      if(line.match(/[^#].*?\;/) && !line.match(/[#].*?\;/)) {
+        const semicolonIndex = line.indexOf(';');
+        diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement contains a semicolon.", DiagnosticSeverity.Warning));
       }
-      if(line.match(/\s*(if|elif|else|for|while|func|class)\s*$/g) && line.indexOf(":") == -1) {
-        if(line.indexOf("#") == -1)
-          diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, 0, i, line.length), "':' expected at end of the line.", DiagnosticSeverity.Error));
+      if(line.match(/[^\w](if|elif|else|for|while|func|class)[^\w].*?/) && !line.match(/#.*?[^\w](if|elif|else|for|while|func|class)[^\w].*?/)) {
+        var range = new vscode.Range(i, curLineStartAt, i, line.length);
+        if(!line.match(/(if|elif|else|for|while|func|class).*?\:/))
+          diagnostics.push(new vscode.Diagnostic(range, "':' expected at end of the line.", DiagnosticSeverity.Error));
+        else if(line.match(/(if|elif|while|func|class)\s*\:/))
+          diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
+        else if(line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+\w+/))
+          diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
+        else if(line.match(/(if|elif|while)\s*\(.*\)/))
+          diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
+        
+        if( i < lines.length-1) {
+          const nextline = lines[i+1];
+          let nextLineStartAt = -1;
+          let match = /[^\s]+.*/.exec(nextline);
+          if(match)
+            nextLineStartAt = match.index;
+          
+          if(nextLineStartAt <= curLineStartAt)
+              diagnostics.push(new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error));
+        }
+        else
+          diagnostics.push(new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error));
       }
     });
     return diagnostics;
