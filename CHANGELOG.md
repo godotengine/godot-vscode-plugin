@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.2.2
+* Better Syntax validating for code blocks
+* More waring for non-python liked expression
+
 ### 0.2.1
 * Support markdown render in hover tips for documentations in workspace symbols
 * Add configuration `GodotTools.workspaceDocumentWithMarkdown` to control workspace documentation rendering

@@ -53,6 +53,10 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.2
+* Better Syntax validating for code blocks
+* More waring for non-python liked expression
+
 ### 0.2.1
 * Support markdown render in hover tips for documentations in workspace symbols
 * Add configuration `GodotTools.workspaceDocumentWithMarkdown` to control workspace documentation rendering
@@ -68,11 +72,5 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * More readable style for links in documentation preview page
 * Improve code completion sort order and auto insert `()` for functions without paramaters
 * Fix bugs with workspace documentation parsing
-
-### 0.1.8
-
-* Show signatures on completion label
-* More reliable unused variable and constant checking in documente
-* Show workspace documentations and function signatures in completions
 
 [Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
