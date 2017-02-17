@@ -3,5 +3,5 @@ node_modules
 server
 test
 *.vsix
-configrations/tmp.txt
-configrations/test.py
+configurations/tmp.txt
+configurations/test.py
