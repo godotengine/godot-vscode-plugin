@@ -55,6 +55,15 @@ class GDScriptDiagnosticSeverity {
     return false;
   }
 
+  private checkIfComment(line: string, script) { //check whether a line is a comment
+    if (line.match(/^#/)) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
   private validateUnusedSymbols(doc: vscode.TextDocument,script) {
     let diagnostics = [];
     const text = doc.getText();

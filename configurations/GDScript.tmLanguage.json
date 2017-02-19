@@ -9,8 +9,15 @@
     { "include": "#numbers" },
     { "include": "#self" },
     {
+      "captures": 
+      {
+        "1": 
+        {
+          "name": "punctuation.definition.comment.number-sign.gdscript"
+        }
+      },
       "match": "(#).*$\\n?",
-      "name": "punctuation.definition.comment.gdscript"
+      "name": "comment.line.number-sign.gdscript"
     },
     {
       "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|and|in|is|not|or|return|onready|setget|breakpoint)\\b",
