@@ -94,8 +94,12 @@ class GDScriptSymbolParser {
           break;
         if(commentAtEnd && line != range.start.line)
           break;
-        if(match)
-          mdoc = match[1] + "\r\n" + mdoc;
+        if(match) {
+          let lmcontent = linecontent.substring(linecontent.indexOf("#")+1, linecontent.length);
+          if(lmcontent.startsWith(" ") && lmcontent != " ")
+            lmcontent = lmcontent.substring(1, lmcontent.length);
+          mdoc = lmcontent + "\r\n" + mdoc;
+        }
         else if(line != range.start.line)
           break
         --line;
