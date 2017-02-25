@@ -33,7 +33,7 @@ class GDScriptSymbolParser {
         documents: {},
         constvalues: {}
     }
-    const text  = content;
+    const text  = content.replace(new RegExp(/#.*$/, "gm"), ""); //excludes comments from being checked for syntax
     const lines = text.split(/\r?\n/);
 
     const getMatches = (string, regex, index=1) => {
