@@ -18,7 +18,7 @@ extends Node
 
 func remove_ends(text): #in 0.2.2 false positive
 #vasdfs
-	var result = text
+	var result = "result" #hello
 	result = result.replace("[", "")
 	result = result.replace("]", "")
 	return result
@@ -56,7 +56,7 @@ func somethingelse(): #in 0.2.2 correctly doesn't complain
 asdfsd #in 0.2.2 should complain?
 
 func something_else():
-	var s = 2 #in 0.2.2 diagnostics should complain
+	var asds = 2 #in 0.2.2 diagnostics should complain
 	asdfsdaf s = 3 #in 0.2.2 diagnostics should complain
 	return 3
 
