@@ -1,6 +1,7 @@
 out
 node_modules
 server
+publish/*.vsix
 test
 *.vsix
 configurations/tmp.txt

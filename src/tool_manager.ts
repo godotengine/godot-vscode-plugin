@@ -51,7 +51,8 @@ class ToolManager {
       vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this)),
       vscode.commands.registerCommand('godot.runWorkspace', ()=>{this.openWorkspaceWithEditor()}),
       vscode.commands.registerCommand('godot.openWithEditor', ()=>{this.openWorkspaceWithEditor("-e")}),
-      vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScenr.bind(this))
+      vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScenr.bind(this)),
+      vscode.commands.registerCommand('godot.provideInitialDebugConfigurations', this.getDefaultDebugConfig.bind(this))
     );
   }
 
@@ -175,6 +176,29 @@ class ToolManager {
     }
     else
       vscode.window.showErrorMessage("Current document is not a scene file");
+  }
+
+  private getDefaultDebugConfig() {
+    const editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
+    if(this.workspaceDir) {
+      const config = {
+        version: '0.2.3',
+        configurations: [{
+          type: 'godot',
+          request: 'launch',
+          name: path.basename(this.workspaceDir),
+          godot: editorPath,
+          projectDir: "${workspaceRoot}",
+          params: [],
+          runWithEditor: false
+        }]
+      }
+      return JSON.stringify(config, null, '\t');
+    }
+    else {
+      vscode.window.showErrorMessage("Cannot create launch without godot project workspace");
+      return ""
+    }
   }
 
   loadClasses() {

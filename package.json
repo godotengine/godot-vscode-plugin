@@ -5,6 +5,8 @@
   "description": "\"Tools for game development with godot game engine\"",
   "version": "0.2.2",
   "publisher": "geequlim",
+  "repository": "https://github.com/GodotExplorer/godot-tools",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.5.0"
   },
@@ -86,7 +88,64 @@
         "language": "gdscript",
         "path": "./configurations/snippets.json"
       }
-    ]
+    ],
+    "breakpoints": [
+			{
+				"language": "gdscript"
+			}
+		],
+    "debuggers": [
+			{
+				"type": "godot",
+				"label": "Godot Game",
+				"program": "./out/src/debug/godotDebugger.js",
+				"runtime": "node",
+				"configurationSnippets": [
+					{
+						"label": "Godot Game: Launch",
+						"description": "A new configuration for launching a godot game",
+						"body": {
+							"type": "godot",
+							"request": "launch",
+              "name": "Godot Game",
+							"godot": "${1:The abusolut path of your godot binary}",
+              "projectDir": "^\"\\${workspaceRoot}\"",
+              "params": [],
+              "runWithEditor": false
+						}
+					}
+				],
+
+				"configurationAttributes": {
+					"launch": {
+						"required": [ "godot", "runWithEditor", "projectDir" ],
+						"properties": {
+							"godot": {
+								"type": "string",
+								"description": "The dirctory of your godot project",
+								"default": ""
+							},
+							"runWithEditor": {
+								"type": "boolean",
+								"description": "Launch the game with godot editor.",
+								"default": false
+							},
+              "projectDir": {
+								"type": "string",
+								"description": "The dirctory of your godot project",
+								"default": "${workspaceRoot}"
+							},
+              "params": {
+								"type": "array",
+								"description": "Addtional params passed to godot",
+								"default": []
+							}
+						}
+					}
+				},
+				"initialConfigurations": "godot.provideInitialDebugConfigurations"
+			}
+		]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
@@ -103,6 +162,8 @@
   },
   "dependencies": {
     "glob": "^7.1.1",
-    "node-cmd": "1.2.0"
+    "node-cmd": "1.2.0",
+    "vscode-debugprotocol": "^1.17.0",
+		"vscode-debugadapter": "^1.17.0"
   }
 }
