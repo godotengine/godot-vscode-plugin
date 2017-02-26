@@ -73,20 +73,20 @@
         "extensions": [
           ".gd"
         ],
-        "configuration": "./configrations/gdscript-configuration.json"
+        "configuration": "./configurations/gdscript-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "gdscript",
         "scopeName": "source.gdscript",
-        "path": "./configrations/GDScript.tmLanguage.json"
+        "path": "./configurations/GDScript.tmLanguage.json"
       }
     ],
     "snippets": [
       {
         "language": "gdscript",
-        "path": "./configrations/snippets.json"
+        "path": "./configurations/snippets.json"
       }
     ],
     "breakpoints": [

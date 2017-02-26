@@ -57,13 +57,11 @@ class GDScriptDiagnosticSeverity {
 
   private validateUnusedSymbols(doc: vscode.TextDocument,script) {
     let diagnostics = [];
-    const text = doc.getText();
+    const text = doc.getText().replace(new RegExp(/#.*$/, "gm"), ""); //excludes comments from being checked for syntax
     
     const check = (name:string, range: vscode.Range) => {
       var matchs = text.match(new RegExp(`[^0-9A-Za-z_]\\s*${name}[^0-9A-Za-z_]\\s*`, 'g'));
       let count = matchs?matchs.length:0;
-      var incomment = text.match(new RegExp(`#[^0-9A-z_]*${name}[^0-9A-z_]`, 'g'));
-      count -= incomment?incomment.length:0;
       if(count <= 1)
         diagnostics.push(new vscode.Diagnostic(range, `${name} is never used.`, DiagnosticSeverity.Warning));
     };
@@ -77,7 +75,7 @@ class GDScriptDiagnosticSeverity {
 
   private validateExpression(doc: vscode.TextDocument) {
     let diagnostics = [];
-    const text = doc.getText();
+    const text = doc.getText().replace(new RegExp(/#.*$/, "gm"), ""); //excludes comments from being checked for syntax
     const lines = text.split(/\r?\n/);
     lines.map((line:string, i: number) =>{
       let matchstart = /[^\s]+.*/.exec(line);
@@ -104,12 +102,18 @@ class GDScriptDiagnosticSeverity {
           diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
         
         if( i < lines.length-1) {
-          const nextline = lines[i+1];
+          let next = i+1;
+          let nextline = lines[next];
+          while (!nextline || /\s+$/gm.test(nextline) && next < lines.length-1) //changes nextline until finds a line containg text or comes to the last line
+          {
+            nextline = lines[next];
+            ++next;
+          }
           let nextLineStartAt = -1;
           let match = /[^\s]+.*/.exec(nextline);
           if(match)
             nextLineStartAt = match.index;
-          
+
           if(nextLineStartAt <= curLineStartAt)
               diagnostics.push(new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error));
         }

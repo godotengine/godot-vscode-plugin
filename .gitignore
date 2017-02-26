@@ -3,5 +3,6 @@ node_modules
 server
 publish/*.vsix
 test
-configrations/tmp.txt
-configrations/test.py
+*.vsix
+configurations/tmp.txt
+configurations/test.py
