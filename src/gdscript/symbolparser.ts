@@ -139,11 +139,13 @@ class GDScriptSymbolParser {
 
     let varreg = /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/;
     let varreg2 = "var\\s+$X$\\s*";
+    let vargroup = 1;
     if(ignoreIndentedVars) {
-      varreg = /^var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/;
-      varreg2 = "^var\\s+$X$\\s*";
+      varreg = /^((export.*?var)|var)\s+([_A-Za-z]+[_A-Za-z0-9]*)\s?/;
+      varreg2 = "^((export.*?var)|var)\\s+$X$\\s?";
+      vargroup = 3;
     }
-    let varnames = getMatches(varreg, 1);
+    let varnames = getMatches(varreg, vargroup);
     const vars = findLineRanges(varnames, varreg2);
     for (let key of Object.keys(vars)){
       const r:Range = determRange(key, vars)
