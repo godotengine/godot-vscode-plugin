@@ -20,7 +20,7 @@ class GDScriptSymbolParser {
   constructor() {
   }
 
-  parseContent(content: string): GDScript {
+  parseContent(content: string, ignoreIndentedVars:boolean = false): GDScript {
     const script: GDScript = {
         constants: {},
         functions: {},
@@ -36,13 +36,23 @@ class GDScriptSymbolParser {
     const text  = content;
     const lines = text.split(/\r?\n/);
 
-    const getMatches = (string, regex, index=1) => {
+    const getMatches = (regex:RegExp, index=1) => {
       var matches = [];
-      var match;
-      while (match = regex.exec(string)) {
-        matches.push(match[index]);
+      for(let line of lines) {
+        let match;
+        if (match = regex.exec(line)) {
+          let commentReg = RegExp(/#.*?/.source+regex.source);
+          if(!commentReg.exec(line))
+            matches.push(match[index]);
+        }
       }
       return matches;
+      // var matches = [];
+      // var match;
+      // while (match = regex.exec(string)) {
+      //   matches.push(match[index]);
+      // }
+      // return matches;
     };
     
     const findLineRanges = (symbols, reg)=>{
@@ -89,7 +99,9 @@ class GDScriptSymbolParser {
       while( line > 0){
         const linecontent = lines[line];
         let match = linecontent.match(/\s*#\s*(.*)/);
-        const commentAtEnd = linecontent.match(/[\w'",\[\{\]\}\(\)]+\s*#\s*(.*)/);
+        let commentAtEnd = linecontent.match(/[\w'",\[\{\]\}\(\)]+\s*#\s*(.*)/) != null;
+        if(commentAtEnd && linecontent.match(/^#/))
+          commentAtEnd = false;
         if(!match && line != range.start.line)
           break;
         if(commentAtEnd && line != range.start.line)
@@ -107,7 +119,7 @@ class GDScriptSymbolParser {
       return mdoc;
     }
     
-    let funcsnames = getMatches(text, /func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
+    let funcsnames = getMatches(/func\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/, 1);
     const funcs = findLineRanges(funcsnames, "func\\s+$X$\\s*\\(");
     for (let key of Object.keys(funcs)) {
       let r: Range = determRange(key, funcs);
@@ -116,7 +128,7 @@ class GDScriptSymbolParser {
       script.documents[key] = parseDocument(r);
     }
     
-    let signalnames = getMatches(text, /signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/g, 1);
+    let signalnames = getMatches(/signal\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*\(/, 1);
     const signals = findLineRanges(signalnames, "signal\\s+$X$\\s*\\(");
     for (let key of Object.keys(signals)) {
       let r: Range = determRange(key, signals);
@@ -125,8 +137,14 @@ class GDScriptSymbolParser {
       script.documents[key] = parseDocument(r);
     }
 
-    let varnames = getMatches(text, /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
-    const vars = findLineRanges(varnames, "var\\s+$X$\\s*");
+    let varreg = /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/;
+    let varreg2 = "var\\s+$X$\\s*";
+    if(ignoreIndentedVars) {
+      varreg = /^var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/;
+      varreg2 = "^var\\s+$X$\\s*";
+    }
+    let varnames = getMatches(varreg, 1);
+    const vars = findLineRanges(varnames, varreg2);
     for (let key of Object.keys(vars)){
       const r:Range = determRange(key, vars)
       script.variables[key] = r;
@@ -136,7 +154,7 @@ class GDScriptSymbolParser {
       script.documents[key] = newdoc;
     }
     
-    let constnames = getMatches(text, /const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/g, 1);
+    let constnames = getMatches(/const\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/, 1);
     const consts = findLineRanges(constnames, "const\\s+$X$\\s*");
     for (let key of Object.keys(consts)){
       const r:Range = determRange(key, consts)
@@ -152,7 +170,7 @@ class GDScriptSymbolParser {
         script.constvalues[key] = match[2];
     }
     
-    let classnames = getMatches(text, /class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/g, 1);
+    let classnames = getMatches(/class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/, 1);
     const classes = findLineRanges(classnames, "class\\s+$X$\\s*extends\\s+");
     for (let key of Object.keys(classes)) {
       const r:Range = determRange(key, classes)
@@ -163,11 +181,11 @@ class GDScriptSymbolParser {
     return script;
   }
 
-  parseFile(path:string): GDScript {
+  parseFile(path:string, ignoreIndentedVars:boolean = false): GDScript {
     const self = this;
     if(fs.existsSync(path) && fs.statSync(path).isFile()){
       const content = fs.readFileSync(path, 'utf-8');
-      return this.parseContent(content);
+      return this.parseContent(content, ignoreIndentedVars);
     }
     return null;
   }

@@ -60,6 +60,11 @@
           "type": "boolean",
           "default": false,
           "description": "Render workspace documentations as markdown content"
+        },
+        "GodotTools.ignoreIndentedVars": {
+          "type": "boolean",
+          "default": true,
+          "description": "Only parse variables without indents in GDScript"
         }
       }
     },

@@ -31,7 +31,10 @@ class Config {
   }
 
   loadSymbolsFromFile(path) {
-    const script = this.parser.parseFile(path);
+    var ignoreIndentedVars = false;
+    if(workspace)
+      ignoreIndentedVars = workspace.getConfiguration("GodotTools").get("ignoreIndentedVars", false);
+    const script = this.parser.parseFile(path, ignoreIndentedVars);
     this.setSymbols(path, script);
     return script;
   }

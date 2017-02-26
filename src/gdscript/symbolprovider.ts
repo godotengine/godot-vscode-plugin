@@ -4,7 +4,8 @@ import {
   SymbolInformation,
   CancellationToken,
   SymbolKind,
-  Range
+  Range,
+  workspace
 } from 'vscode';
 
 import GDScriptSymbolParser from '../gdscript/symbolparser';
@@ -20,7 +21,10 @@ class GDScriptSymbolProvider implements DocumentSymbolProvider {
   provideDocumentSymbols(document: TextDocument, token: CancellationToken): SymbolInformation[] | Thenable<SymbolInformation[]> {
 
     const symbols: SymbolInformation[] = [];
-    const script = this.parser.parseContent(document.getText());
+    var ignoreIndentedVars = false;
+    if(workspace)
+      ignoreIndentedVars = workspace.getConfiguration("GodotTools").get("ignoreIndentedVars", false);
+    const script = this.parser.parseContent(document.getText(), ignoreIndentedVars);
     const signatures = script.signatures;
     config.setSymbols(document.fileName, script);
 

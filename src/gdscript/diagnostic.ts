@@ -57,11 +57,13 @@ class GDScriptDiagnosticSeverity {
 
   private validateUnusedSymbols(doc: vscode.TextDocument,script) {
     let diagnostics = [];
-    const text = doc.getText().replace(new RegExp(/#.*$/, "gm"), ""); //excludes comments from being checked for syntax
+    const text = doc.getText();
     
     const check = (name:string, range: vscode.Range) => {
       var matchs = text.match(new RegExp(`[^0-9A-Za-z_]\\s*${name}[^0-9A-Za-z_]\\s*`, 'g'));
       let count = matchs?matchs.length:0;
+      var incomment = text.match(new RegExp(`#[^0-9A-z_]*${name}[^0-9A-z_]`, 'g'));
+      count -= incomment?incomment.length:0;
       if(count <= 1)
         diagnostics.push(new vscode.Diagnostic(range, `${name} is never used.`, DiagnosticSeverity.Warning));
     };
