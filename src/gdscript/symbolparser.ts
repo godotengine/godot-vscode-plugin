@@ -177,6 +177,7 @@ class GDScriptSymbolParser {
       script.classes[key] = determRange(key, classes);
       script.documents[key] = parseDocument(r);
     }
+    // console.log(script);
 
     return script;
   }

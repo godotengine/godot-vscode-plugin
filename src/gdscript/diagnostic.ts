@@ -77,14 +77,15 @@ class GDScriptDiagnosticSeverity {
 
   private validateExpression(doc: vscode.TextDocument) {
     let diagnostics = [];
-    const text = doc.getText().replace(new RegExp(/#.*$/, "gm"), ""); //excludes comments from being checked for syntax
+    const text = doc.getText();
     const lines = text.split(/\r?\n/);
     lines.map((line:string, i: number) =>{
       let matchstart = /[^\s]+.*/.exec(line);
       let curLineStartAt = 0;
       if(matchstart)
         curLineStartAt = matchstart.index;
-      
+      // ignore comments
+      if(line.match(/^\s*#.*/) || line.match(/^#.*/)) return
       // normalize line content
       line = "\t" + line + "\t";
 
@@ -98,18 +99,20 @@ class GDScriptDiagnosticSeverity {
           diagnostics.push(new vscode.Diagnostic(range, "':' expected at end of the line.", DiagnosticSeverity.Error));
         else if(line.match(/(if|elif|while|func|class)\s*\:/))
           diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
-        else if(line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+\w+/))
+        else if(line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+[\w+]|\{.*?\}|\[.*?\]/))
           diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
         else if(line.match(/(if|elif|while)\s*\(.*\)/))
           diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
         
-        if( i < lines.length-1) {
+        if(line.match(/([^\w]if|elif|else|for|while|func|class[^\w]).*\:[ \t]+[^#\s]+/))
+          return
+        else if( i < lines.length-1) {
           let next = i+1;
           let nextline = lines[next];
-          while (!nextline || /\s+$/gm.test(nextline) && next < lines.length-1) //changes nextline until finds a line containg text or comes to the last line
-          {
-            nextline = lines[next];
+          // changes nextline until finds a line containg text or comes to the last line
+          while ((!nextline || nextline.match(/\s+$/)) && next < lines.length-1) {
             ++next;
+            nextline = lines[next];
           }
           let nextLineStartAt = -1;
           let match = /[^\s]+.*/.exec(nextline);
