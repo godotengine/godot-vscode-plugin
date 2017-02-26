@@ -10,7 +10,8 @@ The plug-in comes with a wealth of features to make your programming experience 
 - Rich auto completion
 - Static code validation
 - Open projects and scenes in Godot from VScode
-- Ctrl click on a variable or method call to jump to its definition (_new in 0.1.3_)
+- Ctrl click on a variable or method call to jump to its definition
+- Run/debug the godot game with VSCode with F5(coming soon) 
 
 ![Showing the documentation on hover feature](https://raw.githubusercontent.com/GodotExplorer/godot-tools/master/img/documentation-on-hover.png "Method definition and docs on hover")
 
@@ -31,6 +32,7 @@ You can use the following settings to setup the Godot Tools:
 - GodotTools.maxNumberOfProblems: Sets the limit for the issues reported by the static code validator
 - GodotTools.editorPath: An absolute path pointing at the Godot Editor executable file. Required to run the project and test scenes from VScode
 - GodotTools.workspaceDocumentWithMarkdown: Control the documentations of workspace symbols should be rendered as plain text or html from markdown
+- GodotTools.ignoreIndentedVars: Parse variables defined after indent of not
 
 ## Extra functionality
 
@@ -53,6 +55,13 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.3
+* Fix known errors with code syntax checking
+* Add configuration `GodotTools.ignoreIndentedVars` to allow ignore indented variables in scripts
+* Enhanced hover tip documentation rendering with code examples
+* Add launch configurations to launch game with F5(expiremental)
+* The plugin is open source under MIT license
+
 ### 0.2.2
 * Better Syntax validating for code blocks
 * More waring for non-python liked expression
@@ -61,16 +70,10 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * Support markdown render in hover tips for documentations in workspace symbols
 * Add configuration `GodotTools.workspaceDocumentWithMarkdown` to control workspace documentation rendering
 
-### 0.2.0
-
-* Show autoloads informations in hover tips and go to autoloads' definitions are supported now
-* Fix the bug that workspace symbols resoved twice on Windows
-
-### 0.1.9
-
-* Show workspace constant value in hover tips and completion items
-* More readable style for links in documentation preview page
-* Improve code completion sort order and auto insert `()` for functions without paramaters
-* Fix bugs with workspace documentation parsing
-
 [Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
+
+
+## TODOS:
+* Print game output log into VSCode console while game launched from the plugin
+* Convert official BBCode documentation into Markdown and render it to HTML with documentation previewer pages
+* Add mermaid support with documentation

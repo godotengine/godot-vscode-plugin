@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "icon.png",
   "description": "\"Tools for game development with godot game engine\"",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
@@ -63,7 +63,7 @@
         },
         "GodotTools.ignoreIndentedVars": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Only parse variables without indents in GDScript"
         }
       }

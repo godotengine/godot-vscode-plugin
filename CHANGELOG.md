@@ -1,5 +1,11 @@
 # Change Log
 
+### 0.2.3
+* Fix known errors with code syntax checking
+* Add configuration `ignoreIndentedVars` to allow ignore indented variables in scripts
+* Enhanced hover tip documentation rendering with code examples
+* Add launch configurations to launch game with F5(expiremental)
+
 ### 0.2.2
 * Better Syntax validating for code blocks
 * More waring for non-python liked expression
