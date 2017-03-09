@@ -88,13 +88,13 @@ class GDScriptDiagnosticSeverity {
       if(line.match(/^\s*#.*/) || line.match(/^#.*/)) return
       // normalize line content
       line = "\t" + line + "\t";
+      var range = new vscode.Range(i, curLineStartAt, i, line.length);
 
       if(line.match(/[^#].*?\;/) && !line.match(/[#].*?\;/)) {
         const semicolonIndex = line.indexOf(';');
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement contains a semicolon.", DiagnosticSeverity.Warning));
       }
       if(line.match(/[^\w](if|elif|else|for|while|func|class)[^\w].*?/) && !line.match(/#.*?[^\w](if|elif|else|for|while|func|class)[^\w].*?/)) {
-        var range = new vscode.Range(i, curLineStartAt, i, line.length);
         if(!line.match(/(if|elif|else|for|while|func|class).*?\:/))
           diagnostics.push(new vscode.Diagnostic(range, "':' expected at end of the line.", DiagnosticSeverity.Error));
         else if(line.match(/(if|elif|while|func|class)\s*\:/))
@@ -103,7 +103,6 @@ class GDScriptDiagnosticSeverity {
           diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
         else if(line.match(/(if|elif|while)\s*\(.*\)/))
           diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
-        
         if(line.match(/([^\w]if|elif|else|for|while|func|class[^\w]).*\:[ \t]+[^#\s]+/))
           return
         else if( i < lines.length-1) {
@@ -124,6 +123,19 @@ class GDScriptDiagnosticSeverity {
         }
         else
           diagnostics.push(new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error));
+      }
+      if(line.match(/(if|elif|while|return)\s+\w+\s*=\s*\w+/))
+          diagnostics.push(new vscode.Diagnostic(range, "Assignment in condition or return expressions", DiagnosticSeverity.Warning));
+      else if (line.indexOf("==") > 0 ) {
+        const endAt = line.indexOf("==");
+        const precontent = line.substring(0, endAt);
+        if(!precontent.match(/\s(if|elif|while|return)\s/) && !precontent.match(/=[^=]/)) {
+          diagnostics.push(new vscode.Diagnostic(range, "Unhandled comparation expression contains", DiagnosticSeverity.Warning));
+        }
+      }
+      let match = /var\s+(\w+)\s*=\s*(\w+)/.exec(line);
+      if (match && match.length > 2 && match[1].length > 0 && match[1] == match[2]) {
+        diagnostics.push(new vscode.Diagnostic(range, "Self Assignment may cause error.", DiagnosticSeverity.Warning));
       }
     });
     return diagnostics;
