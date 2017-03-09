@@ -1,5 +1,11 @@
 # Change Log
 
+### 0.2.4
+
+* Add code cheching for asignments and comparations
+* Impoved builtin documentation preview page
+* Fix bugs with unused vaiable cheching
+
 ### 0.2.3
 * Fix known errors with code syntax checking
 * Add configuration `ignoreIndentedVars` to allow ignore indented variables in scripts
