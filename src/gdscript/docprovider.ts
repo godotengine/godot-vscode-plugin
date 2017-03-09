@@ -69,7 +69,10 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
 
     genMethodDoc(mDoc:any):string {
         let ret_type = getProp(mDoc, "return_type", (type:string):string =>{
-            return `${genLink(type,type)} `;
+            if(type.length > 0)
+                return `${genLink(type,type)} `;
+            else
+                return "<b>void</b>";
         });
         let args = "";
         for(let arg of mDoc.arguments){
@@ -81,12 +84,36 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         }
         let doc = `
             <li>
-                <h4>${ret_type} ${mDoc.name} (${args}) <i>${mDoc.qualifiers}</i></h4>
+                <h4 id="${mDoc.name}">${ret_type} ${mDoc.name} (${args}) <i>${mDoc.qualifiers}</i></h4>
                 <p>${mDoc.description}</p>
             </li>
         `;
         return doc;
     }
+
+    genMethodHeader(mDoc:any, classname:string):string {
+        let ret_type = getProp(mDoc, "return_type", (type:string):string =>{
+            if(type.length > 0)
+                return `${genLink(type,type)} `;
+            else
+                return "<b>void</b>";
+        });
+        let args = "";
+        for(let arg of mDoc.arguments){
+            if(mDoc.arguments.indexOf(arg)!=0)
+                args += ", ";
+            args += `${genLink(arg.type, arg.type)} ${arg.name}`
+            if(arg.default_value && arg.default_value.length > 0)
+                args += `=${arg.default_value}`;
+        }
+        let doc = `
+            <li>
+                ${ret_type} ${genLink(mDoc.name, classname+"."+mDoc.name)} (${args}) <i>${mDoc.qualifiers}</i>
+            </li>
+        `;  
+        return doc;
+    }
+
 
     genPropDoc(pDoc:any): string {
         let doc = `
@@ -201,6 +228,13 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         }
         if(methods.length >0 )
             methods = `<h3>Methods</h3><ul>${methods}</ul/>`;
+
+        let methodHeaders = ""
+        for(let m of rawDoc.methods) {
+            methodHeaders += this.genMethodHeader(m, classname);
+        }
+        if(methodHeaders.length >0)
+            methodHeaders = `<h3>Method List</h3><ul>${methodHeaders}</ul/>`;
         
         let signals = "";
         for(let s of rawDoc.signals) {
@@ -234,10 +268,11 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             <p>${subclasses}</p>
             <p>${briefDescript}</p>
             <p>${descript}</p>
-            <p>${methods}</p>
+            <p>${methodHeaders}</p>
             <p>${signals}</p>
             <p>${constants}</p>
             <p>${props}</p>
+            <p>${methods}</p>
         `;
         return doc;
     }
