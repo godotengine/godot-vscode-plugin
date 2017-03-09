@@ -60,9 +60,9 @@ class GDScriptDiagnosticSeverity {
     const text = doc.getText();
     
     const check = (name:string, range: vscode.Range) => {
-      var matchs = text.match(new RegExp(`[^0-9A-Za-z_]\\s*${name}[^0-9A-Za-z_]\\s*`, 'g'));
+      var matchs = text.match(new RegExp(`[^\w]\\s*${name}[^\w]\\s*`, 'g'));
       let count = matchs?matchs.length:0;
-      var incomment = text.match(new RegExp(`#[^0-9A-z_]*${name}[^0-9A-z_]`, 'g'));
+      var incomment = text.match(new RegExp(`#.*?[^\w]*${name}[^\w]`, 'g'));
       count -= incomment?incomment.length:0;
       if(count <= 1)
         diagnostics.push(new vscode.Diagnostic(range, `${name} is never used.`, DiagnosticSeverity.Warning));
