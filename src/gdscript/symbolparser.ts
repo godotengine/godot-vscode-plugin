@@ -138,7 +138,7 @@ class GDScriptSymbolParser {
     }
 
     let varreg = /var\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*/;
-    let varreg2 = "var\\s+$X$\\s*";
+    let varreg2 = "var\\s+$X$([^\\w]|$)";
     let vargroup = 1;
     if(ignoreIndentedVars) {
       varreg = /^((export.*?var)|var)\s+([_A-Za-z]+[_A-Za-z0-9]*)\s?/;
