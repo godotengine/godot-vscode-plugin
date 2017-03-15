@@ -134,7 +134,6 @@ class ToolManager {
   private loadWorkspaceSymbols() {
     this.loadAllNodesInWorkspace();
     this.loadAllSymbols().then(symbols=>{
-        vscode.window.showInformationMessage("Update GDScript symbols done");
         config.setAllSymbols(symbols);
     }).catch(e=>{
         vscode.window.showWarningMessage("Update GDScript symbols failed");
