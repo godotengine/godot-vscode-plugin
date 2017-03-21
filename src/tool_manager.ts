@@ -11,7 +11,6 @@ var glob = require("glob")
 import config from './config';
 import * as path from 'path';
 import * as fs from 'fs';
-const cmd = require('node-cmd');
 class ToolManager {
 
   private workspaceDir: string = "";
@@ -51,7 +50,7 @@ class ToolManager {
       vscode.commands.registerCommand('godot.updateWorkspaceSymbols', this.loadWorkspaceSymbols.bind(this)),
       vscode.commands.registerCommand('godot.runWorkspace', ()=>{this.openWorkspaceWithEditor()}),
       vscode.commands.registerCommand('godot.openWithEditor', ()=>{this.openWorkspaceWithEditor("-e")}),
-      vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScenr.bind(this)),
+      vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScene.bind(this)),
       vscode.commands.registerCommand('godot.provideInitialDebugConfigurations', this.getDefaultDebugConfig.bind(this))
     );
   }
@@ -134,10 +133,10 @@ class ToolManager {
   private loadWorkspaceSymbols() {
     this.loadAllNodesInWorkspace();
     this.loadAllSymbols().then(symbols=>{
-        vscode.window. setStatusBarMessage("$(check) Workspace symbols", 5000);
+        vscode.window.setStatusBarMessage("$(check) Workspace symbols", 5000);
         config.setAllSymbols(symbols);
     }).catch(e=>{
-        vscode.window. setStatusBarMessage("$(x) Workspace symbols", 5000);
+        vscode.window.setStatusBarMessage("$(x) Workspace symbols", 5000);
     });
   }
 
@@ -160,11 +159,14 @@ class ToolManager {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     }
     else {
-      cmd.run(`${editorPath} ${params}`);
+      let terminal = vscode.window.createTerminal("Godot");
+      let cmmand = `${editorPath} ${params}`;
+      terminal.sendText(cmmand, true);
+      terminal.show();
     }
   }
 
-  private runCurrentScenr() {
+  private runCurrentScene() {
     let scenePath = null
     if(vscode.window.activeTextEditor)
       scenePath = vscode.workspace.asRelativePath(vscode.window.activeTextEditor.document.uri);
