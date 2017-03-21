@@ -1,5 +1,12 @@
 # Change Log
 
+### 0.2.5
+
+* Run games within VSCode terminals
+* Add key bindings for `F5 to run the workspace` and `F6 to run the edting scene`
+* Fix a lot of bugs with unused vaiable cheching
+* Move workspace symbols state notice to status bar
+
 ### 0.2.4
 
 * Add code cheching for asignments and comparations

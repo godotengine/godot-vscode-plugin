@@ -55,6 +55,13 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.5
+
+* Run games within VSCode terminals
+* Add key bindings for `F5 to run the workspace` and `F6 to run the edting scene`
+* Fix a lot of bugs with unused vaiable cheching
+* Move workspace symbols state notice to status bar
+
 ### 0.2.4
 
 * Add code cheching for asignments and comparations
@@ -68,14 +75,9 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * Add launch configurations to launch game with F5(expiremental)
 * The plugin is open source under MIT license
 
-### 0.2.2
-* Better Syntax validating for code blocks
-* More waring for non-python liked expression
-
 [Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 
 
 ## TODOS:
-* Print game output log into VSCode console while game launched from the plugin
 * Convert official BBCode documentation into Markdown and render it to HTML with documentation previewer pages
 * Add mermaid support with documentation
