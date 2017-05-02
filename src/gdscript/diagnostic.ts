@@ -77,6 +77,7 @@ class GDScriptDiagnosticSeverity {
 
   private validateExpression(doc: vscode.TextDocument) {
     let diagnostics = [];
+    let expectEndOfLine = false;
     const text = doc.getText();
     const lines = text.split(/\r?\n/);
     lines.map((line:string, i: number) =>{
@@ -93,10 +94,19 @@ class GDScriptDiagnosticSeverity {
       if(line.match(/[^#].*?\;/) && !line.match(/[#].*?\;/)) {
         const semicolonIndex = line.indexOf(';');
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex+1), "Statement contains a semicolon.", DiagnosticSeverity.Warning));
+              }      if (line.match(/[^#].*?/) && expectEndOfLine){
+        if(!line.match(/.*?(\\|\:)/)){
+          diagnostics.push(new vscode.Diagnostic(range, "': or /' expected at end of the line.", DiagnosticSeverity.Error));
+          expectEndOfLine = false;
+        }
+        if(line.match(/.*?\:/))
+          expectEndOfLine = false;
       }
       if(line.match(/[^\w](if|elif|else|for|while|func|class)[^\w].*?/) && !line.match(/#.*?[^\w](if|elif|else|for|while|func|class)[^\w].*?/)) {
-        if(!line.match(/(if|elif|else|for|while|func|class).*?\:/))
-          diagnostics.push(new vscode.Diagnostic(range, "':' expected at end of the line.", DiagnosticSeverity.Error));
+        if(line.match(/(if|elif|else|for|while|func|class).*?\\/))
+          expectEndOfLine = true;
+        if(line.match(/(if|elif|else|for|while|func|class).*?/) && !line.match(/.*?(\\|\:)/))
+          diagnostics.push(new vscode.Diagnostic(range, "': or /' expected at end of the line.", DiagnosticSeverity.Error));          
         else if(line.match(/(if|elif|while|func|class)\s*\:/))
           diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
         else if(line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+[\w+]|\{.*?\}|\[.*?\]/))
