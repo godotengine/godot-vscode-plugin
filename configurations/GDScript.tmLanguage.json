@@ -20,7 +20,7 @@
       "name": "comment.line.number-sign.gdscript"
     },
     {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|and|in|is|not|or|return|onready|setget|breakpoint)\\b",
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|and|in|is|not|or|return|onready|setget|enum|match|breakpoint)\\b",
       "name": "keyword.control.gdscript"
     },
     {
