@@ -170,10 +170,17 @@ class ToolManager {
     let scenePath = null
     if(vscode.window.activeTextEditor)
       scenePath = vscode.workspace.asRelativePath(vscode.window.activeTextEditor.document.uri);
-    if(scenePath.endsWith(".gd"))
+    if(scenePath.endsWith(".gd")) {
+      const scriptPath = scenePath;
       scenePath = config.scriptSceneMap[config.normalizePath(scenePath)];
-    if(scenePath && (scenePath.endsWith(".tscn") || scenePath.endsWith(".scn"))) {
-      scenePath = ` res://${scenePath} `;
+      if(!scenePath && vscode.window.activeTextEditor.document.getText().match(/\s+extends SceneTree\s/g))
+        scenePath = scriptPath;
+    }
+    if(scenePath) {
+      if(scenePath.endsWith(".gd"))
+        scenePath = ` -s res://${scenePath} `;
+      else
+        scenePath = ` res://${scenePath} `;
       this.openWorkspaceWithEditor(scenePath);
     }
     else
