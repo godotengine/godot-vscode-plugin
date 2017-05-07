@@ -1,5 +1,15 @@
 # Change Log
 
+### 0.2.6
+
+* Add shorthand if else expression support
+* Add `enum` and `match` expression support
+* Fix bugs with syntax checking
+* Updated documentation data with godot 2.1.3
+* Add syntax checking for end of expression
+* The pulugin is compiled with latest VSCode thanks @arrkiin
+* Add key bindings for open workspace with godot editor with `F7` and update workspace symbols with `F8`
+
 ### 0.2.5
 
 * Run games within VSCode terminals

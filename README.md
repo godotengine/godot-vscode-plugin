@@ -55,6 +55,16 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.6
+
+* Add shorthand if else expression support
+* Add `enum` and `match` expression support
+* Fix bugs with syntax checking
+* Updated documentation data with godot 2.1.3
+* Add syntax checking for end of expression
+* The pulugin is compiled with latest VSCode thanks @arrkiin
+* Add key bindings for open workspace with godot editor with `F7` and update workspace symbols with `F8`
+
 ### 0.2.5
 
 * Run games within VSCode terminals
@@ -68,16 +78,10 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * Impoved builtin documentation preview page
 * Fix bugs with unused vaiable cheching
 
-### 0.2.3
-* Fix known errors with code syntax checking
-* Add configuration `GodotTools.ignoreIndentedVars` to allow ignore indented variables in scripts
-* Enhanced hover tip documentation rendering with code examples
-* Add launch configurations to launch game with F5(expiremental)
-* The plugin is open source under MIT license
-
 [Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 
 
 ## TODOS:
 * Convert official BBCode documentation into Markdown and render it to HTML with documentation previewer pages
 * Add mermaid support with documentation
+* Undefine variable checking
