@@ -110,6 +110,14 @@
       {
         "command": "godot.runCurrentScene",
         "key": "F6"
+      },
+      {
+        "command": "godot.openWithEditor",
+        "key": "F7"
+      },
+      {
+        "command": "godot.updateWorkspaceSymbols",
+        "key": "F8"
       }
     ]
   },
