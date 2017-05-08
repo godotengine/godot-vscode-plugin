@@ -105,6 +105,8 @@ class GDScriptDiagnosticSeverity {
       if (keywords) {
         if(line.match(new RegExp(`".*?\\s${keywords[1]}\\s.*?"`)) || line.match(new RegExp(`'.*?\\s${keywords[1]}\\s.*?\'`)))
           return
+        if(line.match(new RegExp(`.*?#.*?\\s${keywords[1]}\\s.*?`)))
+          return
         if(line.match(/.*?\sif\s+\w.*?\s+else\s+\w.*/))
           return
         if (line.match(/.*?\\/))
