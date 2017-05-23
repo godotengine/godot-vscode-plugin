@@ -54,6 +54,8 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
                     scriptitems = [...scriptitems, ...checkDifinition(script.functions)];
                     scriptitems = [...scriptitems, ...checkDifinition(script.signals)];
                     scriptitems = [...scriptitems, ...checkDifinition(script.classes)];
+                    if(script.enumerations)
+                        scriptitems = [...scriptitems, ...checkDifinition(script.enumerations)];
                     locations = [...locations, ...scriptitems];
                 }
                 // check from builtin

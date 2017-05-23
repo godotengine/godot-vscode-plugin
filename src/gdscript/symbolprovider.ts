@@ -48,6 +48,12 @@ class GDScriptSymbolProvider implements DocumentSymbolProvider {
     for (let key of Object.keys(classes))
       symbols.push(new SymbolInformation(key, SymbolKind.Class, classes[key]));
     
+    if(script.enumerations) {
+      const enumerations = script.enumerations;
+      for (let key of Object.keys(enumerations))
+        symbols.push(new SymbolInformation(key, SymbolKind.Enum, enumerations[key]));
+    }
+
     return symbols;
   }
 

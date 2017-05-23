@@ -30,6 +30,8 @@ class GDScriptWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider 
         queryMembers(query, scrip.variables, vscode.SymbolKind.Variable, path);
         queryMembers(query, scrip.constants, vscode.SymbolKind.Constant, path);
         queryMembers(query, scrip.classes, vscode.SymbolKind.Class, path);
+        if(scrip.enumerations)
+          queryMembers(query, scrip.enumerations, vscode.SymbolKind.Enum, path);
       }
       return symbols;
     }

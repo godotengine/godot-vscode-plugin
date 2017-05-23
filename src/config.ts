@@ -169,6 +169,8 @@ class Config {
         items = [...items, ...addScriptItems(script.variables, CompletionItemKind.Variable, "Variable")];
         items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
         items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];
+        if(script.enumerations)
+          items = [...items, ...addScriptItems(script.enumerations, CompletionItemKind.Enum, "Enumeration")];
       }
 
       const addSceneNodes = ()=>{

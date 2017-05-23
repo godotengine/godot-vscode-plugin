@@ -70,6 +70,8 @@ class GDScriptHoverProvider implements HoverProvider {
                 scriptips = [...scriptips, ...getHoverText(script.functions, 'func', path)];
                 scriptips = [...scriptips, ...getHoverText(script.signals, 'signal', path)];
                 scriptips = [...scriptips, ...getHoverText(script.classes, 'class', path)];
+                if(script.enumerations)
+                    scriptips = [...scriptips, ...getHoverText(script.enumerations, 'const', path)];
                 tips = [...tips, ...scriptips];
             }
         };

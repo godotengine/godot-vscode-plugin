@@ -13,7 +13,8 @@ interface GDScript {
   // symbol: marked string
   documents: {},
   // name : value
-  constvalues: {}
+  constvalues: {},
+  enumerations: {}
 }
 
 class GDScriptSymbolParser {
@@ -31,7 +32,8 @@ class GDScriptSymbolParser {
         native: "Object",
         signatures: {},
         documents: {},
-        constvalues: {}
+        constvalues: {},
+        enumerations: {}
     }
     const text  = content;
     const lines = text.split(/\r?\n/);
@@ -172,14 +174,39 @@ class GDScriptSymbolParser {
         script.constvalues[key] = match[2];
     }
     
-    let classnames = getMatches(/class\s+([_A-Za-z]+[_A-Za-z0-9]*)\s*extends\s+/, 1);
-    const classes = findLineRanges(classnames, "class\\s+$X$\\s*extends\\s+");
+    let classnames = getMatches(/class\s+([_A-Za-z]+[_A-Za-z0-9]*)(\s|\:)/, 1);
+    const classes = findLineRanges(classnames, "class\\s+$X$(\\s|\\:)");
     for (let key of Object.keys(classes)) {
       const r:Range = determRange(key, classes)
-      script.classes[key] = determRange(key, classes);
+      script.classes[key] = r;
       script.documents[key] = parseDocument(r);
     }
-    // console.log(script);
+
+    let enumnames = getMatches(/enum\s+([_A-Za-z]+[_A-Za-z0-9]*)\s+\{/, 1);
+    const enums = findLineRanges(enumnames, "enum\\s+$X$\\s+\{");
+    for (let key of Object.keys(enums)) {
+      const r:Range = determRange(key, enums)
+      script.constants[key] = r;
+      script.documents[key] = parseDocument(r);
+      
+      let curindex = r.start.line
+      while (curindex < lines.length) {
+        const line = lines[curindex];
+        let matchs = line.match(/([_A-Za-z]+[_A-Za-z0-9]*)/g);
+        if(matchs && matchs.length >= 1 ){
+          for (var i = 0; i < matchs.length; i++)
+            if(line.indexOf(matchs[i]) > line.indexOf("{"))
+              script.enumerations[matchs[i]] = new Range(curindex, 0, curindex, line.length);
+        }
+        if(line.indexOf("}") == -1)
+          curindex += 1;
+        else
+          break;
+      }
+    }
+    // TODO: enumerations without name
+    // const unnamedEnums = text.match(/enum\s+\{.*\}/gm)
+
 
     return script;
   }
