@@ -129,7 +129,7 @@ class GDScriptDiagnosticSeverity {
             let next = i + 1;
             let nextline = lines[next];
             // changes nextline until finds a line containg text or comes to the last line
-            while (((!nextline || nextline.match(/\s+$/)) || nextline.match(/\s*#/)) && next < lines.length - 1) {
+            while (((!nextline || !nextline.trim().length) || nextline.match(/\s*#/)) && next < lines.length - 1) {
               ++next;
               nextline = lines[next];
             }
