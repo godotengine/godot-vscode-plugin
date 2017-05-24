@@ -1,5 +1,31 @@
 # Change Log
 
+### 0.2.7
+
+* Fix some error with syntax checking
+* Add symbol support for enumerations
+* Remove key bindings for `F5`~`F8` as it might be confict with other functionalities of VSCode
+    * You can bind the key bindings back by add following configurations
+    ```json
+    {
+        "command": "godot.runWorkspace",
+        "key": "F5"
+    },
+    {
+        "command": "godot.runCurrentScene",
+        "key": "F6"
+    },
+    {
+        "command": "godot.openWithEditor",
+        "key": "F7"
+    },
+    {
+        "command": "godot.updateWorkspaceSymbols",
+        "key": "F8"
+    }
+    ```
+    For more references please ready [keybindings](https://code.visualstudio.com/docs/getstarted/keybindings)
+
 ### 0.2.6
 
 * Add shorthand if else expression support

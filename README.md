@@ -55,6 +55,32 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.7
+
+* Fix some error with syntax checking
+* Add symbol support for enumerations
+* Remove key bindings for `F5`~`F8` as it might be confict with other functionalities of VSCode
+    * You can bind the key bindings back by add following configurations
+    ```json
+    {
+        "command": "godot.runWorkspace",
+        "key": "F5"
+    },
+    {
+        "command": "godot.runCurrentScene",
+        "key": "F6"
+    },
+    {
+        "command": "godot.openWithEditor",
+        "key": "F7"
+    },
+    {
+        "command": "godot.updateWorkspaceSymbols",
+        "key": "F8"
+    }
+    ```
+    For more references please ready [keybindings](https://code.visualstudio.com/docs/getstarted/keybindings)
+
 ### 0.2.6
 
 * Add shorthand if else expression support
@@ -71,14 +97,6 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * Add key bindings for `F5 to run the workspace` and `F6 to run the edting scene`
 * Fix a lot of bugs with unused vaiable cheching
 * Move workspace symbols state notice to status bar
-
-### 0.2.4
-
-* Add code cheching for asignments and comparations
-* Impoved builtin documentation preview page
-* Fix bugs with unused vaiable cheching
-
-[Read more from the full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 
 
 ## TODOS:
