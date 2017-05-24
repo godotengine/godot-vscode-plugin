@@ -101,24 +101,6 @@
         "language": "gdscript",
         "path": "./configurations/snippets.json"
       }
-    ],
-    "keybindings": [
-      {
-        "command": "godot.runWorkspace",
-        "key": "F5"
-      },
-      {
-        "command": "godot.runCurrentScene",
-        "key": "F6"
-      },
-      {
-        "command": "godot.openWithEditor",
-        "key": "F7"
-      },
-      {
-        "command": "godot.updateWorkspaceSymbols",
-        "key": "F8"
-      }
     ]
   },
   "scripts": {
