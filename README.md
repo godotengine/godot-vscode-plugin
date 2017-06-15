@@ -11,7 +11,7 @@ The plug-in comes with a wealth of features to make your programming experience 
 - Static code validation
 - Open projects and scenes in Godot from VScode
 - Ctrl click on a variable or method call to jump to its definition
-- Run/debug the godot game with VSCode with F5(coming soon) 
+- Full documentation supported with API of godot engine
 
 ![Showing the documentation on hover feature](https://raw.githubusercontent.com/GodotExplorer/godot-tools/master/img/documentation-on-hover.png "Method definition and docs on hover")
 
@@ -33,14 +33,6 @@ You can use the following settings to setup the Godot Tools:
 - GodotTools.editorPath: An absolute path pointing at the Godot Editor executable file. Required to run the project and test scenes from VScode
 - GodotTools.workspaceDocumentWithMarkdown: Control the documentations of workspace symbols should be rendered as plain text or html from markdown
 - GodotTools.ignoreIndentedVars: Parse variables defined after indent of not
-
-## Extra functionality
-
-If you want to get an even better experience with this plug-in, you can extend its functionality using the following modules and VScode extensions:
-
-### VScode extensions
-
-- [TOML language](https://marketplace.visualstudio.com/items?itemName=be5invis.toml): Godot uses this minimal language to store settings. For example in your project config file. If you want to get syntax highlighting for these files, you will have to install the TOML language extension.
 
 ## Issues and contributions
 
