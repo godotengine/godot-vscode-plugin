@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.2.8
+* Add godot 3.0 project support with configuration `GodotTools.parseTextScene` >= 3
+* Remove `GodotTools.editorServerPort` configuration
+* Add configuration `GodotTools.parseTextScene` to allow disable node path parsing
+
 ### 0.2.7
 
 * Fix some error with syntax checking

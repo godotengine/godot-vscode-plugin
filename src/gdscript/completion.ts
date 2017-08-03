@@ -36,12 +36,9 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
 
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
     
-    return new Promise((resolve, reject) => {
-        let items:CompletionItem[] = config.getWorkspaceCompletionItems();
-        items = [...items, ...config.bintinSybmolInfoList];
-        resolve(items);
-    });
-    
+    let items:CompletionItem[] = config.getWorkspaceCompletionItems();
+    items = [...items, ...config.bintinSybmolInfoList];
+    return items;
   }
 
   resolveCompletionItem(item : CompletionItem, token : CancellationToken) : CompletionItem | Thenable < CompletionItem > {

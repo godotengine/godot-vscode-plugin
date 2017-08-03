@@ -15,6 +15,7 @@
   ],
   "activationEvents": [
     "workspaceContains:engine.cfg",
+    "workspaceContains:project.godot",
     "onLanguage:gdscript"
   ],
   "main": "./out/src/extension",
@@ -41,11 +42,6 @@
       "type": "object",
       "title": "Godot tools configuration",
       "properties": {
-        "GodotTools.editorServerPort": {
-          "type": "number",
-          "default": 6996,
-          "description": "The server port of your EditorServer"
-        },
         "GodotTools.maxNumberOfProblems": {
           "type": "number",
           "default": 100,
@@ -65,6 +61,16 @@
           "type": "boolean",
           "default": false,
           "description": "Only parse variables without indents in GDScript"
+        },
+        "GodotTools.godotVersion": {
+          "type": "number",
+          "default": 2.1,
+          "description": "The godot version of your project"
+        },
+        "GodotTools.parseTextScene": {
+            "type": "boolean",
+            "default": false,
+            "description": "Parse scene files with extention ends with tscn"
         }
       }
     },

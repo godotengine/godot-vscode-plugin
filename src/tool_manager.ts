@@ -42,7 +42,14 @@ class ToolManager {
     // hover provider
     vscode.languages.registerHoverProvider('gdscript', new GDScriptHoverProvider());
     // code completion provider
-    vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
+    const completionDollar = (
+      vscode.workspace.getConfiguration("GodotTools").get("parseTextScene", false)
+      && (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3.0)
+    );
+    if (completionDollar)
+        vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'", "$");
+    else
+        vscode.languages.registerCompletionItemProvider('gdscript', new GDScriptCompletionItemProvider(), '.', '"', "'");
     // signature help provider
     vscode.languages.registerSignatureHelpProvider('gdscript', new GDScriptSignatureHelpProvider(), '(', ',');
     // Commands
@@ -131,7 +138,9 @@ class ToolManager {
   }
 
   private loadWorkspaceSymbols() {
-    this.loadAllNodesInWorkspace();
+    if (vscode.workspace.getConfiguration("GodotTools").get("parseTextScene", false)) {
+        this.loadAllNodesInWorkspace();
+    }
     this.loadAllSymbols().then(symbols=>{
         vscode.window.setStatusBarMessage("$(check) Workspace symbols", 5000);
         config.setAllSymbols(symbols);
