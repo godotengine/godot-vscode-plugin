@@ -40,6 +40,11 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 ## Release Notes
 
+### 0.2.8
+* Add godot 3.0 project support with configuration `GodotTools.parseTextScene` >= 3
+* Add configuration `GodotTools.parseTextScene` to allow disable node path parsing
+* Remove `GodotTools.editorServerPort` configuration
+
 ### 0.2.7
 
 * Fix some error with syntax checking
@@ -76,13 +81,7 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 * The pulugin is compiled with latest VSCode thanks @arrkiin
 * Add key bindings for open workspace with godot editor with `F7` and update workspace symbols with `F8`
 
-### 0.2.5
-
-* Run games within VSCode terminals
-* Add key bindings for `F5 to run the workspace` and `F6 to run the edting scene`
-* Fix a lot of bugs with unused vaiable cheching
-* Move workspace symbols state notice to status bar
-
+[Full change log](CHANGELOG.md)
 
 ## TODOS:
 * Convert official BBCode documentation into Markdown and render it to HTML with documentation previewer pages
