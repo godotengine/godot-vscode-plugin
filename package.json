@@ -78,7 +78,7 @@
       {
         "id": "gdscript",
         "aliases": [
-          "Godot Engine Script",
+          "GDScript",
           "gdscript"
         ],
         "extensions": [

@@ -3,62 +3,20 @@
     "gd"
   ],
   "scopeName": "source.gdscript",
-  "name": "Godot Engine GDScript",
+  "name": "GDScript",
   "patterns": [
-    { "include": "#strings" },
-    { "include": "#numbers" },
+    { "include": "#base_expression" },
     { "include": "#self" },
-    {
-      "captures": 
-      {
-        "1": 
-        {
-          "name": "punctuation.definition.comment.number-sign.gdscript"
-        }
-      },
-      "match": "(#).*$\\n?",
-      "name": "comment.line.number-sign.gdscript"
-    },
-    {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|and|in|is|not|or|return|onready|setget|enum|match|breakpoint)\\b",
-      "name": "keyword.control.gdscript"
-    },
-    {
-      "match": "\\b(&&|!|\\|\\|)\\b",
-      "name": "keyword.operator.logical.gdscript"
-    },
-    {
-      "match": "<=|>=|==|<|>|!=",
-      "name": "keyword.operator.comparison.gdscript"
-    },
-    {
-      "match": "\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*|/|%|\\+|-|<<|>>|&|\\||\\^|~",
-      "name": "keyword.operator.arithmetic.gdscript"
-    },
-    {
-      "match": "=",
-      "name": "keyword.operator.assignment.gdscript"
-    },
-    {
-      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
-      "name": "entity.other.inherited-class.gdscript"
-    },
-    {
-      "match": "\\b(?i:true|false|null)\\b",
-      "name": "constant.language.gdscript"
-    },
-    {
-      "match": "\\b(?i:export|tool|yield)\\b",
-      "name": "storage.modifier.static.gdscript"
-    },
-    {
-      "match": "\\bvar\\b",
-      "name": "storage.type.var.gdscript"
-    },
-    {
-      "match": "(?<![^.]\\.|:)\\b(print|set_\\w+|get_\\w+)\\b(?=(\\()([^)]*)(\\)))",
-      "name": "support.function.library.gdscript"
-    },
+    { "include": "#logic_op" },
+    { "include": "#compare_op" },
+    { "include": "#arithmetic_op" },
+    { "include": "#assignment_op" },
+    { "include": "#keywords" },
+    { "include": "#const_def" },
+    { "include": "#var_def" },
+    { "include": "#class_def" },
+    { "match": "\\b(?i:export|tool)\\b", "name": "storage.modifier.static.gdscript" },
+    { "include": "#builtinFuncs" },
     {
       "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
       "name": "support.function.any-method.gdscript"
@@ -67,94 +25,30 @@
       "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
       "name": "variable.other.property.gdscript"
     },
+    { "include": "#function-declaration" },
+
     {
-      "captures": {
-        "1": {
-          "name": "entity.name.type.class.gdscript"
-        },
-        "2": {
-          "name": "class.other.gdscript"
-        }
-      },
-      "match": "(?<=^class)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
+      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+      "name": "entity.other.inherited-class.gdscript"
     },
-    {
-      "captures": {
-        "1": {
-          "name": "storage.type.const.gdscript"
-        },
-        "2": {
-          "name": "constant.other.gdscript"
-        }
-      },
-      "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
-    },
-    {
-      "captures": {
-        "1": {
-          "name": "entity.name.type.instance.gdscript"
-        },
-        "2": {
-          "name": "keyword.operator.new.gdscript"
-        }
-      },
-      "match": "\\s*\\b(\\w+)\\.(new)\\b"
-    },
-    {
-      "begin": "^\\s*(static)?\\s*(func|signal)\\s+([a-zA-Z_]\\w*)s*(\\()",
-      "beginCaptures": {
-        "1": {
-          "name": "storage.modifier.static.gdscript"
-        },
-        "2": {
-          "name": "storage.type.function.gdscript"
-        },
-        "3": {
-          "name": "entity.name.function.gdscript"
-        },
-        "4": {
-          "name": "punctuation.definition.parameters.begin.bracket.round.gdscript"
-        }
-      },
-      "end": "(\\))\\s*:",
-      "endCaptures": {
-        "1": {
-          "name": "punctuation.definition.parameters.end.bracket.round.gdscript"
-        }
-      },
-      "patterns": [
-        {
-          "match": "[a-zA-Z_][a-zA-Z_0-9]*",
-          "name": "variable.parameter.function.gdscript"
-        },
-        {
-          "match": ",",
-          "name": "punctuation.definition.parameters.comma.gdscript"
-        },
-        {
-          "match": "\\s*",
-          "name": "punctuation.definition.parameters.space.gdscript"
-        }
-      ]
-    },
-    {
-      "match": "\\b(?i:class|extends|assert|signal)\\b",
-      "name": "keyword.other.gdscript"
-    },
-    { "include": "#builtinFuncs" },
+
     { "include": "#builtinClasses" },
     { "include": "#builtinProps" },
     { "include": "#builtinConsts" },
     { "include": "#const_vars" }
   ],
   "repository": {
-    "self": {
-      "match": "\\bself\\b",
-      "name": "variable.language.gdscript"
+    "comment": {
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.comment.number-sign.gdscript"
+        }
+      },
+      "match": "(#).*$\\n?",
+      "name": "comment.line.number-sign.gdscript"
     },
     "strings": {
-      "patterns": [
-        {
+      "patterns": [{
           "begin": "\"",
           "end": "(?<!\\\\)\"",
           "name": "string.quoted.double.gdscript"
@@ -167,13 +61,50 @@
         {
           "begin": "@\"",
           "end": "(?<!\\\\)\"",
-          "name": "string.quoted.double.gdscript"
+          "name": "string.nodepath.gdscript"
         }
       ]
     },
-    "numbers": {
+    "self": {
+      "match": "\\bself\\b",
+      "name": "variable.language.gdscript"
+    },
+    "base_expression": {
       "patterns": [
-        {
+        { "include": "#strings"},
+        { "include": "#comment"},
+        { "include": "#letter"},
+        { "include": "#numbers"},
+        { "include": "#line-continuation"}
+      ]
+    },
+    "logic_op": {
+      "match": "\\b(and|or|not)\\b",
+      "name": "keyword.operator.logical.gdscript"
+    },
+    "compare_op": {
+      "match": "<=|>=|==|<|>|!=",
+      "name": "keyword.operator.comparison.gdscript"
+    },
+    "arithmetic_op": {
+      "match": "\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*|/|%|\\+|-|<<|>>|&|\\||\\^|~",
+      "name": "keyword.operator.arithmetic.gdscript"
+    },
+    "assignment_op": {
+      "match": "=",
+      "name": "keyword.operator.assignment.gdscript"
+    },
+
+    "keywords": {
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal)\\b",
+      "name": "keyword.control.gdscript"
+    },
+    "letter": {
+        "match": "\\b(?i:true|false|null)\\b",
+        "name": "constant.language.gdscript"
+    },
+    "numbers": {
+      "patterns": [{
           "match": "\\b(?i:0x\\h*)\\b",
           "name": "constant.numeric.integer.hexadecimal.gdscript"
         },
@@ -195,13 +126,149 @@
         }
       ]
     },
+    "const_def": {
+      "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
+      "captures": {
+        "1": { "name": "storage.type.const.gdscript" },
+        "2": { "name": "constant.other.gdscript" }
+      }
+    },
+    "var_def": {
+      "match": "\\b(?i:(var))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
+      "captures": {
+        "1": { "name": "storage.type.var.gdscript" },
+        "2": { "name": "support.member.gdscript" }
+      }
+    },
+    "class_def": {
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" },
+        "2": { "name": "class.other.gdscript" }
+      },
+      "match": "(?<=^class)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
+    },
+    "builtin_func": {
+      "match": "(?<![^.]\\.|:)\\b(sin|cos|tan|sinh|cosh|tanh|asin|acos|atan|atan2|sqrt|fmod|fposmod|floor|ceil|round|abs|sign|pow|log|exp|is_nan|is_inf|ease|decimals|stepify|lerp|dectime|randomize|randi|randf|rand_range|seed|rand_seed|deg2rad|rad2deg|linear2db|db2linear|max|min|clamp|nearest_po2|weakref|funcref|convert|typeof|type_exists|char|str|print|printt|prints|printerr|printraw|var2str|str2var|var2bytes|bytes2var|range|load|inst2dict|dict2inst|hash|Color8|print_stack|instance_from_id|preload|yield|assert)\\b(?=(\\()([^)]*)(\\)))",
+      "name": "support.function.builtin.gdscript"
+    },
     "builtinClasses": {
-      "match": "(?<![^.]\\.|:)\\b(EditorFileDialog|MaterialShader|RenderTargetTexture|PacketPeerStream|Theme|HSlider|AudioStream|RegExMatch|Object|Joint|VisualScriptLocalVar|VisualScriptDeconstruct|RegEx|OptionButton|RayCast|PacketPeerUDP|Matrix32|@GDScript|VisualScriptSceneNode|InputEventKey|VisualScriptEmitSignal|ConeTwistJoint|RayShape2D|PHashTranslation|SpatialGizmo|Label|RemoteTransform2D|Camera|VehicleBody|EventStream|CapsuleShape2D|WorldEnvironment|VisualScriptEngineSingleton|Physics2DServer|CubeMap|LineShape2D|SphereShape|Viewport|TriangleMesh|VisualScript|DynamicFontData|Physics2DDirectSpaceStateSW|Light|ParticleAttractor2D|SpinBox|PanelContainer|InputEvent|Node2D|VisualScriptBasicTypeConstant|VSeparator|Vector3Array|Tabs|Range|PlaneShape|TextureFrame|DynamicFont|CollisionShape|BitmapFont|CollisionObject2D|SpriteFrames|LinkButton|ButtonArray|Input|StringArray|SpatialSound2DServer|Node|PhysicsDirectSpaceStateSW|AtlasTexture|NetworkedMultiplayerENet|EventStreamChibi|ShaderMaterial|VisibilityNotifier2D|PhysicsShapeQueryParameters|Geometry|TileMap|ParallaxBackground|RigidBody2D|PhysicsDirectBodyStateSW|Navigation2D|RID|VBoxContainer|VisualScriptVariableSet|PhysicsShapeQueryResult|AnimatedSprite3D|InputEventScreenTouch|TreeItem|Curve2D|SpriteBase3D|CollisionPolygon2D|GridContainer|TouchScreenButton|Generic6DOFJoint|Particles2D|VisualScriptConstant|Variant|Shape|AnimatedSprite|VisualScriptReturn|PinJoint2D|Physics2DTestMotionResult|RayCast2D|Light2D|VisualScriptSceneTree|ScrollContainer|Shape2D|Shader|VisualScriptSelf|FuncRef|ColorRamp|PhysicsDirectSpaceState|File|CanvasLayer|VisualScriptIndexSet|VisualScriptResourcePath|TCP_Server|SoundPlayer2D|StyleBoxImageMask|VisualScriptPropertyGet|InputDefault|VisualScriptVariableGet|EventPlayer|Physics2DShapeQueryResult|HSeparator|VisualScriptIndexGet|ScrollBar|World|CanvasItemShader|VisualScriptInputAction|StyleBox|ConfigFile|SoundRoomParams|StreamPeer|VideoPlayer|HTTPClient|Control|Environment|Reference|AudioStreamPlayback|VisualScriptFunctionState|Area2D|Panel|SpotLight|Physics2DShapeQueryParameters|PhysicsBody|VisualScriptSequence|Vector2Array|VSlider|VisualInstance|GDScript|Spatial|AnimationPlayer|Physics2DDirectSpaceState|Material|MeshDataTool|SpatialStreamPlayer|VehicleWheel|SurfaceTool|Physics2DDirectBodyStateSW|MainLoop|Path2D|VisualScriptTypeCast|ColorPickerButton|GDFunctionState|HButtonArray|EditorFileSystem|VideoStream|SpatialSound2DServerSW|ProgressBar|KinematicBody|EditorResourcePreviewGenerator|SpatialSamplePlayer|TextureButton|RoomBounds|PackedScene|EditorPlugin|CircleShape2D|Texture|ResourcePreloader|CapsuleShape|OccluderPolygon2D|FileDialog|LineEdit|ColorFrame|Dictionary|HScrollBar|CenterContainer|EditorExportPlugin|Mesh|IP_Unix|VisualScriptGlobalConstant|VisualScriptFunctionCall|InputMap|AnimationTreePlayer|VisualScriptPreload|Position3D|CheckButton|VideoStreamTheora|ButtonGroup|StreamPeerBuffer|VisualScriptYield|EditorScript|StaticBody2D|TileSet|ShortCut|VisualScriptSwitch|@Global Scope|BitMap|Particles|Animation|Mutex|ProximityGroup|Sprite|Nil|VisibilityEnabler2D|UndoRedo|BakedLightInstance|VisualScriptBuiltinFunc|AudioStreamMPC|RemoteTransform|AABB|PhysicsServer|StaticBody|SpatialPlayer|BoneAttachment|PacketPeer|Matrix3|Sample|VisualScriptClassConstant|BoxShape|ConfirmationDialog|Array|@VisualScript|ReferenceFrame|SpatialSoundServerSW|CollisionShape2D|NavigationPolygonInstance|ConcavePolygonShape2D|PathFollow2D|TextureProgress|VisualScriptCondition|PolygonPathFinder|Semaphore|VisualScriptOperator|VisualScriptIterator|MeshInstance|ResourceSaver|VideoStreamWebm|ParallaxLayer|VisualScriptCustomNode|MarginContainer|SamplePlayer|SliderJoint|Translation|InstancePlaceholder|HTTPRequest|HBoxContainer|MenuButton|BakedLight|PopupPanel|VisualScriptSubCall|PathFollow|NavigationMeshInstance|Script|Patch9Frame|StyleBoxFlat|InputEventMouseButton|TextEdit|Performance|XMLParser|BaseButton|Popup|Quat|Listener|EditorImportPlugin|Joint2D|Quad|VisualScriptYieldSignal|ConvexPolygonShape2D|Tree|PathRemap|Separator|Directory|ShaderGraph|Marshalls|Polygon2D|PopupDialog|AStar|ResourceLoader|Position2D|MaterialShaderGraph|CanvasItemShaderGraph|OmniLight|Container|VisualScriptInputFilter|StreamPlayer|ToolButton|VisibilityNotifier|DampedSpringJoint2D|KinematicBody2D|GraphNode|AudioServer|ColorArray|VisualScriptLocalVarSet|SpatialSoundServer|SceneState|InputEventJoystickButton|LightOccluder2D|GDNativeClass|Path|StyleBoxTexture|Navigation|RigidBody|PCKPacker|FixedMaterial|VisualScriptWhile|TestCube|RealArray|Vector2|Vector3|InterpolatedCamera|StreamPeerSSL|WeakRef|PhysicsServerSW|VisualScriptConstructor|CollisionPolygon|Plane|VisualServer|Physics2DServerSW|ViewportSprite|VisualScriptMathConstant|Resource|Room|IP|SampleLibrary|VisualScriptComment|BakedLightSampler|VisualScriptExpression|VisualScriptNode|StreamPeerTCP|SceneTreeTimer|RectangleShape2D|VisualScriptPropertySet|NetworkedMultiplayerPeer|EditorResourcePreview|Thread|MultiMeshInstance|HSplitContainer|Transform|World2D|GridMap|SegmentShape2D|AcceptDialog|Skeleton|StyleBoxEmpty|Font|OS|EditorScenePostImport|SamplePlayer2D|CheckBox|ImageTexture|VisualScriptFunction|MeshLibrary|PopupMenu|VisibilityEnabler|CanvasItem|InputEventScreenDrag|VButtonArray|TabContainer|String|AudioStreamOGGVorbis|AudioStreamOpus|HingeJoint|BackBufferCopy|Curve3D|Area|Button|EditorSpatialGizmo|PinJoint|NavigationPolygon|Timer|InputEventMouseMotion|ResourceInteractiveLoader|EditorSettings|VScrollBar|Image|ResourceImportMetadata|Globals|LargeTexture|Sprite3D|ColorPicker|float|Tween|GrooveJoint2D|RichTextLabel|Rect2|RayShape|RawArray|SplitContainer|VSplitContainer|PhysicsDirectBodyState|Portal|MultiMesh|ConvexPolygonShape|CanvasItemMaterial|PackedDataContainer|AudioServerSW|ConcavePolygonShape|PackedDataContainerRef|CanvasModulate|InputEventJoystickMotion|YSort|WindowDialog|SceneTree|CollisionObject|NodePath|int|ImmediateGeometry|PhysicsBody2D|NavigationMesh|BoxContainer|Slider|bool|GraphEdit|EditorSelection|Physics2DDirectBodyState|GeometryInstance|ItemList|IntArray|DirectionalLight|Color|Camera2D|TranslationServer|InputEventAction|EditorFileSystemDirectory)\\b",
+      "match": "(?<![^.]\\.|:)\\b(Vector2|Vector3|Color|Rect2|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D)\\b",
       "name": "support.class.library.gdscript"
     },
     "const_vars": {
       "match": "\\b([A-Z_0-9]+)\\b",
       "name": "constant.other.gdscript"
+    },
+
+    "function-declaration": {
+      "name": "meta.function.gdscript",
+      "begin": "(?x)\n  \\s*\n  (?:\\b(static) \\s+)? \\b(func|signal)\\s+\n    (?=\n      [[:alpha:]_][[:word:]]* \\s* \\(\n    )\n",
+      "end": "(:|(?=[#'\"\\n]))",
+      "beginCaptures": {
+        "1": { "name": "storage.type.function.static.gdscript" },
+        "2": { "name": "storage.type.function.gdscript" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.section.function.begin.gdscript" }
+      },
+      "patterns": [
+        { "include": "#function-def-name" },
+        { "include": "#parameters" },
+        { "include": "#line-continuation" },
+        { "include": "#return-annotation" }
+      ]
+    },
+    "function-def-name": {
+      "patterns": [
+        {
+          "name": "entity.name.function.gdscript",
+          "match": "(?x)\n  \\b ([[:alpha:]_]\\w*) \\b\n"
+        }
+      ]
+    },
+    "parameters": {
+      "name": "meta.function.parameters.gdscript",
+      "begin": "(\\()",
+      "end": "(\\))",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.parameters.begin.gdscript" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.parameters.end.gdscript" }
+      },
+      "patterns": [{
+          "name": "keyword.operator.unpacking.parameter.gdscript",
+          "match": "(\\*\\*|\\*)"
+        },
+        { "include": "#parameter-special" },
+        {
+          "match": "(?x)\n  ([[:alpha:]_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
+          "captures": {
+            "1": { "name": "variable.parameter.function.language.gdscript" },
+            "2": { "name": "punctuation.separator.parameters.gdscript" }
+          }
+        },
+        { "include": "#comment" },
+        { "include": "#loose-default"},
+        { "include": "#annotated-parameter" }
+      ]
+    },
+    "parameter-special": {
+      "match": "(?x)\n  \\b ((self)|(cls)) \\b \\s*(?:(,)|(?=\\)))\n",
+      "captures": {
+        "1": { "name": "variable.parameter.function.language.gdscript" },
+        "2": { "name": "variable.parameter.function.language.special.self.gdscript" },
+        "3": { "name": "variable.parameter.function.language.special.cls.gdscript" },
+        "4": { "name": "punctuation.separator.parameters.gdscript" }
+      }
+    },
+    "loose-default": {
+      "begin": "(=)",
+      "end": "(,)|(?=\\))",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.gdscript" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.separator.parameters.gdscript" }
+      },
+      "patterns": [
+          { "include": "#base_expression"}
+      ]
+    },
+    "annotated-parameter": {
+      "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:)\n",
+      "end": "(,)|(?=\\))",
+      "beginCaptures": {
+        "1": { "name": "variable.parameter.function.language.gdscript" },
+        "2": { "name": "punctuation.separator.annotation.gdscript" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.separator.parameters.gdscript" }
+      },
+      "patterns": [
+        { "name": "keyword.operator.assignment.gdscript", "match": "=(?!=)"}
+      ]
+    },
+    "line-continuation": {
+      "patterns": [
+        {
+          "match": "(\\\\)\\s*(\\S.*$\\n?)",
+          "captures": {
+            "1": { "name": "punctuation.separator.continuation.line.gdscript" },
+            "2": { "name": "invalid.illegal.line.continuation.gdscript" }
+          }
+        },
+        {
+          "begin": "(\\\\)\\s*$\\n?",
+          "end": "(?x)\n  (?=^\\s*$)\n  |\n  (?! (\\s* [rR]? (\\'\\'\\'|\\\"\\\"\\\"|\\'|\\\"))\n      |\n      (\\G $)  (?# '\\G' is necessary for ST)\n  )\n",
+          "beginCaptures": {
+            "1": { "name": "punctuation.separator.continuation.line.gdscript" }
+          },
+          "patterns": [
+            { "include": "#base_expression" }
+          ]
+        }
+      ]
     }
   }
 }
