@@ -214,28 +214,30 @@ class Config {
         if(script.enumerations)
           symbols.constants = [...(symbols.constants), ...(addScriptItems(script.enumerations, CompletionItemKind.Enum, "Enumeration"))];
       }
+      
+      if(workspace.getConfiguration("GodotTools").get("completeNodePath", false)) {
+        const addSceneNodes = ()=>{
+          const _items: CompletionItem[] = [];
+          for (let scnenepath of Object.keys(this.nodeInfoMap)) {
+            const nodes: NodeInfo[] = this.nodeInfoMap[scnenepath];
+            nodes.map((n=>{
+              const item = new CompletionItem(n.name, CompletionItemKind.Reference);
+              item.detail = n.type;
+              item.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
+              _items.push(item);
 
-      const addSceneNodes = ()=>{
-        const _items: CompletionItem[] = [];
-        for (let scnenepath of Object.keys(this.nodeInfoMap)) {
-          const nodes: NodeInfo[] = this.nodeInfoMap[scnenepath];
-          nodes.map((n=>{
-            const item = new CompletionItem(n.name, CompletionItemKind.Reference);
-            item.detail = n.type;
-            item.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
-            _items.push(item);
-
-            const fullitem = new CompletionItem(`${n.parent}/${n.name}`, CompletionItemKind.Reference);
-            fullitem.detail = n.type;
-            fullitem.filterText = n.name;
-            fullitem.sortText = n.name;
-            fullitem.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
-            _items.push(fullitem);
-          }));
-        }
-        return _items;
-      };
-      symbols.nodes = [...(symbols.nodes), ...(addSceneNodes())];
+              const fullitem = new CompletionItem(`${n.parent}/${n.name}`, CompletionItemKind.Reference);
+              fullitem.detail = n.type;
+              fullitem.filterText = n.name;
+              fullitem.sortText = n.name;
+              fullitem.documentation = `${n.parent}/${n.name} in ${scnenepath}`;
+              _items.push(fullitem);
+            }));
+          }
+          return _items;
+        };
+        symbols.nodes = [...(symbols.nodes), ...(addSceneNodes())];
+      }
 
       return symbols;
   }

@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "newIcon.png",
   "description": "Tools for game development with godot game engine",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
@@ -69,8 +69,13 @@
         },
         "GodotTools.parseTextScene": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "description": "Parse scene files with extention ends with tscn"
+        },
+        "GodotTools.completeNodePath": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show node pathes of of workspace in the code completion"
         }
       }
     },
