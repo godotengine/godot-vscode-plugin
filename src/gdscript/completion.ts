@@ -87,6 +87,9 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
           ...(workspaces.nodes),
         ]
       }
+      else if(lastFlag.trim() == "$") {
+        items = [ ...(workspaces.nodes) ]
+      }
     }
     return items;
   }
