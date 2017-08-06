@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.2.9
+* Add configuration `GodotTools.completeNodePath` to switch is complete node pathes
+* Enhanced syntax highlight with GDScript
+* Enhanced code completion with GDScript
+
 ### 0.2.8
 * Add godot 3.0 project support with configuration `GodotTools.parseTextScene` >= 3
 * Add configuration `GodotTools.parseTextScene` to allow disable node path parsing
