@@ -9,10 +9,21 @@ interface NodeInfo {
   instance: string
 };
 
+interface CompletionSymbols  {
+  classes : CompletionItem[],
+  functions : CompletionItem[],
+  signals : CompletionItem[],
+  constants : CompletionItem[],
+  properties : CompletionItem[],
+  nodes : CompletionItem[],
+  builtinConstants: CompletionItem[]
+};
+
 class Config {
-  private symbols;
-  private classes;
-  public bintinSybmolInfoList: CompletionItem[];
+  
+  private workspaceSymbols; // filePath: GDScript in symbolparser.ts
+  private builtinCompletions : CompletionSymbols;
+  private builtinClassDoc;
   public parser: GDScriptSymbolParser;
   // scriptpath : scenepath
   public scriptSceneMap: Object;
@@ -22,8 +33,16 @@ class Config {
   public builtinSymbolInfoMap: Object;
 
   constructor() {
-    this.symbols = {};
-    this.bintinSybmolInfoList = [];
+    this.builtinCompletions = {
+      classes : [],
+      functions : [],
+      signals : [],
+      constants : [],
+      properties : [],
+      nodes : [],
+      builtinConstants: []
+    };
+    this.workspaceSymbols = {};
     this.builtinSymbolInfoMap = {};
     this.nodeInfoMap = {};
     this.scriptSceneMap = {};
@@ -40,19 +59,19 @@ class Config {
   }
 
   setSymbols(path, s) {
-    this.symbols[this.normalizePath(path)] = s;
+    this.workspaceSymbols[this.normalizePath(path)] = s;
   }
 
   getSymbols(path) {
-    return this.symbols[this.normalizePath(path)];
+    return this.workspaceSymbols[this.normalizePath(path)];
   }
 
   setAllSymbols(s) {
-    this.symbols = s;
+    this.workspaceSymbols = s;
   }
   
   getAllSymbols() {
-    return this.symbols;
+    return this.workspaceSymbols;
   }
 
   normalizePath(path) {
@@ -75,7 +94,7 @@ class Config {
         const content = fs.readFileSync(docfile, "utf-8");
         const docdata = JSON.parse(content);
         if(docdata.classes) {
-          this.classes = docdata.classes;
+          this.builtinClassDoc = docdata.classes;
           done = true;
         }
       }
@@ -83,18 +102,16 @@ class Config {
         console.error(error);
     }
     if(done) {
-      for (let key of Object.keys(this.classes)) {
-        const classdoc = this.classes[key];
-        const bintinSybmolInfoList = this.bintinSybmolInfoList;
+      for (let key of Object.keys(this.builtinClassDoc)) {
+        const classdoc = this.builtinClassDoc[key];
         const builtinSymbolInfoMap = this.builtinSymbolInfoMap;
-        // class
+        // ----------------------  class -----------------
         const item: CompletionItem = new CompletionItem(classdoc.name, CompletionItemKind.Class);
         item.detail = 'Native Class';
         item.documentation = classdoc.brief_description + " \n\n" +classdoc.description;
-        bintinSybmolInfoList.push(item);
+        this.builtinCompletions.classes.push(item);
         builtinSymbolInfoMap[classdoc.name] = {completionItem: item, rowDoc: classdoc};
-        // methods
-        const methods = classdoc.methods
+        // ----------------------- functions -----------------------
         const parsMethod = (m, kind: CompletionItemKind, insertAction=(name)=>name)=>{
           const mi = new CompletionItem(m.name, kind);
           mi.insertText = insertAction(m.name) + (m.arguments.length==0?"()":"");
@@ -110,31 +127,46 @@ class Config {
           mdoc += " \n\n";
           mdoc += m.description;
           mi.documentation = mdoc;
-          bintinSybmolInfoList.push(mi);
+          if(CompletionItemKind.Interface == kind)
+            this.builtinCompletions.signals.push(mi);
+          else
+            this.builtinCompletions.functions.push(mi);
           builtinSymbolInfoMap[`${classdoc.name}.${m.name}`] = {completionItem: mi, rowDoc: m};
         };
+        // methods
+        const methods = classdoc.methods
         methods.map(m=>parsMethod(m, CompletionItemKind.Method));
         // signals
         const signals = classdoc.signals;
         signals.map(s=>parsMethod(s, CompletionItemKind.Interface));
-        // constants
+        // ------------------------------ constants ---------------------
         const constants = classdoc.constants;
         constants.map(c=>{
           const ci = new CompletionItem(c.name, CompletionItemKind.Enum);
           ci.detail = c.value;
           ci.documentation = `${classdoc.name}.${c.name} = ${c.value}`;
-          bintinSybmolInfoList.push(ci);
+          if(key[0] == "@")
+            this.builtinCompletions.builtinConstants.push(ci);
+          else
+            this.builtinCompletions.constants.push(ci);
           builtinSymbolInfoMap[`${classdoc.name}.${c.name}`] = {completionItem: ci, rowDoc: c};
-        });
-        // properties
-        const properties = classdoc.properties;
-        const parseProp = (p)=>{
+        });          
+        // ----------------------- properties -----------------------
+        const parseProp = (p) => {
           const pi = new CompletionItem(p.name, CompletionItemKind.Property);
           pi.detail = `${p.type} of ${classdoc.name}`;
           pi.documentation = p.description;
-          bintinSybmolInfoList.push(pi);
-          builtinSymbolInfoMap[`${classdoc.name}.${p.name}`] = {completionItem: pi, rowDoc: p};
+          this
+            .builtinCompletions
+            .properties
+            .push(pi);
+          builtinSymbolInfoMap[`${classdoc.name}.${p.name}`] = {
+            completionItem: pi,
+            rowDoc: p
+          };
         };
+        // properties
+        const properties = classdoc.properties;
         properties.map(p=>parseProp(p));
         // theme_properties
         const theme_properties = classdoc.theme_properties;
@@ -144,10 +176,18 @@ class Config {
     return done;
   };
 
-  getWorkspaceCompletionItems(): CompletionItem[] {
-      let items: CompletionItem[] = [];
-      for (let path of Object.keys(this.symbols)) {
-        const script = this.symbols[path];
+  getWorkspaceCompletionItems() : CompletionSymbols {
+      const symbols = {
+        classes: [],
+        functions: [],
+        signals: [],
+        constants: [],
+        properties: [],
+        nodes: [],
+        builtinConstants: []
+      };
+      for (let path of Object.keys(this.workspaceSymbols)) {
+        const script = this.workspaceSymbols[path];
         const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol", insertText = (n)=>n)=>{
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
@@ -164,13 +204,15 @@ class Config {
           }
           return _items;
         }
-        items = [...items, ...addScriptItems(script.classes, CompletionItemKind.Class, "Class")];
-        items = [...items, ...addScriptItems(script.functions, CompletionItemKind.Method, "Method")];
-        items = [...items, ...addScriptItems(script.variables, CompletionItemKind.Variable, "Variable")];
-        items = [...items, ...addScriptItems(script.signals, CompletionItemKind.Interface, "Signal")];
-        items = [...items, ...addScriptItems(script.constants, CompletionItemKind.Enum, "Constant")];
+
+        symbols.classes = [ ...(symbols.classes), ...(addScriptItems(script.classes, CompletionItemKind.Class, "Class"))]
+        symbols.functions = [ ...(symbols.functions), ...(addScriptItems(script.functions, CompletionItemKind.Method, "Method"))]
+        symbols.signals = [ ...(symbols.signals), ...(addScriptItems(script.signals, CompletionItemKind.Interface, "Signal"))]
+        symbols.properties = [ ...(symbols.properties), ...(addScriptItems(script.variables, CompletionItemKind.Variable, "Variable"))]
+        symbols.constants = [ ...(symbols.constants), ...(addScriptItems(script.constants, CompletionItemKind.Enum, "Constant"))]
+        
         if(script.enumerations)
-          items = [...items, ...addScriptItems(script.enumerations, CompletionItemKind.Enum, "Enumeration")];
+          symbols.constants = [...(symbols.constants), ...(addScriptItems(script.enumerations, CompletionItemKind.Enum, "Enumeration"))];
       }
 
       const addSceneNodes = ()=>{
@@ -193,9 +235,9 @@ class Config {
         }
         return _items;
       };
-      items = [...items, ...addSceneNodes()];
+      symbols.nodes = [...(symbols.nodes), ...(addSceneNodes())];
 
-      return items;
+      return symbols;
   }
 
   loadScene(scenePath: string) {
@@ -257,13 +299,17 @@ class Config {
   }
 
   getClass(name: string) {
-    return this.classes[name];
+    return this.builtinClassDoc[name];
+  }
+
+  getBuiltinCompletions() {
+    return this.builtinCompletions;
   }
 
   getBuiltinClassNameList() {
     let namelist = null;
-    if(this.classes)
-      namelist = Object.keys(this.classes);
+    if (this.builtinClassDoc)
+      namelist = Object.keys(this.builtinClassDoc);
     if(!namelist)
       namelist = [];
     return namelist;
