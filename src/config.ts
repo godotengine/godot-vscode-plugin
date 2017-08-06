@@ -120,7 +120,7 @@ class Config {
           mi.detail = m.return_type;
           let argstr = "";
           m.arguments.map(arg=>{
-            argstr += `${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value.length:''}${m.arguments.indexOf(arg)==m.arguments.length-1?'':', '}`;
+            argstr += `${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value:''}${m.arguments.indexOf(arg)==m.arguments.length-1?'':', '}`;
           });
           // mi.label=`${m.name}(${argstr}) ${m.qualifiers}`;
           let mdoc = `${m.return_type} ${classdoc.name}.${m.name}(${argstr}) ${m.qualifiers}`;
