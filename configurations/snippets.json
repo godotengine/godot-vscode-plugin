@@ -4,7 +4,7 @@
 	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
 	// $1, $2 for tab stops, ${id} and ${id:label} and ${1:label} for variables. Variables with the same id are connected.
 	// Example:
-	"Subclass": {
+	"Inner class": {
 		"prefix": "class",
 		"body": [
 			"class $1 extends ${2:Reference}",
@@ -57,7 +57,23 @@
       "func _input_event(event):",
       "\t${1:pass}"
     ]
-	},
+  },
+
+    "_draw method of Node": {
+      "prefix": "draw",
+      "body": [
+        "func _draw():",
+        "\t${1:pass}"
+      ]
+    },
+
+  "_gui_input method of Node": {
+    "prefix": "guii",
+    "body": [
+      "func _gui_input(event):",
+      "\t${1:pass}"
+    ]
+  },
 
 	"for loop": {
 		"prefix": "for",
@@ -156,6 +172,13 @@
     ]
   },
 
+  "Is instance of a class or script": {
+    "prefix": "is",
+    "body": [
+      "${1:instance} is ${2:class}"
+    ]
+  },
+
   "element in array": {
     "prefix": "in",
 		"body": [
@@ -191,6 +214,12 @@
     "prefix": "processin",
 		"body": [
       "set_process_input(true)"
+    ]
+  },
+  "pass statement": {
+    "prefix": "pass",
+    "body": [
+      "pass"
     ]
   }
 }
