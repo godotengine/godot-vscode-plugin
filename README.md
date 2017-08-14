@@ -30,7 +30,7 @@ If you like this plugin you can set VSCode as your default script editor with fo
 1. Open editor settings
 2. Select `Text Editor / External`
 3. Check the `Use External Editor` box with mouse click
-4. Fill `Exec Path` to the path of your Visial Studio Code
+4. Fill `Exec Path` to the path of your Visual Studio Code
 5. Fill `Exec Flags` with `{project} --goto {file}:{line}:{col}`
 
 You can use the following settings to setup the Godot Tools:
@@ -38,17 +38,23 @@ You can use the following settings to setup the Godot Tools:
 - GodotTools.editorPath: An absolute path pointing at the Godot Editor executable file. Required to run the project and test scenes from VScode
 - GodotTools.workspaceDocumentWithMarkdown: Control the documentations of workspace symbols should be rendered as plain text or html from markdown
 - GodotTools.ignoreIndentedVars: Parse variables defined after indent of not
-- GodotTools.parseTextScene: Parse scene files with extention ends with tscn
-- GodotTools.completeNodePath: Show node pathes of of workspace in the code completion
+- GodotTools.parseTextScene: Parse scene files with extension ends with tscn
+- GodotTools.completeNodePath: Show node paths of of workspace in the code completion
 
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [engine modules](https://github.com/GodotExplorer/editor-server) are all hosted on GitHub. Feel free to open issues there and create pull requests anytime.
 
+## FAQ
+   
+### Intelisense isn't showing up for me
+
+Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols" from the command palate
+
 ## Release Notes
 
 ### 0.2.9
-* Add configuration `GodotTools.completeNodePath` to switch is complete node pathes
+* Add configuration `GodotTools.completeNodePath` to switch is complete node paths
 * Enhanced syntax highlight with GDScript
 * Enhanced code completion with GDScript
 
@@ -61,7 +67,7 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 
 * Fix some error with syntax checking
 * Add symbol support for enumerations
-* Remove key bindings for `F5`~`F8` as it might be confict with other functionalities of VSCode
+* Remove key bindings for `F5`~`F8` as it might be conflict with other functionalities of VSCode
     * You can bind the key bindings back by add following configurations
     ```json
     {
@@ -88,4 +94,4 @@ The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [e
 ## TODOS:
 * Convert official BBCode documentation into Markdown and render it to HTML with documentation previewer pages
 * Add mermaid support with documentation
-* Undefine variable checking
+* Undefined variable checking
