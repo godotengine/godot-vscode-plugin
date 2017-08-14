@@ -145,7 +145,7 @@
   "define onready variables": {
     "prefix": "onready",
 		"body": [
-      "onready var ${1:name}${2: = default}${3: setget }"
+      "onready var ${1:name} = get_node($2)"
     ]
   },
 
