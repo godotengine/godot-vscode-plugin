@@ -145,7 +145,7 @@ class Config {
           const ci = new CompletionItem(c.name, CompletionItemKind.Enum);
           ci.detail = c.value;
           ci.documentation = `${classdoc.name}.${c.name} = ${c.value}`;
-          if(key[0] == "@")
+          if(key[0] == "@" || key == "Node" || key == "Control")
             this.builtinCompletions.builtinConstants.push(ci);
           else
             this.builtinCompletions.constants.push(ci);
