@@ -23,8 +23,10 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
         const getDefinitions = (content: string):Location[]| Location => {
             if(content.startsWith("res://")) {
                 content = content.replace("res://", "");
-                if(workspace && workspace.rootPath)
-                    content = path.join(workspace.rootPath, content)
+                if(workspace && workspace.rootPath) {
+                    var root = path.join(workspace.rootPath, workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""));
+                    content = path.join(root, content);
+                }
                 return new Location(Uri.file(content), new Range(0,0,0,0));
             }
             else if(fs.existsSync(content) && fs.statSync(content).isFile()) {

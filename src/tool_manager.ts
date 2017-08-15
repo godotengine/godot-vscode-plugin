@@ -117,7 +117,8 @@ class ToolManager {
                     const name = l.substring(0, l.indexOf("="));
 
                     let gdpath = l.substring(l.indexOf("res://") + "res://".length, l.indexOf(".gd") + ".gd".length);
-                    gdpath = path.join(self.workspaceDir, gdpath);
+                    let root = path.join(self.workspaceDir, vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""))
+                    gdpath = path.join(root, gdpath);
                     let showgdpath = vscode.workspace.asRelativePath(gdpath);
 
                     let doc = "Auto loaded instance of " + `[${showgdpath}](${vscode.Uri.file(gdpath).toString()})`;
