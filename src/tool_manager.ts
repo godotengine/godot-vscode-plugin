@@ -19,6 +19,7 @@ class ToolManager {
   private _disposable: vscode.Disposable;
   private _context: vscode.ExtensionContext;
   private _projectFile : string = "engine.cfg";
+  private _rootDir : string = "";
   private _biuitinDocFile : string = "doc/classes.json";
 
 
@@ -31,6 +32,7 @@ class ToolManager {
       this._biuitinDocFile = "doc/classes-3.0.json";
       completionDollar = true;
     }
+    this._rootDir = path.join(this.workspaceDir, vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""));
     if (vscode.workspace && this.workspaceDir) {
       vscode.workspace.registerTextDocumentContentProvider('godotdoc', new GDScriptDocumentContentProvider());
       this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
@@ -44,7 +46,7 @@ class ToolManager {
     this.workspacesymbolprovider = new GDScriptWorkspaceSymbolProvider();
     vscode.languages.registerWorkspaceSymbolProvider(this.workspacesymbolprovider);
     // definition provider
-    vscode.languages.registerDefinitionProvider('gdscript', new GDScriptDefinitionProivder());
+    vscode.languages.registerDefinitionProvider('gdscript', new GDScriptDefinitionProivder(this._rootDir));
     // hover provider
     vscode.languages.registerHoverProvider('gdscript', new GDScriptHoverProvider());
     // code completion provider
@@ -117,8 +119,7 @@ class ToolManager {
                     const name = l.substring(0, l.indexOf("="));
 
                     let gdpath = l.substring(l.indexOf("res://") + "res://".length, l.indexOf(".gd") + ".gd".length);
-                    let root = path.join(self.workspaceDir, vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""))
-                    gdpath = path.join(root, gdpath);
+                    gdpath = path.join(this._rootDir, gdpath);
                     let showgdpath = vscode.workspace.asRelativePath(gdpath);
 
                     let doc = "Auto loaded instance of " + `[${showgdpath}](${vscode.Uri.file(gdpath).toString()})`;
@@ -168,12 +169,12 @@ class ToolManager {
   private openWorkspaceWithEditor(params = "") {
     let workspaceValid = false
     if (this.workspaceDir) {
-    let cfg = path.join(this.workspaceDir, this._projectFile);
-      if (fs.existsSync(cfg) && fs.statSync(cfg).isFile())
+    let cfg = path.join(this._rootDir, this._projectFile);
+    if (fs.existsSync(cfg) && fs.statSync(cfg).isFile())
         workspaceValid = true;
     }
     if (workspaceValid)
-      this.runEditor(`-path ${this.workspaceDir} ${params}`);
+      this.runEditor(`-path ${this._rootDir} ${params}`);
     else
       vscode.window.showErrorMessage("Current workspace is not a godot project");
   }
@@ -193,7 +194,8 @@ class ToolManager {
   private runCurrentScene() {
     let scenePath = null
     if (vscode.window.activeTextEditor)
-      scenePath = vscode.workspace.asRelativePath(vscode.window.activeTextEditor.document.uri);
+      scenePath = path.relative(this._rootDir, vscode.window.activeTextEditor.document.uri.fsPath);
+      scenePath = scenePath.replace(/\\/g, "/");
     if (scenePath.endsWith(".gd")) {
       const scriptPath = scenePath;
       scenePath = config.scriptSceneMap[config.normalizePath(scenePath)];

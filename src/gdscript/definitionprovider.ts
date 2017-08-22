@@ -15,8 +15,10 @@ import config from '../config';
 import {isStr, getSelectedContent, getStrContent} from './utils';
 
 class GDScriptDefinitionProivder implements DefinitionProvider {
-    constructor() {
+    private _rootFolder : string = "";
 
+    constructor(rootFolder: string) {
+        this._rootFolder = rootFolder;
     }
 
     provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Definition | Thenable < Definition > {
@@ -24,8 +26,7 @@ class GDScriptDefinitionProivder implements DefinitionProvider {
             if(content.startsWith("res://")) {
                 content = content.replace("res://", "");
                 if(workspace && workspace.rootPath) {
-                    var root = path.join(workspace.rootPath, workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""));
-                    content = path.join(root, content);
+                    content = path.join(this._rootFolder, content);
                 }
                 return new Location(Uri.file(content), new Range(0,0,0,0));
             }
