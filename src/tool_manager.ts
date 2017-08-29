@@ -171,8 +171,12 @@ class ToolManager {
       if (fs.existsSync(cfg) && fs.statSync(cfg).isFile())
         workspaceValid = true;
     }
-    if (workspaceValid)
-      this.runEditor(`-path ${this.workspaceDir} ${params}`);
+    if (workspaceValid) {
+      let pathFlag = "-path";
+      if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3)
+        pathFlag = "--path";
+      this.runEditor(`${pathFlag} ${this.workspaceDir} ${params}`);
+    }
     else
       vscode.window.showErrorMessage("Current workspace is not a godot project");
   }
