@@ -1,5 +1,13 @@
 # Change Log
 
+### 0.3.0
+* Add project root configuration settings as `GodotTools.godotProjectRoot` thanks Konstantin Zaitcev
+* Add auto indent support for gdscript language
+* More friendly with godot 3.0 alpha
+* Updated script snippets
+* Fix highglight error with gdscript language
+* Limited code completions
+
 ### 0.2.9
 * Add configuration `GodotTools.completeNodePath` to switch is complete node pathes
 * Enhanced syntax highlight with GDScript

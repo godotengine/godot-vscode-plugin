@@ -40,7 +40,7 @@ You can use the following settings to setup the Godot Tools:
 - GodotTools.ignoreIndentedVars: Parse variables defined after indent of not
 - GodotTools.parseTextScene: Parse scene files with extension ends with tscn
 - GodotTools.completeNodePath: Show node paths of of workspace in the code completion
-
+- GodotTools.godotProjectRoot: The godot project directory wich contains project.godot or engine.cfg
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/GodotExplorer/godot-tools) and the go to [engine modules](https://github.com/GodotExplorer/editor-server) are all hosted on GitHub. Feel free to open issues there and create pull requests anytime.
@@ -53,6 +53,14 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 
 ## Release Notes
 
+### 0.3.0
+* Add project root configuration settings as `GodotTools.godotProjectRoot` thanks Konstantin Zaitcev
+* Add auto indent support for gdscript language
+* More friendly with godot 3.0 alpha
+* Updated script snippets
+* Fix highglight error with gdscript language
+* Limited code completions
+
 ### 0.2.9
 * Add configuration `GodotTools.completeNodePath` to switch is complete node paths
 * Enhanced syntax highlight with GDScript
@@ -62,32 +70,6 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 * Add godot 3.0 project support with configuration `GodotTools.parseTextScene` >= 3
 * Add configuration `GodotTools.parseTextScene` to allow disable node path parsing
 * Remove `GodotTools.editorServerPort` configuration
-
-### 0.2.7
-
-* Fix some error with syntax checking
-* Add symbol support for enumerations
-* Remove key bindings for `F5`~`F8` as it might be conflict with other functionalities of VSCode
-    * You can bind the key bindings back by add following configurations
-    ```json
-    {
-        "command": "godot.runWorkspace",
-        "key": "F5"
-    },
-    {
-        "command": "godot.runCurrentScene",
-        "key": "F6"
-    },
-    {
-        "command": "godot.openWithEditor",
-        "key": "F7"
-    },
-    {
-        "command": "godot.updateWorkspaceSymbols",
-        "key": "F8"
-    }
-    ```
-    For more references please ready [keybindings](https://code.visualstudio.com/docs/getstarted/keybindings)
 
 [Full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 
