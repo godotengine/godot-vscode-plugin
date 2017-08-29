@@ -32,12 +32,14 @@ class ToolManager {
       this._biuitinDocFile = "doc/classes-3.0.json";
       completionDollar = true;
     }
-    this._rootDir = path.join(this.workspaceDir, vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", ""));
     if (vscode.workspace && this.workspaceDir) {
       vscode.workspace.registerTextDocumentContentProvider('godotdoc', new GDScriptDocumentContentProvider());
       this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
       this.loadWorkspaceSymbols();
     }
+    this._rootDir = vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", this.workspaceDir);
+    this._rootDir = this._rootDir.replace("${workspaceRoot}", this.workspaceDir);
+
     this.loadClasses();
     // documentation symbol provider
     this.symbolprovider = new GDScriptSymbolProvider();
@@ -62,7 +64,6 @@ class ToolManager {
       vscode.commands.registerCommand('godot.runWorkspace', () => { this.openWorkspaceWithEditor() }),
       vscode.commands.registerCommand('godot.openWithEditor', () => { this.openWorkspaceWithEditor("-e") }),
       vscode.commands.registerCommand('godot.runCurrentScene', this.runCurrentScene.bind(this)),
-      vscode.commands.registerCommand('godot.provideInitialDebugConfigurations', this.getDefaultDebugConfig.bind(this))
     );
   }
 
@@ -184,7 +185,8 @@ class ToolManager {
   }
 
   private runEditor(params = "") {
-    const editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
+    let editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
+    editorPath = editorPath.replace("${workspaceRoot}", this.workspaceDir);
     if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     } else {
@@ -214,28 +216,6 @@ class ToolManager {
       this.openWorkspaceWithEditor(scenePath);
     } else
       vscode.window.showErrorMessage("Current document is not a scene file");
-  }
-
-  private getDefaultDebugConfig() {
-    const editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
-    if (this.workspaceDir) {
-      const config = {
-        version: '0.2.3',
-        configurations: [{
-          type: 'godot',
-          request: 'launch',
-          name: path.basename(this.workspaceDir),
-          godot: editorPath,
-          projectDir: "${workspaceRoot}",
-          params: [],
-          runWithEditor: false
-        }]
-      }
-      return JSON.stringify(config, null, '\t');
-    } else {
-      vscode.window.showErrorMessage("Cannot create launch without godot project workspace");
-      return ""
-    }
   }
 
   loadClasses() {
