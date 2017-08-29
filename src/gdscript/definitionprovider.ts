@@ -15,16 +15,19 @@ import config from '../config';
 import {isStr, getSelectedContent, getStrContent} from './utils';
 
 class GDScriptDefinitionProivder implements DefinitionProvider {
-    constructor() {
+    private _rootFolder : string = "";
 
+    constructor(rootFolder: string) {
+        this._rootFolder = rootFolder;
     }
 
     provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Definition | Thenable < Definition > {
         const getDefinitions = (content: string):Location[]| Location => {
             if(content.startsWith("res://")) {
                 content = content.replace("res://", "");
-                if(workspace && workspace.rootPath)
-                    content = path.join(workspace.rootPath, content)
+                if(workspace && workspace.rootPath) {
+                    content = path.join(this._rootFolder, content);
+                }
                 return new Location(Uri.file(content), new Range(0,0,0,0));
             }
             else if(fs.existsSync(content) && fs.statSync(content).isFile()) {
