@@ -78,7 +78,7 @@
             "description": "Show node pathes of of workspace in the code completion"
         },
         "GodotTools.godotProjectRoot": {
-            "type": "strng",
+            "type": "string",
             "default": "",
             "description": "Relate path to the godot project"
         }
