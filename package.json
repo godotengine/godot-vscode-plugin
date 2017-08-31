@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "newIcon.png",
   "description": "Tools for game development with godot game engine",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
@@ -78,7 +78,7 @@
             "description": "Show node pathes of of workspace in the code completion"
         },
         "GodotTools.godotProjectRoot": {
-            "type": "strng",
+            "type": "string",
             "default": "",
             "description": "Relate path to the godot project"
         }
