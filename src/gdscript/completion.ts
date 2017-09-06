@@ -50,7 +50,7 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
     const lastFlag = this.get_previous_flag(document, position);
     
     const builtins = config.getBuiltinCompletions();
-    const workspaces = config.getWorkspaceCompletionItems();
+    const workspaces = config.getWorkspaceCompletionItems([config.normalizePath(document.fileName)]);
 
     let items:CompletionItem[] = [...(builtins.builtinConstants)];
     if(!lastFlag || lastFlag.trim().length == 0) {
@@ -58,11 +58,14 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
         ...items,
         ...(workspaces.functions),
         ...(workspaces.classes),
+        ...(workspaces.constants),
+        ...(workspaces.properties),
         ...(builtins.functions),
         ...(builtins.classes),
       ]
     }
     else {
+      const workspaces = config.getWorkspaceCompletionItems();
       if(lastFlag.trim() == ".") {
         items = [
           ...items,

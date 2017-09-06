@@ -176,7 +176,7 @@ class Config {
     return done;
   };
 
-  getWorkspaceCompletionItems() : CompletionSymbols {
+  getWorkspaceCompletionItems(script_files = []) : CompletionSymbols {
       const symbols = {
         classes: [],
         functions: [],
@@ -186,7 +186,9 @@ class Config {
         nodes: [],
         builtinConstants: []
       };
-      for (let path of Object.keys(this.workspaceSymbols)) {
+      if (script_files.length == 0)
+        script_files = Object.keys(this.workspaceSymbols);
+      for (let path of script_files) {
         const script = this.workspaceSymbols[path];
         const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol", insertText = (n)=>n)=>{
           const _items: CompletionItem[] = [];
