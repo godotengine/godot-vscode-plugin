@@ -28,8 +28,8 @@ class GDScriptSymbolParser {
         variables: {},
         signals: {},
         classes: {},
-        base: "Object",
-        native: "Object",
+        base: "",
+        native: "",
         signatures: {},
         documents: {},
         constvalues: {},
@@ -37,6 +37,17 @@ class GDScriptSymbolParser {
     }
     const text  = content;
     const lines = text.split(/\r?\n/);
+    
+    // Base class and native class
+    for (let line of lines) {
+      let match;
+      if (match = line.match(/extends\s+(\w+)/)) {
+        script.native = match[1];
+        break;
+      } else if (match = line.match(/extends\s+('|")(.*)('|")/)) {
+        script.base = match[2];
+      }
+    }
 
     const getMatches = (regex:RegExp, index=1) => {
       var matches = [];

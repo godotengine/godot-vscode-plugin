@@ -48,12 +48,11 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
   provideCompletionItems(document : TextDocument, position : Position, token : CancellationToken) : CompletionItem[] | Thenable < CompletionItem[] > | CompletionList | Thenable < CompletionList > {
     
     const lastFlag = this.get_previous_flag(document, position);
-    
     const builtins = config.getBuiltinCompletions();
-    const workspaces = config.getWorkspaceCompletionItems([config.normalizePath(document.fileName)]);
-
+    
     let items:CompletionItem[] = [...(builtins.builtinConstants)];
     if(!lastFlag || lastFlag.trim().length == 0) {
+      const workspaces = config.getWorkspaceCompletionItems([config.normalizePath(document.fileName)]);
       items = [
         ...items,
         ...(workspaces.functions),
