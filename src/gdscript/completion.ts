@@ -61,6 +61,7 @@ class GDScriptCompletionItemProvider implements CompletionItemProvider {
         ...(workspaces.properties),
         ...(builtins.functions),
         ...(builtins.classes),
+        ...(builtins.constants),
       ]
     }
     else {
