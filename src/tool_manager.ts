@@ -198,15 +198,25 @@ class ToolManager {
   }
 
   private runCurrentScene() {
+    const absFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
     let scenePath = null
-    if (vscode.window.activeTextEditor)
-      scenePath = path.relative(this._rootDir, vscode.window.activeTextEditor.document.uri.fsPath);
+    if (vscode.window.activeTextEditor) {
+      scenePath = path.relative(this._rootDir, absFilePath);
       scenePath = scenePath.replace(/\\/g, "/");
+    }
+    // Run scripts directly which is inhired from SceneTree or MainLoop
     if (scenePath.endsWith(".gd")) {
       const scriptPath = scenePath;
       scenePath = config.scriptSceneMap[config.normalizePath(scenePath)];
-      if (!scenePath && vscode.window.activeTextEditor.document.getText().match(/\s+extends SceneTree\s/g))
-        scenePath = scriptPath;
+      if (!scenePath) {
+        const script = config.loadSymbolsFromFile(absFilePath);
+        if (script) {
+          if(script.native == "SceneTree" || script.native == "MainLoop") {
+            this.runEditor(`-s ${scriptPath}`);
+            return;
+          }
+        }
+      }
     }
     if (scenePath) {
       if (scenePath.endsWith(".gd"))
@@ -215,7 +225,7 @@ class ToolManager {
         scenePath = ` res://${scenePath} `;
       this.openWorkspaceWithEditor(scenePath);
     } else
-      vscode.window.showErrorMessage("Current document is not a scene file");
+      vscode.window.showErrorMessage("Current document is not a scene file or MainLoop");
   }
 
   loadClasses() {

@@ -20,7 +20,7 @@
   ],
   "main": "./out/src/extension",
   "contributes": {
-    "commands":[
+    "commands": [
       {
         "command": "godot.updateWorkspaceSymbols",
         "title": "GodotTools: Update Workspace Symbols"
@@ -68,19 +68,19 @@
           "description": "The godot version of your project"
         },
         "GodotTools.parseTextScene": {
-            "type": "boolean",
-            "default": true,
-            "description": "Parse scene files with extention ends with tscn"
+          "type": "boolean",
+          "default": true,
+          "description": "Parse scene files with extention ends with tscn"
         },
         "GodotTools.completeNodePath": {
-            "type": "boolean",
-            "default": false,
-            "description": "Show node pathes of of workspace in the code completion"
+          "type": "boolean",
+          "default": false,
+          "description": "Show node pathes of of workspace in the code completion"
         },
         "GodotTools.godotProjectRoot": {
-            "type": "string",
-            "default": "",
-            "description": "Relate path to the godot project"
+          "type": "string",
+          "default": "",
+          "description": "Relate path to the godot project"
         }
       }
     },
@@ -121,7 +121,7 @@
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
-    "compile": "tsc -watch -p ./",
+    "compile": "node ./node_modules/typescript/bin/tsc -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
@@ -135,6 +135,6 @@
   "dependencies": {
     "glob": "^7.1.1",
     "vscode-debugprotocol": "^1.17.0",
-		"vscode-debugadapter": "^1.17.0"
+    "vscode-debugadapter": "^1.17.0"
   }
 }
