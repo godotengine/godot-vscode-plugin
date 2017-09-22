@@ -20,8 +20,7 @@ class ToolManager {
   private _context: vscode.ExtensionContext;
   private _projectFile : string = "engine.cfg";
   private _rootDir : string = "";
-  private _biuitinDocFile : string = "doc/classes.json";
-
+  private _biuitinDocFile : string = "doc/classes-2.1.json";
 
   constructor(context: vscode.ExtensionContext) {
     this._context = context;

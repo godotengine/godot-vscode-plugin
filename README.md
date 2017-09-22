@@ -53,6 +53,12 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 
 ## Release Notes
 
+### 0.3.1
+* Update documentations with latest godot.
+* Fix errors with run script and run project.
+* Improve code completion with opening script file and constants.
+* Some improvements for documentations.
+
 ### 0.3.0
 * Add project root configuration settings as `GodotTools.godotProjectRoot` thanks Konstantin Zaitcev
 * Add auto indent support for gdscript language
@@ -65,11 +71,6 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 * Add configuration `GodotTools.completeNodePath` to switch is complete node paths
 * Enhanced syntax highlight with GDScript
 * Enhanced code completion with GDScript
-
-### 0.2.8
-* Add godot 3.0 project support with configuration `GodotTools.parseTextScene` >= 3
-* Add configuration `GodotTools.parseTextScene` to allow disable node path parsing
-* Remove `GodotTools.editorServerPort` configuration
 
 [Full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 

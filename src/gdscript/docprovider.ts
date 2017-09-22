@@ -17,9 +17,7 @@ function genLink(title:string, uri:string, span=true):string {
 
 function getProp(rawDoc:any, propname: string, action=(s :string)=>s): string {
     let prop = rawDoc[propname];
-    if(prop && prop.length > 0)
-        prop =  action(prop);
-    return prop;
+    return action(prop);
 }
 
 class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
@@ -67,12 +65,18 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         });
     }
 
+    format_documentation(text: string): string {
+        let doc = text.replace(/\[code\]/g, "<code>").replace(/\[\/code\]/g, "</code>");    
+        doc = doc.replace(/\[codeblock\]/g, '<pre><code class="gdscript">').replace(/\[\/codeblock]/g, "</code></pre>");
+        return doc;
+    };
+
     genMethodDoc(mDoc:any):string {
         let ret_type = getProp(mDoc, "return_type", (type:string):string =>{
             if(type.length > 0)
                 return `${genLink(type,type)} `;
             else
-                return "<b>void</b>";
+                return "void";
         });
         let args = "";
         for(let arg of mDoc.arguments){
@@ -96,7 +100,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             if(type.length > 0)
                 return `${genLink(type,type)} `;
             else
-                return "<b>void</b>";
+                return "void";
         });
         let args = "";
         for(let arg of mDoc.arguments){
@@ -274,7 +278,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             <p>${props}</p>
             <p>${methods}</p>
         `;
-        return doc;
+        return this.format_documentation(doc);
     }
 }
 

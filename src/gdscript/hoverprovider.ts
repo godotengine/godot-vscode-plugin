@@ -104,11 +104,17 @@ class GDScriptHoverProvider implements HoverProvider {
             }
         };
 
+        const format_documentation = (text) => {
+            let doc = text.replace(/\[code\]/g, "`").replace(/\[\/code\]/g, "`");    
+            doc = doc.replace(/\[codeblock\]/g, "\n```gdscript\n").replace(/\[\/codeblock]/g, "\n```");
+            return doc;
+        };
+
         // check from builtin
         const genBuiltinTips = ()=> {
             const item2MarkdStrings = (name: string,item: CompletionItem, rowDoc: any):MarkedString[] => {
                 let value = "";
-                let doc = item.documentation;
+                let doc = format_documentation(item.documentation);
                 // get class name
                 let classname = name;
                 let matchs = name.match(/[@A-z][A-z0-9]*\./);
@@ -120,8 +126,7 @@ class GDScriptHoverProvider implements HoverProvider {
 
                 const genMethodMarkDown = ():string =>{
                     let content = `${genLink(rowDoc.return_type, rowDoc.return_type)} `;
-                    let matchs = name.match(/[@A-z][A-z0-9]*\./);
-                    content += `${genLink(classname, classname)}.`;
+                    if (rowDoc.name != classname) content += `${genLink(classname, classname)}.`;
                     let args = "";
                     for(let arg of rowDoc.arguments){
                         if(rowDoc.arguments.indexOf(arg)!=0)
@@ -130,7 +135,7 @@ class GDScriptHoverProvider implements HoverProvider {
                         if(arg.default_value && arg.default_value.length > 0)
                             args += `=${arg.default_value}`;
                     }
-                    content += `${genLink(rowDoc.name, classname+'.'+rowDoc.name)}(${args}) ${rowDoc.qualifiers}`;
+                    content += `${genLink(rowDoc.name, classname+'.' + rowDoc.name)}(${args}) ${rowDoc.qualifiers}`;
                     return content;
                 };
                 
@@ -138,10 +143,10 @@ class GDScriptHoverProvider implements HoverProvider {
                     case CompletionItemKind.Class:
                         return [`Native Class ${genLink(classname, classname)}`, doc];
                     case CompletionItemKind.Method:
-                        doc = item.documentation.substring(item.documentation.indexOf("\n")+1, item.documentation.length);
+                        doc = doc.substring(doc.indexOf("\n")+1, doc.length);
                         return [genMethodMarkDown(), doc];
                     case CompletionItemKind.Interface:
-                        doc = item.documentation.substring(item.documentation.indexOf("\n")+1, item.documentation.length);
+                        doc = doc.substring(doc.indexOf("\n")+1, doc.length);
                         return ['signal ' + genMethodMarkDown(), doc];
                     case CompletionItemKind.Variable:
                     case CompletionItemKind.Property:

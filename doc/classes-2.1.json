@@ -3862,7 +3862,7 @@
         },
         {
           "name": "add_point",
-          "description": "",
+          "description": "Add a new point at the given position. The [code]weight_scale[/code] has to be 1 or larger.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -3930,6 +3930,12 @@
               "name": "to_id",
               "type": "int",
               "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "bidirectional",
+              "type": "bool",
+              "default_value": "true"
             }
           ]
         },
@@ -4047,6 +4053,20 @@
           "qualifiers": "const",
           "description": "",
           "return_type": "float",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "id",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "has_point",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
           "arguments": [
             {
               "index": "0",
@@ -8303,7 +8323,7 @@
         },
         {
           "name": "has",
-          "description": "Return true if the array contains given value. [code][ \"inside\", 7 ].has(\"inside\") == true, [ \"inside\", 7 ].has(\"outside\") == false, [ \"inside\", 7 ].has(7) == true, [ \"inside\", 7 ].has(\"7\") == false[/code]",
+          "description": "Return true if the array contains given value.\n\t\t\t\t[codeblock]\n\t\t\t\t[ \"inside\", 7 ].has(\"inside\") == true\n\t\t\t\t[ \"inside\", 7 ].has(\"outside\") == false\n\t\t\t\t[ \"inside\", 7 ].has(7) == true\n\t\t\t\t[ \"inside\", 7 ].has(\"7\") == false\n\t\t\t\t[/codeblock]",
           "return_type": "bool",
           "qualifiers": "",
           "arguments": [
@@ -16593,7 +16613,7 @@
         {
           "name": "get_size",
           "qualifiers": "const",
-          "description": "Returns the size of the Control, computed from all margins, however the size returned will [b]never be smaller than the minimum size reported by [method get_minimum_size][/b]. This means that even if end position of the Control rectangle is smaller than the begin position, the Control will still display and interact correctly. (see description, [method get_minimum_size], [method set_margin], [method set_anchor]).",
+          "description": "Returns the size of the Control, computed from all margins, however the size returned will [b]never be smaller than the minimum size reported by[/b] [method get_minimum_size]. This means that even if end position of the Control rectangle is smaller than the begin position, the Control will still display and interact correctly. (see description, [method get_minimum_size], [method set_margin], [method set_anchor]).",
           "return_type": "Vector2",
           "arguments": []
         },
@@ -18610,7 +18630,7 @@
         },
         {
           "name": "parse_json",
-          "description": "Parse json text to the dictionary. Return OK when successed or the error code when failed.",
+          "description": "Parse JSON text to the dictionary. Return OK when successed or the error code when failed.\n\t\t\t\tBe aware that the JSON specification does not define integer or float types, but only a number type. Therefore, parsing a JSON text will convert every numerical values to [float] types.",
           "return_type": "int",
           "qualifiers": "",
           "arguments": [
@@ -22848,9 +22868,16 @@
         {
           "name": "is_valid",
           "qualifiers": "const",
-          "description": "Check whether the function call may be resumed. This is not the case if the function state was already resumed.",
+          "description": "Check whether the function call may be resumed. This is not the case if the function state was already resumed.\n\t\t\t\tIf [code]extended_check[/code] is enabled, it also checks if the associated script and object still exist. The extended check is done in debug mode as part of [method GDFunctionState.resume], but you can use this if you know you may be trying to resume without knowing for sure the object and/or script have survived up to that point.",
           "return_type": "bool",
-          "arguments": []
+          "arguments": [
+            {
+              "index": "0",
+              "name": "extended_check",
+              "type": "bool",
+              "default_value": "false"
+            }
+          ]
         },
         {
           "name": "resume",
@@ -27070,6 +27097,64 @@
           ]
         },
         {
+          "name": "blend_rect",
+          "description": "Alpha-blends a \"src_rect\" [Rect2] from \"src\" [Image] to this [Image] on coordinates \"dest\".",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "src",
+              "type": "Image",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "src_rect",
+              "type": "Rect2",
+              "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "dest",
+              "type": "Vector2",
+              "default_value": "0"
+            }
+          ]
+        },
+        {
+          "name": "blend_rect_mask",
+          "description": "Alpha-blends a \"src_rect\" [Rect2] from \"src\" [Image] to this [Image] using a \"mask\" [Image] on coordinates \"dest\". Alpha channels are required for both \"src\" and \"mask\", dest pixels and src pixels will blend if the corresponding mask pixel's alpha value is not 0. \"src\" [Image] and \"mask\" [Image] *must* have the same size (width and height) but they can have different formats",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "src",
+              "type": "Image",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "mask",
+              "type": "Image",
+              "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "src_rect",
+              "type": "Rect2",
+              "default_value": ""
+            },
+            {
+              "index": "3",
+              "name": "dest",
+              "type": "Vector2",
+              "default_value": "0"
+            }
+          ]
+        },
+        {
           "name": "blit_rect",
           "description": "Copy a \"src_rect\" [Rect2] from \"src\" [Image] to this [Image] on coordinates \"dest\".",
           "return_type": "",
@@ -27089,6 +27174,38 @@
             },
             {
               "index": "2",
+              "name": "dest",
+              "type": "Vector2",
+              "default_value": "0"
+            }
+          ]
+        },
+        {
+          "name": "blit_rect_mask",
+          "description": "Blits a \"src_rect\" [Rect2] from \"src\" [Image] to this [Image] using a \"mask\" [Image] on coordinates \"dest\". Alpha channel is required for \"mask\", will copy src pixel onto dest if the corresponding mask pixel's alpha value is not 0. \"src\" [Image] and \"mask\" [Image] *must* have the same size (width and height) but they can have different formats",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "src",
+              "type": "Image",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "mask",
+              "type": "Image",
+              "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "src_rect",
+              "type": "Rect2",
+              "default_value": ""
+            },
+            {
+              "index": "3",
               "name": "dest",
               "type": "Vector2",
               "default_value": "0"
@@ -27188,6 +27305,20 @@
           "return_type": "bool",
           "qualifiers": "",
           "arguments": []
+        },
+        {
+          "name": "fill",
+          "description": "Fills an [Image] with a specified [Color]",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "color",
+              "type": "Color",
+              "default_value": "0"
+            }
+          ]
         },
         {
           "name": "fix_alpha_edges",
@@ -31914,6 +32045,13 @@
           "arguments": []
         },
         {
+          "name": "get_move_and_slide_colliders",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Array",
+          "arguments": []
+        },
+        {
           "name": "get_travel",
           "qualifiers": "const",
           "description": "Return the last movement done by the body.",
@@ -31928,6 +32066,27 @@
           "arguments": []
         },
         {
+          "name": "is_move_and_slide_on_ceiling",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
+          "arguments": []
+        },
+        {
+          "name": "is_move_and_slide_on_floor",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
+          "arguments": []
+        },
+        {
+          "name": "is_move_and_slide_on_wall",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
+          "arguments": []
+        },
+        {
           "name": "move",
           "description": "Move the body in the given direction, stopping if there is an obstacle. The returned vector is how much movement was remaining before being stopped.",
           "return_type": "Vector2",
@@ -31938,6 +32097,38 @@
               "name": "rel_vec",
               "type": "Vector2",
               "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "move_and_slide",
+          "description": "",
+          "return_type": "Vector2",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "linear_velocity",
+              "type": "Vector2",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "floor_normal",
+              "type": "Vector2",
+              "default_value": "Vector2(0, 0)"
+            },
+            {
+              "index": "2",
+              "name": "slope_stop_min_velocity",
+              "type": "float",
+              "default_value": "5"
+            },
+            {
+              "index": "3",
+              "name": "max_bounces",
+              "type": "int",
+              "default_value": "4"
             }
           ]
         },
@@ -34064,7 +34255,7 @@
       "inherits": "Container",
       "category": "Core",
       "brief_description": "Simple margin container.",
-      "description": "Simple margin container. Adds a left margin to anything contained.",
+      "description": "Simple margin container. Adds custom margins to anything contained.",
       "methods": [],
       "signals": [],
       "constants": [],
@@ -35050,10 +35241,52 @@
           "arguments": []
         },
         {
+          "name": "create_convex_shape",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Shape",
+          "arguments": []
+        },
+        {
+          "name": "create_outline",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Mesh",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "margin",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "create_trimesh_shape",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Shape",
+          "arguments": []
+        },
+        {
+          "name": "generate_triangle_mesh",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "TriangleMesh",
+          "arguments": []
+        },
+        {
           "name": "get_custom_aabb",
           "qualifiers": "const",
           "description": "",
           "return_type": "AABB",
+          "arguments": []
+        },
+        {
+          "name": "get_faces",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Vector3Array",
           "arguments": []
         },
         {
@@ -36834,6 +37067,20 @@
           "return_type": "",
           "qualifiers": "",
           "arguments": []
+        },
+        {
+          "name": "create_from_mesh",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "mesh",
+              "type": "Object",
+              "default_value": ""
+            }
+          ]
         },
         {
           "name": "get_polygon",
@@ -40699,7 +40946,7 @@
           "name": "get_meta",
           "qualifiers": "const",
           "description": "Return a metadata from the object.",
-          "return_type": "",
+          "return_type": "Variant",
           "arguments": [
             {
               "index": "0",
@@ -41018,7 +41265,7 @@
         {
           "name": "CONNECT_ONESHOT",
           "value": "4",
-          "description": "One short connections disconnect themselves after emission."
+          "description": "One shot connections disconnect themselves after emission."
         }
       ],
       "properties": [],
@@ -41812,7 +42059,7 @@
       "inherits": "PacketPeer",
       "category": "Core",
       "brief_description": "UDP packet peer.",
-      "description": "UDP packet peer. Can be used to send raw UDP packets as well as [Variant]s.",
+      "description": "UDP packet peer. Can be used to send raw UDP packets as well as [Variant]\\ s.",
       "methods": [
         {
           "name": "close",
@@ -44648,7 +44895,7 @@
         },
         {
           "name": "intersect_point",
-          "description": "Check whether a point is inside any shape. The shapes the point is inside of are returned in an array containing dictionaries with the following fields:\n\t\t\t\tshape: Shape index within the object the point is in.\n\t\t\t\tmetadata: Metadata of the shape the point is in. This metadata is different from [method Object.get_meta], and is set with [method Physics2DServer.shape_set_data].\n\t\t\t\tcollider_id: Id of the object the point is in.\n\t\t\t\tcollider: Object the point is inside of.\n\t\t\t\trid: [RID] of the object the point is in.\n\t\t\t\tAdditionally, the method can take an array of objects or [RID]s that are to be excluded from collisions, a bitmask representing the physics layers to check in, and another bitmask for the types of objects to check (see TYPE_MASK_* constants).",
+          "description": "Check whether a point is inside any shape. The shapes the point is inside of are returned in an array containing dictionaries with the following fields:\n\t\t\t\tshape: Shape index within the object the point is in.\n\t\t\t\tmetadata: Metadata of the shape the point is in. This metadata is different from [method Object.get_meta], and is set with [method Physics2DServer.shape_set_data].\n\t\t\t\tcollider_id: Id of the object the point is in.\n\t\t\t\tcollider: Object the point is inside of.\n\t\t\t\trid: [RID] of the object the point is in.\n\t\t\t\tAdditionally, the method can take an array of objects or [RID]\\ s that are to be excluded from collisions, a bitmask representing the physics layers to check in, and another bitmask for the types of objects to check (see TYPE_MASK_* constants).",
           "return_type": "Array",
           "qualifiers": "",
           "arguments": [
@@ -44686,7 +44933,7 @@
         },
         {
           "name": "intersect_ray",
-          "description": "Intersect a ray in a given space. The returned object is a dictionary with the following fields:\n\t\t\t\tposition: Place where ray is stopped.\n\t\t\t\tnormal: Normal of the object at the point where the ray was stopped.\n\t\t\t\tshape: Shape index within the object against which the ray was stopped.\n\t\t\t\tmetadata: Metadata of the shape against which the ray was stopped. This metadata is different from [method Object.get_meta], and is set with [method Physics2DServer.shape_set_data].\n\t\t\t\tcollider_id: Id of the object against which the ray was stopped.\n\t\t\t\tcollider: Object against which the ray was stopped.\n\t\t\t\trid: [RID] of the object against which the ray was stopped.\n\t\t\t\tIf the ray did not intersect anything, then an empty dictionary (dir.empty()==true) is returned instead.\n\t\t\t\tAdditionally, the method can take an array of objects or [RID]s that are to be excluded from collisions, a bitmask representing the physics layers to check in, and another bitmask for the types of objects to check (see TYPE_MASK_* constants).",
+          "description": "Intersect a ray in a given space. The returned object is a dictionary with the following fields:\n\t\t\t\tposition: Place where ray is stopped.\n\t\t\t\tnormal: Normal of the object at the point where the ray was stopped.\n\t\t\t\tshape: Shape index within the object against which the ray was stopped.\n\t\t\t\tmetadata: Metadata of the shape against which the ray was stopped. This metadata is different from [method Object.get_meta], and is set with [method Physics2DServer.shape_set_data].\n\t\t\t\tcollider_id: Id of the object against which the ray was stopped.\n\t\t\t\tcollider: Object against which the ray was stopped.\n\t\t\t\trid: [RID] of the object against which the ray was stopped.\n\t\t\t\tIf the ray did not intersect anything, then an empty dictionary (dir.empty()==true) is returned instead.\n\t\t\t\tAdditionally, the method can take an array of objects or [RID]\\ s that are to be excluded from collisions, a bitmask representing the physics layers to check in, and another bitmask for the types of objects to check (see TYPE_MASK_* constants).",
           "return_type": "Dictionary",
           "qualifiers": "",
           "arguments": [
@@ -45847,7 +46094,7 @@
         },
         {
           "name": "body_set_one_way_collision_direction",
-          "description": "Set a direction in which bodies can go through the given one. If this value is different from (0,0), any movement within 90 degrees of this vector is considered a valid movement. Set this direction to (0,0) to disable one-way collisions.",
+          "description": "Set a direction from which bodies can go through the given one; that is, the passed vector is the normal of the pass-through side of the surface. If this value is different from (0,0), any movement within 90 degrees of the opposite of this vector is considered an valid movement. Set this direction to (0,0) to disable one-way collisions.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -45867,7 +46114,7 @@
         },
         {
           "name": "body_set_one_way_collision_max_depth",
-          "description": "Set how far a body can go through the given one, if it allows one-way collisions (see [method body_set_one_way_collision_direction]).",
+          "description": "Set how deep at most a body can be with respect to the given one for the physics server to force it to a non-overlapping position, if it allows one-way collisions (see [method body_set_one_way_collision_direction]).",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -46862,7 +47109,7 @@
         {
           "name": "get_exclude",
           "qualifiers": "const",
-          "description": "Return the list of objects, or object [RID]s, that will be excluded from collisions.",
+          "description": "Return the list of objects, or object [RID]\\ s, that will be excluded from collisions.",
           "return_type": "Array",
           "arguments": []
         },
@@ -46910,7 +47157,7 @@
         },
         {
           "name": "set_exclude",
-          "description": "Set the list of objects, or object [RID]s, that will be excluded from collisions.",
+          "description": "Set the list of objects, or object [RID]\\ s, that will be excluded from collisions.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -47490,7 +47737,7 @@
         },
         {
           "name": "set_one_way_collision_direction",
-          "description": "Set a direction in which bodies can go through this one. If this value is different from (0,0), any movement within 90 degrees of this vector is considered a valid movement. Set this direction to (0,0) to disable one-way collisions.",
+          "description": "Set a direction from which bodies can go through this one; that is, the passed vector is the normal of the pass-through side of the surface. If this value is different from (0,0), any movement within 90 degrees of the opposite of this vector is considered an valid movement. Set this direction to (0,0) to disable one-way collisions.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -47504,7 +47751,7 @@
         },
         {
           "name": "set_one_way_collision_max_depth",
-          "description": "Set how far a body can go through this one, when it allows one-way collisions (see [method set_one_way_collision_direction]).",
+          "description": "Set how deep at most a body can be with respect to this one for the physics server to force it to a non-overlapping position, if it allows one-way collisions (see [method body_set_one_way_collision_direction]).",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -54386,6 +54633,58 @@
           ]
         },
         {
+          "name": "grow_individual",
+          "description": "",
+          "return_type": "Rect2",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "left",
+              "type": "float",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "top",
+              "type": "float",
+              "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "right",
+              "type": "float",
+              "default_value": ""
+            },
+            {
+              "index": "3",
+              "name": " bottom",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "grow_margin",
+          "description": "",
+          "return_type": "Rect2",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "margin",
+              "type": "int",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "by",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
           "name": "has_no_area",
           "description": "Return true if the [Rect2] is flat or empty.",
           "return_type": "bool",
@@ -55016,7 +55315,7 @@
         },
         {
           "name": "poll",
-          "description": "Poll the load. If OK is returned, this means poll will have to be called again. If ERR_EOF is returned, them the load has finished and the resource can be obtained by calling [method get_resource].",
+          "description": "Poll the load. If OK is returned, this means poll will have to be called again. If ERR_FILE_EOF is returned, them the load has finished and the resource can be obtained by calling [method get_resource].",
           "return_type": "int",
           "qualifiers": "",
           "arguments": []
@@ -55413,6 +55712,13 @@
           "arguments": []
         },
         {
+          "name": "get_percent_visible",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "float",
+          "arguments": []
+        },
+        {
           "name": "get_tab_size",
           "qualifiers": "const",
           "description": "",
@@ -55436,7 +55742,7 @@
         {
           "name": "get_v_scroll",
           "description": "",
-          "return_type": "Object",
+          "return_type": "VScrollBar",
           "qualifiers": "",
           "arguments": []
         },
@@ -55554,7 +55860,7 @@
             {
               "index": "0",
               "name": "font",
-              "type": "Object",
+              "type": "Font",
               "default_value": ""
             }
           ]
@@ -55679,6 +55985,20 @@
           ]
         },
         {
+          "name": "set_percent_visible",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "percent_visible",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
           "name": "set_scroll_active",
           "description": "",
           "return_type": "",
@@ -55756,6 +56076,20 @@
               "index": "2",
               "name": "ratio",
               "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "set_text",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "text",
+              "type": "String",
               "default_value": ""
             }
           ]
@@ -64951,8 +65285,18 @@
           "description": ""
         },
         {
-          "name": "FLAG_MAX",
+          "name": "FLAG_DOUBLE_SIDED",
           "value": "2",
+          "description": ""
+        },
+        {
+          "name": "FLAG_ONTOP",
+          "value": "3",
+          "description": ""
+        },
+        {
+          "name": "FLAG_MAX",
+          "value": "4",
           "description": ""
         },
         {
@@ -65798,6 +66142,96 @@
               "index": "0",
               "name": "enable",
               "type": "bool",
+              "default_value": ""
+            }
+          ]
+        }
+      ],
+      "signals": [],
+      "constants": [],
+      "properties": [],
+      "theme_properties": []
+    },
+    "StreamPeerBuffer": {
+      "name": "StreamPeerBuffer",
+      "inherits": "StreamPeer",
+      "category": "Core",
+      "brief_description": "",
+      "description": "",
+      "methods": [
+        {
+          "name": "clear",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": []
+        },
+        {
+          "name": "duplicate",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Object",
+          "arguments": []
+        },
+        {
+          "name": "get_data_array",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "RawArray",
+          "arguments": []
+        },
+        {
+          "name": "get_pos",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "int",
+          "arguments": []
+        },
+        {
+          "name": "get_size",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "int",
+          "arguments": []
+        },
+        {
+          "name": "resize",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "size",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "seek",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "pos",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "set_data_array",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "data",
+              "type": "RawArray",
               "default_value": ""
             }
           ]
@@ -66762,6 +67196,26 @@
               "name": "from",
               "type": "int",
               "default_value": "0"
+            }
+          ]
+        },
+        {
+          "name": "format",
+          "description": "",
+          "return_type": "String",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "values",
+              "type": "var",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "placeholder",
+              "type": "String",
+              "default_value": "{_}"
             }
           ]
         },
@@ -67977,11 +68431,11 @@
       "inherits": "Reference",
       "category": "Core",
       "brief_description": "Helper tool to create geometry.",
-      "description": "Helper tool to create geometry.",
+      "description": "The [SurfaceTool] is used to construct a [Mesh] by specifying vertex attributes individually. It can be used to construct a [Mesh] from script. All properties except index need to be added before a call to [method add_vertex]. For example adding vertex colors and UVs looks like\n\t\t[codeblock]\n\t\tvar st = SurfaceTool.new()\n\t\tst.begin(Mesh.PRIMITIVE_TRIANGLES)\n\t\tst.add_color(Color(1, 0, 0))\n\t\tst.add_uv(Vector2(0, 0))\n\t\tst.add_vertex(Vector3(0, 0, 0))\n\t\t[/codeblock]\n\t\tThe [SurfaceTool] now contains one vertex of a triangle which has a UV coordinate and a specified [Color]. If another vertex were added without calls to [method add_uv] or [method add_color] then the last values would be used.\n\t\tIt is very important that vertex attributes are passed [b]before[/b] the call to [method add_vertex], failure to do this will result in an error when committing the vertex information to a mesh.",
       "methods": [
         {
           "name": "add_bones",
-          "description": "",
+          "description": "Add an array of bones for the next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -67995,7 +68449,7 @@
         },
         {
           "name": "add_color",
-          "description": "",
+          "description": "Specify a [Color] for the next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68009,7 +68463,7 @@
         },
         {
           "name": "add_index",
-          "description": "",
+          "description": "Adds an index to index array if you are using indexed Vertices. Does not need to be called before adding Vertex.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68023,7 +68477,7 @@
         },
         {
           "name": "add_normal",
-          "description": "",
+          "description": "Specify a normal for the next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68037,7 +68491,7 @@
         },
         {
           "name": "add_smooth_group",
-          "description": "",
+          "description": "Specify whether current Vertex (if using only Vertex arrays) or current index (if also using index arrays) should utilize smooth normals for normal calculation.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68051,7 +68505,7 @@
         },
         {
           "name": "add_tangent",
-          "description": "",
+          "description": "Specify a Tangent for the next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68064,8 +68518,22 @@
           ]
         },
         {
-          "name": "add_triangle_fan",
+          "name": "add_to_format",
           "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "flags",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "add_triangle_fan",
+          "description": "Insert a triangle fan made of array data into [Mesh] being constructed.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68109,7 +68577,7 @@
         },
         {
           "name": "add_uv",
-          "description": "",
+          "description": "Specify UV Coordinate for next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68123,7 +68591,7 @@
         },
         {
           "name": "add_uv2",
-          "description": "",
+          "description": "Specify an optional second set of UV coordinates for next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68137,7 +68605,7 @@
         },
         {
           "name": "add_vertex",
-          "description": "",
+          "description": "Specify position of current Vertex. Should be called after specifying other vertex properties (e.g. Color, UV).",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68151,7 +68619,7 @@
         },
         {
           "name": "add_weights",
-          "description": "",
+          "description": "Specify weight value for next Vertex to use.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68164,8 +68632,34 @@
           ]
         },
         {
-          "name": "begin",
+          "name": "append_from",
           "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "existing",
+              "type": "Mesh",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "surface",
+              "type": "int",
+              "default_value": ""
+            },
+            {
+              "index": "2",
+              "name": "transform",
+              "type": "Transform",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "begin",
+          "description": "Called before adding any Vertices. Takes the primitive type as an argument (e.g. Mesh.PRIMITIVE_TRIANGLES).",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68179,14 +68673,14 @@
         },
         {
           "name": "clear",
-          "description": "",
+          "description": "Clear all information passed into the surface tool so far.",
           "return_type": "",
           "qualifiers": "",
           "arguments": []
         },
         {
           "name": "commit",
-          "description": "",
+          "description": "Returns a constructed [Mesh] from current information passed in. If an existing [Mesh] is passed in as an argument, will add an extra surface to the existing [Mesh].",
           "return_type": "Mesh",
           "qualifiers": "",
           "arguments": [
@@ -68199,14 +68693,41 @@
           ]
         },
         {
-          "name": "deindex",
+          "name": "create_from",
           "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "existing",
+              "type": "Mesh",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "surface",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "deindex",
+          "description": "Removes index array by expanding Vertex array.",
           "return_type": "",
           "qualifiers": "",
           "arguments": []
         },
         {
           "name": "generate_normals",
+          "description": "Generates normals from Vertices so you do not have to do it manually.",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": []
+        },
+        {
+          "name": "generate_tangents",
           "description": "",
           "return_type": "",
           "qualifiers": "",
@@ -68214,14 +68735,14 @@
         },
         {
           "name": "index",
-          "description": "",
+          "description": "Shrinks Vertex array by creating an index array. Avoids reusing Vertices.",
           "return_type": "",
           "qualifiers": "",
           "arguments": []
         },
         {
           "name": "set_material",
-          "description": "",
+          "description": "Sets [Material] to be used by the [Mesh] you are constructing.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -68632,13 +69153,13 @@
               "index": "0",
               "name": "title",
               "type": "String",
-              "default_value": ""
+              "default_value": "\"\""
             },
             {
               "index": "1",
               "name": "icon",
               "type": "Texture",
-              "default_value": ""
+              "default_value": "NULL"
             }
           ]
         },
@@ -70198,6 +70719,16 @@
       "signals": [],
       "constants": [
         {
+          "name": "RESIZE_SCALE",
+          "value": "0",
+          "description": ""
+        },
+        {
+          "name": "RESIZE_STRETCH",
+          "value": "1",
+          "description": ""
+        },
+        {
           "name": "STRETCH_SCALE_ON_EXPAND",
           "value": "0",
           "description": ""
@@ -71137,7 +71668,7 @@
       "inherits": "Reference",
       "category": "Core",
       "brief_description": "A unit of execution in a process.",
-      "description": "A unit of execution in a process. Can run methods on [Object]s simultaneously. The use of synchronization via [Mutex], [Semaphore] is advised if working with shared objects.",
+      "description": "A unit of execution in a process. Can run methods on [Object]\\ s simultaneously. The use of synchronization via [Mutex], [Semaphore] is advised if working with shared objects.",
       "methods": [
         {
           "name": "get_id",
@@ -71305,11 +71836,39 @@
           "arguments": []
         },
         {
+          "name": "get_collision_layer_bit",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "bit",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
           "name": "get_collision_mask",
           "qualifiers": "const",
           "description": "Return the collision mask.",
           "return_type": "int",
           "arguments": []
+        },
+        {
+          "name": "get_collision_mask_bit",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "bit",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
         },
         {
           "name": "get_collision_use_kinematic",
@@ -71373,6 +71932,20 @@
           "description": "Return an array of all cells containing a tile from the tileset (i.e. a tile index different from -1).",
           "return_type": "Array",
           "arguments": []
+        },
+        {
+          "name": "get_used_cells_by_id",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "Array",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "id",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
         },
         {
           "name": "get_used_rect",
@@ -71628,8 +72201,28 @@
           "arguments": [
             {
               "index": "0",
-              "name": "mask",
+              "name": "layer",
               "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "set_collision_layer_bit",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "bit",
+              "type": "int",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "value",
+              "type": "bool",
               "default_value": ""
             }
           ]
@@ -71644,6 +72237,26 @@
               "index": "0",
               "name": "mask",
               "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "set_collision_mask_bit",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "bit",
+              "type": "int",
+              "default_value": ""
+            },
+            {
+              "index": "1",
+              "name": "value",
+              "type": "bool",
               "default_value": ""
             }
           ]
@@ -73631,6 +74244,20 @@
           "arguments": []
         },
         {
+          "name": "column_title_pressed",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "column",
+              "type": "int",
+              "default_value": ""
+            }
+          ]
+        },
+        {
           "name": "custom_popup_edited",
           "description": "Emitted when a cell with the [code]CELL_MODE_CUSTOM[/code] is clicked to be edited.",
           "return_type": "",
@@ -73976,6 +74603,12 @@
               "name": "disabled",
               "type": "bool",
               "default_value": "false"
+            },
+            {
+              "index": "4",
+              "name": "tooltip",
+              "type": "String",
+              "default_value": "\"\""
             }
           ]
         },
@@ -76184,7 +76817,7 @@
         },
         {
           "name": "abs",
-          "description": "",
+          "description": "Returns a new vector with all components in absolute values (i.e. positive).",
           "return_type": "Vector2",
           "qualifiers": "",
           "arguments": []
@@ -76226,7 +76859,7 @@
         },
         {
           "name": "clamped",
-          "description": "",
+          "description": "Returns the vector with a maximum length.",
           "return_type": "Vector2",
           "qualifiers": "",
           "arguments": [
@@ -76648,7 +77281,7 @@
         },
         {
           "name": "abs",
-          "description": "Returns a new vector with all components in absolute values (e.g. positive).",
+          "description": "Returns a new vector with all components in absolute values (i.e. positive).",
           "return_type": "Vector3",
           "qualifiers": "",
           "arguments": []
@@ -77242,6 +77875,13 @@
           "arguments": []
         },
         {
+          "name": "get_roll_influence",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "float",
+          "arguments": []
+        },
+        {
           "name": "get_suspension_max_force",
           "qualifiers": "const",
           "description": "",
@@ -77267,6 +77907,13 @@
           "qualifiers": "const",
           "description": "",
           "return_type": "float",
+          "arguments": []
+        },
+        {
+          "name": "is_in_contact",
+          "qualifiers": "const",
+          "description": "",
+          "return_type": "bool",
           "arguments": []
         },
         {
@@ -77334,6 +77981,20 @@
             {
               "index": "0",
               "name": "length",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
+          "name": "set_roll_influence",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "roll_influence",
               "type": "float",
               "default_value": ""
             }
@@ -77972,7 +78633,7 @@
         },
         {
           "name": "set_canvas_transform",
-          "description": "Set the canvas transform of the viewport, useful for changing the on-screen positions of all child [CanvasItem]s. This is relative to the global canvas transform of the viewport.",
+          "description": "Set the canvas transform of the viewport, useful for changing the on-screen positions of all child [CanvasItem]\\ s. This is relative to the global canvas transform of the viewport.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -78295,7 +78956,7 @@
       "inherits": "Node2D",
       "category": "Core",
       "brief_description": "Displays a viewport as a sprite.",
-      "description": "Used to display a [Viewport] node at some position in the world, without having to mess with [RenderTargetTexture]s.",
+      "description": "Used to display a [Viewport] node at some position in the world, without having to mess with [RenderTargetTexture]\\ s.",
       "methods": [
         {
           "name": "get_modulate",
@@ -81447,6 +82108,20 @@
           ]
         },
         {
+          "name": "set_time_scale",
+          "description": "",
+          "return_type": "",
+          "qualifiers": "",
+          "arguments": [
+            {
+              "index": "0",
+              "name": "arg0",
+              "type": "float",
+              "default_value": ""
+            }
+          ]
+        },
+        {
           "name": "shader_create",
           "description": "",
           "return_type": "RID",
@@ -82633,19 +83308,19 @@
       "name": "WorldEnvironment",
       "inherits": "Spatial",
       "category": "Core",
-      "brief_description": "",
-      "description": "",
+      "brief_description": "Sets environment properties for the entire scene",
+      "description": "The [WorldEnvironment] node can be added to a scene in order to set default [Environment] variables for the scene. The [WorldEnvironment] can be overridden by an [Environment] node set on the current [Camera]. Additionally, only one [WorldEnvironment] may be instanced in a given scene at a time. The [WorldEnvironment] allows the user to specify default lighting parameters (e.g. ambient lighting), various post-processing effects (e.g. SSAO, DOF, Tonemapping), and how to draw the background (e.g. solid color, skybox).",
       "methods": [
         {
           "name": "get_environment",
           "qualifiers": "const",
-          "description": "",
+          "description": "Return the [Environment] currently bound.",
           "return_type": "Environment",
           "arguments": []
         },
         {
           "name": "set_environment",
-          "description": "",
+          "description": "Set the currently bound [Environment] to the one specified.",
           "return_type": "",
           "qualifiers": "",
           "arguments": [
@@ -83084,5 +83759,5 @@
       "theme_properties": []
     }
   },
-  "version": "2.1.3"
+  "version": "2.1.4"
 }

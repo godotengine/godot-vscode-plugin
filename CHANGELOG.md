@@ -1,5 +1,11 @@
 # Change Log
 
+### 0.3.1
+* Update documentations with latest godot.
+* Fix errors with run script and run project.
+* Improve code completion with opening script file and constants.
+* Some improvements for documentations.
+
 ### 0.3.0
 * Add project root configuration settings as `GodotTools.godotProjectRoot` thanks Konstantin Zaitcev
 * Add auto indent support for gdscript language

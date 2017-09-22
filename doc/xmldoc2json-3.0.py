@@ -2,6 +2,7 @@
 import sys
 import xml.etree.ElementTree as ET
 import json
+import os
 
 def parseClass(data):
     dictCls = dict(data.attrib)
@@ -53,13 +54,16 @@ def parseProperty(data):
 
 def main():
     if len(sys.argv) >=2 :
-        tree = ET.parse(open(sys.argv[1], 'r'))
-        classes = {}
-        for cls in tree.getroot():
-            dictCls = parseClass(cls)
-            classes[dictCls['name']] = dictCls
-        jsonContent = json.dumps({"classes": classes, "version": "2.1.3"}, ensure_ascii=False, indent=2)
-        print(jsonContent)
+        if os.path.isdir(sys.argv[1]):
+            classes = {}
+            for fname in os.listdir(sys.argv[1]):
+                f = os.path.join(sys.argv[1], fname)
+                tree = ET.parse(open(f, 'r'))
+                cls = tree.getroot()
+                dictCls = parseClass(cls)
+                classes[dictCls['name']] = dictCls
+            jsonContent = json.dumps({"classes": classes, "version": "3.0.alpha"}, ensure_ascii=False, indent=2)
+            print(jsonContent)
 
 if __name__ == '__main__':
     main()

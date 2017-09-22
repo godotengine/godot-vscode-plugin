@@ -123,7 +123,9 @@ class Config {
             argstr += `${arg.type} ${arg.name}${arg.default_value.length>0?'='+arg.default_value:''}${m.arguments.indexOf(arg)==m.arguments.length-1?'':', '}`;
           });
           // mi.label=`${m.name}(${argstr}) ${m.qualifiers}`;
-          let mdoc = `${m.return_type} ${classdoc.name}.${m.name}(${argstr}) ${m.qualifiers}`;
+          let methodName = `${classdoc.name}.${m.name}`;
+          if (classdoc.name == m.name) methodName = m.name;
+          let mdoc = `${m.return_type} ${methodName}(${argstr}) ${m.qualifiers}`;
           mdoc += " \n\n";
           mdoc += m.description;
           mi.documentation = mdoc;
