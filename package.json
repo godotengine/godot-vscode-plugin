@@ -8,7 +8,7 @@
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.9.1"
+    "vscode": "^1.16.1"
   },
   "categories": [
     "Other"
@@ -127,7 +127,7 @@
   },
   "devDependencies": {
     "typescript": "^2.0.3",
-    "vscode": "^1.1.4",
+    "vscode": "^1.1.5",
     "mocha": "^2.3.3",
     "@types/node": "^6.0.40",
     "@types/mocha": "^2.2.32"

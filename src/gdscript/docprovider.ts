@@ -68,6 +68,9 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
     format_documentation(text: string): string {
         let doc = text.replace(/\[code\]/g, "<code>").replace(/\[\/code\]/g, "</code>");    
         doc = doc.replace(/\[codeblock\]/g, '<pre><code class="gdscript">').replace(/\[\/codeblock]/g, "</code></pre>");
+        doc = doc.replace(/\[i\]/g, "<i>").replace(/\[\/i\]/g, "</i>");
+        doc = doc.replace(/\[b\]/g, "<b>").replace(/\[\/b\]/g, "</b>");
+        doc = doc.replace(/\[u\]/g, "<u>").replace(/\[\/u\]/g, "</u>");
         return doc;
     };
 

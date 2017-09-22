@@ -4,7 +4,7 @@ import {
     Position,
     CancellationToken,
     Hover,
-    MarkedString,
+    MarkdownString,
     workspace,
     Uri,
     CompletionItem,
@@ -32,16 +32,23 @@ class GDScriptHoverProvider implements HoverProvider {
         if (isStr(hoverText))
             hoverText = getStrContent(hoverText);
         const workspaceSymbols = config.getAllSymbols();
-        let tips: MarkedString[] = [];
+        let tips: MarkdownString[] = [];
         const withMarkdwon = workspace.getConfiguration("GodotTools").get("workspaceDocumentWithMarkdown", false);
+
+
+        const makeMarkdown = (content): MarkdownString => {
+            let md = new MarkdownString(content);
+            md.isTrusted = true;
+            return md;
+        }
 
         // check from workspace
         const genWorkspaceTips = ()=> {
             for (let path of Object.keys(workspaceSymbols)) {
                 const script = workspaceSymbols[path];
-                let scriptips: MarkedString[] = [];
-                const getHoverText = (items, type, path): MarkedString[] => {
-                    const _items: MarkedString[] = [];
+                let scriptips: MarkdownString[] = [];
+                const getHoverText = (items, type, path): MarkdownString[] => {
+                    const _items: MarkdownString[] = [];
                     for (let name of Object.keys(items)) {
                         if (name == hoverText) {
                             let dfile = path;
@@ -52,14 +59,14 @@ class GDScriptHoverProvider implements HoverProvider {
                                 signature = script.signatures[name];
                             if(type == "const" && script.constvalues[name])
                                 signature = ` = ${script.constvalues[name]}`;
-                            _items.push({language:'gdscript', value:`${type} ${name}${signature}`});
+                            _items.push(makeMarkdown(`${type} ${name}${signature}`));
                             let doc = script.documents[name];
                             if(!withMarkdwon)
                                 doc = "```plaintext\r\n"+doc+"\r\n```";
                             doc = doc?doc+"\r\n\r\n":"";
                             if(path != "autoload")
                                 doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`;
-                            _items.push(doc)
+                            _items.push(makeMarkdown(doc));
                             break;
                         }
                     }
@@ -95,8 +102,8 @@ class GDScriptHoverProvider implements HoverProvider {
                             instance = ` which is an instance of *[${node.instance}](${Uri.file(instancepath).toString()})*`;
                         }
                         tips = [...tips, 
-                            `${genLink(node.type, node.type)} ${fullpath}`,
-                            `${node.type} defined in *[${scnenepath}](${Uri.file(filepath).toString()})*${instance}`
+                            makeMarkdown(`${genLink(node.type, node.type)} ${fullpath}`),
+                            makeMarkdown(`${node.type} defined in *[${scnenepath}](${Uri.file(filepath).toString()})*${instance}`)
                         ];
                         break;
                     }
@@ -104,15 +111,18 @@ class GDScriptHoverProvider implements HoverProvider {
             }
         };
 
-        const format_documentation = (text) => {
+        const format_documentation = (text, cls="") => {
             let doc = text.replace(/\[code\]/g, "`").replace(/\[\/code\]/g, "`");    
             doc = doc.replace(/\[codeblock\]/g, "\n```gdscript\n").replace(/\[\/codeblock]/g, "\n```");
+            doc = doc.replace(/\[i\]/g, "*").replace(/\[\/i\]/g, "*");
+            doc = doc.replace(/\[b\]/g, "**").replace(/\[\/b\]/g, "**");
+            doc = doc.replace(/\[u\]/g, "__").replace(/\[\/u\]/g, "__");
             return doc;
         };
 
         // check from builtin
         const genBuiltinTips = ()=> {
-            const item2MarkdStrings = (name: string,item: CompletionItem, rowDoc: any):MarkedString[] => {
+            const item2MarkdStrings = (name: string,item: CompletionItem, rowDoc: any):MarkdownString[] => {
                 let value = "";
                 let doc = format_documentation(item.documentation);
                 // get class name
