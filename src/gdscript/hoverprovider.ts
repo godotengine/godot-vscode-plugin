@@ -117,6 +117,7 @@ class GDScriptHoverProvider implements HoverProvider {
             doc = doc.replace(/\[i\]/g, "*").replace(/\[\/i\]/g, "*");
             doc = doc.replace(/\[b\]/g, "**").replace(/\[\/b\]/g, "**");
             doc = doc.replace(/\[u\]/g, "__").replace(/\[\/u\]/g, "__");
+            doc = doc.replace(/\n\t\t\t\t/g, "\n");
             return doc;
         };
 

@@ -71,6 +71,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         doc = doc.replace(/\[i\]/g, "<i>").replace(/\[\/i\]/g, "</i>");
         doc = doc.replace(/\[b\]/g, "<b>").replace(/\[\/b\]/g, "</b>");
         doc = doc.replace(/\[u\]/g, "<u>").replace(/\[\/u\]/g, "</u>");
+        doc = doc.replace(/\n\t\t\t\t/g, "\n\t");        
         return doc;
     };
 
