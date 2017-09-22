@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "newIcon.png",
   "description": "Tools for game development with godot game engine",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",

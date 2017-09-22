@@ -53,6 +53,11 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 
 ## Release Notes
 
+### 0.3.2
+* Fix syntax checking error with match statement.
+* Improved documentation for builtin code blocks.
+* Start using MarkdonwString to keep links valid.
+
 ### 0.3.1
 * Update documentations with latest godot.
 * Fix errors with run script and run project.
@@ -66,11 +71,6 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 * Updated script snippets
 * Fix highglight error with gdscript language
 * Limited code completions
-
-### 0.2.9
-* Add configuration `GodotTools.completeNodePath` to switch is complete node paths
-* Enhanced syntax highlight with GDScript
-* Enhanced code completion with GDScript
 
 [Full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 

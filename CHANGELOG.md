@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.3.2
+* Fix syntax checking error with match statement.
+* Improved documentation for builtin code blocks.
+* Start using MarkdonwString to keep links valid.
+
 ### 0.3.1
 * Update documentations with latest godot.
 * Fix errors with run script and run project.
