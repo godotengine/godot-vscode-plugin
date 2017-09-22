@@ -147,7 +147,9 @@ class GDScriptDiagnosticSeverity {
         if(!expectEndOfLine)
           blockIndetCheck();
       }
-      if(!line.match(colonKeywords) && line.match(/\:\s*$/)) {
+      // Do not check : for end of statement as it breaks match statment
+      let endOfStateMentWithComma = false;
+      if(endOfStateMentWithComma && !line.match(colonKeywords) && line.match(/\:\s*$/)) {
         let showErr = true;
         if( i >= 1 ) {
           let previous = i - 1;
@@ -161,7 +163,6 @@ class GDScriptDiagnosticSeverity {
           const keywords = previousline.match(colonKeywords);
           if(keywords && !(previousline.match(new RegExp(`".*?\\s${keywords[1]}\\s.*?"`)) || previousline.match(new RegExp(`'.*?\\s${keywords[1]}\\s.*?'`)) ))
             showErr = false
-          
         }
         if(showErr)
           diagnostics.push(new vscode.Diagnostic(range, "Expected end of statement after expression", DiagnosticSeverity.Error));
