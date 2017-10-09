@@ -59,10 +59,11 @@ class GDScriptHoverProvider implements HoverProvider {
                                 signature = script.signatures[name];
                             if(type == "const" && script.constvalues[name])
                                 signature = ` = ${script.constvalues[name]}`;
-                            _items.push(makeMarkdown(`${type} ${name}${signature}`));
-                            let doc = script.documents[name];
+                            let doc ='```gdscript\n' + `${type} ${name}${signature}` + '\n```\n';
+                            let rowDoc = script.documents[name];
                             if(!withMarkdwon)
-                                doc = "```plaintext\r\n"+doc+"\r\n```";
+                                rowDoc += "```plaintext\r\n"+rowDoc+"\r\n```";
+                            doc += rowDoc;
                             doc = doc?doc+"\r\n\r\n":"";
                             if(path != "autoload")
                                 doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`;
@@ -123,7 +124,7 @@ class GDScriptHoverProvider implements HoverProvider {
 
         // check from builtin
         const genBuiltinTips = ()=> {
-            const item2MarkdStrings = (name: string,item: CompletionItem, rowDoc: any):MarkdownString[] => {
+            const item2MarkdStrings = (name: string,item: CompletionItem, rowDoc: any):MarkdownString => {
                 let value = "";
                 let doc = format_documentation(item.documentation);
                 // get class name
@@ -152,28 +153,28 @@ class GDScriptHoverProvider implements HoverProvider {
                 
                 switch (item.kind) {
                     case CompletionItemKind.Class:
-                        return [`Native Class ${genLink(classname, classname)}`, doc];
+                        return makeMarkdown(`Native Class ${genLink(classname, classname)}  ${doc}`);
                     case CompletionItemKind.Method:
                         doc = doc.substring(doc.indexOf("\n")+1, doc.length);
-                        return [genMethodMarkDown(), doc];
+                        return makeMarkdown(`${genMethodMarkDown()}  ${doc}`);
                     case CompletionItemKind.Interface:
                         doc = doc.substring(doc.indexOf("\n")+1, doc.length);
-                        return ['signal ' + genMethodMarkDown(), doc];
+                        return makeMarkdown(`signal + ${genMethodMarkDown()}  ${doc}`);
                     case CompletionItemKind.Variable:
                     case CompletionItemKind.Property:
-                        return [`${rowDoc.type} ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)}`, doc];
+                        return makeMarkdown(`${rowDoc.type} ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)}  ${doc}`);
                     case CompletionItemKind.Enum:
-                        return [`const ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)} = ${rowDoc.value}`, doc];
+                        return makeMarkdown(`const ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)} = ${rowDoc.value}  ${doc}`);
                     default:
                         break;
                 }
-                return [name, doc];
+                return makeMarkdown(`${name}  ${doc}`);
             };
             for (let name of Object.keys(config.builtinSymbolInfoMap)) {
                 const pattern = `[A-z@_]+[A-z0-9_]*\\.${hoverText}\\b`;
                 if(name == hoverText || name.match(new RegExp(pattern))) {
                     const item: {completionItem: CompletionItem, rowDoc: any} = config.builtinSymbolInfoMap[name];
-                    tips = [...tips, ...(item2MarkdStrings(name, item.completionItem, item.rowDoc))];
+                    tips = [...tips, item2MarkdStrings(name, item.completionItem, item.rowDoc)];
                 }
             }
         };
