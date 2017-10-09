@@ -90,13 +90,22 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             if(arg.default_value && arg.default_value.length > 0)
                 args += `=${arg.default_value}`;
         }
+        var docContent = mDoc.description;
+        if (!docContent) {
+            docContent = `There is currently no description for this method. Please help us by <span><a href="http://docs.godotengine.org/en/latest/community/contributing/updating_the_class_reference.html">contributing one</a></span>!`;
+        }
         let doc = `
             <li>
                 <h4 id="${mDoc.name}">${ret_type} ${mDoc.name} (${args}) <i>${mDoc.qualifiers}</i></h4>
-                <p>${mDoc.description}</p>
+                <p>${docContent}</p>
             </li>
         `;
         return doc;
+    }
+
+    genPropHeader(mDoc:any, classname:string): string {
+        let type = getProp(mDoc, "type", (type:string):string => `${genLink(type,type)} `);
+        return `<li>${type} ${genLink(mDoc.name, classname+"."+mDoc.name)}</li>`;
     }
 
     genMethodHeader(mDoc:any, classname:string):string {
@@ -124,10 +133,22 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
 
 
     genPropDoc(pDoc:any): string {
+        let setter = pDoc.setter;
+        if(setter) setter = `<li>Setter: ${setter}(value)</li>`; else setter = "";
+        let getter = pDoc.getter;
+        if(getter) getter = `<li>Getter: ${getter}()</li>`; else getter = "";
+        let descContent = pDoc.description;
+        if(!descContent) {
+            descContent = `There is currently no description for this property. Please help us by <span><a href="http://docs.godotengine.org/en/latest/community/contributing/updating_the_class_reference.html">contributing one</a></span>!`;
+        }
         let doc = `
             <li>
-                <h4>${genLink(pDoc.type,pDoc.type)} ${pDoc.name}</h4>
-                <p>${pDoc.description}</p>
+                <h4>${genLink(pDoc.type,pDoc.type)} ${pDoc.name}</h4> 
+                <ul>
+                    ${setter}
+                    ${getter}
+                </ul>
+                <p>${descContent}</p>
             </li>
         `;
         return doc;
@@ -206,6 +227,7 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             return null;
         const classname = rawDoc.name;
         let inherits = getProp(rawDoc, "inherits", (inherits:string)=>{
+            if (!inherits) return "";
             return "<h4>Inherits: " + genLink(inherits, inherits, true) +"</h4>";
         });
 
@@ -224,25 +246,38 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
             subclasses = "<h3>Inherited by</h3> " + "<ul><li>" + subclasses + "</li></ul>";
         
         let briefDescript = getProp(rawDoc, "brief_description", (dec:string)=>{
-            return "<h3>Brief Description</h3>" + "<ul><li>" + dec + "</li></ul>";
+            return dec;
         });
         let descript = getProp(rawDoc, "description", (dec:string)=>{
-            return "<h3>Description</h3>" + "<ul><li>" + dec + "</li></ul>";
+            if(dec)
+                return "<h3>Description</h3>" + "<ul><li>" + dec + "</li></ul>";
+            else
+                return "";
         });
 
-        let methods = "";
-        for(let m of rawDoc.methods) {
-            methods += this.genMethodDoc(m);
+        const setter_getters = {};
+        let propHeaders = ""
+        for(let p of rawDoc.properties) {
+            propHeaders += this.genPropHeader(p, classname);
+            if(p.setter)
+                setter_getters[p.setter] = true;
+            if(p.getter)
+                setter_getters[p.getter] = true;
         }
-        if(methods.length >0 )
-            methods = `<h3>Methods</h3><ul>${methods}</ul/>`;
+        if(propHeaders.length >0)
+            propHeaders = `<h3>Member List</h3><ul>${propHeaders}</ul/>`;
 
         let methodHeaders = ""
+        let methods = "";
         for(let m of rawDoc.methods) {
+            if(setter_getters[m.name]) continue;
             methodHeaders += this.genMethodHeader(m, classname);
+            methods += this.genMethodDoc(m);
         }
         if(methodHeaders.length >0)
-            methodHeaders = `<h3>Method List</h3><ul>${methodHeaders}</ul/>`;
+            methodHeaders = `<h3>Public Methods</h3><ul>${methodHeaders}</ul/>`;
+        if(methods.length >0 )
+            methods = `<h3>Public Methods</h3><ul>${methods}</ul/>`;
         
         let signals = "";
         for(let s of rawDoc.signals) {
@@ -271,11 +306,12 @@ class GDScriptDocumentContentProvider implements TextDocumentContentProvider{
         let doc = `
             ${linkStyle}
             <h1>Native Class ${classname}</h1>
+            <h4>${briefDescript}</h4>
             <p>${category}</p>
             <p>${inherits}</p>
             <p>${subclasses}</p>
-            <p>${briefDescript}</p>
             <p>${descript}</p>
+            <p>${propHeaders}</p>
             <p>${methodHeaders}</p>
             <p>${signals}</p>
             <p>${constants}</p>
