@@ -13,7 +13,7 @@ The plug-in comes with a wealth of features to make your programming experience 
 - Ctrl click on a variable or method call to jump to its definition
 - Full documentation supported with API of godot engine
 
-![Showing the documentation on hover feature](https://raw.githubusercontent.com/GodotExplorer/godot-tools/master/img/documentation-on-hover.png "Method definition and docs on hover")
+![Showing the documentation on hover feature](img/godot-tools.jpg)
 
 ## Available commands
 
