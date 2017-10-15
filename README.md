@@ -53,6 +53,12 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 
 ## Release Notes
 
+### 0.3.3
+* Fix some syntax checking errors.
+* Fix problems with hover documentation with latest VSCode.
+* Improved builtin class documentation page.
+* Update the documentation data with latest godot version.
+
 ### 0.3.2
 * Fix syntax checking error with match statement.
 * Improved documentation for builtin code blocks.
@@ -63,14 +69,6 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 * Fix errors with run script and run project.
 * Improve code completion with opening script file and constants.
 * Some improvements for documentations.
-
-### 0.3.0
-* Add project root configuration settings as `GodotTools.godotProjectRoot` thanks Konstantin Zaitcev
-* Add auto indent support for gdscript language
-* More friendly with godot 3.0 alpha
-* Updated script snippets
-* Fix highglight error with gdscript language
-* Limited code completions
 
 [Full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 
