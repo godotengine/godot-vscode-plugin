@@ -79,7 +79,7 @@
         },
         "GodotTools.godotProjectRoot": {
           "type": "string",
-          "default": "",
+          "default": "${workspaceRoot}",
           "description": "Relate path to the godot project"
         }
       }

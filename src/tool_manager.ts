@@ -26,20 +26,21 @@ class ToolManager {
     this._context = context;
     this.workspaceDir = vscode.workspace.rootPath;
     let completionDollar = false;
+
     if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3) {
       this._projectFile = "project.godot";
       this._biuitinDocFile = "doc/classes-3.0.json";
       completionDollar = true;
+      this.loadClasses();
     }
     if (vscode.workspace && this.workspaceDir) {
       vscode.workspace.registerTextDocumentContentProvider('godotdoc', new GDScriptDocumentContentProvider());
       this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
+      this._rootDir = vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", this.workspaceDir);
+      this._rootDir = this._rootDir.replace("${workspaceRoot}", this.workspaceDir);
       this.loadWorkspaceSymbols();
     }
-    this._rootDir = vscode.workspace.getConfiguration("GodotTools").get("godotProjectRoot", this.workspaceDir);
-    this._rootDir = this._rootDir.replace("${workspaceRoot}", this.workspaceDir);
-
-    this.loadClasses();
+    
     // documentation symbol provider
     this.symbolprovider = new GDScriptSymbolProvider();
     vscode.languages.registerDocumentSymbolProvider('gdscript', this.symbolprovider);
@@ -170,6 +171,7 @@ class ToolManager {
     let workspaceValid = false
     if (this.workspaceDir) {
     let cfg = path.join(this._rootDir, this._projectFile);
+    console.log(cfg);
     if (fs.existsSync(cfg) && fs.statSync(cfg).isFile())
         workspaceValid = true;
     }
@@ -211,7 +213,7 @@ class ToolManager {
         const script = config.loadSymbolsFromFile(absFilePath);
         if (script) {
           if(script.native == "SceneTree" || script.native == "MainLoop") {
-            this.runEditor(`-s ${scriptPath}`);
+            this.runEditor(`-s ${absFilePath}`);
             return;
           }
         }
