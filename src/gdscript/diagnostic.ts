@@ -117,7 +117,7 @@ class GDScriptDiagnosticSeverity {
           diagnostics.push(new vscode.Diagnostic(range, "': or \\' expected at end of the line.", DiagnosticSeverity.Error));
         else if (line.match(/(if|elif|while|func|class|match)\s*\:/)) 
           diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
-        else if (line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+[\w+]|\{.*?\}|\[.*?\]/)){
+        else if (line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+|[\w+]|\{.*?\}|\[.*?\]|\(.*?\)/)){
           if(!(line.match(/".*?for.*?"/) || line.match(/'.*?for.*?'/)))
             diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
         }
@@ -129,7 +129,7 @@ class GDScriptDiagnosticSeverity {
             let next = i + 1;
             let nextline = lines[next];
             // changes nextline until finds a line containg text or comes to the last line
-            while (((!nextline || !nextline.trim().length) || nextline.match(/\s*#/)) && next < lines.length - 1) {
+            while (((!nextline || !nextline.trim().length) || nextline.match(/^\s*#/)) && next < lines.length - 1) {
               ++next;
               nextline = lines[next];
             }
