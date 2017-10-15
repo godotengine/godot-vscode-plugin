@@ -188,11 +188,12 @@ class ToolManager {
   private runEditor(params = "") {
     let editorPath = vscode.workspace.getConfiguration("GodotTools").get("editorPath", "")
     editorPath = editorPath.replace("${workspaceRoot}", this.workspaceDir);
+    console.log(editorPath);
     if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     } else {
       let terminal = vscode.window.createTerminal("Godot");
-      let cmmand = `${editorPath} ${params}`;
+      let cmmand = `${editorPath.replace(" ", "\\ ")} ${params}`;
       terminal.sendText(cmmand, true);
       terminal.show();
     }
