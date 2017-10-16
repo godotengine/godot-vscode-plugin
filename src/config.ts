@@ -108,7 +108,7 @@ class Config {
         // ----------------------  class -----------------
         const item: CompletionItem = new CompletionItem(classdoc.name, CompletionItemKind.Class);
         item.detail = 'Native Class';
-        item.documentation = classdoc.brief_description + " \n\n" +classdoc.description;
+        item.documentation = classdoc.brief_description + " \n" +classdoc.description;
         this.builtinCompletions.classes.push(item);
         builtinSymbolInfoMap[classdoc.name] = {completionItem: item, rowDoc: classdoc};
         // ----------------------- functions -----------------------
@@ -192,6 +192,11 @@ class Config {
         script_files = Object.keys(this.workspaceSymbols);
       for (let path of script_files) {
         const script = this.workspaceSymbols[path];
+        if (workspace) {
+          const root = this.normalizePath(workspace.rootPath) + "/";
+          if (path.startsWith(root))
+            path = path.replace(root, "");
+        }
         const addScriptItems = (items, kind: CompletionItemKind, kindName:string = "Symbol", insertText = (n)=>n)=>{
           const _items: CompletionItem[] = [];
           for (let name of Object.keys(items)) {
@@ -203,7 +208,7 @@ class Config {
             item.detail = cvalue;
             item.insertText = insertText(name) + (signature=="()"?"()":"");
             item.documentation = (script.documents && script.documents[name])?script.documents[name]+"\r\n":"";
-            item.documentation += `${kindName} defined in ${workspace.asRelativePath(path)}`;
+            item.documentation += `${kindName} defined in ${path}`;
             _items.push(item);
           }
           return _items;

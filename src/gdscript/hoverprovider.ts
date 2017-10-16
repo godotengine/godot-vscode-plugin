@@ -44,16 +44,19 @@ class GDScriptHoverProvider implements HoverProvider {
 
         // check from workspace
         const genWorkspaceTips = ()=> {
-            for (let path of Object.keys(workspaceSymbols)) {
-                const script = workspaceSymbols[path];
+            for (let filepath of Object.keys(workspaceSymbols)) {
+                const script = workspaceSymbols[filepath];
                 let scriptips: MarkdownString[] = [];
-                const getHoverText = (items, type, path): MarkdownString[] => {
+                const getHoverText = (items, type, gdpath): MarkdownString[] => {
                     const _items: MarkdownString[] = [];
                     for (let name of Object.keys(items)) {
                         if (name == hoverText) {
-                            let dfile = path;
-                            if (workspace && workspace.asRelativePath(dfile))
-                                dfile = workspace.asRelativePath(dfile);
+                            let dfile = gdpath;
+                            if (workspace) {
+                                const root = config.normalizePath(workspace.rootPath) + "/";
+                                if (gdpath.startsWith(root))
+                                    dfile = gdpath.replace(root, "");
+                            }
                             let signature = "";
                             if(type == "func"|| type == "signal" && script.signatures[name])
                                 signature = script.signatures[name];
@@ -65,21 +68,21 @@ class GDScriptHoverProvider implements HoverProvider {
                                 rowDoc += "```plaintext\r\n"+rowDoc+"\r\n```";
                             doc += rowDoc;
                             doc = doc?doc+"\r\n\r\n":"";
-                            if(path != "autoload")
-                                doc += `*Defined in [${dfile}](${Uri.file(path).toString()})*`;
+                            if(gdpath != "autoload")
+                                doc += `*Defined in [${dfile}](${Uri.file(gdpath).toString()})*`;
                             _items.push(makeMarkdown(doc));
                             break;
                         }
                     }
                     return _items;
                 }
-                scriptips = [...scriptips, ...getHoverText(script.variables, 'var', path)];
-                scriptips = [...scriptips, ...getHoverText(script.constants, 'const', path)];
-                scriptips = [...scriptips, ...getHoverText(script.functions, 'func', path)];
-                scriptips = [...scriptips, ...getHoverText(script.signals, 'signal', path)];
-                scriptips = [...scriptips, ...getHoverText(script.classes, 'class', path)];
+                scriptips = [...scriptips, ...getHoverText(script.variables, 'var', filepath)];
+                scriptips = [...scriptips, ...getHoverText(script.constants, 'const', filepath)];
+                scriptips = [...scriptips, ...getHoverText(script.functions, 'func', filepath)];
+                scriptips = [...scriptips, ...getHoverText(script.signals, 'signal', filepath)];
+                scriptips = [...scriptips, ...getHoverText(script.classes, 'class', filepath)];
                 if(script.enumerations)
-                    scriptips = [...scriptips, ...getHoverText(script.enumerations, 'const', path)];
+                    scriptips = [...scriptips, ...getHoverText(script.enumerations, 'const', filepath)];
                 tips = [...tips, ...scriptips];
             }
         };
@@ -153,18 +156,18 @@ class GDScriptHoverProvider implements HoverProvider {
                 
                 switch (item.kind) {
                     case CompletionItemKind.Class:
-                        return makeMarkdown(`Native Class ${genLink(classname, classname)}  ${doc}`);
+                        return makeMarkdown(`Native Class ${genLink(classname, classname)}\n${doc}`);
                     case CompletionItemKind.Method:
                         doc = doc.substring(doc.indexOf("\n")+1, doc.length);
-                        return makeMarkdown(`${genMethodMarkDown()}  ${doc}`);
+                        return makeMarkdown(`${genMethodMarkDown()}\n${doc}`);
                     case CompletionItemKind.Interface:
                         doc = doc.substring(doc.indexOf("\n")+1, doc.length);
-                        return makeMarkdown(`signal + ${genMethodMarkDown()}  ${doc}`);
+                        return makeMarkdown(`signal ${genMethodMarkDown()}\n${doc}`);
                     case CompletionItemKind.Variable:
                     case CompletionItemKind.Property:
-                        return makeMarkdown(`${rowDoc.type} ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)}  ${doc}`);
+                        return makeMarkdown(`${rowDoc.type} ${genLink(classname, classname)}.${genLink(rowDoc.name, classname + "." + rowDoc.name)}\n${doc}`);
                     case CompletionItemKind.Enum:
-                        return makeMarkdown(`const ${genLink(classname, classname)}.${genLink(rowDoc.name, classname+"."+rowDoc.name)} = ${rowDoc.value}  ${doc}`);
+                        return makeMarkdown(`const ${genLink(classname, classname)}.${genLink(rowDoc.name, classname + "." + rowDoc.name)} = ${rowDoc.value}\n${doc}`);
                     default:
                         break;
                 }
