@@ -31,8 +31,9 @@ class ToolManager {
       this._projectFile = "project.godot";
       this._biuitinDocFile = "doc/classes-3.0.json";
       completionDollar = true;
-      this.loadClasses();
     }
+    this.loadClasses();
+
     if (vscode.workspace && this.workspaceDir) {
       vscode.workspace.registerTextDocumentContentProvider('godotdoc', new GDScriptDocumentContentProvider());
       this.workspaceDir = this.workspaceDir.replace(/\\/g, "/");
