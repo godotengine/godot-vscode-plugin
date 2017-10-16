@@ -157,13 +157,16 @@ class ToolManager {
   }
 
   private loadWorkspaceSymbols() {
+    let handle = this.showProgress("Loading symbols");
     if (vscode.workspace.getConfiguration("GodotTools").get("parseTextScene", false)) {
       this.loadAllNodesInWorkspace();
     }
     this.loadAllSymbols().then(symbols => {
+      handle();
       vscode.window.setStatusBarMessage("$(check) Workspace symbols", 5000);
       config.setAllSymbols(symbols);
     }).catch(e => {
+      handle();
       vscode.window.setStatusBarMessage("$(x) Workspace symbols", 5000);
     });
   }
@@ -244,6 +247,18 @@ class ToolManager {
   dispose() {
     this._disposable.dispose();
   }
+
+  private showProgress(message: string) {
+    let r_resolve;
+    vscode.window.withProgress({ location: vscode.ProgressLocation.Window}, p => {
+      return new Promise((resolve, reject) => {
+          p.report({message}); 
+          r_resolve = resolve;
+      });
+    });
+    return r_resolve;
+  }
+
 };
 
 export default ToolManager;
