@@ -53,6 +53,11 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 
 ## Release Notes
 
+### 0.3.4
+* Fix bug with builtin symbols parsing for godot 2.1
+* Improved hover documentation
+* Show window progress when parsing workspace symbol
+
 ### 0.3.3
 * Fix some syntax checking errors.
 * Fix problems with hover documentation with latest VSCode.
@@ -63,12 +68,6 @@ Make sure you save your .gd file, then run "GodotTools: Update Workspace Symbols
 * Fix syntax checking error with match statement.
 * Improved documentation for builtin code blocks.
 * Start using MarkdonwString to keep links valid.
-
-### 0.3.1
-* Update documentations with latest godot.
-* Fix errors with run script and run project.
-* Improve code completion with opening script file and constants.
-* Some improvements for documentations.
 
 [Full change log](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 

@@ -1,5 +1,10 @@
 # Change Log
 
+### 0.3.4
+* Fix bug with builtin symbols parsing for godot 2.1
+* Improved hover documentation
+* Show window progress when parsing workspace symbols
+
 ### 0.3.3
 * Fix some syntax checking errors.
 * Fix problems with hover documentation with latest VSCode.
