@@ -99,9 +99,12 @@
       {
         "id": "properties",
         "extensions": [
-          ".cfg",
+          "cfg",
           "tres",
-          "tscn"
+          "tscn",
+          "godot",
+          "gdns",
+          "gdnlib"
         ]
       }
     ],
