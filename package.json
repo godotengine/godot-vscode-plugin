@@ -81,6 +81,11 @@
           "type": "string",
           "default": "${workspaceRoot}",
           "description": "Relate path to the godot project"
+        },
+        "GodotTools.enableSyntaxChecking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Turn on/off the syntax checking for GDScript"
         }
       }
     },
