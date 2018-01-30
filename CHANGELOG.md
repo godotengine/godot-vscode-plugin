@@ -1,5 +1,12 @@
 # Change Log
 
+### 0.3.5
+* Add option to disable syntax checking for GDScript
+* Improved inline if else statement syntax checking
+* More resource type supported for syntax highglight
+* Bump default godot version to 3.0
+* Sync the documentations from godot 3.0
+
 ### 0.3.4
 * Fix bug with builtin symbols parsing for godot 2.1
 * Improved hover documentation

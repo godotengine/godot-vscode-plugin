@@ -20,16 +20,16 @@ class ToolManager {
   private _context: vscode.ExtensionContext;
   private _projectFile : string = "engine.cfg";
   private _rootDir : string = "";
-  private _biuitinDocFile : string = "doc/classes-2.1.json";
+  private _biuitinDocFile : string = "doc/classes-3.0.json";
 
   constructor(context: vscode.ExtensionContext) {
     this._context = context;
     this.workspaceDir = vscode.workspace.rootPath;
     let completionDollar = false;
 
-    if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3) {
+    if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 3.0) < 3) {
       this._projectFile = "project.godot";
-      this._biuitinDocFile = "doc/classes-3.0.json";
+      this._biuitinDocFile = "doc/classes-2.1.json";
       completionDollar = true;
     }
     this.loadClasses();

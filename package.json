@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "icon.png",
   "description": "Tools for game development with godot game engine",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
@@ -64,7 +64,7 @@
         },
         "GodotTools.godotVersion": {
           "type": "number",
-          "default": 2.1,
+          "default": 3.0,
           "description": "The godot version of your project"
         },
         "GodotTools.parseTextScene": {
