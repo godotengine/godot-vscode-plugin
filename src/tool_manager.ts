@@ -18,7 +18,7 @@ class ToolManager {
   private workspacesymbolprovider: GDScriptWorkspaceSymbolProvider = null;
   private _disposable: vscode.Disposable;
   private _context: vscode.ExtensionContext;
-  private _projectFile : string = "engine.cfg";
+  private _projectFile : string = "project.godot";
   private _rootDir : string = "";
   private _biuitinDocFile : string = "doc/classes-3.0.json";
 
@@ -28,7 +28,7 @@ class ToolManager {
     let completionDollar = false;
 
     if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 3.0) < 3) {
-      this._projectFile = "project.godot";
+      this._projectFile = "engine.cfg";
       this._biuitinDocFile = "doc/classes-2.1.json";
       completionDollar = true;
     }
