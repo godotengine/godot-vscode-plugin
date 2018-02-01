@@ -1,5 +1,8 @@
 # Change Log
 
+### 0.3.6
+* Fix project configuartion file path
+
 ### 0.3.5
 * Add option to disable syntax checking for GDScript
 * Improved inline if else statement syntax checking
