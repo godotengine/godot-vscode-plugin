@@ -183,7 +183,7 @@ class ToolManager {
       let pathFlag = "-path";
       if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3)
         pathFlag = "--path";
-      this.runEditor(`${pathFlag} ${this._rootDir} ${params}`);
+      this.runEditor(`${pathFlag} "${this._rootDir}" ${params}`);
     }
     else
       vscode.window.showErrorMessage("Current workspace is not a godot project");
@@ -197,7 +197,7 @@ class ToolManager {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     } else {
       let terminal = vscode.window.createTerminal("Godot");
-      let cmmand = `${editorPath.replace(" ", "\\ ")} ${params}`;
+      let cmmand = `${editorPath.replace(" ", "` ")} ${params}`;
       terminal.sendText(cmmand, true);
       terminal.show();
     }
