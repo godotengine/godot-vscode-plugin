@@ -183,7 +183,7 @@ class ToolManager {
       let pathFlag = "-path";
       if (vscode.workspace.getConfiguration("GodotTools").get("godotVersion", 2.1) >= 3)
         pathFlag = "--path";
-      this.runEditor(`${pathFlag} ${this._rootDir} ${params}`);
+      this.runEditor(`${pathFlag} "${this._rootDir}" ${params}`);
     }
     else
       vscode.window.showErrorMessage("Current workspace is not a godot project");
@@ -197,7 +197,8 @@ class ToolManager {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     } else {
       let terminal = vscode.window.createTerminal("Godot");
-      let cmmand = `${editorPath.replace(" ", "\\ ")} ${params}`;
+      editorPath = this.escapeCmd(editorPath);
+      let cmmand = `${editorPath} ${params}`;
       terminal.sendText(cmmand, true);
       terminal.show();
     }
@@ -218,7 +219,7 @@ class ToolManager {
         const script = config.loadSymbolsFromFile(absFilePath);
         if (script) {
           if(script.native == "SceneTree" || script.native == "MainLoop") {
-            this.runEditor(`-s ${absFilePath}`);
+            this.runEditor(`-s "${absFilePath}"`);
             return;
           }
         }
@@ -226,9 +227,9 @@ class ToolManager {
     }
     if (scenePath) {
       if (scenePath.endsWith(".gd"))
-        scenePath = ` -s res://${scenePath} `;
+        scenePath = ` -s "res://${scenePath}" `;
       else
-        scenePath = ` res://${scenePath} `;
+        scenePath = ` "res://${scenePath}" `;
       this.openWorkspaceWithEditor(scenePath);
     } else
       vscode.window.showErrorMessage("Current document is not a scene file or MainLoop");
@@ -257,6 +258,20 @@ class ToolManager {
       });
     });
     return r_resolve;
+  }
+
+  private escapeCmd(cmd: string) {
+      // Double quote command (should work in at least cmd.exe and bash)
+      let cmdEsc = `"${cmd}"`;
+
+      // Fetch Windows shell type
+      let shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows", "");
+
+      // For powershell we prepend an & to prevent the command being treated as a string
+      if (shell.endsWith("powershell.exe") && process.platform === "win32") {
+          cmdEsc = `&${cmdEsc}`;
+      }
+      return cmdEsc
   }
 
 };
