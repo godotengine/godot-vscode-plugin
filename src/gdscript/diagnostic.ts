@@ -174,7 +174,7 @@ class GDScriptDiagnosticSeverity {
       else if (line.indexOf("==") > 0 && !line.match(/\:\s*/)) {
         const endAt = line.indexOf("==");
         const precontent = line.substring(0, endAt);
-        if (!precontent.match(/\s(if|elif|while|return)\s/) && !precontent.match(/=[^=]/) && !expectEndOfLine) {
+      if (!precontent.match(/\s(if|elif|while|return)\s/) && !precontent.match(/=[^=]/) && !precontent.match(/assert\s*\(/) && !expectEndOfLine) {
           diagnostics.push(new vscode.Diagnostic(range, "Unhandled comparation expression contains", DiagnosticSeverity.Warning));
         }
       }
