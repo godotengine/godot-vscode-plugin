@@ -1,8 +1,11 @@
 # Change Log
 
 ### 0.3.7
+* Add `lint` configuration to control the behaviors of syntax checking
 * Fix error with run godot editor when the editor contains spaces
 * Disable semicolons and brackets checks as default can be enabled with project settings
+* Fix bugs in syntax valiadating
+* Sync documentations with godot 3.0.4
 ```json
 {
     "lint": {

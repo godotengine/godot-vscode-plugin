@@ -4,6 +4,15 @@ import xml.etree.ElementTree as ET
 import json
 import os
 
+def glob_path(path, pattern):
+    import os, fnmatch
+    result = []
+    for root, _, files in os.walk(path):
+        for filename in files:
+            if fnmatch.fnmatch(filename, pattern):
+                result.append(os.path.join(root, filename))
+    return result
+
 def parseClass(data):
     dictCls = dict(data.attrib)
     dictCls['brief_description'] = data.find("brief_description").text.strip()
@@ -56,13 +65,14 @@ def main():
     if len(sys.argv) >=2 :
         if os.path.isdir(sys.argv[1]):
             classes = {}
-            for fname in os.listdir(sys.argv[1]):
-                f = os.path.join(sys.argv[1], fname)
+            for f in glob_path(sys.argv[1], "**.xml"):
+                if f.find("/classes/") == -1 and f.find("/doc_classes/") == -1:
+                    continue
                 tree = ET.parse(open(f, 'r'))
                 cls = tree.getroot()
                 dictCls = parseClass(cls)
                 classes[dictCls['name']] = dictCls
-            jsonContent = json.dumps({"classes": classes, "version": "3.0.alpha"}, ensure_ascii=False, indent=2)
+            jsonContent = json.dumps({"classes": classes, "version": "3.0.4"}, ensure_ascii=False, indent=2)
             print(jsonContent)
 
 if __name__ == '__main__':
