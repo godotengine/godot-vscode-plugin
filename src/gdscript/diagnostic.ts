@@ -52,8 +52,11 @@ class GDScriptDiagnosticSeverity {
 
   private validateUnusedSymbols(doc : vscode.TextDocument, script) {
     let diagnostics = [];
-    const text = doc.getText();
+    let cfg : any = vscode.workspace.getConfiguration("GodotTools").get("lint");
+    if (!cfg.unusedSymbols)
+      return diagnostics
 
+    const text = doc.getText();
     const check = (name : string, range : vscode.Range) => {
       var matchs = text.match(new RegExp(`([^\\w]|\\[|\\{)\\s*${name}\\s*([^\\w]|\\[|\\{)`, 'g'));
       let count = matchs ? matchs.length : 0;

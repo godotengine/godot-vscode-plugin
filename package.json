@@ -91,7 +91,8 @@
           "type":"object",
           "default": {
               "semicolon": false,
-              "conditionBrackets": false
+              "conditionBrackets": false,
+              "unusedSymbols": true
           },
           "description": "Lint configurations"
         }
