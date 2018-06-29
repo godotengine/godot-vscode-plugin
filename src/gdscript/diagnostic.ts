@@ -117,7 +117,7 @@ class GDScriptDiagnosticSeverity {
           return
         else if (!line.match(/.*?(\\|\:)/))
           diagnostics.push(new vscode.Diagnostic(range, "': or \\' expected at end of the line.", DiagnosticSeverity.Error));
-        else if (line.match(/(if|elif|while|func|class|match)\s*\:/)) 
+        else if (line.match(/\s(if|elif|while|func|class|match)\s*\:/)) 
           diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
         else if (line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+|[\w+]|\{.*?\}|\[.*?\]|\(.*?\)/)){
           if(!(line.match(/".*?for.*?"/) || line.match(/'.*?for.*?'/)))
