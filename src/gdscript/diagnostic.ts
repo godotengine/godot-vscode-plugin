@@ -126,7 +126,7 @@ class GDScriptDiagnosticSeverity {
           if(!(line.match(/".*?for.*?"/) || line.match(/'.*?for.*?'/)))
             diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
         }
-        else if (cfg.conditionBrackets && line.match(/(if|elif|while|match)\s*\(.*\)\s*:\s*$/)) 
+        else if (cfg.conditionBrackets && line.match(/\s(if|elif|while|match)\s*\(.*\)\s*:\s*$/)) 
           diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
         const blockIndetCheck = function() {
           const err = new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error);
