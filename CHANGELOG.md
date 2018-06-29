@@ -1,5 +1,17 @@
 # Change Log
 
+### 0.3.7
+* Fix error with run godot editor when the editor contains spaces
+* Disable semicolons and brackets checks as default can be enabled with project settings
+```json
+{
+    "lint": {
+        "semicolon": true,
+        "conditionBrackets": true
+    }
+}
+```
+
 ### 0.3.6
 * Fix project configuartion file path
 

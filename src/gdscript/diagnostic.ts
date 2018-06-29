@@ -71,6 +71,8 @@ class GDScriptDiagnosticSeverity {
   }
 
   private validateExpression(doc : vscode.TextDocument) {
+    let cfg : any = vscode.workspace.getConfiguration("GodotTools").get("lint");
+
     let diagnostics = [];
     let expectEndOfLine = false;
     const text = doc.getText();
@@ -88,7 +90,7 @@ class GDScriptDiagnosticSeverity {
       line = "\t" + line + "\t";
       var range = new vscode.Range(i, curLineStartAt, i, line.length);
 
-      if (line.match(/[^#].*?\;/) && !line.match(/[#].*?\;/)) {
+      if (cfg.semicolon && line.match(/[^#].*?\;/) && !line.match(/[#].*?\;/)) {
         const semicolonIndex = line.indexOf(';');
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex + 1), "Statement contains a semicolon.", DiagnosticSeverity.Warning));
       }
@@ -121,7 +123,7 @@ class GDScriptDiagnosticSeverity {
           if(!(line.match(/".*?for.*?"/) || line.match(/'.*?for.*?'/)))
             diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
         }
-        else if (line.match(/(if|elif|while|match)\s*\(.*\)/)) 
+        else if (cfg.conditionBrackets && line.match(/(if|elif|while|match)\s*\(.*\)/)) 
           diagnostics.push(new vscode.Diagnostic(range, "Extra brackets in condition expression.", DiagnosticSeverity.Warning));
         const blockIndetCheck = function() {
           const err = new vscode.Diagnostic(range, "Expected indented block after expression", DiagnosticSeverity.Error);

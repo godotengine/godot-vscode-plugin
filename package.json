@@ -3,7 +3,7 @@
   "displayName": "Godot Tools",
   "icon": "icon.png",
   "description": "Tools for game development with godot game engine",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "publisher": "geequlim",
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
@@ -86,6 +86,14 @@
           "type": "boolean",
           "default": true,
           "description": "Turn on/off the syntax checking for GDScript"
+        },
+        "GodotTools.lint": {
+          "type":"object",
+          "default": {
+              "semicolon": false,
+              "conditionBrackets": false
+          },
+          "description": "Lint configurations"
         }
       }
     },
