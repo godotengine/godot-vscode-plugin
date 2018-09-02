@@ -6,3 +6,4 @@ test
 *.vsix
 configurations/tmp.txt
 configurations/test.py
+.vscode-test
