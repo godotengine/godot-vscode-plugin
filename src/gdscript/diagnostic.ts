@@ -114,6 +114,9 @@ class GDScriptDiagnosticSeverity {
           return
         if(line.match(/.*?\sif\s+(\!|\[|\{|\w).*?\s+else\s+[^\s]+/))
           return
+        if(line.match(/.*?if.*else.*/)) {
+          return
+        }
         if (line.match(/.*?\\/))
           expectEndOfLine = true;
         else if (line.match(/.*?\:[\s+]+[^#\s]+/)) 
