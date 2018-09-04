@@ -78,12 +78,12 @@ class ToolManager {
       if (path && path.length > 0 && path.endsWith("/"))
         path = path.substring(0, path.length - 1)
       if (path.toLowerCase() == self.workspaceDir.toLowerCase())
-        vscode.window.showInformationMessage("Connected to godot editor server");
+        vscode.window.showInformationMessage("Connected to the Godot editor server");
       else {
-        vscode.window.showWarningMessage("The opened project is not same with godot editor");
+        vscode.window.showWarningMessage("The opened project is not the same within the Godot editor");
       }
     }).catch(e => {
-      vscode.window.showErrorMessage("Failed connect to godot editor server");
+      vscode.window.showErrorMessage("Failed connecting to the Godot editor server");
     });
   }
 
@@ -124,7 +124,7 @@ class ToolManager {
                     gdpath = path.join(this._rootDir, gdpath);
                     let showgdpath = vscode.workspace.asRelativePath(gdpath);
 
-                    let doc = "Auto loaded instance of " + `[${showgdpath}](${vscode.Uri.file(gdpath).toString()})`;
+                    let doc = "Autoloaded instance of " + `[${showgdpath}](${vscode.Uri.file(gdpath).toString()})`;
                     doc = doc.replace(/"/g, " ");
 
                     script.constants[name] = new vscode.Range(0, 0, 0, 0);
@@ -186,7 +186,7 @@ class ToolManager {
       this.runEditor(`${pathFlag} "${this._rootDir}" ${params}`);
     }
     else
-      vscode.window.showErrorMessage("Current workspace is not a godot project");
+      vscode.window.showErrorMessage("Current workspace is not a Godot project");
   }
 
   private runEditor(params = "") {
@@ -242,7 +242,7 @@ class ToolManager {
     if (!done)
       done = config.loadClasses(path.join(this._context.extensionPath, this._biuitinDocFile));
     if (!done)
-      vscode.window.showErrorMessage("Load GDScript documentations failed");
+      vscode.window.showErrorMessage("Loading GDScript documentation failed");
   }
 
   dispose() {
