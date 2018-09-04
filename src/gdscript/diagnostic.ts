@@ -80,7 +80,10 @@ class GDScriptDiagnosticSeverity {
     let expectEndOfLine = false;
     const text = doc.getText();
     const lines = text.split(/\r?\n/);
-    lines.map((line : string, i : number) => {
+
+    for(let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
       let matchstart = /[^\s]+.*/.exec(line);
       let curLineStartAt = 0;
       if (matchstart) 
@@ -88,7 +91,7 @@ class GDScriptDiagnosticSeverity {
       
       // ignore comments
       if (line.match(/^\s*#.*/) || line.match(/^#.*/)) 
-        return
+        continue
       // normalize line content
       line = "\t" + line + "\t";
       var range = new vscode.Range(i, curLineStartAt, i, line.length);
@@ -97,6 +100,66 @@ class GDScriptDiagnosticSeverity {
         const semicolonIndex = line.indexOf(';');
         diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, semicolonIndex, i, semicolonIndex + 1), "Statement contains a semicolon.", DiagnosticSeverity.Warning));
       }
+
+      if (!line.match(/.*?\:/) && line.match(/\s*if\s*\(.*/)) {
+        // multi-line if condition
+        let expectedComparisonFirst = false;
+        let diagnosedError = false;
+
+        const checkComparatorFirst = function(): void {
+          if(expectedComparisonFirst && !line.match(/\s*(and|or|&&|\|\|).*/)) {
+            diagnostics.push(new vscode.Diagnostic(new vscode.Range(i, 0, i, 1), "Expected comparison operator at the beginning of line.", DiagnosticSeverity.Error));
+            diagnosedError = true;
+          }
+        }
+        const checkExpression = function(line: string): void {
+          let expressionSet = line.trim();
+
+          var expressions = expressionSet.split(/(and|or|&&|\|\|)/);
+          
+          for(expression of expressions) {
+            if (expression === "") continue;
+            if (expression.match(/(and|or|&&|\|\|)/)) continue;
+
+            if (!expression.trim().match(/[^\s]+\s*(\s+is\s+|==|<|>|==|!=|>=|<=)\s*[^\s]+/)) {
+              const errorRange = new vscode.Range(i, line.indexOf(expression), i, line.indexOf(expression) + expression.length);
+              diagnostics.push(new vscode.Diagnostic(errorRange, "Invalid boolean expression.", DiagnosticSeverity.Error));
+              diagnosedError = true;
+            }
+          }
+
+          expectedComparisonFirst = !expressions.slice(-2)[0].match(/(and|or|&&|\|\|)/);
+        }
+
+        let expression = line.substring(line.indexOf("(") + 1);
+        checkExpression(expression);
+
+        while( !(line = lines[++i]).match(/.*?\:/)) {
+          if(diagnosedError) 
+            continue;
+
+          range = new vscode.Range(i, curLineStartAt, i, line.length);
+          checkComparatorFirst();
+          if(!expectedComparisonFirst && line.trim().match(/^(and|or|&&|\|\|).*/)) {
+            diagnostics.push(new vscode.Diagnostic(range, "Duplicate comparison operator.", DiagnosticSeverity.Error));
+            diagnosedError = true;
+          }
+          checkExpression(line);
+        }
+        range = new vscode.Range(i, curLineStartAt, i, line.length);
+
+        checkComparatorFirst();
+
+        if(!line.match(/.*\).*?\:/)) {
+          range = new vscode.Range(i, line.indexOf(":") - 1, i, line.indexOf(":"));
+          diagnostics.push(new vscode.Diagnostic(range, "')' expected to close if-condition.", DiagnosticSeverity.Error));
+          continue;
+        }
+        expression = line.substring(0, line.indexOf(")"));
+        checkExpression(expression);
+        continue;
+      }
+
       if (line.match(/[^#].*?/) && expectEndOfLine) {
         if (!line.match(/.*?(\\|\:)/)) {
           diagnostics.push(new vscode.Diagnostic(range, "': or \\' expected at end of the line.", DiagnosticSeverity.Error));
@@ -109,15 +172,15 @@ class GDScriptDiagnosticSeverity {
       let keywords = line.match(colonKeywords)
       if (keywords) {
         if(line.match(new RegExp(`".*?\\s${keywords[1]}\\s.*?"`)) || line.match(new RegExp(`'.*?\\s${keywords[1]}\\s.*?\'`)))
-          return
+          continue
         if(line.match(new RegExp(`.*?#.*?\\s${keywords[1]}\\s.*?`)))
-          return
-        if(line.match(/.*?\sif\s+(\!|\[|\{|\w).*?\s+else\s+[^\s]+/))
-          return
+          continue
+        if(line.match(/.*?\sif\s+(\!|\[|\{|\w|").*?\s+else\s+[^\s]+/))
+          continue
         if (line.match(/.*?\\/))
           expectEndOfLine = true;
         else if (line.match(/.*?\:[\s+]+[^#\s]+/)) 
-          return
+          continue
         else if (!line.match(/.*?(\\|\:)/))
           diagnostics.push(new vscode.Diagnostic(range, "': or \\' expected at end of the line.", DiagnosticSeverity.Error));
         else if (line.match(/\s(if|elif|while|func|class|match)\s*\:/)) 
@@ -185,7 +248,8 @@ class GDScriptDiagnosticSeverity {
       if (match && match.length > 2 && match[1].length > 0 && match[1] == match[2]) {
         diagnostics.push(new vscode.Diagnostic(range, "Self Assignment may cause error.", DiagnosticSeverity.Warning));
       }
-    });
+    }
+
     return diagnostics;
   }
 
