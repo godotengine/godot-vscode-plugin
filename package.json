@@ -8,7 +8,7 @@
   "repository": "https://github.com/GodotExplorer/godot-tools",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.16.1"
+    "vscode": "^1.1.21"
   },
   "categories": [
     "Other"
@@ -88,11 +88,11 @@
           "description": "Turn on/off syntax checking for GDScript"
         },
         "GodotTools.lint": {
-          "type":"object",
+          "type": "object",
           "default": {
-              "semicolon": false,
-              "conditionBrackets": false,
-              "unusedSymbols": true
+            "semicolon": false,
+            "conditionBrackets": false,
+            "unusedSymbols": true
           },
           "description": "Lint configurations"
         }
@@ -143,11 +143,11 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "typescript": "^2.0.3",
-    "vscode": "^1.1.5",
-    "mocha": "^2.3.3",
-    "@types/node": "^6.0.40",
-    "@types/mocha": "^2.2.32"
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.9.4",
+    "mocha": "^5.2.0",
+    "typescript": "^3.0.3",
+    "vscode": "^1.1.21"
   },
   "dependencies": {
     "glob": "^7.1.1",
