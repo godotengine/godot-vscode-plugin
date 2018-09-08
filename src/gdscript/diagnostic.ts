@@ -112,7 +112,7 @@ class GDScriptDiagnosticSeverity {
           return
         if(line.match(new RegExp(`.*?#.*?\\s${keywords[1]}\\s.*?`)))
           return
-        if(line.match(/.*?\sif\s+(\!|\[|\{|\w).*?\s+else\s+[^\s]+/))
+        if(line.match(/.*?\sif\s+(\!|\[|\{|\w|").*?\s+else\s+[^\s]+/))
           return
         if (line.match(/.*?\\/))
           expectEndOfLine = true;
