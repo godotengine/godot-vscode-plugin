@@ -23,15 +23,15 @@
     "commands": [
       {
         "command": "godot.updateWorkspaceSymbols",
-        "title": "GodotTools: Update Workspace Symbols"
+        "title": "GodotTools: Update workspace symbols"
       },
       {
         "command": "godot.runWorkspace",
-        "title": "GodotTools: Run workspace as godot project"
+        "title": "GodotTools: Run workspace as Godot project"
       },
       {
         "command": "godot.openWithEditor",
-        "title": "GodotTools: Open workspace with godot editor"
+        "title": "GodotTools: Open workspace with Godot editor"
       },
       {
         "command": "godot.runCurrentScene",
@@ -40,7 +40,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Godot tools configuration",
+      "title": "Godot Tools configuration",
       "properties": {
         "GodotTools.maxNumberOfProblems": {
           "type": "number",
@@ -50,12 +50,12 @@
         "GodotTools.editorPath": {
           "type": "string",
           "default": "",
-          "description": "The absolute path of your godot editor"
+          "description": "The absolute path to the Godot executable"
         },
         "GodotTools.workspaceDocumentWithMarkdown": {
           "type": "boolean",
           "default": false,
-          "description": "Render workspace documentations as markdown content"
+          "description": "Render workspace documentations as Markdown content"
         },
         "GodotTools.ignoreIndentedVars": {
           "type": "boolean",
@@ -64,28 +64,28 @@
         },
         "GodotTools.godotVersion": {
           "type": "number",
-          "default": 3,
-          "description": "The godot version of your project"
+          "default": 3.0,
+          "description": "The Godot version of your project"
         },
         "GodotTools.parseTextScene": {
           "type": "boolean",
           "default": true,
-          "description": "Parse scene files with extention ends with tscn"
+          "description": "Parse a file as a Godot scene when the file name ends with tscn"
         },
         "GodotTools.completeNodePath": {
           "type": "boolean",
           "default": false,
-          "description": "Show node pathes of of workspace in the code completion"
+          "description": "Show node paths within a workspace as part of code completion"
         },
         "GodotTools.godotProjectRoot": {
           "type": "string",
           "default": "${workspaceRoot}",
-          "description": "Relate path to the godot project"
+          "description": "Your Godot project's directory"
         },
         "GodotTools.enableSyntaxChecking": {
           "type": "boolean",
           "default": true,
-          "description": "Turn on/off the syntax checking for GDScript"
+          "description": "Turn on/off syntax checking for GDScript"
         },
         "GodotTools.lint": {
           "type": "object",
