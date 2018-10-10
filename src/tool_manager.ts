@@ -196,7 +196,11 @@ class ToolManager {
     if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
       vscode.window.showErrorMessage("Invalid editor path to run the project");
     } else {
-      let terminal = vscode.window.createTerminal("Godot");
+      let existingTerminal = vscode.window.terminals.find(t => t._name === "GodotTools")
+      if (existingTerminal) {
+        existingTerminal.dispose()
+      }
+      let terminal = vscode.window.createTerminal("GodotTools");
       editorPath = this.escapeCmd(editorPath);
       let cmmand = `${editorPath} ${params}`;
       terminal.sendText(cmmand, true);
