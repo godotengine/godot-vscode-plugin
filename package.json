@@ -94,7 +94,7 @@
             "conditionBrackets": false,
             "unusedSymbols": true
           },
-          "description": "Lint configurations"
+          "description": "Lint configuration"
         }
       }
     },
