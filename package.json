@@ -1,157 +1,89 @@
 {
-  "name": "godot-tools",
-  "displayName": "Godot Tools",
-  "icon": "icon.png",
-  "description": "Tools for game development with godot game engine",
-  "version": "0.3.7",
-  "publisher": "geequlim",
-  "repository": "https://github.com/GodotExplorer/godot-tools",
-  "license": "MIT",
-  "engines": {
-    "vscode": "^1.1.21"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "workspaceContains:engine.cfg",
-    "workspaceContains:project.godot",
-    "onLanguage:gdscript"
-  ],
-  "main": "./out/src/extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "godot.updateWorkspaceSymbols",
-        "title": "GodotTools: Update workspace symbols"
-      },
-      {
-        "command": "godot.runWorkspace",
-        "title": "GodotTools: Run workspace as Godot project"
-      },
-      {
-        "command": "godot.openWithEditor",
-        "title": "GodotTools: Open workspace with Godot editor"
-      },
-      {
-        "command": "godot.runCurrentScene",
-        "title": "GodotTools: Run current scene"
-      }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "Godot Tools configuration",
-      "properties": {
-        "GodotTools.maxNumberOfProblems": {
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
-        },
-        "GodotTools.editorPath": {
-          "type": "string",
-          "default": "",
-          "description": "The absolute path to the Godot executable"
-        },
-        "GodotTools.workspaceDocumentWithMarkdown": {
-          "type": "boolean",
-          "default": false,
-          "description": "Render workspace documentations as Markdown content"
-        },
-        "GodotTools.ignoreIndentedVars": {
-          "type": "boolean",
-          "default": false,
-          "description": "Only parse variables without indents in GDScript"
-        },
-        "GodotTools.godotVersion": {
-          "type": "number",
-          "default": 3.0,
-          "description": "The Godot version of your project"
-        },
-        "GodotTools.parseTextScene": {
-          "type": "boolean",
-          "default": true,
-          "description": "Parse a file as a Godot scene when the file name ends with tscn"
-        },
-        "GodotTools.completeNodePath": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show node paths within a workspace as part of code completion"
-        },
-        "GodotTools.godotProjectRoot": {
-          "type": "string",
-          "default": "${workspaceRoot}",
-          "description": "Your Godot project's directory"
-        },
-        "GodotTools.enableSyntaxChecking": {
-          "type": "boolean",
-          "default": true,
-          "description": "Turn on/off syntax checking for GDScript"
-        },
-        "GodotTools.lint": {
-          "type": "object",
-          "default": {
-            "semicolon": false,
-            "conditionBrackets": false,
-            "unusedSymbols": true
-          },
-          "description": "Lint configuration"
-        }
-      }
-    },
-    "languages": [
-      {
-        "id": "gdscript",
-        "aliases": [
-          "GDScript",
-          "gdscript"
-        ],
-        "extensions": [
-          ".gd"
-        ],
-        "configuration": "./configurations/gdscript-configuration.json"
-      },
-      {
-        "id": "properties",
-        "extensions": [
-          "cfg",
-          "tres",
-          "tscn",
-          "godot",
-          "gdns",
-          "gdnlib"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "gdscript",
-        "scopeName": "source.gdscript",
-        "path": "./configurations/GDScript.tmLanguage.json"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "gdscript",
-        "path": "./configurations/snippets.json"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "tsc -p ./",
-    "compile": "node ./node_modules/typescript/bin/tsc -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
-  },
-  "devDependencies": {
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.9.4",
-    "mocha": "^5.2.0",
-    "typescript": "^3.0.3",
-    "vscode": "^1.1.21"
-  },
-  "dependencies": {
-    "glob": "^7.1.1",
-    "vscode-debugprotocol": "^1.17.0",
-    "vscode-debugadapter": "^1.17.0"
-  }
+	"name": "godot-tools",
+	"displayName": "godot-tools",
+	"icon": "icon.png",
+	"version": "1.0.0",
+	"description": "Tools for game development with godot game engine",
+	"repository": "https://github.com/GodotExplorer/godot-tools",
+	"publisher": "geequlim",
+	"engines": {
+		"vscode": "^1.33.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"workspaceContains:project.godot",
+		"onLanguage:gdscript"
+	],
+	"main": "./out/extension.js",
+	"scripts": {
+		"vscode:prepublish": "yarn run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "yarn run compile && node ./node_modules/vscode/bin/test"
+	},
+	"contributes": {
+		"commands": [],
+		"configuration": {
+			"type": "object",
+			"title": "Godot Tools configuration",
+			"properties": {
+				"godot_tools.gdscript_lsp_server_port": {
+					"type": "number",
+					"default": 6008,
+					"description": "The websocket server port of the GDScript Langugae Protocol server"
+				}
+			}
+		},
+		"languages": [
+			{
+				"id": "gdscript",
+				"aliases": [
+					"GDScript",
+					"gdscript"
+				],
+				"extensions": [
+					".gd"
+				],
+				"configuration": "./configurations/gdscript-configuration.json"
+			},
+			{
+				"id": "properties",
+				"extensions": [
+					"cfg",
+					"tres",
+					"tscn",
+					"godot",
+					"gdns",
+					"gdnlib"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "gdscript",
+				"scopeName": "source.gdscript",
+				"path": "./configurations/GDScript.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+				"language": "gdscript",
+				"path": "./configurations/snippets.json"
+			}
+		]
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^10.12.21",
+		"@types/ws": "^6.0.1",
+		"tslint": "^5.16.0",
+		"typescript": "^3.4.5",
+		"vscode": "^1.1.33",
+		"vscode-languageclient": "^5.2.1",
+		"websocket-stream": "^5.5.0"
+	}
 }

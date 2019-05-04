@@ -96,7 +96,7 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class)\\b",
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|class_name)\\b",
       "name": "keyword.control.gdscript"
     },
     "letter": {

@@ -1,13 +1,16 @@
-'use strict';
-import { workspace, Disposable, ExtensionContext } from 'vscode';
-import WindowWatch from "./window_watcher";
-import ToolManager from './tool_manager';
+import { ExtensionContext } from "vscode";
+import GDScriptLanguageClient from "./lsp/GDScriptLanguageClient";
 
-let tool: ToolManager = null;
+let client: GDScriptLanguageClient = null;
 
 export function activate(context: ExtensionContext) {
-	tool = new ToolManager(context);
-	context.subscriptions.push(tool);
-	context.subscriptions.push(new WindowWatch());
-	console.log("[GodotTools]: Extension Activated");
+	client = new GDScriptLanguageClient();
+	context.subscriptions.push(client.start());
+}
+
+export function deactivate(): Thenable<void> {
+	if (client) {
+		return client.stop();
+	}
+	return new Promise((resolve, reject) => {});
 }
