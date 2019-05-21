@@ -78,9 +78,7 @@
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
-		"@types/socket.io": "^2.1.2",
 		"@types/ws": "^6.0.1",
-		"stream-mock": "^2.0.2",
 		"tslint": "^5.16.0",
 		"typescript": "^3.4.5",
 		"vscode": "^1.1.33",
