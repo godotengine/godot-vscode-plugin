@@ -6,36 +6,31 @@
   "name": "GDScript",
   "patterns": [
     { "include": "#base_expression" },
-    { "include": "#self" },
     { "include": "#logic_op" },
     { "include": "#compare_op" },
     { "include": "#arithmetic_op" },
     { "include": "#assignment_op" },
     { "include": "#keywords" },
+    { "include": "#self" },
     { "include": "#const_def" },
-    { "include": "#var_def" },
+    { "include": "#type_declear"},
     { "include": "#class_def" },
-    { "match": "\\b(?i:export|tool)\\b", "name": "storage.modifier.static.gdscript" },
     { "include": "#builtinFuncs" },
-    {
-      "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
-      "name": "support.function.any-method.gdscript"
-    },
-    {
-      "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
-      "name": "variable.other.property.gdscript"
-    },
-    { "include": "#function-declaration" },
-
-    {
-      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
-      "name": "entity.other.inherited-class.gdscript"
-    },
-
     { "include": "#builtinClasses" },
     { "include": "#builtinProps" },
     { "include": "#builtinConsts" },
-    { "include": "#const_vars" }
+    { "include": "#const_vars" },
+    { "include": "#classname"},
+    { "include": "#class_new"},
+    { "include": "#class_enum"},
+    { "include": "#function-declaration" },
+    { "include": "#function-return-type" },
+    { "include": "#any-method" },
+    { "include": "#any-property" },
+    {
+      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+      "name": "entity.other.inherited-class.gdscript"
+    }
   ],
   "repository": {
     "comment": {
@@ -96,8 +91,8 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|class_name)\\b",
-      "name": "keyword.control.gdscript"
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|static|export|var|const|func|new|void)\\b",
+      "name": "keyword.language.gdscript"
     },
     "letter": {
         "match": "\\b(?i:true|false|null)\\b",
@@ -130,14 +125,26 @@
       "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
       "captures": {
         "1": { "name": "storage.type.const.gdscript" },
-        "2": { "name": "constant.other.gdscript" }
+        "2": { "name": "constant.language.gdscript" }
       }
     },
     "var_def": {
       "match": "\\b(?i:(var))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
       "captures": {
         "1": { "name": "storage.type.var.gdscript" },
-        "2": { "name": "support.member.gdscript" }
+        "2": { "name": "variable.language.gdscript" }
+      }
+    },
+    "type_declear": {
+      "match": "\\:\\s*([a-zA-Z_][a-zA-Z_0-9]*)",
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" }
+      }
+    },
+    "function-return-type": {
+      "match": "\\)\\s*\\-\\>\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" }
       }
     },
     "class_def": {
@@ -146,6 +153,31 @@
         "2": { "name": "class.other.gdscript" }
       },
       "match": "(?<=^class)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
+    },
+    "classname": {
+      "captures": {
+        "1": {
+          "name": "keyword.language.gdscript"
+        },
+        "2": {
+          "name": "entity.other.inherited-class.gdscript"
+        }
+      },
+      "match": "^(class_name)\\s+([a-zA-Z_]\\w*)"
+    },
+    "class_new": {
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" },
+        "2": { "name": "storage.type.new.gdscript" }
+      },
+      "match": "\\b([a-zA-Z_][a-zA-Z_0-9]*).(new)\\("
+    },
+    "class_enum": {
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" },
+        "2": { "name": "constant.language.gdscript" }
+      },
+      "match": "\\b([A-Z][a-zA-Z_0-9]*).([A-Z_0-9]+)"
     },
     "builtin_func": {
       "match": "(?<![^.]\\.|:)\\b(sin|cos|tan|sinh|cosh|tanh|asin|acos|atan|atan2|sqrt|fmod|fposmod|floor|ceil|round|abs|sign|pow|log|exp|is_nan|is_inf|ease|decimals|stepify|lerp|dectime|randomize|randi|randf|rand_range|seed|rand_seed|deg2rad|rad2deg|linear2db|db2linear|max|min|clamp|nearest_po2|weakref|funcref|convert|typeof|type_exists|char|str|print|printt|prints|printerr|printraw|var2str|str2var|var2bytes|bytes2var|range|load|inst2dict|dict2inst|hash|Color8|print_stack|instance_from_id|preload|yield|assert)\\b(?=(\\()([^)]*)(\\)))",
@@ -157,9 +189,8 @@
     },
     "const_vars": {
       "match": "\\b([A-Z_0-9]+)\\b",
-      "name": "constant.other.gdscript"
+      "name": "constant.language.gdscript"
     },
-
     "function-declaration": {
       "name": "meta.function.gdscript",
       "begin": "(?x)\n  \\s*\n  (?:\\b(static) \\s+)? \\b(func|signal)\\s+\n    (?=\n      [[:alpha:]_][[:word:]]* \\s* \\(\n    )\n",
@@ -212,6 +243,14 @@
         { "include": "#loose-default"},
         { "include": "#annotated-parameter" }
       ]
+    },
+    "any-method": {
+      "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
+      "name": "support.function.any-method.gdscript"
+    },
+    "any-property": {
+      "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
+      "name": "variable.other.property.gdscript"
     },
     "parameter-special": {
       "match": "(?x)\n  \\b ((self)|(cls)) \\b \\s*(?:(,)|(?=\\)))\n",
