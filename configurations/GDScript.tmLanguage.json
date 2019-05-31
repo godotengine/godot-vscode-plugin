@@ -91,7 +91,7 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|static|export|var|const|func|new|void)\\b",
+      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|static|export|var|const|func|new|void|float|int|bool|as|assert|class_name|preload|yield|remote|sync|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
       "name": "keyword.language.gdscript"
     },
     "letter": {
@@ -184,7 +184,7 @@
       "name": "support.function.builtin.gdscript"
     },
     "builtinClasses": {
-      "match": "(?<![^.]\\.|:)\\b(Vector2|Vector3|Color|Rect2|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D)\\b",
+      "match": "(?<![^.]\\.|:)\\b(Vector2|Vector3|Color|Rect2|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|AABB|String|Color|NodePath|RID|Object|Dictionary|Array|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray)\\b",
       "name": "support.class.library.gdscript"
     },
     "const_vars": {
