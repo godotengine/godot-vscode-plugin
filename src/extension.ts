@@ -1,16 +1,17 @@
 import { ExtensionContext } from "vscode";
-import GDScriptLanguageClient from "./lsp/GDScriptLanguageClient";
+import { GodotTools } from "./godot-tools";
 
-let client: GDScriptLanguageClient = null;
+
+let tools: GodotTools = null;
 
 export function activate(context: ExtensionContext) {
-	client = new GDScriptLanguageClient();
-	context.subscriptions.push(client.start());
+	tools = new GodotTools(context);
+	tools.activate();
 }
 
 export function deactivate(): Thenable<void> {
-	if (client) {
-		return client.stop();
-	}
-	return new Promise((resolve, reject) => {});
+	return new Promise((resolve, reject) => {
+		tools.deactivate();
+		resolve();
+	});
 }

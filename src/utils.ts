@@ -1,7 +1,13 @@
-import { workspace } from "vscode";
+import * as vscode from "vscode";
+
+const CONFIG_CONTAINER = "godot_tools";
 
 export function get_configuration(name: string, default_value: any = null) {
-	return workspace.getConfiguration("godot_tools").get(name, default_value);
+	return vscode.workspace.getConfiguration(CONFIG_CONTAINER).get(name, default_value);
+}
+
+export function set_configuration(name: string, value: any) {
+	return vscode.workspace.getConfiguration(CONFIG_CONTAINER).update(name, value);
 }
 
 export function is_debug_mode(): boolean {

@@ -5,6 +5,7 @@ import MessageBuffer from "./MessageBuffer";
 import logger from "../loggger";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { Message } from "vscode-jsonrpc";
+import { is_debug_mode } from "../utils";
 
 export class MessageIO extends EventEmitter {
 	
@@ -20,13 +21,17 @@ export class MessageIO extends EventEmitter {
 		if (this.socket) {
 			this.socket.send(message);
 		}
-		logger.log("[client]", message);
+		if (is_debug_mode) logger.log("[client]", message);
 	}
 	
 	protected on_message(chunk: WebSocket.Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
-		logger.log("[server]", message);
+		if (is_debug_mode) logger.log("[server]", message);
+	}
+	
+	on_message_callback(message: Object) {
+		this.emit("message", message);
 	}
 	
 	connect_to_language_server():Promise<void> {
@@ -120,6 +125,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.messageToken++;
 			var json = JSON.parse(msg);
 			this.callback(json);
+			this.io.on_message_callback(json);
 		}
 	}
 
