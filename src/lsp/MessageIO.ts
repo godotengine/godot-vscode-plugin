@@ -21,13 +21,13 @@ export class MessageIO extends EventEmitter {
 		if (this.socket) {
 			this.socket.send(message);
 		}
-		if (is_debug_mode) logger.log("[client]", message);
+		if (is_debug_mode()) logger.log("[client]", message);
 	}
 	
 	protected on_message(chunk: WebSocket.Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
-		if (is_debug_mode) logger.log("[server]", message);
+		if (is_debug_mode()) logger.log("[server]", message);
 	}
 	
 	on_message_callback(message: Object) {
