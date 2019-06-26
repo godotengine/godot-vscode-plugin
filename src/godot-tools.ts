@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
-import { MessageIO } from "./lsp/MessageIO";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
@@ -15,12 +14,10 @@ export class GodotTools {
 	private workspace_dir = vscode.workspace.rootPath;
 	private project_file = "project.godot";
 	private connection_status: vscode.StatusBarItem = null;
-	private message_handler: MessageHandler = null;
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
 		this.client = new GDScriptLanguageClient();
-		this.message_handler = new MessageHandler(this.client.io);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 	}
@@ -32,7 +29,7 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.run_project", ()=>{
 			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.check_status", this.check_status.bind(this));
+		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 		
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -111,7 +108,7 @@ export class GodotTools {
 		});
 	}
 	
-	private check_status() {
+	private check_client_status() {
 		switch (this.client.status) {
 			case ClientStatus.PENDING:
 				vscode.window.showInformationMessage("Connecting to GDScript language server");
@@ -135,8 +132,9 @@ export class GodotTools {
 			case ClientStatus.CONNECTED:
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to GDScript Language Server`;
-				// activate language client
-				this.context.subscriptions.push(this.client.start());
+				if (!this.client.started) {
+					this.context.subscriptions.push(this.client.start());
+				}
 				break;
 			case ClientStatus.DISCONNECTED:
 				this.connection_status.text = `$(x) Disconnected`;
@@ -164,46 +162,3 @@ export class GodotTools {
 		});
 	}
 };
-
-const CUSTOM_MESSAGE = "gdscrip_client/";
-
-class MessageHandler {
-	io: MessageIO = null;
-	
-	constructor(io: MessageIO) {
-		this.io = io;
-		this.io.on('message', this.on_server_message.bind(this));
-	}
-	
-	changeWorkspace(params: {path: string}) {
-		vscode.window.showErrorMessage("The GDScript Language Server can't work properly!\nThe opening workspace is diffrent with the editor's.", 'Reload', 'Ignore').then(item=>{
-			if (item == "Reload") {
-				let folderUrl = vscode.Uri.file(params.path);
-				vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
-			}
-		});
-	}
-	
-	private on_server_message(message: any) {
-		if (message && message.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
-			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
-			if (this[method]) {
-				let ret = this[method](message.params);
-				if (ret) {
-					ret = this.handle_result(message, ret);
-					if (ret) {
-						this.io.send_message(ret);
-					}
-				}
-			}
-		}
-	}
-	
-	private handle_result(request: any, ret: any) {
-		let data = ret;
-		if (ret) {
-			data = JSON.stringify(data);
-		}
-		return data
-	}
-}

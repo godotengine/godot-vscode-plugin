@@ -2,12 +2,13 @@ import { AbstractMessageReader, MessageReader, DataCallback } from "vscode-jsonr
 import { EventEmitter } from "events";
 import * as WebSocket  from 'ws';
 import MessageBuffer from "./MessageBuffer";
-import logger from "../loggger";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { Message } from "vscode-jsonrpc";
-import { is_debug_mode } from "../utils";
 
 export class MessageIO extends EventEmitter {
+	
+	reader: MessageIOReader = null;
+	writer: MessageIOWriter = null;
 	
 	private socket: WebSocket = null; 
 	private url: string = "";
@@ -21,16 +22,19 @@ export class MessageIO extends EventEmitter {
 		if (this.socket) {
 			this.socket.send(message);
 		}
-		if (is_debug_mode()) logger.log("[client]", message);
+		
 	}
 	
 	protected on_message(chunk: WebSocket.Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
-		if (is_debug_mode()) logger.log("[server]", message);
 	}
 	
-	on_message_callback(message: Object) {
+	on_send_message(message: any) {
+		this.emit("send_message", message);
+	}
+	
+	on_message_callback(message: any) {
 		this.emit("message", message);
 	}
 	
@@ -70,6 +74,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	public constructor(io: MessageIO, encoding: string = 'utf8') {
 		super();
 		this.io = io;
+		this.io.reader = this;
 		this.buffer = new MessageBuffer(encoding);
 		this._partialMessageTimeout = 10000;
 	}
@@ -125,6 +130,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.messageToken++;
 			var json = JSON.parse(msg);
 			this.callback(json);
+			// callback
 			this.io.on_message_callback(json);
 		}
 	}
@@ -162,6 +168,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	public constructor(io: MessageIO, encoding: string = 'utf8') {
 		super();
 		this.io = io;
+		this.io.writer = this;
 		this.encoding = encoding;
 		this.errorCount = 0;
 		this.io.on('error', (error: any) => this.fireError(error));
@@ -177,6 +184,8 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			CRLF
 		];
 		try {
+			// callback
+			this.io.on_send_message(msg);
 			// Header must be written in ASCII encoding
 			this.io.send_message(headers.join(''));
 			// Now write the content. This can be written in any encoding
