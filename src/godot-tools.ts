@@ -1,18 +1,12 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import * as fs from 'fs';
-import GDScriptLanguageClient from "./lsp/GDScriptLanguageClient";
+import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
 import { MessageIO } from "./lsp/MessageIO";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
-
-enum ClientStatus {
-	PENDING,
-	DISCONNECTED,
-	CONNECTED,
-}
 
 export class GodotTools {
 
@@ -27,8 +21,7 @@ export class GodotTools {
 		this.context = p_context;
 		this.client = new GDScriptLanguageClient();
 		this.message_handler = new MessageHandler(this.client.io);
-		this.client.io.on('disconnected', this.on_client_disconnected.bind(this));
-		this.client.io.on('connected', this.on_server_connected.bind(this));
+		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 	}
 	
@@ -39,9 +32,12 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.run_project", ()=>{
 			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
 		});
-		this.connection_status.text = "starting";
+		vscode.commands.registerCommand("godot-tool.check_status", this.check_status.bind(this));
+		
+		this.connection_status.text = "$(sync) Initializing";
+		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
-		this.try_connect_to_server();
+		this.client.connect_to_server();
 	}
 	
 	
@@ -115,12 +111,21 @@ export class GodotTools {
 		});
 	}
 	
-	private try_connect_to_server() {
-		this.client.connect_to_server();
-		this.update_client_status(ClientStatus.PENDING);
+	private check_status() {
+		switch (this.client.status) {
+			case ClientStatus.PENDING:
+				vscode.window.showInformationMessage("Connecting to GDScript language server");
+				break;
+			case ClientStatus.CONNECTED:
+				vscode.window.showInformationMessage("Connected to GDScript language server");
+				break;
+			case ClientStatus.DISCONNECTED:
+				this.retry_connect_client();
+				break;
+		}
 	}
 	
-	private update_client_status(status: ClientStatus) {
+	private on_client_status_changed(status: ClientStatus) {
 		this.connection_status.color = vscode.ThemeColor;
 		switch (status) {
 			case ClientStatus.PENDING:
@@ -130,39 +135,34 @@ export class GodotTools {
 			case ClientStatus.CONNECTED:
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to GDScript Language Server`;
+				// activate language client
+				this.context.subscriptions.push(this.client.start());
 				break;
 			case ClientStatus.DISCONNECTED:
 				this.connection_status.text = `$(x) Disconnected`;
 				this.connection_status.tooltip = `Disconnect to GDScript Language Server`;
+				// retry
+				this.retry_connect_client();
 				break;
 			default:
 				break;
 		}
 	}
 	
-	private on_server_connected() {
-		this.context.subscriptions.push(this.client.start());
-		this.update_client_status(ClientStatus.CONNECTED);
-	}
-	
-	private on_client_disconnected() {
-		this.update_client_status(ClientStatus.DISCONNECTED);
+	private retry_connect_client() {
 		vscode.window.showErrorMessage(`Failed connect to GDScript Language Server`, 'Open Godot Editor', 'Retry', 'Ignore').then(item=>{
 			if (item == 'Retry') {
-				this.try_connect_to_server();
+				this.client.connect_to_server();
 			} else if (item == 'Open Godot Editor') {
-				this.update_client_status(ClientStatus.PENDING);
+				this.client.status = ClientStatus.PENDING;
 				this.open_workspace_with_editor("-e").then(()=>{
 					setTimeout(()=>{
-						this.try_connect_to_server();
+						this.client.connect_to_server();
 					}, 10 * 1000);
 				});
 			}
 		});
 	}
-	
-	
-	
 };
 
 const CUSTOM_MESSAGE = "gdscrip_client/";

@@ -30,15 +30,43 @@ const serverOptions: ServerOptions = () => {
 	});
 };
 
+export enum ClientStatus {
+	PENDING,
+	DISCONNECTED,
+	CONNECTED,
+}
 export default class GDScriptLanguageClient extends LanguageClient {
 	
 	public io: MessageIO = io;
 	
+	private _status : ClientStatus;
+	private _status_changed_callbacks: ((v : ClientStatus)=>void)[] = [];
+	
+	public get status() : ClientStatus { return this._status; }
+	public set status(v : ClientStatus) {
+		if (this._status != v) {
+			this._status = v;
+			for (const callback of this._status_changed_callbacks) {
+				callback(v);
+			}
+		}
+	}
+	
+	public watch_status(callback: (v : ClientStatus)=>void) {
+		if (this._status_changed_callbacks.indexOf(callback) == -1) {
+			this._status_changed_callbacks.push(callback);
+		}
+	}
+	
 	constructor() {
 		super(`GDScriptLanguageClient`, serverOptions, getClientOptions());
+		this.status = ClientStatus.PENDING;
+		this.io.on('disconnected', ()=> this.status = ClientStatus.DISCONNECTED);
+		this.io.on('connected', ()=> this.status = ClientStatus.CONNECTED);
 	}
 	
 	connect_to_server() {
+		this.status = ClientStatus.PENDING;
 		io.connect_to_language_server();
 	}
 };

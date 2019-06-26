@@ -48,6 +48,11 @@
 					"type": "string",
 					"default": "",
 					"description": "The absolute path to the Godot editor executable"
+				},
+				"godot-tool.check_status": {
+					"type": "string",
+					"default": "",
+					"description": "The absolute path to the Godot editor executable"
 				}
 			}
 		},
