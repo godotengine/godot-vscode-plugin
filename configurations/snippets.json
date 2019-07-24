@@ -137,7 +137,7 @@
     ]
   },
 
-  "signal decleration": {
+  "signal declaration": {
     "prefix": "signal",
 		"body": [
       "signal ${1:signalname}(${2:args})"

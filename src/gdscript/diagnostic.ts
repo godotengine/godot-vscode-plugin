@@ -121,7 +121,7 @@ class GDScriptDiagnosticSeverity {
         else if (!line.match(/.*?(\\|\:)/))
           diagnostics.push(new vscode.Diagnostic(range, "': or \\' expected at end of the line.", DiagnosticSeverity.Error));
         else if (line.match(/\s(if|elif|while|func|class|match)\s*\:/)) 
-          diagnostics.push(new vscode.Diagnostic(range, "Indentifier expected before ':'", DiagnosticSeverity.Error));
+          diagnostics.push(new vscode.Diagnostic(range, "Identifier expected before ':'", DiagnosticSeverity.Error));
         else if (line.match(/[^\w]for[^\w]/) && !line.match(/\s+for\s\w+\s+in\s+|[\w+]|\{.*?\}|\[.*?\]|\(.*?\)/)){
           if(!(line.match(/".*?for.*?"/) || line.match(/'.*?for.*?'/)))
             diagnostics.push(new vscode.Diagnostic(range, "Invalid for expression", DiagnosticSeverity.Error));
@@ -133,7 +133,7 @@ class GDScriptDiagnosticSeverity {
           if (i < lines.length - 1) {
             let next = i + 1;
             let nextline = lines[next];
-            // changes nextline until finds a line containg text or comes to the last line
+            // changes nextline until finds a line containing text or comes to the last line
             while (((!nextline || !nextline.trim().length) || nextline.match(/^\s*#/)) && next < lines.length - 1) {
               ++next;
               nextline = lines[next];
@@ -152,7 +152,7 @@ class GDScriptDiagnosticSeverity {
         if(!expectEndOfLine)
           blockIndetCheck();
       }
-      // Do not check : for end of statement as it breaks match statment
+      // Do not check : for end of statement as it breaks match statement
       let endOfStateMentWithComma = false;
       if(endOfStateMentWithComma && !line.match(colonKeywords) && line.match(/\:\s*$/)) {
         let showErr = true;
@@ -178,7 +178,7 @@ class GDScriptDiagnosticSeverity {
         const endAt = line.indexOf("==");
         const precontent = line.substring(0, endAt);
       if (!precontent.match(/\s(if|elif|while|return)\s/) && !precontent.match(/=[^=]/) && !precontent.match(/assert\s*\(/) && !expectEndOfLine) {
-          diagnostics.push(new vscode.Diagnostic(range, "Unhandled comparation expression contains", DiagnosticSeverity.Warning));
+          diagnostics.push(new vscode.Diagnostic(range, "Unhandled comparison expression contains", DiagnosticSeverity.Warning));
         }
       }
       let match = /var\s+(\w+)\s*=\s*(\w+)/.exec(line);

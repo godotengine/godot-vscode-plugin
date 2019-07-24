@@ -16,7 +16,7 @@
 ```
 
 ### 0.3.6
-* Fix project configuartion file path
+* Fix project configuration file path
 
 ### 0.3.5
 * Add option to disable syntax checking for GDScript
@@ -56,7 +56,7 @@
 * Limited code completions
 
 ### 0.2.9
-* Add configuration `GodotTools.completeNodePath` to switch is complete node pathes
+* Add configuration `GodotTools.completeNodePath` to switch is complete node paths
 * Enhanced syntax highlight with GDScript
 * Enhanced code completion with GDScript
 
@@ -69,7 +69,7 @@
 
 * Fix some error with syntax checking
 * Add symbol support for enumerations
-* Remove key bindings for `F5`~`F8` as it might be confict with other functionalities of VSCode
+* Remove key bindings for `F5`~`F8` as it might be conflict with other functionalities of VSCode
     * You can bind the key bindings back by add following configurations
     ```json
     {
@@ -105,14 +105,14 @@
 
 * Run games within VSCode terminals
 * Add key bindings for `F5 to run the workspace` and `F6 to run the edting scene`
-* Fix a lot of bugs with unused vaiable cheching
+* Fix a lot of bugs with unused variable checking
 * Move workspace symbols state notice to status bar
 
 ### 0.2.4
 
-* Add code cheching for asignments and comparations
-* Impoved builtin documentation preview page
-* Fix bugs with unused vaiable cheching
+* Add code checking for asignments and comparisons
+* Improved builtin documentation preview page
+* Fix bugs with unused variable checking
 
 ### 0.2.3
 * Fix known errors with code syntax checking
@@ -122,7 +122,7 @@
 
 ### 0.2.2
 * Better Syntax validating for code blocks
-* More waring for non-python liked expression
+* More warning for non-python liked expression
 
 ### 0.2.1
 * Support markdown render in hover tips for documentations in workspace symbols
@@ -130,14 +130,14 @@
 
 ### 0.2.0
 
-* Show autoloads informations in hover tips and go to autoloads' definitions are supported now
+* Show autoloads information in hover tips and go to autoloads' definitions are supported now
 * Fix the bug that workspace symbols resoved twice on Windows
 
 ### 0.1.9
 
 * Show workspace constant value in hover tips and completion items
 * More readable style for links in documentation preview page
-* Improve code completion sort order and auto insert `()` for functions without paramaters
+* Improve code completion sort order and auto insert `()` for functions without parameters
 * Fix bugs with workspace documentation parsing
 
 ### 0.1.8
@@ -154,7 +154,7 @@
 
 * Reorder mouse hover tips, builtin methods are at top of workspace methods
 * Show callabel signatures with documente symbols and workspace symbols
-* Syntax highlight support for signal paramaters
+* Syntax highlight support for signal parameters
 
 ### 0.1.5
 
