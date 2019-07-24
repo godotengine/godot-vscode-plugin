@@ -9,9 +9,9 @@
     { "include": "#numbers" },
     { "include": "#self" },
     {
-      "captures": 
+      "captures":
       {
-        "1": 
+        "1":
         {
           "name": "punctuation.definition.comment.number-sign.gdscript"
         }
@@ -40,7 +40,7 @@
       "name": "keyword.operator.assignment.gdscript"
     },
     {
-      "match": "\\b(?i:class|extends|assert|signal)\\b",
+      "match": "\\b(?i:class|extends|class_name|assert|signal)\\b",
       "name": "keyword.other.gdscript"
     },
     {
