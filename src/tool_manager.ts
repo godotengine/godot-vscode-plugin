@@ -269,7 +269,7 @@ class ToolManager {
       let cmdEsc = `"${cmd}"`;
 
       // Fetch Windows shell type
-      let shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows", "");
+      let shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows", "") || "";
 
       // For powershell we prepend an & to prevent the command being treated as a string
       if (shell.endsWith("powershell.exe") && process.platform === "win32") {
