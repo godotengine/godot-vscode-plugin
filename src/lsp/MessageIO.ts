@@ -4,6 +4,7 @@ import * as WebSocket from 'ws';
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { Message } from "vscode-jsonrpc";
+import * as extension from "../extension"
 
 export class MessageIO extends EventEmitter {
 
@@ -129,6 +130,10 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.nextMessageLength = -1;
 			this.messageToken++;
 			var json = JSON.parse(msg);
+			if (json && json.result && json.result.capabilities) {
+				let dataDirectory = json.result.capabilities.dataDirectory
+				new extension.DocContent(dataDirectory)
+			}
 			this.callback(json);
 			// callback
 			this.io.on_message_callback(json);

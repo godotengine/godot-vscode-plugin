@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
+import * as ShowDoc from './commands/ShowDoc'
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
@@ -28,6 +29,9 @@ export class GodotTools {
 		});
 		vscode.commands.registerCommand("godot-tool.run_project", () => {
 			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
+		});
+		vscode.commands.registerCommand("godot-tool.ShowDoc", () => {
+			ShowDoc.command();
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 
