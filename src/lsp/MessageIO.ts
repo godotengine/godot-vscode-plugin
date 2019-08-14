@@ -1,59 +1,59 @@
 import { AbstractMessageReader, MessageReader, DataCallback } from "vscode-jsonrpc/lib/messageReader";
 import { EventEmitter } from "events";
-import * as WebSocket  from 'ws';
+import * as WebSocket from 'ws';
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { Message } from "vscode-jsonrpc";
 
 export class MessageIO extends EventEmitter {
-	
+
 	reader: MessageIOReader = null;
 	writer: MessageIOWriter = null;
-	
-	private socket: WebSocket = null; 
+
+	private socket: WebSocket = null;
 	private url: string = "";
-	
+
 	constructor(url: string) {
 		super();
 		this.url = url;
 	}
-	
+
 	public send_message(message: string) {
 		if (this.socket) {
 			this.socket.send(message);
 		}
-		
+
 	}
-	
+
 	protected on_message(chunk: WebSocket.Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
 	}
-	
+
 	on_send_message(message: any) {
 		this.emit("send_message", message);
 	}
-	
+
 	on_message_callback(message: any) {
 		this.emit("message", message);
 	}
-	
-	connect_to_language_server():Promise<void> {
+
+	connect_to_language_server(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const ws = new WebSocket(this.url);
-			ws.on('open', ()=>{ this.on_connected(ws); resolve(); });
+			ws.on('open', () => { this.on_connected(ws); resolve(); });
 			ws.on('message', this.on_message.bind(this));
 			ws.on('error', this.on_disconnected.bind(this));
 			ws.on('close', this.on_disconnected.bind(this));
 		});
 	}
-	
+
 	private on_connected(socket: WebSocket) {
 		this.socket = socket;
 		this.emit("connected");
 	}
-	
+
 	private on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');

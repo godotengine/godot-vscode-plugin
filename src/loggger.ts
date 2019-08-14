@@ -2,18 +2,18 @@ export class Logger {
 	protected buffer: string = "";
 	protected tag: string = '';
 	protected time: boolean = false;
-	
+
 	constructor(tag: string, time: boolean) {
 		this.tag = tag;
 		this.time = time;
 	}
-	
+
 	clear() {
 		this.buffer = "";
 	}
-	
+
 	log(...messages) {
-		
+
 		let line = '';
 		if (this.tag) {
 			line += `[${this.tag}]`;
@@ -24,7 +24,7 @@ export class Logger {
 		if (line) {
 			line += ' ';
 		}
-		
+
 		for (let index = 0; index < messages.length; index++) {
 			line += messages[index];
 			if (index < messages.length) {
@@ -33,11 +33,11 @@ export class Logger {
 				line += "\n";
 			}
 		}
-		
+
 		this.buffer += line;
 		console.log(line);
 	}
-	
+
 	get_buffer(): string {
 		return this.buffer;
 	}

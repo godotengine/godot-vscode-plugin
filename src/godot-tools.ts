@@ -21,31 +21,31 @@ export class GodotTools {
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 	}
-	
+
 	public activate() {
-		vscode.commands.registerCommand("godot-tool.open_editor", ()=>{
-			this.open_workspace_with_editor("-e").catch(err=>vscode.window.showErrorMessage(err));
+		vscode.commands.registerCommand("godot-tool.open_editor", () => {
+			this.open_workspace_with_editor("-e").catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.run_project", ()=>{
-			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
+		vscode.commands.registerCommand("godot-tool.run_project", () => {
+			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
-		
+
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
 		this.client.connect_to_server();
 	}
-	
-	
-	
+
+
+
 	public deactivate() {
 		this.client.stop();
 	}
-	
+
 
 	private open_workspace_with_editor(params = "") {
-		
+
 		return new Promise((resolve, reject) => {
 			let valid = false
 			if (this.workspace_dir) {
@@ -53,7 +53,7 @@ export class GodotTools {
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
 			}
 			if (valid) {
-				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(()=>resolve()).catch(err=>{
+				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(() => resolve()).catch(err => {
 					reject(err);
 				});
 			} else {
@@ -63,7 +63,7 @@ export class GodotTools {
 	}
 
 	private run_editor(params = "") {
-		
+
 		return new Promise((resolve, reject) => {
 			const run_godot = (path: string, params: string) => {
 				const escape_command = (cmd: string) => {
@@ -85,29 +85,29 @@ export class GodotTools {
 				terminal.show();
 				resolve();
 			};
-			
+
 			let editorPath = get_configuration("editor_path", "")
 			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
-						openLabel: "Run",
-						filters: process.platform === "win32" ? {"Godot Editor Binary": ["exe", "EXE"]} : undefined
-					}).then((uris: vscode.Uri[])=> {
-						if (!uris) return;
-						let path = uris[0].fsPath;
-						if (!fs.existsSync(path) || !fs.statSync(path).isFile()) {
-							reject("Invalid editor path to run the project");
-						} else {
-							run_godot(path, params);
-							set_configuration("editor_path", path);
-						}
+					openLabel: "Run",
+					filters: process.platform === "win32" ? { "Godot Editor Binary": ["exe", "EXE"] } : undefined
+				}).then((uris: vscode.Uri[]) => {
+					if (!uris) return;
+					let path = uris[0].fsPath;
+					if (!fs.existsSync(path) || !fs.statSync(path).isFile()) {
+						reject("Invalid editor path to run the project");
+					} else {
+						run_godot(path, params);
+						set_configuration("editor_path", path);
+					}
 				});
 			} else {
 				run_godot(editorPath, params);
 			}
 		});
 	}
-	
+
 	private check_client_status() {
 		switch (this.client.status) {
 			case ClientStatus.PENDING:
@@ -121,7 +121,7 @@ export class GodotTools {
 				break;
 		}
 	}
-	
+
 	private on_client_status_changed(status: ClientStatus) {
 		this.connection_status.color = vscode.ThemeColor;
 		switch (status) {
@@ -146,15 +146,15 @@ export class GodotTools {
 				break;
 		}
 	}
-	
+
 	private retry_connect_client() {
-		vscode.window.showErrorMessage(`Failed connect to GDScript Language Server`, 'Open Godot Editor', 'Retry', 'Ignore').then(item=>{
+		vscode.window.showErrorMessage(`Failed connect to GDScript Language Server`, 'Open Godot Editor', 'Retry', 'Ignore').then(item => {
 			if (item == 'Retry') {
 				this.client.connect_to_server();
 			} else if (item == 'Open Godot Editor') {
 				this.client.status = ClientStatus.PENDING;
-				this.open_workspace_with_editor("-e").then(()=>{
-					setTimeout(()=>{
+				this.open_workspace_with_editor("-e").then(() => {
+					setTimeout(() => {
 						this.client.connect_to_server();
 					}, 10 * 1000);
 				});
