@@ -5,11 +5,16 @@ import * as extension from "../extension"
 import * as fs from "fs"
 
 export const id = "showDoc"
-export function command() {
-    let symbolName = vscode.window.activeTextEditor ? scanDocument(vscode.window.activeTextEditor) : null
+var showDocItemSelector: boolean = true
 
-    if (symbolName == null || extension.DocContent.docItems.length == 0) {
-        showDocItems()
+export function command(_showDocItemSelector: boolean = true) {
+    let symbolName = vscode.window.activeTextEditor ? scanDocument(vscode.window.activeTextEditor) : null
+    showDocItemSelector = _showDocItemSelector
+
+    if (symbolName == null) {
+        if (showDocItemSelector) {
+            showDocItems()
+        }
     } else if (vscode.window.activeTextEditor &&
         vscode.window.activeTextEditor.document &&
         (
@@ -20,6 +25,10 @@ export function command() {
 }
 
 function showDocItems() {
+    if (!showDocItemSelector) {
+        return
+    }
+
     vscode.window.showQuickPick(extension.DocContent.docItems).then(selection => {
         if (!selection) {
             return;
@@ -57,7 +66,9 @@ function findDoc(symbolName: string, textEditor?: vscode.TextEditor) {
             let docUri = vscode.Uri.file(path.join(extension.DocContent.dataDirectory, `@GDScript.md`))
             return vscode.commands.executeCommand('markdown.showPreviewToSide', docUri)
         } else {
-            showDocItems()
+            if (showDocItemSelector) {
+                showDocItems()
+            }
         }
     }
 }
