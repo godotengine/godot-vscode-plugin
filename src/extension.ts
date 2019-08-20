@@ -1,8 +1,8 @@
 import { ExtensionContext } from "vscode";
 import { GodotTools } from "./godot-tools";
 import * as path from "path";
+import * as fs from "fs"
 import * as vscode from 'vscode'
-
 
 let tools: GodotTools = null;
 
@@ -15,7 +15,7 @@ export class DocContent {
 		DocContent.dataDirectory = path.join(dataPath, 'godot', 'doc')
 		let indexLocation = path.join(dataPath, 'godot', 'doc', `index.json`)
 
-		require('fs').readFile(indexLocation, 'utf8', function (err, data) {
+		fs.readFile(indexLocation, 'utf8', function (err, data) {
 			if (err) {
 				throw err
 			}

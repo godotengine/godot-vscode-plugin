@@ -1,7 +1,7 @@
-export function parse(text : string, pos : number) {
-    let moduleName;
+export function parseToSymbol(text : string, pos : number) {
+    let moduleName = null;
 
-    let re = / \b\w*/g;
+    let re = / \b[a-zA-Z]\w*/g;
     let str = text;
     let matched;
     while ((matched = re.exec(str)) != null) {

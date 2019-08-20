@@ -43,7 +43,7 @@ function scanDocument(textEditor: vscode.TextEditor) {
 
     let pos = textEditor.selection.start
     let line = textDocument.lineAt(pos.line)
-    const symbolName = parser.parse(line.text, pos.character)
+    const symbolName = parser.parseToSymbol(line.text, pos.character)
 
     if (symbolName) return symbolName
     return null
