@@ -145,7 +145,9 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			var json = JSON.parse(msg);
 			if (json && json.result && json.result.capabilities) {
 				let dataDirectory = json.result.capabilities.dataDirectory
-				new extension.DocContent(dataDirectory)
+				if (dataDirectory) {
+					new extension.DocContent(dataDirectory)
+				}
 			}
 
 			if (this.io.wasDefinitionRequest && json.result && !json.result[0]) {
