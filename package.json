@@ -35,20 +35,20 @@
 				"title": "Godot Tools: Run workspace as Godot project"
 			},
 			{
-				"command": "godot-tool.ShowDoc",
+				"command": "godot-tool.show_doc",
 				"title": "View Symbol Documentation"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "godot-tool.ShowDoc"
+					"command": "godot-tool.show_doc"
 				}
 			]
 		},
 		"keybindings": [
 			{
-				"command": "godot-tool.ShowDoc",
+				"command": "godot-tool.show_doc",
 				"key": "ctrl+shift+d",
 				"mac": "cmd+shift+d",
 				"when": "editorTextFocus"

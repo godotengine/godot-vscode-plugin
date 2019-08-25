@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
-import * as ShowDoc from './commands/ShowDoc'
+import BuiltinDocHelper from './commands/BuiltinDocHelper'
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
@@ -16,9 +16,12 @@ export class GodotTools {
 	private project_file = "project.godot";
 	private connection_status: vscode.StatusBarItem = null;
 
+	public doc_helper: BuiltinDocHelper = null;
+
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
 		this.client = new GDScriptLanguageClient();
+		this.doc_helper = new BuiltinDocHelper(this.client.io);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 	}
@@ -30,8 +33,8 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.run_project", () => {
 			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.ShowDoc", () => {
-			ShowDoc.command();
+		vscode.commands.registerCommand("godot-tool.show_doc", () => {
+			this.doc_helper.show_doc();
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 
