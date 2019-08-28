@@ -68,7 +68,8 @@ export class GodotTools {
 			const run_godot = (path: string, params: string) => {
 				const escape_command = (cmd: string) => {
 					let cmdEsc = `"${cmd}"`;
-					let shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows", "");
+					const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
+					let shell = shell_plugin ? shell_plugin.get("windows", "") || "" : "";
 					if (shell.endsWith("powershell.exe") && process.platform === "win32") {
 						cmdEsc = `&${cmdEsc}`;
 					}
