@@ -43,7 +43,7 @@
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
 					"default": 6008,
-					"description": "The websocket server port of the GDScript langugae server"
+					"description": "The websocket server port of the GDScript language server"
 				},
 				"godot_tools.editor_path": {
 					"type": "string",
