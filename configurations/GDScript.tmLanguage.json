@@ -15,22 +15,19 @@
     { "include": "#const_def" },
     { "include": "#type_declear"},
     { "include": "#class_def" },
-    { "include": "#builtinFuncs" },
-    { "include": "#builtinClasses" },
-    { "include": "#builtinProps" },
-    { "include": "#builtinConsts" },
-    { "include": "#const_vars" },
     { "include": "#classname"},
+    { "include": "#builtin_func" },
+    { "include": "#builtin_classes" },
+    { "include": "#const_vars" },
     { "include": "#class_new"},
+    { "include": "#class_is"},
     { "include": "#class_enum"},
     { "include": "#function-declaration" },
     { "include": "#function-return-type" },
     { "include": "#any-method" },
     { "include": "#any-property" },
-    {
-      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
-      "name": "entity.other.inherited-class.gdscript"
-    }
+    { "include": "#extends" },
+    { "include": "#parscal_class" }
   ],
   "repository": {
     "comment": {
@@ -106,7 +103,7 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:elif|else|for|if|while|break|continue|pass|in|is|return|onready|setget|enum|match|breakpoint|tool|extends|signal|class|static|export|var|const|func|new|void|float|int|bool|as|assert|class_name|preload|yield|remote|sync|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
       "name": "keyword.language.gdscript"
     },
     "letter": {
@@ -169,17 +166,6 @@
       },
       "match": "(?<=^class)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
     },
-    "classname": {
-      "captures": {
-        "1": {
-          "name": "keyword.language.gdscript"
-        },
-        "2": {
-          "name": "entity.other.inherited-class.gdscript"
-        }
-      },
-      "match": "^(class_name)\\s+([a-zA-Z_]\\w*)"
-    },
     "class_new": {
       "captures": {
         "1": { "name": "entity.name.type.class.gdscript" },
@@ -187,18 +173,33 @@
       },
       "match": "\\b([a-zA-Z_][a-zA-Z_0-9]*).(new)\\("
     },
+		"class_is": {
+      "captures": {
+        "1": { "name": "storage.type.is.gdscript" },
+        "2": { "name": "entity.name.type.class.gdscript" }
+      },
+      "match": "\\s+(is)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+    },
     "class_enum": {
       "captures": {
         "1": { "name": "entity.name.type.class.gdscript" },
         "2": { "name": "constant.language.gdscript" }
       },
-      "match": "\\b([A-Z][a-zA-Z_0-9]*).([A-Z_0-9]+)"
+      "match": "\\b([A-Z][a-zA-Z_0-9]*)\\.([A-Z_0-9]+)"
+    },
+		"classname": {
+      "match": "(?<=class_name)\\s+([a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?)",
+      "name": "entity.name.type.class.gdscript"
+    },
+		"extends": {
+      "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+      "name": "entity.other.inherited-class.gdscript"
     },
     "builtin_func": {
       "match": "(?<![^.]\\.|:)\\b(sin|cos|tan|sinh|cosh|tanh|asin|acos|atan|atan2|sqrt|fmod|fposmod|floor|ceil|round|abs|sign|pow|log|exp|is_nan|is_inf|ease|decimals|stepify|lerp|dectime|randomize|randi|randf|rand_range|seed|rand_seed|deg2rad|rad2deg|linear2db|db2linear|max|min|clamp|nearest_po2|weakref|funcref|convert|typeof|type_exists|char|str|print|printt|prints|printerr|printraw|var2str|str2var|var2bytes|bytes2var|range|load|inst2dict|dict2inst|hash|Color8|print_stack|instance_from_id|preload|yield|assert)\\b(?=(\\()([^)]*)(\\)))",
       "name": "support.function.builtin.gdscript"
     },
-    "builtinClasses": {
+    "builtin_classes": {
       "match": "(?<![^.]\\.|:)\\b(Vector2|Vector3|Color|Rect2|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|AABB|String|Color|NodePath|RID|Object|Dictionary|Array|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray)\\b",
       "name": "support.class.library.gdscript"
     },
@@ -323,6 +324,12 @@
           ]
         }
       ]
+    },
+		"parscal_class": {
+      "captures": {
+        "1": { "name": "entity.name.type.class.gdscript" }
+      },
+      "match": "([A-Z][a-zA-Z_0-9]*)"
     }
   }
 }
