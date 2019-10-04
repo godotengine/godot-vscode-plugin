@@ -45,17 +45,32 @@
     "strings": {
       "patterns": [{
           "begin": "\"",
-          "end": "(?<!\\\\)\"",
+          "end": "\"",
+          "patterns": [
+            {  "name": "constant.character.escape.untitled",
+                "match": "\\."
+            }
+          ],
           "name": "string.quoted.double.gdscript"
         },
         {
           "begin": "'",
-          "end": "(?<!\\\\)'",
+          "end": "'",
+          "patterns": [
+            {  "name": "constant.character.escape.untitled",
+                "match": "\\."
+            }
+          ],
           "name": "string.quoted.single.gdscript"
         },
         {
           "begin": "@\"",
-          "end": "(?<!\\\\)\"",
+          "end": "\"",
+          "patterns": [
+            {  "name": "constant.character.escape.untitled",
+                "match": "\\."
+            }
+          ],
           "name": "string.nodepath.gdscript"
         }
       ]
