@@ -17,7 +17,7 @@ export class GodotTools {
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
-		this.client = new GDScriptLanguageClient();
+		this.client = new GDScriptLanguageClient(p_context);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 	}

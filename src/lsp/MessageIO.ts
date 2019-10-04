@@ -3,7 +3,8 @@ import { EventEmitter } from "events";
 import * as WebSocket  from 'ws';
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
-import { Message } from "vscode-jsonrpc";
+import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc/lib/messages";
+export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
 	

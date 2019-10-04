@@ -1,11 +1,10 @@
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage, NotificationMessage } from "vscode-languageclient";
+import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient";
 import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter } from "./MessageIO";
-import { ResponseMessage } from "vscode-jsonrpc/lib/messages";
+import { MessageIO, MessageIOReader, MessageIOWriter, Message } from "./MessageIO";
 import logger from "../loggger";
 import { EventEmitter } from "events";
-type Message = RequestMessage | ResponseMessage | NotificationMessage;
+import NativeDocumentManager from './NativeDocumentManager';
 
 function getClientOptions(): LanguageClientOptions {
 	return {
@@ -44,11 +43,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	
 	public io: MessageIO = io;
 	
+	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
 	private _status : ClientStatus;
 	private _status_changed_callbacks: ((v : ClientStatus)=>void)[] = [];
 	private _initialize_request: Message = null;
 	private message_handler: MessageHandler = null;
+	private native_doc_manager: NativeDocumentManager = null;	
 	
 	public get started() : boolean { return this._started; }
 	public get status() : ClientStatus { return this._status; }
@@ -67,14 +68,16 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 	
-	constructor() {
+	constructor(context: vscode.ExtensionContext) {
 		super(`GDScriptLanguageClient`, serverOptions, getClientOptions());
+		this.context = context;
 		this.status = ClientStatus.PENDING;
 		this.message_handler = new MessageHandler();
 		this.io.on('disconnected', this.on_disconnected.bind(this));
 		this.io.on('connected', this.on_connected.bind(this));
 		this.io.on('message', this.on_message.bind(this));
 		this.io.on('send_message', this.on_send_message.bind(this));
+		this.native_doc_manager = new NativeDocumentManager(this.io);
 	}
 	
 	connect_to_server() {
