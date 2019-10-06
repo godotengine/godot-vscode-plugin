@@ -96,16 +96,20 @@
 		]
 	},
 	"devDependencies": {
+		"@types/marked": "^0.6.5",
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
+		"@types/prismjs": "^1.16.0",
 		"@types/ws": "^6.0.1",
 		"tslint": "^5.16.0",
-		"vscode": "^1.1.33",
-		"typescript": "^3.4.5"
+		"typescript": "^3.4.5",
+		"vscode": "^1.1.33"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^5.2.1",
 		"global": "^4.4.0",
+		"marked": "^0.7.0",
+		"prismjs": "^1.17.1",
+		"vscode-languageclient": "^5.2.1",
 		"ws": "^7.0.0"
 	}
 }

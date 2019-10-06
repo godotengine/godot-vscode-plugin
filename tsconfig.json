@@ -4,13 +4,14 @@
 		"target": "es6",
 		"outDir": "out",
 		"lib": [
-			"es6"
+			"es2020",
+			"dom"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false
 	},
 	"exclude": [
-		"node_modules",
+		"node_modules"
 	]
 }
