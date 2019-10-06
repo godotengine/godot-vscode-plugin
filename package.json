@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"description": "Tools for game development with godot game engine",
 	"repository": "https://github.com/godotengine/godot-vscode-plugin",
 	"author": "The Godot Engine community",
