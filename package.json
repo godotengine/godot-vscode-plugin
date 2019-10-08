@@ -108,7 +108,6 @@
 	"dependencies": {
 		"global": "^4.4.0",
 		"marked": "^0.7.0",
-		"prismjs": "^1.17.1",
 		"vscode-languageclient": "^5.2.1",
 		"ws": "^7.0.0"
 	}

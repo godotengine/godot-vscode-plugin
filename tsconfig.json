@@ -9,9 +9,11 @@
 		],
 		"sourceMap": true,
 		"rootDir": "src",
-		"strict": false
+		"strict": false,
+		"allowJs": true
 	},
 	"exclude": [
-		"node_modules"
+		"node_modules",
+		"out"
 	]
 }

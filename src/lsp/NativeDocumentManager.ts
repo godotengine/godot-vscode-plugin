@@ -3,14 +3,14 @@ import { EventEmitter } from "events";
 import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
 import { DocumentSymbol } from "vscode";
-import * as Prism from "prismjs";
+import * as Prism from "../deps/prism/prism";
 import * as marked from "marked";
 marked.setOptions({
 	highlight: function (code, lang) {
 		return Prism.highlight(code, GDScriptGrammar, lang);
 	}
 });
-				
+
 const enum Methods {
 	SHOW_NATIVE_SYMBOL = 'gdscript/show_native_symbol',
 	INSPECT_NATIVE_SYMBOL = 'textDocument/nativeSymbol'
@@ -120,17 +120,18 @@ export default class NativeDocumentManager extends EventEmitter {
 	
 	
 	private make_symbol_document(symbol: GodotNativeSymbol): string {
+		const classlink = make_link(symbol.native_class, undefined);
 		
-		function make_function_signature(s: GodotNativeSymbol) {
+		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
 			if (!parts) return "";
 			const ret_type = make_link(parts[2] || "void", undefined);
 			let args = (parts[1] || "").replace(/\:\s([A-z0-9_]+)(\,\s*)?/g, `: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`);
 			args = args.replace(/\s=\s(.*?)[\,\)]/g, "")
-			return `${ret_type} ${element("a", s.name, {href: `#${s.name}`})}( ${args} )`;
+			return `${ret_type} ${with_class?`${classlink}.`:''}${element("a", s.name, {href: `#${s.name}`})}( ${args} )`;
 		};
 		
-		function make_symbol_elements(s: GodotNativeSymbol): {index?: string, body: string} {
+		function make_symbol_elements(s: GodotNativeSymbol, with_class = false): {index?: string, body: string} {
 			switch (s.kind) {
 				case vscode.SymbolKind.Property:
 				case vscode.SymbolKind.Variable: {
@@ -139,7 +140,7 @@ export default class NativeDocumentManager extends EventEmitter {
 					if (!parts) return;
 					let type = make_link(parts[2], undefined);
 					let name = element("a", s.name, {href: `#${s.name}`});
-					const title = element('h4', type + " " + s.name);
+					const title = element('h4', `${type} ${with_class?`${classlink}.`:''}${s.name}`);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
 					const div = element("div", title + doc);
 					return {
@@ -156,7 +157,7 @@ export default class NativeDocumentManager extends EventEmitter {
 					let name = parts[1];
 					let value = element('code', parts[4]);
 					
-					const title = element('p', type + " " + name + " = " + value);
+					const title = element('p', `${type} ${with_class?`${classlink}.`:''}${name} = ${value}`);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
 					const div = element("div", title + doc);
 					return {
@@ -167,7 +168,7 @@ export default class NativeDocumentManager extends EventEmitter {
 					const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail);
 					if (!parts) return;
 					const args = (parts[2] || "").replace(/\:\s([A-z0-9_]+)(\,\s*)?/g, `: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`);
-					const title = element('p', `${s.name}( ${args} )`);
+					const title = element('p', `${with_class?`signal ${with_class?`${classlink}.`:''}`:''}${s.name}( ${args} )`);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
 					const div = element("div", title + doc);
 					return {
@@ -176,7 +177,7 @@ export default class NativeDocumentManager extends EventEmitter {
 				} break;
 				case vscode.SymbolKind.Method:
 				case vscode.SymbolKind.Function: {
-					const signature = make_function_signature(s);
+					const signature = make_function_signature(s, with_class);
 					const title = element("h4", signature);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
 					const div = element("div", title + doc);
@@ -239,6 +240,8 @@ export default class NativeDocumentManager extends EventEmitter {
 					doc += element('ul', block);
 				}
 			};
+			
+			doc += element("p", format_documentation(symbol.documentation, symbol.native_class));
 			add_group("Properties", properties_index);
 			add_group("Constants", constants);
 			add_group("Signals", signals);
@@ -251,9 +254,11 @@ export default class NativeDocumentManager extends EventEmitter {
 			return doc;
 		} else {
 			let doc = "";
-			const elements = make_symbol_elements(symbol);
+			const elements = make_symbol_elements(symbol, true);
 			if (elements.index) {
-				doc += element("h2", elements.index);
+				if ([vscode.SymbolKind.Function, vscode.SymbolKind.Method].indexOf(symbol.kind) == -1) {
+					doc += element("h2", elements.index);
+				}
 			}
 			doc += element("div", elements.body);
 			return doc;
