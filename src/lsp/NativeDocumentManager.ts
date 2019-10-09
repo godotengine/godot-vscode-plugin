@@ -2,37 +2,23 @@ import * as vscode from 'vscode';
 import { EventEmitter } from "events";
 import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
-import { DocumentSymbol } from "vscode";
 import * as Prism from "../deps/prism/prism";
 import * as marked from "marked";
+import { Methods, NativeSymbolInspectParams, GodotNativeSymbol, GodotNativeClassInfo, GodotCapabilities } from './gdscript.capabilities';
 marked.setOptions({
 	highlight: function (code, lang) {
 		return Prism.highlight(code, GDScriptGrammar, lang);
 	}
 });
 
-const enum Methods {
-	SHOW_NATIVE_SYMBOL = 'gdscript/show_native_symbol',
-	INSPECT_NATIVE_SYMBOL = 'textDocument/nativeSymbol'
-}
-
-interface NativeSymbolInspectParams {
-	native_class: string;
-	symbol_name: string;
-}
-
 const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = 'INSPECT_NATIVE_SYMBOL',
-};
-
-class GodotNativeSymbol extends DocumentSymbol {
-	documentation: string;
-	native_class: string;
 };
 
 export default class NativeDocumentManager extends EventEmitter {
 	
 	private io: MessageIO = null;
+	private native_classes: {[key: string]: GodotNativeClassInfo } = {};
 	
 	constructor(io: MessageIO) {
 		super();
@@ -40,6 +26,17 @@ export default class NativeDocumentManager extends EventEmitter {
 		io.on("message", (message: NotificationMessage)=>{
 			if (message.method == Methods.SHOW_NATIVE_SYMBOL) {
 				this.show_native_symbol(message.params);
+			} else if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
+				for (const gdclass of (message.params as GodotCapabilities).native_classes) {
+					this.native_classes[gdclass.name] = gdclass;
+				}
+				for (const gdclass of (message.params as GodotCapabilities).native_classes) {
+					if (gdclass.inherits) {
+						const extended_classes = this.native_classes[gdclass.inherits].extended_classes || [];
+						extended_classes.push(gdclass.name);
+						this.native_classes[gdclass.inherits].extended_classes = extended_classes;
+					}
+				}
 			}
 		});
 	}
@@ -121,6 +118,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	
 	private make_symbol_document(symbol: GodotNativeSymbol): string {
 		const classlink = make_link(symbol.native_class, undefined);
+		const classinfo = this.native_classes[symbol.native_class];
 		
 		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
@@ -197,8 +195,21 @@ export default class NativeDocumentManager extends EventEmitter {
 			const parts = /extends\s+([A-z0-9]+)/.exec(symbol.detail);
 			let inherits = parts && parts.length > 1 ? parts[1] : '';
 			if (inherits) {
-				inherits = `Inherits ${make_link(inherits, undefined)}`;
+				let inherits_chian = '';
+				let base_class = this.native_classes[inherits];
+				while(base_class) {
+					inherits_chian += `${inherits_chian?' >':''} ${make_link(base_class.name, undefined)}`;
+					base_class = this.native_classes[base_class.inherits];
+				}
+				inherits = `Inherits: ${inherits_chian}`;
 				doc += element("p", inherits);
+			}
+			if (classinfo && classinfo.extended_classes) {
+				let inherited = "";
+				for (const c of classinfo.extended_classes) {
+					inherited += (inherited ? ', ' : ' ') + make_link(c, c);
+				}
+				doc += element("p", `Inherited by:${inherited}`);
 			}
 			
 			let constants = "";
