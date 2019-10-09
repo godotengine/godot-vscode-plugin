@@ -34,7 +34,7 @@ The extension adds a few entries to the VS Code Command Palette under "GodotTool
 
 If you like this extension, you can set VS Code as your default script editor for Godot by following these steps:
 1. Open editor settings
-2. Select `Text Editor / External`
+2. Select `Text Editor > External`
 3. Make sure the `Use External Editor` box is checked
 4. Fill `Exec Path` with the path to your VS Code executable
 5. Fill `Exec Flags` with `{project} --goto {file}:{line}:{col}`
@@ -59,5 +59,5 @@ See the [full changelog](https://github.com/GodotExplorer/godot-tools/blob/maste
 - Godot 3.2 and above is required.
 
 ### Why isn't intellisense showing up my script members for me?
-- The GDScript is a dynamic typed script language the tool may can infer all the variable types as you want.
-- You can turn on the `Smart Mode` in godot editor `Editor Settings > Language Server` check the `Enable Smart Resolve`.
+- The GDScript is a dynamic typed script language the tool cannot infer all the variable types as you want.
+- You can turn on the `Smart Mode` in godot editor `Editor Settings > Language Server` by check the `Enable Smart Resolve`.
