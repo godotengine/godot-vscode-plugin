@@ -1,5 +1,10 @@
 # Change Log
 
+### 1.0.0
+* Refactor the whole plugin with gdscript language server support
+* Add webview renderer to show documentations of native symbols.
+* Only support godot 3.2 and above
+
 ### 0.3.7
 * Add `lint` configuration to control the behaviors of syntax checking
 * Fix error with run godot editor when the editor contains spaces
