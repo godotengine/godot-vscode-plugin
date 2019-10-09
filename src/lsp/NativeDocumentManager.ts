@@ -14,6 +14,7 @@ marked.setOptions({
 const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = 'INSPECT_NATIVE_SYMBOL',
 };
+const LIST_NATIVE_CLASS_COMMAND = 'godot-tool.list_native_classes';
 
 export default class NativeDocumentManager extends EventEmitter {
 	
@@ -39,6 +40,21 @@ export default class NativeDocumentManager extends EventEmitter {
 				}
 			}
 		});
+		
+		vscode.commands.registerCommand(LIST_NATIVE_CLASS_COMMAND, this.list_native_classes.bind(this));
+	}
+	
+	private async list_native_classes() {
+		let classname = await vscode.window.showQuickPick(
+			Object.keys(this.native_classes).sort(),
+			{
+				placeHolder: 'Type godot class name here',
+				canPickMany: false
+			}
+		);
+		if (classname) {
+			this.inspect_native_symbol({native_class: classname, symbol_name: classname});
+		}
 	}
 	
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {

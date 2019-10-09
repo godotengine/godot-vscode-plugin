@@ -34,6 +34,10 @@
 			{
 				"command": "godot-tool.run_project",
 				"title": "Godot Tools: Run workspace as Godot project"
+			},
+			{
+				"command": "godot-tool.list_native_classes",
+				"title": "Godot Tools: List native classes of godot"
 			}
 		],
 		"configuration": {
