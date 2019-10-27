@@ -173,7 +173,7 @@
       },
       "match": "\\b([a-zA-Z_][a-zA-Z_0-9]*).(new)\\("
     },
-		"class_is": {
+    "class_is": {
       "captures": {
         "1": { "name": "storage.type.is.gdscript" },
         "2": { "name": "entity.name.type.class.gdscript" }
@@ -187,14 +187,14 @@
       },
       "match": "\\b([A-Z][a-zA-Z_0-9]*)\\.([A-Z_0-9]+)"
     },
-		"class_name": {
+    "class_name": {
       "captures": {
         "1": { "name": "entity.name.type.class.gdscript" },
         "2": { "name": "class.other.gdscript" }
       },
       "match": "(?<=class_name)\\s+([a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?)"
     },
-		"extends": {
+    "extends": {
       "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
       "name": "entity.other.inherited-class.gdscript"
     },
@@ -328,7 +328,7 @@
         }
       ]
     },
-		"parscal_class": {
+    "parscal_class": {
       "captures": {
         "1": { "name": "entity.name.type.class.gdscript" }
       },
