@@ -19,11 +19,10 @@
 	],
 	"main": "./out/extension.js",
 	"scripts": {
-		"vscode:prepublish": "yarn run compile",
+		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "yarn run compile && node ./node_modules/vscode/bin/test"
+		"lint": "tslint -p ./",
+		"watch": "tsc -watch -p ./"
 	},
 	"contributes": {
 		"commands": [
@@ -106,8 +105,8 @@
 		"@types/prismjs": "^1.16.0",
 		"@types/ws": "^6.0.1",
 		"tslint": "^5.16.0",
-		"typescript": "^3.4.5",
-		"vscode": "^1.1.33"
+		"typescript": "^3.5.1",
+		"@types/vscode": "^1.40.0"
 	},
 	"dependencies": {
 		"global": "^4.4.0",
