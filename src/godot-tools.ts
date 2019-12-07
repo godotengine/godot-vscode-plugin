@@ -124,7 +124,6 @@ export class GodotTools {
 	}
 
 	private on_client_status_changed(status: ClientStatus) {
-		this.connection_status.color = vscode.ThemeColor;
 		switch (status) {
 			case ClientStatus.PENDING:
 				this.connection_status.text = `$(sync) Connecting`;
