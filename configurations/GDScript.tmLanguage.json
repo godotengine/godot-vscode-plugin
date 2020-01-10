@@ -27,7 +27,7 @@
     { "include": "#any-method" },
     { "include": "#any-property" },
     { "include": "#extends" },
-    { "include": "#parscal_class" }
+    { "include": "#pascal_case_class" }
   ],
   "repository": {
     "comment": {
@@ -328,11 +328,11 @@
         }
       ]
     },
-    "parscal_class": {
+    "pascal_case_class": {
       "captures": {
         "1": { "name": "entity.name.type.class.gdscript" }
       },
-      "match": "([A-Z][a-zA-Z_0-9]*)"
+      "match": "\\b([A-Z][a-zA-Z_0-9]*)\\b"
     }
   }
 }
