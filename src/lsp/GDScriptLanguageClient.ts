@@ -82,7 +82,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		io.connect_to_language_server();
+		io.connect_to_language_server(get_server_uri());
 	}
 
 	start(): vscode.Disposable {
