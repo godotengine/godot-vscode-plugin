@@ -70,7 +70,7 @@ export class GodotTools {
 					let cmdEsc = `"${cmd}"`;
 					const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
 					let shell = shell_plugin ? shell_plugin.get("windows", "") || "" : "";
-					if (shell.endsWith("powershell.exe") && process.platform === "win32") {
+					if (process.platform === "win32" && shell.endsWith("powershell.exe")) {
 						cmdEsc = `&${cmdEsc}`;
 					}
 					return cmdEsc;
