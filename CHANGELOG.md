@@ -1,5 +1,8 @@
 # Change Log
 
+### 1.0.1
+* Fix run editor error on windows with default terminal configurations
+
 ### 1.0.0
 * Refactor the whole plugin with gdscript language server support
 * Add webview renderer to show documentations of native symbols.
