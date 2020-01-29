@@ -68,10 +68,13 @@ export class GodotTools {
 			const run_godot = (path: string, params: string) => {
 				const escape_command = (cmd: string) => {
 					let cmdEsc = `"${cmd}"`;
-					const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
-					let shell = shell_plugin ? shell_plugin.get("windows", "") || "" : "";
-					if (process.platform === "win32" && shell.endsWith("powershell.exe")) {
-						cmdEsc = `&${cmdEsc}`;
+					if (process.platform === "win32") {
+						const POWERSHELL = "powershell.exe";
+						const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
+						let shell = (shell_plugin ? shell_plugin.get("windows", POWERSHELL) : POWERSHELL) || POWERSHELL;
+						if (shell.endsWith(POWERSHELL)) {
+							cmdEsc = `&${cmdEsc}`;
+						}
 					}
 					return cmdEsc;
 				};
