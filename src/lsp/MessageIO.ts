@@ -1,6 +1,6 @@
 import { AbstractMessageReader, MessageReader, DataCallback } from "vscode-jsonrpc/lib/messageReader";
 import { EventEmitter } from "events";
-import * as WebSocket  from 'ws';
+import * as net from 'net';
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc/lib/messages";
@@ -10,23 +10,22 @@ export class MessageIO extends EventEmitter {
 	
 	reader: MessageIOReader = null;
 	writer: MessageIOWriter = null;
+
 	
-	private socket: WebSocket = null; 
+	private socket: net.Socket = null;
 	
-	constructor(url: string) {
+	constructor(port: number) {
 		super();
 	}
 	
 	public send_message(message: string) {
 		if (this.socket) {
-			this.socket.send(message);
+			this.socket.write(message);
 		}
-		
 	}
 	
-	protected on_message(chunk: WebSocket.Data) {
-		let message = chunk.toString();
-		this.emit('data', message);
+	protected on_message(chunk: string) {
+		this.emit('data', chunk);
 	}
 	
 	on_send_message(message: any) {
@@ -37,18 +36,19 @@ export class MessageIO extends EventEmitter {
 		this.emit("message", message);
 	}
 	
-	connect_to_language_server(url: string):Promise<void> {
+	connect_to_language_server(port: number):Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
-			const ws = new WebSocket(url);
-			ws.on('open', ()=>{ this.on_connected(ws); resolve(); });
-			ws.on('message', this.on_message.bind(this));
-			ws.on('error', this.on_disconnected.bind(this));
-			ws.on('close', this.on_disconnected.bind(this));
+			const client = new net.Socket();
+			client.connect(port)
+			client.on('connect', ()=>{ this.on_connected(client); resolve(); });
+			client.on('data', this.on_message.bind(this));
+			client.on('end', this.on_disconnected.bind(this));
+			client.on('close', this.on_disconnected.bind(this));
 		});
 	}
 	
-	private on_connected(socket: WebSocket) {
+	private on_connected(socket: net.Socket) {
 		this.socket = socket;
 		this.emit("connected");
 	}

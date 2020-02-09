@@ -20,12 +20,11 @@ function getClientOptions(): LanguageClientOptions {
 	};
 }
 
-function get_server_uri() : string {
-	let port = get_configuration("gdscript_lsp_server_port", 6008);
-	return `ws://localhost:${port}`;
+function get_server_port() : number {
+	return get_configuration("gdscript_lsp_server_port", 6008);
 }
 
-const io = new MessageIO(get_server_uri());
+const io = new MessageIO(get_server_port());
 const serverOptions: ServerOptions = () => {
 	return new Promise((resolve, reject) => {
 		resolve({reader: new MessageIOReader(io), writer: new MessageIOWriter(io)});
@@ -82,7 +81,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		io.connect_to_language_server(get_server_uri());
+		io.connect_to_language_server(get_server_port());
 	}
 
 	start(): vscode.Disposable {
