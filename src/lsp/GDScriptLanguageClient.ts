@@ -130,7 +130,7 @@ class MessageHandler extends EventEmitter {
 	on_message(message: any) {
 		
 		// FIXME: Hot fix VSCode 1.42 hover position
-		if (message && message.contents && message.result && message.result.range) { 
+		if (message && message.result && message.result.range && message.result.contents) { 
 			message.result.range = undefined;
 		}
 		
