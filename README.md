@@ -32,6 +32,7 @@ The extension adds a few entries to the VS Code Command Palette under "Godot Too
 - Run the workspace as a Godot project
 - List Godot's native classes
 
+
 ## Settings
 
 ### Godot
@@ -52,6 +53,28 @@ You can use the following settings to configure Godot Tools:
 - `editor_path` - The absolute path to the Godot editor executable.
 - `gdscript_lsp_server_port` - The WebSocket server port of the GDScript language server.
 - `check_status` - Check the GDScript language server connection status.
+
+#### Use Godot Tools in your VSCode Extension
+If you have a VSCode plugin there are some commands that are only available via code that may be helpful.  This means your extension will require that this extension is installed.
+
+You can invoke other commands (Godot Tools, built-ins, or other plugins) with 
+```typescript
+vscode.commands.executeCommand('extension.command')
+// or with parameters
+vscode.commands.executeCommand('extension.command', p1, p2, p3 ...)
+```
+
+#### Godot Tools offers:
+
+`godot-tools.run_godot` <br/>
+This will launch godot, you can optionally give  it a string of arguments.
+```typescript
+// launch godot to run the current workspace
+vscode.commands.executeCommand('godot-tool.run_godot', `--path "${this.workspace_dir}"`);
+// run a scene
+vscode.commands.executeCommand('godot-tool.run_godot', `--path "${this.workspace_dir}" path/to/scene.tscn`);
+
+```
 
 ## Issues and contributions
 

@@ -33,11 +33,12 @@ export class GodotTools {
 
 		const command = 'godot-tool.run_godot';
     	const commandHandler = (params: string = '') => {
-			return new Promise((resolve, reject) => {
-	    	  this.run_editor(params).then(()=>resolve()).catch(err=>{
-					reject(err);
-				});
-			});
+			this.run_editor(params)
+			// return new Promise((resolve, reject) => {
+	    	//   this.run_editor(params).then(()=>resolve()).catch(err=>{
+			// 		reject(err);
+			// 	});
+			// });
     	};
     	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
 
