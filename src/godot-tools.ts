@@ -31,6 +31,16 @@ export class GodotTools {
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 
+		const command = 'godot-tool.run_godot';
+    	const commandHandler = (params: string = '') => {
+			return new Promise((resolve, reject) => {
+	    	  this.run_editor(params).then(()=>resolve()).catch(err=>{
+					reject(err);
+				});
+			});
+    	};
+    	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
