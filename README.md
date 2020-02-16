@@ -21,6 +21,7 @@ experience as comfortable as possible:
 - Ctrl + click on a variable or method call to jump to its definition
 - Full documentation of the Godot Engine's API supported
 - Run a Godot project from VS Code
+- Debug your Godot project from VS Code with breakpoints, step-in, and call stack
 
 ![Showing the documentation on hover feature](img/godot-tools.png)
 
@@ -31,6 +32,16 @@ The extension adds a few entries to the VS Code Command Palette under "Godot Too
 - Open workspace with Godot editor
 - Run the workspace as a Godot project
 - List Godot's native classes
+
+## Debugger
+
+To configure the debugger:
+
+1. Open the command palette:
+2. `>Debug: Open launch.json`
+3. Select the Debug Godot configuration.
+4. Change any relevant settings.
+5. Press F5 to launch.
 
 ## Settings
 
