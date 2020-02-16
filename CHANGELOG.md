@@ -1,5 +1,8 @@
 # Change Log
 
+### 1.1
+* Add the debugger to the extension
+
 ### 1.0.3
 * Fix hover popup position for VSCode 1.42+
 
