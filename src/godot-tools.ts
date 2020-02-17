@@ -6,6 +6,9 @@ import { get_configuration, set_configuration } from "./utils";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
+const EDIT_TERMINAL = TOOL_NAME + 'Edit';
+const RUN_TERMINAL = TOOL_NAME + 'Run';
+
 
 export class GodotTools {
 
@@ -24,18 +27,14 @@ export class GodotTools {
 
 	public activate() {
 		vscode.commands.registerCommand("godot-tool.open_editor", ()=>{
-			this.open_workspace_with_editor("-e").catch(err=>vscode.window.showErrorMessage(err));
+			this.open_workspace_with_editor(EDIT_TERMINAL, "-e").catch(err=>vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.run_project", ()=>{
-			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
+			this.open_workspace_with_editor(RUN_TERMINAL).catch(err=>vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 
-		const command = 'godot-tool.run_godot';
-    	const commandHandler = (params: string = '') => {
-			return this.open_workspace_with_editor(params)
-    	};
-    	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+		this.addRunGodotCommand();
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -48,8 +47,15 @@ export class GodotTools {
 		this.client.stop();
 	}
 
+	private addRunGodotCommand(){
+		const command = 'godot-tool.run_godot';
+    	const commandHandler = (terminalName:string,  params: string = '') => {
+			return this.open_workspace_with_editor(terminalName, params)
+    	};
+    	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+	}
 
-	private open_workspace_with_editor(params = "") {
+	private open_workspace_with_editor(terminalName,  params = "") {
 
 		return new Promise((resolve, reject) => {
 			let valid = false
@@ -58,7 +64,7 @@ export class GodotTools {
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
 			}
 			if (valid) {
-				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(()=>resolve()).catch(err=>{
+				this.run_editor(terminalName, `--path "${this.workspace_dir}" ${params}`).then(()=>resolve()).catch(err=>{
 					reject(err);
 				});
 			} else {
@@ -67,7 +73,7 @@ export class GodotTools {
 		});
 	}
 
-	private run_editor(params = "") {
+	private run_editor(terminalName,  params = "",) {
 
 		return new Promise((resolve, reject) => {
 			const run_godot = (path: string, params: string) => {
@@ -83,11 +89,11 @@ export class GodotTools {
 					}
 					return cmdEsc;
 				};
-				let existingTerminal = vscode.window.terminals.find(t => t.name === TOOL_NAME)
+				let existingTerminal = vscode.window.terminals.find(t => t.name === terminalName)
 				if (existingTerminal) {
 					existingTerminal.dispose()
 				}
-				let terminal = vscode.window.createTerminal(TOOL_NAME);
+				let terminal = vscode.window.createTerminal(terminalName);
 				let editorPath = escape_command(path);
 				let cmmand = `${editorPath} ${params}`;
 				terminal.sendText(cmmand, true);
@@ -161,7 +167,7 @@ export class GodotTools {
 				this.client.connect_to_server();
 			} else if (item == 'Open Godot Editor') {
 				this.client.status = ClientStatus.PENDING;
-				this.open_workspace_with_editor("-e").then(()=>{
+				this.open_workspace_with_editor(EDIT_TERMINAL, "-e").then(()=>{
 					setTimeout(()=>{
 						this.client.connect_to_server();
 					}, 10 * 1000);
