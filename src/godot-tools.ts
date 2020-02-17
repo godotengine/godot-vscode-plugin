@@ -33,12 +33,7 @@ export class GodotTools {
 
 		const command = 'godot-tool.run_godot';
     	const commandHandler = (params: string = '') => {
-			this.run_editor(params)
-			// return new Promise((resolve, reject) => {
-	    	//   this.run_editor(params).then(()=>resolve()).catch(err=>{
-			// 		reject(err);
-			// 	});
-			// });
+			return this.open_workspace_with_editor(params)
     	};
     	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
 
@@ -47,7 +42,6 @@ export class GodotTools {
 		this.connection_status.show();
 		this.client.connect_to_server();
 	}
-
 
 
 	public deactivate() {

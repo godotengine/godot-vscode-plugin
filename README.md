@@ -64,9 +64,9 @@ vscode.commands.executeCommand('extension.command')
 vscode.commands.executeCommand('extension.command', p1, p2, p3 ...)
 ```
 
-#### Godot Tools offers:
+#### Commands:
 
-`godot-tools.run_godot` <br/>
+__`godot-tools.run_godot(params: string = '')`__ <br/>
 This will launch godot, you can optionally give  it a string of arguments.
 ```typescript
 // launch godot to run the current workspace
