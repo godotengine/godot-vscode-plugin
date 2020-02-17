@@ -66,14 +66,15 @@ vscode.commands.executeCommand('extension.command', p1, p2, p3 ...)
 
 #### Commands:
 
-__`godot-tools.run_godot(params: string = '')`__ <br/>
-This will launch godot, you can optionally give  it a string of arguments.
+__`godot-tools.run_godot(terminalName:string, params: string = '')`__ <br/>
+This will launch Godot via a terminal instance named `terminalName` for the current workspace.  If you specify an already existing terminal then that one will be closed and a new one will be created.  Any command line parameters specified in `params` will be passed to Godot.  
+
+__Note__ that this command auto-populates the `--path` command line parameter.
 ```typescript
 // launch godot to run the current workspace
-vscode.commands.executeCommand('godot-tool.run_godot', `--path "${this.workspace_dir}"`);
+vscode.commands.executeCommand('godot-tool.run_godot', 'MyTerminal');
 // run a scene
-vscode.commands.executeCommand('godot-tool.run_godot', `--path "${this.workspace_dir}" path/to/scene.tscn`);
-
+vscode.commands.executeCommand('godot-tool.run_godot', 'MyTerminal', 'path/to/scene.tscn');
 ```
 
 ## Issues and contributions
