@@ -227,6 +227,18 @@ export class ServerController {
 			this.connection = connection;
 			this.godot_commands?.set_connection(connection);
 
+			if (!launch_game_instance) {
+				this.breakpoints.forEach(bp => {
+					let path_to = path
+						.relative(this.project_path, bp.file)
+						.replace(/\\/g, "/");
+					this.godot_commands?.send_set_breakpoint_command(
+						`res://${path_to}`,
+						bp.line
+					);
+				});
+			}
+
 			connection.on("data", buffer => {
 				if (!this.parser || !this.builder) {
 					return;
