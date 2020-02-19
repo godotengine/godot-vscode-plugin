@@ -17,7 +17,7 @@
 	"activationEvents": [
 		"workspaceContains:project.godot",
 		"onLanguage:gdscript",
-		"onDebug"
+		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
 	"scripts": {
@@ -167,7 +167,10 @@
 			{
 				"language": "gdscript"
 			}
-		]
+		],
+		"viewsContainers": {
+			
+		}
 	},
 	"devDependencies": {
 		"@types/marked": "^0.6.5",

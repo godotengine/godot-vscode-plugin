@@ -7,10 +7,7 @@ import {
 	Source,
 	Breakpoint
 } from "vscode-debugadapter";
-import {
-	window,
-	OutputChannel
-} from "vscode";
+import { window, OutputChannel } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
 import { GodotDebugRuntime, GodotStackFrame } from "./godot_debug_runtime";
 const { Subject } = require("await-notify");
@@ -35,14 +32,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 	private runtime: GodotDebugRuntime;
 	private scope_id = 1;
 	private scopes = new Map<number, Map<string, VariableScope[]>>();
-	private thread_ids: number[] = [];
 	private have_scopes: (() => void)[] = [];
 	private current_stack_level = 0;
 	private output_channel: OutputChannel;
 
 	public constructor() {
 		super();
-		
+
 		this.output_channel = window.createOutputChannel("Godot");
 
 		this.setDebuggerLinesStartAt1(false);
@@ -72,7 +68,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.sendEvent(new TerminatedEvent(false));
 		});
 	}
-	
+
 	public dispose() {
 		this.output_channel.dispose();
 	}
@@ -94,7 +90,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			return;
 		}
 		this.scopes.clear();
-		
+
 		response.body = {
 			allThreadsContinued: true
 		};
@@ -109,7 +105,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.EvaluateArguments
 	) {
 		this.have_scopes.push(() => {
-			if(args.expression.match(/[^a-zA-Z0-9_\[\]\.]/g)) {
+			if (args.expression.match(/[^a-zA-Z0-9_\[\]\.]/g)) {
 				response.body = {
 					result: "not supported",
 					variablesReference: 0
@@ -117,18 +113,22 @@ export class GodotDebugSession extends LoggingDebugSession {
 				this.sendResponse(response);
 				return;
 			}
-			
+
 			let is_self = args.expression.match(/^self\./);
 			let expression = args.expression
-			.replace(/[\[\]]/g, ".")
+				.replace(/[\[\]]/g, ".")
 				.replace(/\.$/, "")
 				.replace(/^self./, "");
 			let variable: { name: string; value: any } | undefined;
-			let scope_keys = Array.from(this.scopes.get(this.current_stack_level).keys());
+			let scope_keys = Array.from(
+				this.scopes.get(this.current_stack_level).keys()
+			);
 			let variable_id = -1;
 			for (let i = 0; i < scope_keys.length; ++i) {
-				let scopes = this.scopes.get(this.current_stack_level).get(scope_keys[i]);
-				
+				let scopes = this.scopes
+					.get(this.current_stack_level)
+					.get(scope_keys[i]);
+
 				for (let l = is_self ? 1 : 0; l < 3; ++l) {
 					variable_id = scopes[l].get_id_for(expression);
 					if (variable_id !== -1) {
@@ -147,7 +147,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					result: "not available",
 					variablesReference: 0
 				};
-				
+
 				this.sendResponse(response);
 				return;
 			}
@@ -162,7 +162,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 			this.sendResponse(response);
 		});
-		if (this.scopes.size > 0 && this.scopes.get(this.current_stack_level).size > 0) {
+		if (
+			this.scopes.size > 0 &&
+			this.scopes.get(this.current_stack_level).size > 0
+		) {
 			this.have_scopes.shift()();
 		}
 	}
@@ -269,9 +272,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 			file_scopes.push(local_scope);
 			file_scopes.push(member_scope);
 			file_scopes.push(global_scope);
-			
+
 			this.scopes.clear();
-			this.scopes.set(stack_level, new Map<string, VariableScope[]>([[file, file_scopes]]));
+			this.scopes.set(
+				stack_level,
+				new Map<string, VariableScope[]>([[file, file_scopes]])
+			);
 
 			let out_local_scope: DebugProtocol.Scope = {
 				name: "Locals",
@@ -285,10 +291,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 				let name = scopes.locals[i];
 				let value = scopes.locals[i + 1];
 
-				this.drill_scope(local_scope, {
-					name: name,
-					value: value ? value : undefined
-				});
+				this.drill_scope(
+					local_scope,
+					{
+						name: name,
+						value: value ? value : undefined
+					},
+					!value && typeof value === "number"
+				);
 			}
 
 			let out_member_scope: DebugProtocol.Scope = {
@@ -303,7 +313,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 				let name = scopes.members[i];
 				let value = scopes.members[i + 1];
 
-				this.drill_scope(member_scope, { name: name, value: value });
+				this.drill_scope(
+					member_scope,
+					{ name: name, value: value },
+					!value && typeof value === "number"
+				);
 			}
 
 			let out_global_scope: DebugProtocol.Scope = {
@@ -318,7 +332,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 				let name = scopes.globals[i];
 				let value = scopes.globals[i + 1];
 
-				this.drill_scope(global_scope, { name: name, value: value });
+				this.drill_scope(
+					global_scope,
+					{ name: name, value: value },
+					!value && typeof value === "number"
+				);
 			}
 
 			response.body = {
@@ -332,7 +350,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 				this.sendResponse(response);
 			} else {
 				this.inspect_callback = () => {
-					while(this.have_scopes.length > 0) {
+					while (this.have_scopes.length > 0) {
 						this.have_scopes.shift()();
 					}
 					this.sendResponse(response);
@@ -532,7 +550,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	private drill_scope(scope: VariableScope, variable: any) {
+	private drill_scope(
+		scope: VariableScope,
+		variable: any,
+		is_zero_number?: boolean
+	) {
+		if (is_zero_number) {
+			variable.value = 0;
+		}
 		let id = scope.get_id_for(variable.name);
 		if (id === -1) {
 			id = this.scope_id++;

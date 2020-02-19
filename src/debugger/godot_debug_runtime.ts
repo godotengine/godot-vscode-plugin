@@ -49,9 +49,9 @@ export class GodotDebugRuntime extends EventEmitter {
 			stackLevel: number,
 			stackFiles: string[],
 			scopes: {
-				locals: { name: string; value: any }[];
-				members: { name: string; value: any }[];
-				globals: { name: string; value: any }[];
+				locals: any[];
+				members: any[];
+				globals: any[];
 			}
 		) => void
 	) {

@@ -10,12 +10,10 @@ import {
 	DebugSession,
 	CancellationToken,
 	ProviderResult,
-	window,
-	OutputChannel
+	window
 } from "vscode";
 import { GodotDebugSession } from "./godot_debug";
 import fs = require("fs");
-import { VersionedTextDocumentIdentifier } from "vscode-languageclient";
 
 export function register_debugger(context: ExtensionContext) {
 	const PROVIDER = new GodotConfigurationProvider();
