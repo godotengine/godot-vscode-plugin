@@ -34,7 +34,8 @@ export class GodotTools {
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 
-		this.addGetRunWorkspaceCommand();
+		this.addGetRunWorkspaceCommandCmd();
+		this.addRunGodotCmd();
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -47,7 +48,7 @@ export class GodotTools {
 		this.client.stop();
 	}
 
-	private addGetRunWorkspaceCommand(){
+	private addGetRunWorkspaceCommandCmd(){
 		const command = 'godot-tool.get_run_workspace_command';
     	const commandHandler = (terminalName:string,  params: string = '') => {
 			return new Promise((resolve, reject) => {
@@ -56,6 +57,15 @@ export class GodotTools {
     	};
     	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
 	}
+
+	private addRunGodotCmd(){
+		const command = 'godot-tool.run_godot';
+		const commandHandler = (terminalName:string,  params: string = '') => {
+			return this.open_workspace_with_editor(terminalName, params)
+		};
+		this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+	}
+	
 
 	private open_workspace_with_editor(terminalName:string,  params:string = "") {
 
