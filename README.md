@@ -56,7 +56,7 @@ You can use the following settings to configure Godot Tools:
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/godotengine/godot-vscode-plugin) extension
-is an open source project from the Godot orgnization. Feel free to open issues
+is an open source project from the Godot organization. Feel free to open issues
 and create pull requests anytime.
 
 See the [full changelog](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
