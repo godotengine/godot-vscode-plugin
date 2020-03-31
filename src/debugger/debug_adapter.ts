@@ -1,3 +1,3 @@
-import { GodotDebugSession } from "./godot_debug";
+import { GodotDebugSession } from "./debug_session";
 
 GodotDebugSession.run(GodotDebugSession);

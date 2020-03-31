@@ -117,7 +117,8 @@
 					"tscn",
 					"godot",
 					"gdns",
-					"gdnlib"
+					"gdnlib",
+					"import"
 				]
 			}
 		],
@@ -138,7 +139,7 @@
 			{
 				"type": "godot",
 				"label": "Godot Debug",
-				"program": "./out/debugger/debugAdapter.js",
+				"program": "./out/debugger/debug_adapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
@@ -167,6 +168,16 @@
 								"type": "boolean",
 								"description": "Whether to launch an instance of the workspace's game, or wait for a debug session to connect.",
 								"default": true
+							},
+							"launch_scene": {
+								"type": "boolean",
+								"description": "Whether to launch an instance the currently opened TSCN file, or launch the game project. Only works with launch_game_instance being true.",
+								"default": false
+							},
+							"scene_file": {
+								"type": "string",
+								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
+								"default": ""
 							}
 						}
 					}
@@ -179,7 +190,8 @@
 						"project": "${workspaceFolder}",
 						"port": 6007,
 						"address": "127.0.0.1",
-						"launch_game_instance": true
+						"launch_game_instance": true,
+						"launch_scene": false
 					}
 				],
 				"configurationSnippets": [
@@ -192,7 +204,8 @@
 							"project": "${workspaceFolder}",
 							"port": 6007,
 							"address": "127.0.0.1",
-							"launch_game_instance": true
+							"launch_game_instance": true,
+							"launch_scene": false
 						}
 					}
 				]

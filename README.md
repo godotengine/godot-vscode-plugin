@@ -21,7 +21,7 @@ experience as comfortable as possible:
 - Ctrl + click on a variable or method call to jump to its definition
 - Full documentation of the Godot Engine's API supported
 - Run a Godot project from VS Code
-- Debug your Godot project from VS Code with breakpoints, step-in, and call stack
+- Debug your Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
 ![Showing the documentation on hover feature](img/godot-tools.png)
 
@@ -32,16 +32,6 @@ The extension adds a few entries to the VS Code Command Palette under "Godot Too
 - Open workspace with Godot editor
 - Run the workspace as a Godot project
 - List Godot's native classes
-
-## Debugger
-
-To configure the debugger:
-
-1. Open the command palette:
-2. `>Debug: Open launch.json`
-3. Select the Debug Godot configuration.
-4. Change any relevant settings.
-5. Press F5 to launch.
 
 ## Settings
 
@@ -63,6 +53,37 @@ You can use the following settings to configure Godot Tools:
 - `editor_path` - The absolute path to the Godot editor executable.
 - `gdscript_lsp_server_port` - The WebSocket server port of the GDScript language server.
 - `check_status` - Check the GDScript language server connection status.
+
+#### Debugger
+
+To configure the debugger:
+
+1. Open the command palette:
+2. `>Debug: Open launch.json`
+3. Select the Debug Godot configuration.
+4. Change any relevant settings.
+5. Press F5 to launch.
+
+*Configurations*
+
+_Required_
+
+- "project": Absolute path to a directory with a project.godot file. Defaults to the currently open VSCode workspace with `${workspaceFolder}`.
+- "port": Number that represents the port the Godot remote debugger will connect with. Defaults to `6007`.
+- "address": String that represents the IP address that the Godot remote debugger will connect to. Defaults to `127.0.0.1`.
+
+_Optional_
+
+- "launch_game_instance": true/false. If true, an instance of Godot will be launched. Will use the path provided in `editor_path`. Defaults to `true`.
+- "launch_scene": true/false. If true, and launch_game_instance is true, will launch an instance of Godot to a currently active opened TSCN file. Defaults to `false`.
+- "scene_file": Path _relative to the project.godot file_ to a TSCN file. If launch_game_instance and launch_scene are both true, will use this file instead of looking for the currently active opened TSCN file.
+
+*Usage*
+
+- Stacktrace and variable dumps are the same as any regular debugger
+- The active scene tree can be refreshed with the Refresh icon in the top right.
+- Nodes can be brought to the fore in the Inspector by clicking the Eye icon next to nodes in the active scene tree, or Objects in the inspector.
+- You can edit integers, floats, strings, and booleans within the inspector by clicking the pencil icon next to each.
 
 ## Issues and contributions
 

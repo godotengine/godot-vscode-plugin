@@ -4,7 +4,7 @@ import {
 	Event,
 	ProviderResult,
 	TreeItem,
-	TreeItemCollapsibleState
+	TreeItemCollapsibleState,
 } from "vscode";
 import path = require("path");
 import fs = require("fs");
@@ -121,7 +121,7 @@ export class SceneNode extends TreeItem {
 
 		this.iconPath = {
 			light: light,
-			dark: dark
+			dark: dark,
 		};
 	}
 }
