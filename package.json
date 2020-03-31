@@ -80,7 +80,8 @@
 					"tscn",
 					"godot",
 					"gdns",
-					"gdnlib"
+					"gdnlib",
+					"import"
 				]
 			}
 		],
