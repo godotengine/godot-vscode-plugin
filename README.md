@@ -32,6 +32,7 @@ The extension adds a few entries to the VS Code Command Palette under "Godot Too
 - Run the workspace as a Godot project
 - List Godot's native classes
 
+
 ## Settings
 
 ### Godot
@@ -53,6 +54,47 @@ You can use the following settings to configure Godot Tools:
 - `gdscript_lsp_server_port` - The WebSocket server port of the GDScript language server.
 - `check_status` - Check the GDScript language server connection status.
 
+#### Use Godot Tools in your VSCode Extension
+If you are creating a VSCode plugin there are some commands that Godot Tools provides via code.
+
+You can invoke other commands (Godot Tools, built-ins, or other plugins) with 
+```typescript
+vscode.commands.executeCommand('extension.command')
+// or with parameters
+vscode.commands.executeCommand('extension.command', p1, p2, p3 ...)
+```
+All commands return a `Promise`.
+#### Godot Tools Commands:
+
+__`godot-tools.get_run_workspace_command()`__ <br/>
+This will return a `Promise` that will resolve into the current platform specific command you can use to launch Godot for the curretn workspace.  If the Godot executable defined in settings cannot be found then `undefined` will be returned.
+
+__Note__ that this command auto-populates the `--path` command line parameter.
+```typescript
+// Using the command.
+vscode.commands.executeCommand('godot-tool.get_run_workspace_command').then(value => {
+    console.log(`Command to launch Godot = ${value}`);
+    // If you have a terminal instance you can run Godot like this:
+    if(value){
+      myTerminalInstance.sendText(value, true);
+    }    
+}, reason => {
+    // No errors are thrown as of now.
+    console.error(reason);
+  }
+);
+
+```
+__`godot-tools.run_godot(terminalName:string, params: string = '')`__ <br/>
+This will launch Godot via a terminal instance named `terminalName` for the current workspace.  If you specify an already existing terminal then that one will be closed and a new one will be created.  Any command line parameters specified in `params` will be passed to Godot.  
+
+__Note__ that this command auto-populates the `--path` command line parameter.
+```typescript
+// launch godot to run the current workspace
+vscode.commands.executeCommand('godot-tool.run_godot', 'MyTerminal');
+// run a scene
+vscode.commands.executeCommand('godot-tool.run_godot', 'MyTerminal', 'path/to/scene.tscn');
+```
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/godotengine/godot-vscode-plugin) extension

@@ -6,6 +6,9 @@ import { get_configuration, set_configuration } from "./utils";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
+const EDIT_TERMINAL = TOOL_NAME + 'Edit';
+const RUN_TERMINAL = TOOL_NAME + 'Run';
+
 
 export class GodotTools {
 
@@ -24,12 +27,15 @@ export class GodotTools {
 
 	public activate() {
 		vscode.commands.registerCommand("godot-tool.open_editor", ()=>{
-			this.open_workspace_with_editor("-e").catch(err=>vscode.window.showErrorMessage(err));
+			this.open_workspace_with_editor(EDIT_TERMINAL, "-e").catch(err=>vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.run_project", ()=>{
-			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
+			this.open_workspace_with_editor(RUN_TERMINAL).catch(err=>vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
+
+		this.addGetRunWorkspaceCommandCmd();
+		this.addRunGodotCmd();
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -38,13 +44,30 @@ export class GodotTools {
 	}
 
 
-
 	public deactivate() {
 		this.client.stop();
 	}
 
+	private addGetRunWorkspaceCommandCmd(){
+		const command = 'godot-tool.get_run_workspace_command';
+    	const commandHandler = (terminalName:string,  params: string = '') => {
+			return new Promise((resolve, reject) => {
+				resolve(this.getRunGodotCommand());
+			});
+    	};
+    	this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+	}
 
-	private open_workspace_with_editor(params = "") {
+	private addRunGodotCmd(){
+		const command = 'godot-tool.run_godot';
+		const commandHandler = (terminalName:string,  params: string = '') => {
+			return this.open_workspace_with_editor(terminalName, params)
+		};
+		this.context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+	}
+	
+
+	private open_workspace_with_editor(terminalName:string,  params:string = "") {
 
 		return new Promise((resolve, reject) => {
 			let valid = false
@@ -53,64 +76,88 @@ export class GodotTools {
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
 			}
 			if (valid) {
-				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(()=>resolve()).catch(err=>{
-					reject(err);
-				});
+				this.runEditor(terminalName, `--path "${this.workspace_dir}" ${params}`);
+				resolve();
 			} else {
 				reject("Current workspace is not a Godot project");
 			}
 		});
 	}
 
-	private run_editor(params = "") {
-
-		return new Promise((resolve, reject) => {
-			const run_godot = (path: string, params: string) => {
-				const escape_command = (cmd: string) => {
-					let cmdEsc = `"${cmd}"`;
-					if (process.platform === "win32") {
-						const POWERSHELL = "powershell.exe";
-						const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
-						let shell = (shell_plugin ? shell_plugin.get("windows", POWERSHELL) : POWERSHELL) || POWERSHELL;
-						if (shell.endsWith(POWERSHELL)) {
-							cmdEsc = `&${cmdEsc}`;
-						}
-					}
-					return cmdEsc;
-				};
-				let existingTerminal = vscode.window.terminals.find(t => t.name === TOOL_NAME)
-				if (existingTerminal) {
-					existingTerminal.dispose()
-				}
-				let terminal = vscode.window.createTerminal(TOOL_NAME);
-				let editorPath = escape_command(path);
-				let cmmand = `${editorPath} ${params}`;
-				terminal.sendText(cmmand, true);
-				terminal.show();
-				resolve();
-			};
-
-			let editorPath = get_configuration("editor_path", "")
-			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
-			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
-				vscode.window.showOpenDialog({
-						openLabel: "Run",
-						filters: process.platform === "win32" ? {"Godot Editor Binary": ["exe", "EXE"]} : undefined
-					}).then((uris: vscode.Uri[])=> {
-						if (!uris) return;
-						let path = uris[0].fsPath;
-						if (!fs.existsSync(path) || !fs.statSync(path).isFile()) {
-							reject("Invalid editor path to run the project");
-						} else {
-							run_godot(path, params);
-							set_configuration("editor_path", path);
-						}
-				});
-			} else {
-				run_godot(editorPath, params);
+	private escapeCommand(cmd: string){
+		let cmdEsc = `"${cmd}"`;
+		if (process.platform === "win32") {
+			const POWERSHELL = "powershell.exe";
+			const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
+			let shell = (shell_plugin ? shell_plugin.get("windows", POWERSHELL) : POWERSHELL) || POWERSHELL;
+			if (shell.endsWith(POWERSHELL)) {
+				cmdEsc = `&${cmdEsc}`;
 			}
-		});
+		}
+		return cmdEsc;
 	}
+
+	/**
+	 * Returns a string that can be used to launch Godot for the current
+	 * workspace.  This uses the editor_path setting.  If that value of that 
+	 * setting cannot be found on the file system then undefined will be 
+	 * returned and an error message will be displayed on the screen.
+	 */
+	private getRunGodotCommand(){
+		let editorPath = get_configuration("editor_path", "")
+		if(this.verifyEditorPathSetting(editorPath)){
+			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
+			editorPath = this.escapeCommand(editorPath);	
+		} else {
+			editorPath = undefined;
+		}
+		return editorPath;
+	}
+
+	/**
+	 * Verifies that the path passed in exists.  If it does not then an error
+	 * message will be displayed and false will be returned.  Otherwise true 
+	 * will be returned.
+	 * @param editorPath The path to the godot executable
+	 */
+	private verifyEditorPathSetting(editorPath:string){
+		let isValid = false;
+		if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
+			vscode.window.showErrorMessage(`Could not find ${editorPath}.  Please verify that the Godot_tools:Editor_path setting has a proper value.`)
+		} else {
+			isValid = true;
+		}
+		return isValid;
+	}
+
+	/**
+	 * Creates a new terminal or disposes and recreates a terminal with the 
+	 * given name that runs the passed in command.
+	 * @param terminalName the name of the terminal to create or reuse
+	 * @param command the command to run in the terminal
+	 */
+	private reuseTerminal(terminalName:string, command:string){
+		let existingTerminal = vscode.window.terminals.find(t => t.name === terminalName)
+		if (existingTerminal) {
+			existingTerminal.dispose()
+		}
+		let terminal = vscode.window.createTerminal(terminalName);
+		terminal.sendText(command, true);
+		terminal.show();
+	}
+
+	/**
+	 * This will run Godot in the named terminal.
+	 * @param terminalName The name of the terminal to run Godot in
+	 * @param params any command line params to pass to Godot
+	 */
+	private runEditor(terminalName: string, params: string = ""){
+		let runCmd = this.getRunGodotCommand()
+		if(runCmd){
+			this.reuseTerminal(terminalName, `${runCmd} ${params}`)
+		}	
+	}
+
 
 	private check_client_status() {
 		switch (this.client.status) {
@@ -156,7 +203,7 @@ export class GodotTools {
 				this.client.connect_to_server();
 			} else if (item == 'Open Godot Editor') {
 				this.client.status = ClientStatus.PENDING;
-				this.open_workspace_with_editor("-e").then(()=>{
+				this.open_workspace_with_editor(EDIT_TERMINAL, "-e").then(()=>{
 					setTimeout(()=>{
 						this.client.connect_to_server();
 					}, 10 * 1000);
