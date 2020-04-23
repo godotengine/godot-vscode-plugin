@@ -85,6 +85,8 @@ _Optional_
 - Nodes can be brought to the fore in the Inspector by clicking the Eye icon next to nodes in the active scene tree, or Objects in the inspector.
 - You can edit integers, floats, strings, and booleans within the inspector by clicking the pencil icon next to each.
 
+![Showing the debugger in action](img/godot-debug.png)
+
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/godotengine/godot-vscode-plugin) extension
