@@ -2,20 +2,25 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "1.0.3",
+	"version": "1.1.0",
 	"description": "Tools for game development with godot game engine",
-	"repository": "https://github.com/godotengine/godot-vscode-plugin",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/godotengine/godot-vscode-plugin"
+	},
 	"author": "The Godot Engine community",
 	"publisher": "geequlim",
 	"engines": {
 		"vscode": "^1.33.0"
 	},
 	"categories": [
-		"Other"
+		"Other",
+		"Debuggers"
 	],
 	"activationEvents": [
 		"workspaceContains:project.godot",
-		"onLanguage:gdscript"
+		"onLanguage:gdscript",
+		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
 	"scripts": {
@@ -37,6 +42,38 @@
 			{
 				"command": "godot-tool.list_native_classes",
 				"title": "Godot Tools: List native classes of godot"
+			},
+			{
+				"command": "godot-tool.debugger.inspect_node",
+				"title": "Inspect Remote Node",
+				"icon": {
+					"light": "resources/light/icon_GUI_visibility_visible.svg",
+					"dark": "resources/dark/icon_GUI_visibility_visible.svg"
+				}
+			},
+			{
+				"command": "godot-tool.debugger.refresh_scene_tree",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/icon_refresh.svg",
+					"dark": "resources/dark/icon_refresh.svg"
+				}
+			},
+			{
+				"command": "godot-tool.debugger.refresh_inspector",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/icon_refresh.svg",
+					"dark": "resources/dark/icon_refresh.svg"
+				}
+			},
+			{
+				"command": "godot-tool.debugger.edit_value",
+				"title": "Edit value",
+				"icon": {
+					"light": "resources/light/icon_edit.svg",
+					"dark": "resources/dark/icon_edit.svg"
+				}
 			}
 		],
 		"configuration": {
@@ -97,7 +134,133 @@
 				"language": "gdscript",
 				"path": "./configurations/snippets.json"
 			}
-		]
+		],
+		"debuggers": [
+			{
+				"type": "godot",
+				"label": "Godot Debug",
+				"program": "./out/debugger/debug_adapter.js",
+				"runtime": "node",
+				"configurationAttributes": {
+					"launch": {
+						"required": [
+							"project",
+							"port",
+							"address"
+						],
+						"properties": {
+							"project": {
+								"type": "string",
+								"description": "Absolute path to a directory with a project.godot file.",
+								"default": "${workspaceFolder}"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
+							},
+							"address": {
+								"type": "string",
+								"description": "The IP address for the Godot remote debugger to use.",
+								"default": "127.0.0.1"
+							},
+							"launch_game_instance": {
+								"type": "boolean",
+								"description": "Whether to launch an instance of the workspace's game, or wait for a debug session to connect.",
+								"default": true
+							},
+							"launch_scene": {
+								"type": "boolean",
+								"description": "Whether to launch an instance the currently opened TSCN file, or launch the game project. Only works with launch_game_instance being true.",
+								"default": false
+							},
+							"scene_file": {
+								"type": "string",
+								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
+								"default": ""
+							}
+						}
+					}
+				},
+				"initialConfigurations": [
+					{
+						"name": "Godot",
+						"type": "godot",
+						"request": "launch",
+						"project": "${workspaceFolder}",
+						"port": 6007,
+						"address": "127.0.0.1",
+						"launch_game_instance": true,
+						"launch_scene": false
+					}
+				],
+				"configurationSnippets": [
+					{
+						"label": "Godot Debug: Launch",
+						"description": "A new configuration for debugging a Godot project.",
+						"body": {
+							"type": "godot",
+							"request": "launch",
+							"project": "${workspaceFolder}",
+							"port": 6007,
+							"address": "127.0.0.1",
+							"launch_game_instance": true,
+							"launch_scene": false
+						}
+					}
+				]
+			}
+		],
+		"breakpoints": [
+			{
+				"language": "gdscript"
+			}
+		],
+		"views": {
+			"debug": [
+				{
+					"id": "active-scene-tree",
+					"name": "Active Scene Tree",
+					"when": "inDebugMode && debugType == 'godot'"
+				},
+				{
+					"id": "inspect-node",
+					"name": "Inspector",
+					"when": "inDebugMode && debugType == 'godot'"
+				}
+			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "godot-tool.debugger.refresh_scene_tree",
+					"when": "view == active-scene-tree",
+					"group": "navigation"
+				},
+				{
+					"command": "godot-tool.debugger.refresh_inspector",
+					"when": "view == inspect-node",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "godot-tool.debugger.inspect_node",
+					"when": "view == active-scene-tree",
+					"group": "inline"
+				},
+				{
+					"command": "godot-tool.debugger.inspect_node",
+					"when": "view == inspect-node && viewItem == remote_object",
+					"group": "inline"
+				},
+				{
+					"command": "godot-tool.debugger.edit_value",
+					"when": "view == inspect-node && viewItem == editable_value",
+					"group": "inline"
+				}
+			]
+		}
 	},
 	"devDependencies": {
 		"@types/marked": "^0.6.5",
@@ -113,6 +276,9 @@
 		"global": "^4.4.0",
 		"marked": "^0.7.0",
 		"vscode-languageclient": "^5.2.1",
-		"ws": "^7.0.0"
+		"ws": "^7.0.0",
+		"await-notify": "^1.0.1",
+		"terminate": "^2.1.2",
+		"vscode-debugadapter": "^1.38.0"
 	}
 }
