@@ -176,7 +176,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 	): ProviderResult<DebugConfiguration> {
 		if (!config.type && !config.request && !config.name) {
 			const editor = window.activeTextEditor;
-			if (editor && fs.existsSync(`${folder}/project.godot`)) {
+			if (editor && fs.existsSync(`${folder.uri.fsPath}/project.godot`)) {
 				config.type = "godot";
 				config.name = "Debug Godot";
 				config.request = "launch";
