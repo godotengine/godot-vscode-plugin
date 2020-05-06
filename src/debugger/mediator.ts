@@ -4,8 +4,6 @@ import { GodotDebugSession } from "./debug_session";
 import { StoppedEvent, TerminatedEvent } from "vscode-debugadapter";
 import { GodotDebugData, GodotVariable } from "./debug_runtime";
 
-let output: OutputChannel;
-
 export class Mediator {
 	private static controller?: ServerController;
 	private static debug_data?: GodotDebugData;
@@ -15,27 +13,24 @@ export class Mediator {
 	> = new Map();
 	private static session?: GodotDebugSession;
 	private static first_output = false;
+	private static output: OutputChannel = window.createOutputChannel("Godot");
 
-	private constructor() {
-		if (!output) {
-			output = window.createOutputChannel("Godot");
-		} else {
-			output.clear();
-		}
-	}
+	private constructor() {}
 
 	public static notify(event: string, parameters: any[] = []) {
 		switch (event) {
 			case "output":
-				let lines: string[] = parameters;
-				lines.forEach((line) => {
-					output?.appendLine(line);
-				});
-				
-				if(!this.first_output) {
+				if (!this.first_output) {
 					this.first_output = true;
+					this.output.show(true);
+					this.output.clear();
 					this.controller?.send_request_scene_tree_command();
 				}
+
+				let lines: string[] = parameters;
+				lines.forEach((line) => {
+					this.output.appendLine(line);
+				});
 				break;
 
 			case "continue":
