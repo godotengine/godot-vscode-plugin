@@ -95,6 +95,26 @@ export class ServerController {
 	) {
 		this.debug_data = debug_data;
 
+		if (launch_instance) {
+			let godot_path: string = utils.get_configuration("editor_path", "godot");
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
+			if (launch_scene) {
+				let filename = "";
+				if (scene_file) {
+					filename = scene_file;
+				} else {
+					filename = window.activeTextEditor.document.fileName;
+				}
+				executable_line += ` "${filename}"`;
+			}
+			executable_line += this.breakpoint_string(
+				debug_data.get_all_breakpoints(),
+				project_path
+			);
+			let godot_exec = cp.exec(executable_line);
+			this.godot_pid = godot_exec.pid;
+		}
+
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
@@ -137,32 +157,6 @@ export class ServerController {
 		});
 
 		this.server.listen(port, address);
-
-		if (launch_instance) {
-			let godot_path: string = utils.get_configuration("editor_path", "godot");
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
-			if (launch_scene) {
-				let filename = "";
-				if (scene_file) {
-					filename = scene_file;
-				} else {
-					filename = window.activeTextEditor.document.fileName;
-				}
-				if (path.extname(filename).toLowerCase() === ".tscn") {
-					executable_line += ` ${path.relative(project_path, filename)}`;
-				} else {
-					window.showErrorMessage("Active file is not a TSCN file.");
-					Mediator.notify("stop");
-					return;
-				}
-			}
-			executable_line += this.breakpoint_string(
-				debug_data.get_all_breakpoints(),
-				project_path
-			);
-			let godot_exec = cp.exec(executable_line);
-			this.godot_pid = godot_exec.pid;
-		}
 	}
 
 	public step() {
@@ -179,6 +173,7 @@ export class ServerController {
 			this.server.close();
 			this.server = undefined;
 		});
+
 		if (this.godot_pid) {
 			TERMINATE(this.godot_pid, (error: string | undefined) => {
 				if (error) {
