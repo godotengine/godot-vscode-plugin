@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient";
 import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter, Message } from "./MessageIO";
 import logger from "../loggger";
 import { EventEmitter } from "events";
 import NativeDocumentManager from './NativeDocumentManager';
+
+const use_tcp = get_configuration("use_tcp", false);
+const MessageIO = use_tcp ? require("./MessageIO_TCP").MessageIO : require("./MessageIO_WS").MessageIO
+const MessageIOReader = use_tcp ? require("./MessageIO_TCP").MessageIOReader : require("./MessageIO_WS").MessageIOReader
+const MessageIOWriter = use_tcp ? require("./MessageIO_TCP").MessageIOWriter : require("./MessageIO_WS").MessageIOWriter
+const Message = use_tcp ? require("./MessageIO_TCP").Message : require("./MessageIO_WS").Message
 
 function getClientOptions(): LanguageClientOptions {
 	return {
@@ -24,7 +29,18 @@ function get_server_port() : number {
 	return get_configuration("gdscript_lsp_server_port", 6008);
 }
 
-const io = new MessageIO(get_server_port());
+function get_server_uri_ws() : string {
+	let port = get_configuration("gdscript_lsp_server_port")
+	return  `ws://localhost:${port}`
+}
+
+let io = null;
+if (get_configuration("use_tcp", false)) {
+	io = new MessageIO(get_server_port())
+} else {
+	io = new MessageIO(get_server_uri_ws())
+}
+
 const serverOptions: ServerOptions = () => {
 	return new Promise((resolve, reject) => {
 		resolve({reader: new MessageIOReader(io), writer: new MessageIOWriter(io)});
@@ -40,13 +56,13 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public io: MessageIO = io;
+	public io = io;
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
 	private _status : ClientStatus;
 	private _status_changed_callbacks: ((v : ClientStatus)=>void)[] = [];
-	private _initialize_request: Message = null;
+	private _initialize_request = null;
 	private message_handler: MessageHandler = null;
 	private native_doc_manager: NativeDocumentManager = null;
 
@@ -89,14 +105,14 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		return super.start();
 	}
 
-	private on_send_message(message: Message) {
+	private on_send_message(message) {
 		if (is_debug_mode()) logger.log("[client]", JSON.stringify(message));
 		if ((message as RequestMessage).method == "initialize") {
 			this._initialize_request = message;
 		}
 	}
 
-	private on_message(message: Message) {
+	private on_message(message) {
 		if (is_debug_mode()) logger.log("[server]", JSON.stringify(message));
 		this.message_handler.on_message(message);
 	}

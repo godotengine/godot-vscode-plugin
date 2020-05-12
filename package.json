@@ -94,6 +94,11 @@
 					"type": "string",
 					"default": "",
 					"description": "Check the gdscript language server connection status"
+				},
+				"godot_tools.use_tcp": {
+					"type": "boolean",
+					"default": false,
+					"description": "Use the new raw TCP implementation in the beta"
 				}
 			}
 		},

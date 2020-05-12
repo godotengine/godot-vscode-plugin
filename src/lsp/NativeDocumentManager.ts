@@ -1,10 +1,14 @@
 import * as vscode from 'vscode';
 import { EventEmitter } from "events";
-import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
 import * as Prism from "../deps/prism/prism";
 import * as marked from "marked";
 import { Methods, NativeSymbolInspectParams, GodotNativeSymbol, GodotNativeClassInfo, GodotCapabilities } from './gdscript.capabilities';
+import { get_configuration } from "../utils";
+
+const use_tcp = get_configuration("use_tcp", false);
+const MessageIO = use_tcp ? require("./MessageIO_TCP").MessageIO : require("./MessageIO_WS").MessageIO
+
 marked.setOptions({
 	highlight: function (code, lang) {
 		return Prism.highlight(code, GDScriptGrammar, lang);
@@ -18,10 +22,10 @@ const LIST_NATIVE_CLASS_COMMAND = 'godot-tool.list_native_classes';
 
 export default class NativeDocumentManager extends EventEmitter {
 	
-	private io: MessageIO = null;
+	private io = null;
 	private native_classes: {[key: string]: GodotNativeClassInfo } = {};
 	
-	constructor(io: MessageIO) {
+	constructor(io) {
 		super();
 		this.io = io;
 		io.on("message", (message: NotificationMessage)=>{
