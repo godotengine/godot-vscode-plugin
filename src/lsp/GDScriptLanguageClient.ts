@@ -1,36 +1,10 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient";
 import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter, Message } from "./MessageIO";
+import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebsocktMessageIO, TCPMessageIO } from "./MessageIO";
 import logger from "../loggger";
 import { EventEmitter } from "events";
 import NativeDocumentManager from './NativeDocumentManager';
-
-function getClientOptions(): LanguageClientOptions {
-	return {
-		// Register the server for plain text documents
-		documentSelector: [
-			{ scheme: "file", language: "gdscript" },
-			{ scheme: "untitled", language: "gdscript" },
-		],
-		synchronize: {
-			// Notify the server about file changes to '.gd files contain in the workspace
-			// fileEvents: workspace.createFileSystemWatcher("**/*.gd"),
-		},
-	};
-}
-
-function get_server_uri() : string {
-	let port = get_configuration("gdscript_lsp_server_port", 6008);
-	return `ws://localhost:${port}`;
-}
-
-const io = new MessageIO(get_server_uri());
-const serverOptions: ServerOptions = () => {
-	return new Promise((resolve, reject) => {
-		resolve({reader: new MessageIOReader(io), writer: new MessageIOWriter(io)});
-	});
-};
 
 export enum ClientStatus {
 	PENDING,
@@ -41,7 +15,7 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public io: MessageIO = io;
+	public readonly io: MessageIO = (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") ? new WebsocktMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
@@ -69,10 +43,28 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	constructor(context: vscode.ExtensionContext) {
-		super(`GDScriptLanguageClient`, serverOptions, getClientOptions());
+		super(
+			`GDScriptLanguageClient`,
+			() => {
+				return new Promise((resolve, reject) => {
+					resolve({reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io)});
+				});
+			},
+			{
+				// Register the server for plain text documents
+				documentSelector: [
+					{ scheme: "file", language: "gdscript" },
+					{ scheme: "untitled", language: "gdscript" },
+				],
+				synchronize: {
+					// Notify the server about file changes to '.gd files contain in the workspace
+					// fileEvents: workspace.createFileSystemWatcher("**/*.gd"),
+				},
+			}
+		);
 		this.context = context;
 		this.status = ClientStatus.PENDING;
-		this.message_handler = new MessageHandler();
+		this.message_handler = new MessageHandler(this.io);
 		this.io.on('disconnected', this.on_disconnected.bind(this));
 		this.io.on('connected', this.on_connected.bind(this));
 		this.io.on('message', this.on_message.bind(this));
@@ -82,7 +74,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		io.connect_to_language_server(get_server_uri());
+		let port = get_configuration("gdscript_lsp_server_port", 6008);
+		this.io.connect_to_language_server(port);
 	}
 
 	start(): vscode.Disposable {
@@ -118,6 +111,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 class MessageHandler extends EventEmitter {
 
+	private io: MessageIO = null;
+
+	constructor(io: MessageIO) {
+		super();
+		this.io = io;
+	}
+
 	changeWorkspace(params: {path: string}) {
 		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item=>{
 			if (item == "Reload") {
@@ -139,7 +139,7 @@ class MessageHandler extends EventEmitter {
 			if (this[method]) {
 				let ret = this[method](message.params);
 				if (ret) {
-					io.writer.write(ret);
+					this.io.writer.write(ret);
 				}
 			}
 		}

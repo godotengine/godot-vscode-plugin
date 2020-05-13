@@ -1,5 +1,9 @@
 # Change Log
 
+### 1.1.1
+* Fix bug for GDScript debugger
+* Add TCP protocol support for GDScript language server Godot 3.2.2
+
 ### 1.1
 * Add the debugger to the extension
 

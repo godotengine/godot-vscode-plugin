@@ -1,6 +1,8 @@
 import { AbstractMessageReader, MessageReader, DataCallback } from "vscode-jsonrpc/lib/messageReader";
 import { EventEmitter } from "events";
-import * as WebSocket  from 'ws';
+import * as WebSocket from 'ws';
+import { Socket } from 'net';
+
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
 import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc/lib/messages";
@@ -10,18 +12,9 @@ export class MessageIO extends EventEmitter {
 	
 	reader: MessageIOReader = null;
 	writer: MessageIOWriter = null;
-	
-	private socket: WebSocket = null; 
-	
-	constructor(url: string) {
-		super();
-	}
-	
+
 	public send_message(message: string) {
-		if (this.socket) {
-			this.socket.send(message);
-		}
-		
+		// virtual
 	}
 	
 	protected on_message(chunk: WebSocket.Data) {
@@ -37,27 +30,75 @@ export class MessageIO extends EventEmitter {
 		this.emit("message", message);
 	}
 	
-	connect_to_language_server(url: string):Promise<void> {
+	async connect_to_language_server(port: number): Promise<void> {
+		// virtual
+	}
+};
+
+
+export class WebsocktMessageIO extends MessageIO {
+
+	private socket: WebSocket = null;
+
+	public send_message(message: string) {
+		if (this.socket) {
+			this.socket.send(message);
+		}
+	}
+
+	async connect_to_language_server(port: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
-			const ws = new WebSocket(url);
+			const ws = new WebSocket(`ws://localhost:${port}`);
 			ws.on('open', ()=>{ this.on_connected(ws); resolve(); });
 			ws.on('message', this.on_message.bind(this));
 			ws.on('error', this.on_disconnected.bind(this));
 			ws.on('close', this.on_disconnected.bind(this));
 		});
 	}
-	
-	private on_connected(socket: WebSocket) {
+
+	protected on_connected(socket: WebSocket) {
 		this.socket = socket;
 		this.emit("connected");
 	}
 	
-	private on_disconnected() {
+	protected on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');
 	}
-};
+}
+
+export class TCPMessageIO extends MessageIO {
+	private socket: Socket = null;
+
+	public send_message(message: string) {
+		if (this.socket) {
+			this.socket.write(message);
+		}
+	}
+
+	async connect_to_language_server(port: number):Promise<void> {
+		return new Promise((resolve, reject) => {
+			this.socket = null;
+			const socket = new Socket();
+			socket.connect(port);
+			socket.on('connect', ()=>{ this.on_connected(socket); resolve(); });
+			socket.on('data', this.on_message.bind(this));
+			socket.on('end', this.on_disconnected.bind(this));
+			socket.on('close', this.on_disconnected.bind(this));
+		});
+	}
+
+	protected on_connected(socket: Socket) {
+		this.socket = socket;
+		this.emit("connected");
+	}
+	
+	protected on_disconnected() {
+		this.socket = null;
+		this.emit('disconnected');
+	}
+}
 
 
 export class MessageIOReader extends AbstractMessageReader implements MessageReader {

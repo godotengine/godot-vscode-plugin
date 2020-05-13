@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Tools for game development with godot game engine",
 	"repository": {
 		"type": "git",
@@ -80,10 +80,20 @@
 			"type": "object",
 			"title": "Godot Tools configuration",
 			"properties": {
+				"godot_tools.gdscript_lsp_server_protocol": {
+					"type": ["string"],
+					"enum": ["ws", "tcp"],
+					"default": "tcp",
+					"enumDescriptions": [
+						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
+						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
+					],
+					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+				},
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
 					"default": 6008,
-					"description": "The websocket server port of the GDScript language server"
+					"description": "The server port of the GDScript language server"
 				},
 				"godot_tools.editor_path": {
 					"type": "string",
@@ -267,18 +277,19 @@
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
 		"@types/prismjs": "^1.16.0",
+		"@types/vscode": "^1.33.0",
 		"@types/ws": "^6.0.1",
 		"tslint": "^5.16.0",
-		"typescript": "^3.5.1",
-		"@types/vscode": "^1.33.0"
+		"typescript": "^3.5.1"
 	},
 	"dependencies": {
+		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
 		"marked": "^0.7.0",
-		"vscode-languageclient": "^5.2.1",
-		"ws": "^7.0.0",
-		"await-notify": "^1.0.1",
+		"net": "^1.0.2",
 		"terminate": "^2.1.2",
-		"vscode-debugadapter": "^1.38.0"
+		"vscode-debugadapter": "^1.38.0",
+		"vscode-languageclient": "^5.2.1",
+		"ws": "^7.0.0"
 	}
 }

@@ -23,7 +23,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	public clean_up() {
 		if (this.tree) {
 			this.tree = undefined;
-			this._on_did_change_tree_data.fire();
+			this._on_did_change_tree_data.fire(this.tree);
 		}
 	}
 
@@ -37,7 +37,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		this.tree.label = element_name;
 		this.tree.collapsibleState = TreeItemCollapsibleState.Expanded;
 		this.tree.description = class_name;
-		this._on_did_change_tree_data.fire();
+		this._on_did_change_tree_data.fire(this.tree);
 	}
 
 	public getChildren(
