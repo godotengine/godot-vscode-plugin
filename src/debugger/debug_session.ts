@@ -13,6 +13,7 @@ import { ServerController } from "./server_controller";
 const { Subject } = require("await-notify");
 import fs = require("fs");
 import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
+import { get_configuration } from "../utils";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -228,6 +229,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		await this.configuration_done.wait(2000);
 		this.exception = false;
 		this.debug_data.project_path = args.project;
+		if (get_configuration("scene_file_config", "") != "") {
+			args.scene_file = get_configuration("scene_file_config", "")
+		}
 		Mediator.notify("start", [
 			args.project,
 			args.address,
@@ -236,6 +240,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.launch_scene,
 			args.scene_file,
 		]);
+		
 		this.sendResponse(response);
 	}
 
