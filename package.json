@@ -287,7 +287,6 @@
 			"explorer/context": [
 				{
 					"command": "godot-tool.set_scene_file",
-					"when": "resourceLangId == properties && resourceExtname == .tscn",
 					"group": "2_workspace"
 				}
 			]
