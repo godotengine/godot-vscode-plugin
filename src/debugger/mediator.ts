@@ -152,13 +152,13 @@ export class Mediator {
 
 			case "stop":
 				this.controller?.stop();
-				this.session?.sendEvent(new TerminatedEvent(false));
+				this.session?.sendEvent(new TerminatedEvent());
 				break;
 
 			case "error":
 				this.controller?.set_exception(parameters[0]);
 				this.controller?.stop();
-				this.session?.sendEvent(new TerminatedEvent(false));
+				this.session?.sendEvent(new TerminatedEvent());
 				break;
 		}
 	}

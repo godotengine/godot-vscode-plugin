@@ -22,7 +22,7 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 
 	public fill_tree(tree: SceneNode) {
 		this.tree = tree;
-		this._on_did_change_tree_data.fire(this.tree);
+		this._on_did_change_tree_data.fire(undefined);
 	}
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {

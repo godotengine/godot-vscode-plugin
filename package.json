@@ -81,8 +81,13 @@
 			"title": "Godot Tools configuration",
 			"properties": {
 				"godot_tools.gdscript_lsp_server_protocol": {
-					"type": ["string"],
-					"enum": ["ws", "tcp"],
+					"type": [
+						"string"
+					],
+					"enum": [
+						"ws",
+						"tcp"
+					],
 					"default": "tcp",
 					"enumDescriptions": [
 						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
@@ -148,7 +153,7 @@
 		"debuggers": [
 			{
 				"type": "godot",
-				"label": "Godot Debug",
+				"label": "GDScript Godot Debug",
 				"program": "./out/debugger/debug_adapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
@@ -194,7 +199,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"name": "Godot",
+						"name": "GDScript Godot",
 						"type": "godot",
 						"request": "launch",
 						"project": "${workspaceFolder}",
@@ -206,7 +211,7 @@
 				],
 				"configurationSnippets": [
 					{
-						"label": "Godot Debug: Launch",
+						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
 							"type": "godot",
