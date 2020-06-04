@@ -160,13 +160,6 @@
     ]
   },
 
-  "Is instance of a class": {
-    "prefix": "extends",
-		"body": [
-      "${1:instance} extends ${2:class_name}"
-    ]
-  },
-
   "Is instance of a class or script": {
     "prefix": "is",
     "body": [
@@ -197,20 +190,7 @@
       ""
     ]
   },
-  
-  "Enable process function": {
-    "prefix": "process",
-		"body": [
-      "set_process(true)"
-    ]
-  },
 
-  "Enable process input function": {
-    "prefix": "processin",
-		"body": [
-      "set_process_input(true)"
-    ]
-  },
   "pass statement": {
     "prefix": "pass",
     "body": [
