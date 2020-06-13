@@ -84,14 +84,18 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: Message) {
-		if (is_debug_mode()) logger.log("[client]", JSON.stringify(message));
+		if (is_debug_mode()) {
+			logger.log("[client]", JSON.stringify(message));
+		}
 		if ((message as RequestMessage).method == "initialize") {
 			this._initialize_request = message;
 		}
 	}
 
 	private on_message(message: Message) {
-		if (is_debug_mode()) logger.log("[server]", JSON.stringify(message));
+		if (is_debug_mode()) {
+			logger.log("[server]", JSON.stringify(message));
+		}
 		this.message_handler.on_message(message);
 	}
 
@@ -105,7 +109,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private on_disconnected() {
 		this.status = ClientStatus.DISCONNECTED;
 	}
-};
+}
 
 
 
@@ -128,12 +132,12 @@ class MessageHandler extends EventEmitter {
 	}
 
 	on_message(message: any) {
-		
+
 		// FIXME: Hot fix VSCode 1.42 hover position
-		if (message && message.result && message.result.range && message.result.contents) { 
+		if (message && message.result && message.result.range && message.result.contents) {
 			message.result.range = undefined;
 		}
-		
+
 		if (message && message.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
 			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
 			if (this[method]) {

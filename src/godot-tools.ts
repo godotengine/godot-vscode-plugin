@@ -47,7 +47,7 @@ export class GodotTools {
 	private open_workspace_with_editor(params = "") {
 
 		return new Promise((resolve, reject) => {
-			let valid = false
+			let valid = false;
 			if (this.workspace_dir) {
 				let cfg = path.join(this.workspace_dir, this.project_file);
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
@@ -78,9 +78,9 @@ export class GodotTools {
 					}
 					return cmdEsc;
 				};
-				let existingTerminal = vscode.window.terminals.find(t => t.name === TOOL_NAME)
+				let existingTerminal = vscode.window.terminals.find(t => t.name === TOOL_NAME);
 				if (existingTerminal) {
-					existingTerminal.dispose()
+					existingTerminal.dispose();
 				}
 				let terminal = vscode.window.createTerminal(TOOL_NAME);
 				let editorPath = escape_command(path);
@@ -90,14 +90,16 @@ export class GodotTools {
 				resolve();
 			};
 
-			let editorPath = get_configuration("editor_path", "")
+			let editorPath = get_configuration("editor_path", "");
 			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
 						openLabel: "Run",
 						filters: process.platform === "win32" ? {"Godot Editor Binary": ["exe", "EXE"]} : undefined
 					}).then((uris: vscode.Uri[])=> {
-						if (!uris) return;
+						if (!uris) {
+							return;
+						}
 						let path = uris[0].fsPath;
 						if (!fs.existsSync(path) || !fs.statSync(path).isFile()) {
 							reject("Invalid editor path to run the project");
@@ -164,4 +166,4 @@ export class GodotTools {
 			}
 		});
 	}
-};
+}

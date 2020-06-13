@@ -9,31 +9,31 @@ import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jso
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
-	
+
 	reader: MessageIOReader = null;
 	writer: MessageIOWriter = null;
 
 	public send_message(message: string) {
 		// virtual
 	}
-	
+
 	protected on_message(chunk: WebSocket.Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
 	}
-	
+
 	on_send_message(message: any) {
 		this.emit("send_message", message);
 	}
-	
+
 	on_message_callback(message: any) {
 		this.emit("message", message);
 	}
-	
+
 	async connect_to_language_server(port: number): Promise<void> {
 		// virtual
 	}
-};
+}
 
 
 export class WebsocktMessageIO extends MessageIO {
@@ -61,7 +61,7 @@ export class WebsocktMessageIO extends MessageIO {
 		this.socket = socket;
 		this.emit("connected");
 	}
-	
+
 	protected on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');
@@ -93,7 +93,7 @@ export class TCPMessageIO extends MessageIO {
 		this.socket = socket;
 		this.emit("connected");
 	}
-	
+
 	protected on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');

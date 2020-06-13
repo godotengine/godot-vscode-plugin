@@ -13,14 +13,14 @@ marked.setOptions({
 
 const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = 'INSPECT_NATIVE_SYMBOL',
-};
+}
 const LIST_NATIVE_CLASS_COMMAND = 'godot-tool.list_native_classes';
 
 export default class NativeDocumentManager extends EventEmitter {
-	
+
 	private io: MessageIO = null;
 	private native_classes: {[key: string]: GodotNativeClassInfo } = {};
-	
+
 	constructor(io: MessageIO) {
 		super();
 		this.io = io;
@@ -40,10 +40,10 @@ export default class NativeDocumentManager extends EventEmitter {
 				}
 			}
 		});
-		
+
 		vscode.commands.registerCommand(LIST_NATIVE_CLASS_COMMAND, this.list_native_classes.bind(this));
 	}
-	
+
 	private async list_native_classes() {
 		let classname = await vscode.window.showQuickPick(
 			Object.keys(this.native_classes).sort(),
@@ -56,7 +56,7 @@ export default class NativeDocumentManager extends EventEmitter {
 			this.inspect_native_symbol({native_class: classname, symbol_name: classname});
 		}
 	}
-	
+
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
 		this.io.send_message(JSON.stringify({
 			id: -1,
@@ -66,7 +66,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		}));
 	}
 
-	
+
 	private show_native_symbol(symbol: GodotNativeSymbol) {
 		// 创建webview
 		const panel = vscode.window.createWebviewPanel(
@@ -82,7 +82,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		panel.webview.html = this.make_html_content(symbol);
 		panel.webview.onDidReceiveMessage(this.on_webview_message.bind(this));
 	}
-	
+
 	private on_webview_message(msg: any) {
 		switch (msg.type) {
 			case WebViewMessageType.INSPECT_NATIVE_SYMBOL:
@@ -92,7 +92,7 @@ export default class NativeDocumentManager extends EventEmitter {
 				break;
 		}
 	}
-	
+
 	private make_html_content(symbol: GodotNativeSymbol): string {
 		return `
 		<html>
@@ -130,28 +130,32 @@ export default class NativeDocumentManager extends EventEmitter {
 			</script>
 		</html>`;
 	}
-	
-	
+
+
 	private make_symbol_document(symbol: GodotNativeSymbol): string {
 		const classlink = make_link(symbol.native_class, undefined);
 		const classinfo = this.native_classes[symbol.native_class];
-		
+
 		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
-			if (!parts) return "";
+			if (!parts) {
+				return "";
+			}
 			const ret_type = make_link(parts[2] || "void", undefined);
 			let args = (parts[1] || "").replace(/\:\s([A-z0-9_]+)(\,\s*)?/g, `: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`);
-			args = args.replace(/\s=\s(.*?)[\,\)]/g, "")
+			args = args.replace(/\s=\s(.*?)[\,\)]/g, "");
 			return `${ret_type} ${with_class?`${classlink}.`:''}${element("a", s.name, {href: `#${s.name}`})}( ${args} )`;
-		};
-		
+		}
+
 		function make_symbol_elements(s: GodotNativeSymbol, with_class = false): {index?: string, body: string} {
 			switch (s.kind) {
 				case vscode.SymbolKind.Property:
 				case vscode.SymbolKind.Variable: {
 					// var Control.anchor_left: float
 					const parts = /\.([A-z_0-9]+)\:\s(.*)$/.exec(s.detail);
-					if (!parts) return;
+					if (!parts) {
+						return;
+					}
 					let type = make_link(parts[2], undefined);
 					let name = element("a", s.name, {href: `#${s.name}`});
 					const title = element('h4', `${type} ${with_class?`${classlink}.`:''}${s.name}`);
@@ -166,11 +170,13 @@ export default class NativeDocumentManager extends EventEmitter {
 					// const Control.FOCUS_ALL: FocusMode = 2
 					// const Control.NOTIFICATION_RESIZED = 40
 					const parts = /\.([A-Za-z_0-9]+)(\:\s*)?([A-z0-9_\.]+)?\s*=\s*(.*)$/.exec(s.detail);
-					if (!parts) return;
+					if (!parts) {
+						return;
+					}
 					let type = make_link(parts[3] || 'int', undefined);
 					let name = parts[1];
 					let value = element('code', parts[4]);
-					
+
 					const title = element('p', `${type} ${with_class?`${classlink}.`:''}${name} = ${value}`);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
 					const div = element("div", title + doc);
@@ -180,7 +186,9 @@ export default class NativeDocumentManager extends EventEmitter {
 				} break;
 				case vscode.SymbolKind.Event: {
 					const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail);
-					if (!parts) return;
+					if (!parts) {
+						return;
+					}
 					const args = (parts[2] || "").replace(/\:\s([A-z0-9_]+)(\,\s*)?/g, `: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`);
 					const title = element('p', `${with_class?`signal ${with_class?`${classlink}.`:''}`:''}${s.name}( ${args} )`);
 					const doc = element("p", format_documentation(s.documentation, symbol.native_class));
@@ -203,10 +211,10 @@ export default class NativeDocumentManager extends EventEmitter {
 				default:
 					break;
 			}
-		};
-		
+		}
+
 		if (symbol.kind == vscode.SymbolKind.Class) {
-			
+
 			let doc = element("h2", `Native class ${symbol.name}`);
 			const parts = /extends\s+([A-z0-9]+)/.exec(symbol.detail);
 			let inherits = parts && parts.length > 1 ? parts[1] : '';
@@ -227,7 +235,7 @@ export default class NativeDocumentManager extends EventEmitter {
 				}
 				doc += element("p", `Inherited by:${inherited}`);
 			}
-			
+
 			let constants = "";
 			let signals = "";
 			let methods_index = "";
@@ -235,7 +243,7 @@ export default class NativeDocumentManager extends EventEmitter {
 			let properties_index = "";
 			let propertyies = "";
 			let others = "";
-			
+
 			for (let s of symbol.children as GodotNativeSymbol[]) {
 				const elements = make_symbol_elements(s);
 				switch (s.kind) {
@@ -260,14 +268,14 @@ export default class NativeDocumentManager extends EventEmitter {
 						break;
 				}
 			}
-			
+
 			function add_group(title: string, block: string) {
 				if (block) {
 					doc += element('h3', title);
 					doc += element('ul', block);
 				}
-			};
-			
+			}
+
 			doc += element("p", format_documentation(symbol.documentation, symbol.native_class));
 			add_group("Properties", properties_index);
 			add_group("Constants", constants);
@@ -277,7 +285,7 @@ export default class NativeDocumentManager extends EventEmitter {
 			add_group("Method Descriptions", methods);
 			add_group("Other Members", others);
 			doc += element("script", `var godot_class = "${symbol.native_class}";`);
-			
+
 			return doc;
 		} else {
 			let doc = "";

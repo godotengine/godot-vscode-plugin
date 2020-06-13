@@ -81,8 +81,13 @@
 			"title": "Godot Tools configuration",
 			"properties": {
 				"godot_tools.gdscript_lsp_server_protocol": {
-					"type": ["string"],
-					"enum": ["ws", "tcp"],
+					"type": [
+						"string"
+					],
+					"enum": [
+						"ws",
+						"tcp"
+					],
 					"default": "tcp",
 					"enumDescriptions": [
 						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
@@ -280,7 +285,8 @@
 		"@types/vscode": "^1.33.0",
 		"@types/ws": "^6.0.1",
 		"tslint": "^5.16.0",
-		"typescript": "^3.5.1"
+		"typescript": "^3.5.1",
+		"vsce": "^1.76.1"
 	},
 	"dependencies": {
 		"await-notify": "^1.0.1",

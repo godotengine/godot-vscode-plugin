@@ -8,7 +8,7 @@
 		"semicolon": [
 			true,
 			"always"
-		],
+		]
 	},
 	"defaultSeverity": "warning"
 }
