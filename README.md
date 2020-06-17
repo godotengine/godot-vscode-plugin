@@ -96,6 +96,23 @@ and create pull requests anytime.
 See the [full changelog](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 for the latest changes.
 
+### Building from source
+
+#### Requirements
+
+- [npm](https://www.npmjs.com/get-npm)
+- Typescript to compile, installed using npm with `npm install -g typescript`
+- VSCE to create a VSIX file, installed using npm with `npm install -g vsce`
+
+#### Process
+
+1. Open a command prompt/terminal and browse to the location of this repository on your local filesystem.
+2. Download dependencies by using the command `npm install`
+3. When done, package a VSIX file by using the command `vsce package`.
+4. Install it by opening Visual Studio Code, opening the Extensions tab, clicking on the More actions (**...**) button in the top right, and choose **Install from VSIX...** and find the compiled VSIX file.
+
+When developing for the extension, you can open this project in Visual Studio Code and debug the extension by using the **Run Extension** launch configuration instead of going through steps 3 and 4. It will launch a new instance of Visual Studio Code that has the extension running. You can then open a Godot project folder and debug the extension or GDScript debugger.
+
 ## FAQ
 
 ### Why does it fail to connect to the language server?
