@@ -21,7 +21,7 @@ experience as comfortable as possible:
 - Ctrl + click on a variable or method call to jump to its definition
 - Full documentation of the Godot Engine's API supported
 - Run a Godot project from VS Code
-- Debug your Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
+- Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
 ![Showing the documentation on hover feature](img/godot-tools.png)
 
@@ -50,13 +50,15 @@ for Godot by following these steps:
 
 You can use the following settings to configure Godot Tools:
 
-- `editor_path` - The absolute path to the Godot editor executable.
+- `editor_path` - The absolute path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
 - `gdscript_lsp_server_port` - The WebSocket server port of the GDScript language server.
 - `check_status` - Check the GDScript language server connection status.
 
-#### Debugger
+#### GDScript Debugger
 
-To configure the debugger:
+The debugger is for GDScript projects. To debug C# projects, use [C# Tools for Godot](https://github.com/godotengine/godot-csharp-vscode).
+
+To configure the GDScript debugger:
 
 1. Open the command palette:
 2. `>Debug: Open launch.json`

@@ -24,6 +24,7 @@ export class ServerController {
 	private server?: net.Server;
 	private socket?: net.Socket;
 	private stepping_out = false;
+	private terminated = false;
 
 	public break() {
 		this.add_and_send(this.commands.make_break_command());
@@ -111,7 +112,11 @@ export class ServerController {
 				debug_data.get_all_breakpoints(),
 				project_path
 			);
-			let godot_exec = cp.exec(executable_line);
+			let godot_exec = cp.exec(executable_line, (error) => {
+				if (!this.terminated) {
+					window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
+				}
+			});
 			this.godot_pid = godot_exec.pid;
 		}
 
@@ -169,19 +174,24 @@ export class ServerController {
 	}
 
 	public stop() {
-		this.socket?.end(() => {
-			this.server.close();
+		this.socket?.destroy();
+		this.server?.close((error) => {
+			if (error) {
+				console.log(error);
+			}
+			this.server.unref();
 			this.server = undefined;
 		});
 
 		if (this.godot_pid) {
-			TERMINATE(this.godot_pid, (error: string | undefined) => {
-				if (error) {
-					Mediator.notify("error", [error]);
-				}
-			});
-			this.godot_pid = undefined;
+			this.terminate();
 		}
+	}
+
+	private terminate() {
+		this.terminated = true;
+		TERMINATE(this.godot_pid);
+		this.godot_pid = undefined;
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
