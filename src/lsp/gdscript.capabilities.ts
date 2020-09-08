@@ -14,7 +14,7 @@ export interface NativeSymbolInspectParams {
 export class GodotNativeSymbol extends DocumentSymbol {
 	documentation: string;
 	native_class: string;
-};
+}
 
 export interface GodotNativeClassInfo {
 	name: string;

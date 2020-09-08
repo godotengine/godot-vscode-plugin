@@ -1,0 +1,26 @@
+name: Continuous integration
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Lint and build extension
+        run: |
+          npm install
+          npm run lint
+          node_modules/.bin/vsce package --out godot-tools.vsix
+
+      - name: Upload extension VSIX
+        uses: actions/upload-artifact@v2
+        with:
+          name: godot-tools
+          path: godot-tools.vsix
