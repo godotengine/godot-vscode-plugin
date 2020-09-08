@@ -150,7 +150,7 @@
 			{
 				"language": "gdscript",
 				"scopeName": "source.gdscript",
-				"path": "./configurations/GDScript.tmLanguage.json"
+				"path": "./syntaxes/GDScript.tmLanguage.json"
 			}
 		],
 		"snippets": [
