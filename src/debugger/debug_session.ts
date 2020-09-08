@@ -13,6 +13,7 @@ import { ServerController } from "./server_controller";
 const { Subject } = require("await-notify");
 import fs = require("fs");
 import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
+import { get_configuration } from "../utils";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -233,8 +234,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.port,
 			args.launch_game_instance,
 			args.launch_scene,
-			args.scene_file,
+			get_configuration("scene_file_config", "") || args.scene_file,
 		]);
+		
 		this.sendResponse(response);
 	}
 

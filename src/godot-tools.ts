@@ -30,6 +30,7 @@ export class GodotTools {
 			this.open_workspace_with_editor().catch(err=>vscode.window.showErrorMessage(err));
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
+		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -61,6 +62,20 @@ export class GodotTools {
 			}
 		});
 	}
+
+	private set_scene_file(uri: vscode.Uri) {
+		let right_clicked_scene_path = uri.fsPath
+		let scene_config = get_configuration("scene_file_config");
+		if (scene_config == right_clicked_scene_path) {
+			scene_config = ""
+		}
+		else {
+			scene_config = right_clicked_scene_path
+		}
+		
+		set_configuration("scene_file_config", scene_config);
+	}
+
 
 	private run_editor(params = "") {
 

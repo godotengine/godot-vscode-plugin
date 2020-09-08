@@ -74,6 +74,10 @@
 					"light": "resources/light/icon_edit.svg",
 					"dark": "resources/dark/icon_edit.svg"
 				}
+			},
+			{
+				"command": "godot-tool.set_scene_file",
+				"title": "Set as Scene File"
 			}
 		],
 		"configuration": {
@@ -105,7 +109,12 @@
 					"default": "",
 					"description": "The absolute path to the Godot editor executable"
 				},
-				"godot-tool.check_status": {
+				"godot_tools.scene_file_config": {
+					"type": "string",
+					"default": "",
+					"description": "The scene file to run"
+				},
+				"godot-tools.check_status": {
 					"type": "string",
 					"default": "",
 					"description": "Check the gdscript language server connection status"
@@ -273,6 +282,12 @@
 					"command": "godot-tool.debugger.edit_value",
 					"when": "view == inspect-node && viewItem == editable_value",
 					"group": "inline"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "godot-tool.set_scene_file",
+					"group": "2_workspace"
 				}
 			]
 		}
