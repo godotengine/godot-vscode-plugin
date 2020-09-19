@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Tools for game development with godot game engine",
 	"repository": {
 		"type": "git",
