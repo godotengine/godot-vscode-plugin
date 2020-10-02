@@ -19,7 +19,7 @@ experience as comfortable as possible:
 - Rich autocompletion
 - Display script warnings and errors
 - Ctrl + click on a variable or method call to jump to its definition
-- Full documentation of the Godot Engine's API supported
+- Full documentation of the Godot Engine's API supported (select *Godot Tools: List native classes of Godot* in the Command Palette)
 - Run a Godot project from VS Code
 - Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
