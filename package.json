@@ -113,11 +113,6 @@
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
-				},
-				"godot-tools.check_status": {
-					"type": "string",
-					"default": "",
-					"description": "Check the gdscript language server connection status"
 				}
 			}
 		},
