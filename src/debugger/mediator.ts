@@ -29,7 +29,13 @@ export class Mediator {
 
 				let lines: string[] = parameters;
 				lines.forEach((line) => {
-					this.output.appendLine(line);
+					let message_content: string = line[0];
+					//let message_kind: number = line[1];
+
+					// OutputChannel doesn't give a way to distinguish between a 
+					// regular string (message_kind == 0) and an error string (message_kind == 1).
+
+					this.output.appendLine(message_content);
 				});
 				break;
 
