@@ -45,7 +45,7 @@
           "end": "\"",
           "patterns": [
             {  "name": "constant.character.escape.untitled",
-                "match": "\\."
+                "match": "\\\\."
             }
           ],
           "name": "string.quoted.double.gdscript"
@@ -55,7 +55,7 @@
           "end": "'",
           "patterns": [
             {  "name": "constant.character.escape.untitled",
-                "match": "\\."
+                "match": "\\\\."
             }
           ],
           "name": "string.quoted.single.gdscript"
