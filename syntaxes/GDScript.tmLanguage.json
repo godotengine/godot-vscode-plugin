@@ -103,7 +103,7 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
       "name": "keyword.language.gdscript"
     },
     "letter": {
