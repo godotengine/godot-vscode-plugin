@@ -63,7 +63,7 @@
     },
 
   "_gui_input method of Node": {
-    "prefix": "guii",
+    "prefix": "gui",
     "body": [
       "func _gui_input(event):",
       "\t${1:pass}"
