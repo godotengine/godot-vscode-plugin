@@ -17,6 +17,7 @@
     { "include": "#class_def" },
     { "include": "#class_name"},
     { "include": "#builtin_func" },
+    { "include": "#builtin_get_node_shorthand" },
     { "include": "#builtin_classes" },
     { "include": "#const_vars" },
     { "include": "#class_new"},
@@ -103,7 +104,7 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|in)\\b",
       "name": "keyword.language.gdscript"
     },
     "letter": {
@@ -201,6 +202,10 @@
     "builtin_func": {
       "match": "(?<![^.]\\.|:)\\b(sin|cos|tan|sinh|cosh|tanh|asin|acos|atan|atan2|sqrt|fmod|fposmod|floor|ceil|round|abs|sign|pow|log|exp|is_nan|is_inf|ease|decimals|stepify|lerp|dectime|randomize|randi|randf|rand_range|seed|rand_seed|deg2rad|rad2deg|linear2db|db2linear|max|min|clamp|nearest_po2|weakref|funcref|convert|typeof|type_exists|char|str|print|printt|prints|printerr|printraw|var2str|str2var|var2bytes|bytes2var|range|load|inst2dict|dict2inst|hash|Color8|print_stack|instance_from_id|preload|yield|assert)\\b(?=(\\()([^)]*)(\\)))",
       "name": "support.function.builtin.gdscript"
+    },
+    "builtin_get_node_shorthand": {
+      "match": "\\$[A-Za-z0-9\\_\\/]+",
+      "name": "support.function.builtin.shorthand.gdscript"
     },
     "builtin_classes": {
       "match": "(?<![^.]\\.|:)\\b(Vector2|Vector3|Color|Rect2|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|AABB|String|Color|NodePath|RID|Object|Dictionary|Array|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray)\\b",
