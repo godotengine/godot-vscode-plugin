@@ -6,6 +6,6 @@ You can find the regex syntax that VSCode uses [here](https://macromates.com/man
 
 When creating regexes it is sometimes useful to test against a data set.
 
-[Regex101](https://regex101.com/) allows for pretty good match testing, unfortunately it does not support the regex (ruby) version that TextMate uses.
+[Regex101](https://regex101.com/) allows for pretty good match testing. Unfortunately, it does not support the regex (Ruby) version that TextMate uses.
 
 [ExtendsClass's](https://extendsclass.com/regex-tester.html#ruby) regex engine does support the Ruby variant, but the match testing experience is not as good. However, it automatically generates an FSM for your regex, which is very useful when debugging.
