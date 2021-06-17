@@ -298,7 +298,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 			});
 			client_lines.forEach((l) => {
 				if (bp_lines.indexOf(l) === -1) {
-					this.debug_data.set_breakpoint(path, l);
+					let bp = args.breakpoints.find((bp_at_line) => (bp_at_line.line == l));
+					if(!bp.condition) {
+						this.debug_data.set_breakpoint(path, l);
+					}
 				}
 			});
 
