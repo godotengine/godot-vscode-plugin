@@ -11,7 +11,6 @@ export class GodotTools {
 
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
-	private workspace_dir = vscode.workspace.rootPath;
 	private project_file = "project.godot";
 	private connection_status: vscode.StatusBarItem = null;
 
@@ -49,12 +48,14 @@ export class GodotTools {
 
 		return new Promise((resolve, reject) => {
 			let valid = false;
-			if (this.workspace_dir) {
-				let cfg = path.join(this.workspace_dir, this.project_file);
+			const projectPath = path.join(vscode.workspace.rootPath, get_configuration("project_path", ""));
+			if (projectPath) {
+				let cfg = path.join(projectPath, this.project_file);
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
 			}
 			if (valid) {
-				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(()=>resolve()).catch(err=>{
+				const args = `--path "${projectPath}" ${params}`;
+				this.run_editor(args).then(()=>resolve()).catch(err=>{
 					reject(err);
 				});
 			} else {
@@ -72,7 +73,7 @@ export class GodotTools {
 		else {
 			scene_config = right_clicked_scene_path
 		}
-		
+
 		set_configuration("scene_file_config", scene_config);
 	}
 
@@ -107,7 +108,8 @@ export class GodotTools {
 			};
 
 			let editorPath = get_configuration("editor_path", "");
-			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
+			const projectPath = path.join(vscode.workspace.rootPath, get_configuration("project_path", ""));
+			editorPath = editorPath.replace("${workspaceRoot}", projectPath);
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
 						openLabel: "Run",

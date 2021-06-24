@@ -18,7 +18,7 @@
 		"Debuggers"
 	],
 	"activationEvents": [
-		"workspaceContains:project.godot",
+		"workspaceContains:**/project.godot",
 		"onLanguage:gdscript",
 		"onDebugResolve:godot"
 	],
@@ -113,6 +113,11 @@
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
+				},
+				"godot_tools.project_path": {
+					"type": "string",
+					"default": "",
+					"description": "Relative path to the Godot project"
 				}
 			}
 		},
