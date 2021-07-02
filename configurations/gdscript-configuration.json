@@ -23,7 +23,7 @@
         ["{", "}"]
     ],
     "indentationRules": {
-        "increaseIndentPattern": "^\\s*((class|func|else|elif|for|if|match|while|enum)|(.*\\sdo\\b))\\b[^\\{;]*$",
+        "increaseIndentPattern": "^\\s*((class|static func|func|else|elif|for|if|match|while|enum)|(.*\\sdo\\b))\\b[^\\{;]*$",
         "decreaseIndentPattern": "^\\s*([}\\]]([,)]?\\s*(#|$)|\\.[a-zA-Z_]\\w*\\b)|(else|elif)\\b)"
     },
     "folding": {
