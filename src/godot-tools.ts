@@ -47,7 +47,7 @@ export class GodotTools {
 
 	private open_workspace_with_editor(params = "") {
 
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			let valid = false;
 			if (this.workspace_dir) {
 				let cfg = path.join(this.workspace_dir, this.project_file);
@@ -79,7 +79,7 @@ export class GodotTools {
 
 	private run_editor(params = "") {
 
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const run_godot = (path: string, params: string) => {
 				const escape_command = (cmd: string) => {
 					let cmdEsc = `"${cmd}"`;

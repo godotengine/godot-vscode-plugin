@@ -32,7 +32,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		this.io = io;
 		io.on("message", (message: NotificationMessage) => {
 			if (message.method == Methods.SHOW_NATIVE_SYMBOL) {
-				this.show_native_symbol(message.params);
+				this.show_native_symbol(message.params as GodotNativeSymbol);
 			} else if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
 				for (const gdclass of (message.params as GodotCapabilities)
 					.native_classes) {
