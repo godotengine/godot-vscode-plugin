@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "1.1.2",
+	"version": "1.1.3",
 	"description": "Tools for game development with godot game engine",
 	"repository": {
 		"type": "git",
@@ -98,6 +98,11 @@
 						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
 					],
 					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+				},
+				"godot_tools.gdscript_lsp_server_host": {
+					"type": "string",
+					"default": "127.0.0.1",
+					"description": "The server host of the GDScript language server"
 				},
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
