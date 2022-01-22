@@ -301,7 +301,7 @@
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
-		"marked": "^0.7.0",
+		"marked": "^4.0.10",
 		"net": "^1.0.2",
 		"terminate": "^2.1.2",
 		"vscode-debugadapter": "^1.38.0",
