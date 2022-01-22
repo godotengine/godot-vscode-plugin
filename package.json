@@ -306,6 +306,6 @@
 		"terminate": "^2.1.2",
 		"vscode-debugadapter": "^1.38.0",
 		"vscode-languageclient": "^5.2.1",
-		"ws": "^7.0.0"
+		"ws": "^7.4.6"
 	}
 }
