@@ -27,7 +27,8 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"lint": "tslint -p ./",
-		"watch": "tsc -watch -p ./"
+		"watch": "tsc -watch -p ./",
+		"package": "vsce package"
 	},
 	"contributes": {
 		"commands": [
@@ -289,23 +290,23 @@
 	},
 	"devDependencies": {
 		"@types/marked": "^0.6.5",
-		"@types/mocha": "^2.2.42",
+		"@types/mocha": "^9.1.0",
 		"@types/node": "^10.12.21",
-		"@types/prismjs": "^1.16.0",
+		"@types/prismjs": "^1.16.8",
 		"@types/vscode": "^1.33.0",
-		"@types/ws": "^6.0.1",
-		"tslint": "^5.16.0",
+		"@types/ws": "^8.2.2",
+		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
-		"vsce": "^1.76.1"
+		"vsce": "^2.6.4"
 	},
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
-		"marked": "^4.0.10",
+		"marked": "^4.0.11",
 		"net": "^1.0.2",
-		"terminate": "^2.1.2",
+		"terminate": "^2.5.0",
 		"vscode-debugadapter": "^1.38.0",
 		"vscode-languageclient": "^5.2.1",
-		"ws": "^7.4.6"
+		"ws": "^8.4.2"
 	}
 }

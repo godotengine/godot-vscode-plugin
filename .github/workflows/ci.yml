@@ -11,13 +11,14 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v2.5.1
         with:
-          node-version: 12.x
+          node-version: 16.x
 
       - name: Lint and build extension
         run: |
           npm install
           npm run lint
-          node_modules/.bin/vsce package --out godot-tools.vsix
+          npm run package -- --out godot-tools.vsix
+          ls -l godot-tools.vsix
 
       - name: Upload extension VSIX
         uses: actions/upload-artifact@v2
