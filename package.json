@@ -48,6 +48,10 @@
 				"title": "Godot Tools: Run workspace as Godot project"
 			},
 			{
+				"command": "godot-tool.run_project_debug",
+				"title": "Godot Tools: Run workspace as Godot project with visible collision shapes and navigation meshes"
+			},
+			{
 				"command": "godot-tool.list_native_classes",
 				"title": "Godot Tools: List native classes of godot"
 			},
@@ -141,6 +145,16 @@
 					"type": "number",
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
+				},
+				"godot_tools.force_visible_collision_shapes": {
+					"type": "boolean",
+					"default": false,
+					"description": "Force the project to run with visible collision shapes"
+				},
+				"godot_tools.force_visible_nav_mesh": {
+					"type": "boolean",
+					"default": false,
+					"description": "Force the project to run with visible navigation meshes"
 				}
 			}
 		},

@@ -11,7 +11,7 @@ export function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> {
-	return new Promise((resolve, reject) => {
+	return new Promise<void>((resolve, reject) => {
 		tools.deactivate();
 		resolve();
 	});

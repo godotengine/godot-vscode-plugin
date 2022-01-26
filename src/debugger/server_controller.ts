@@ -98,7 +98,17 @@ export class ServerController {
 
 		if (launch_instance) {
 			let godot_path: string = utils.get_configuration("editor_path", "godot");
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
+			const force_visible_collision_shapes = utils.get_configuration("force_visible_collision_shapes", false);
+			const force_visible_nav_mesh = utils.get_configuration("force_visible_nav_mesh", false);
+			let visible_collision_shapes_param = "";
+			let visible_nav_mesh_param = "";
+			if (force_visible_collision_shapes) {
+				visible_collision_shapes_param = " --debug-collisions";
+			}
+			if (force_visible_nav_mesh) {
+				visible_nav_mesh_param = " --debug-navigation";
+			}
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}""${visible_collision_shapes_param}""${visible_nav_mesh_param}`;
 			if (launch_scene) {
 				let filename = "";
 				if (scene_file) {
@@ -266,9 +276,8 @@ export class ServerController {
 		if (breakpoints.length > 0) {
 			output += " --breakpoints ";
 			breakpoints.forEach((bp, i) => {
-				output += `${this.breakpoint_path(project_path, bp.file)}:${bp.line}${
-					i < breakpoints.length - 1 ? "," : ""
-				}`;
+				output += `${this.breakpoint_path(project_path, bp.file)}:${bp.line}${i < breakpoints.length - 1 ? "," : ""
+					}`;
 			});
 		}
 
