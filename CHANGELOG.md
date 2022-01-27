@@ -1,5 +1,13 @@
 # Change Log
 
+### 1.1.3
+* [Fix conditional breakpoints being parsed as regular breakpoints](https://github.com/godotengine/godot-vscode-plugin/pull/278)
+- [Add `in` to the list of keywords and add rule for `$` shorthand](https://github.com/godotengine/godot-vscode-plugin/pull/274)
+- [Fix typo in snippets: "decleration" -> "declaration"](https://github.com/godotengine/godot-vscode-plugin/pull/262)
+- [Add `remote` keyword to syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/257)
+- [Remove the configuration item `godot-tools.check_config` as it has no effect](https://github.com/godotengine/godot-vscode-plugin/pull/246)
+- [Fix the syntax of escaped characters in strings](https://github.com/godotengine/godot-vscode-plugin/pull/247)
+
 ### 1.1.1
 * Fix bug for GDScript debugger
 * Add TCP protocol support for GDScript language server Godot 3.2.2
