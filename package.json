@@ -97,7 +97,7 @@
 						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
 						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
 					],
-					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after changing this value."
+					"description": "The server protocol of the GDScript language server.\nYou must restart VSCode after changing this value."
 				},
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
