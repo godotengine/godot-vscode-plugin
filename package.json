@@ -117,7 +117,7 @@
 				"godot_tools.reconnect_automatically": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether the plugin should attempt"
+					"description": "Whether the plugin should attempt to reconnect"
 				},
 				"godot_tools.reconnect_cooldown": {
 					"type": "number",
