@@ -97,7 +97,7 @@
 						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
 						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
 					],
-					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after changing this value."
 				},
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
@@ -113,6 +113,21 @@
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
+				},
+				"godot_tools.reconnect_automatically": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether the plugin should attempt"
+				},
+				"godot_tools.reconnect_cooldown": {
+					"type": "number",
+					"default": 1000,
+					"description": "The number of seconds between reconnect attempts"
+				},
+				"godot_tools.reconnect_attempts": {
+					"type": "number",
+					"default": 10,
+					"description": "How many times the client will attempt to reconnect"
 				}
 			}
 		},
