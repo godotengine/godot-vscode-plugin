@@ -122,7 +122,7 @@
 				"godot_tools.reconnect_cooldown": {
 					"type": "number",
 					"default": 1000,
-					"description": "The number of seconds between reconnect attempts"
+					"description": "The number of milliseconds to wait before attempting to reconnect"
 				},
 				"godot_tools.reconnect_attempts": {
 					"type": "number",
