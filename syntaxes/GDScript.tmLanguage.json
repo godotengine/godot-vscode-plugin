@@ -88,7 +88,7 @@
     },
     "logic_op": {
       "match": "\\b(and|or|not)\\b",
-      "name": "keyword.operator.logical.gdscript"
+      "name": "keyword.operator.wordlike.gdscript"
     },
     "compare_op": {
       "match": "<=|>=|==|<|>|!=",
@@ -104,8 +104,16 @@
     },
 
     "keywords": {
-      "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|in)\\b",
-      "name": "keyword.language.gdscript"
+      "patterns": [
+        {
+          "match": "\\b(?i:func|class|class_name|extends|is|in|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|yield|signal|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|in)\\b",
+          "name": "keyword.language.gdscript"
+        },
+        {
+          "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match)\\b",
+          "name": "keyword.control"
+        }
+      ]
     },
     "letter": {
         "match": "\\b(?i:true|false|null)\\b",
