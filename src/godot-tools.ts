@@ -151,7 +151,7 @@ export class GodotTools {
 				this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				break;
 			case ClientStatus.CONNECTED:
-				this.retry = false
+				this.retry = false;
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to the GDScript language server.`;
 				if (!this.client.started) {
