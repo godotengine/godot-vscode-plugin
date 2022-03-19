@@ -204,7 +204,7 @@ export class GodotTools {
 			} else if (item == 'Open Godot Editor') {
 				this.client.status = ClientStatus.PENDING;
 				this.open_workspace_with_editor("-e").then(()=>{
-					setTimeout(() =>{
+					setTimeout(() => {
 						this.reconnection_attempts = 0;
 						this.client.connect_to_server();
 					}, 10 * 1000);
