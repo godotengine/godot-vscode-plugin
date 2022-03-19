@@ -89,6 +89,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.ConfigurationDoneArguments
 	) {
 		this.configuration_done.notify();
+		this.sendResponse(response);
 	}
 
 	public set_scopes(
@@ -236,7 +237,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.launch_scene,
 			get_configuration("scene_file_config", "") || args.scene_file,
 		]);
-		
+
 		this.sendResponse(response);
 	}
 
@@ -298,7 +299,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 			});
 			client_lines.forEach((l) => {
 				if (bp_lines.indexOf(l) === -1) {
-					this.debug_data.set_breakpoint(path, l);
+					let bp = args.breakpoints.find((bp_at_line) => (bp_at_line.line == l));
+					if (!bp.condition) {
+						this.debug_data.set_breakpoint(path, l);
+					}
 				}
 			});
 

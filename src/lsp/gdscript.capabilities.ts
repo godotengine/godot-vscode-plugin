@@ -1,4 +1,4 @@
-import { DocumentSymbol } from "vscode";
+import { DocumentSymbol } from "vscode-languageclient";
 
 export const enum Methods {
 	GDSCRIPT_CAPABILITIES = 'gdscript/capabilities',
