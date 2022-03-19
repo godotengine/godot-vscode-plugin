@@ -107,6 +107,11 @@
 					],
 					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
 				},
+				"godot_tools.gdscript_lsp_server_host": {
+					"type": "string",
+					"default": "127.0.0.1",
+					"description": "The server host of the GDScript language server"
+				},
 				"godot_tools.gdscript_lsp_server_port": {
 					"type": "number",
 					"default": 6008,

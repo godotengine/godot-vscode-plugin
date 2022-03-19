@@ -30,7 +30,7 @@ export class MessageIO extends EventEmitter {
 		this.emit("message", message);
 	}
 
-	async connect_to_language_server(port: number): Promise<void> {
+	async connect_to_language_server(host: string, port: number): Promise<void> {
 		// virtual
 	}
 }
@@ -46,10 +46,10 @@ export class WebsocktMessageIO extends MessageIO {
 		}
 	}
 
-	async connect_to_language_server(port: number): Promise<void> {
+	async connect_to_language_server(host:string, port: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
-			const ws = new WebSocket(`ws://localhost:${port}`);
+			const ws = new WebSocket(`ws://${host}:${port}`);
 			ws.on('open', ()=>{ this.on_connected(ws); resolve(); });
 			ws.on('message', this.on_message.bind(this));
 			ws.on('error', this.on_disconnected.bind(this));
@@ -77,11 +77,11 @@ export class TCPMessageIO extends MessageIO {
 		}
 	}
 
-	async connect_to_language_server(port: number):Promise<void> {
+	async connect_to_language_server(host:string, port: number):Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const socket = new Socket();
-			socket.connect(port);
+			socket.connect(port, host);
 			socket.on('connect', ()=>{ this.on_connected(socket); resolve(); });
 			socket.on('data', this.on_message.bind(this));
 			socket.on('end', this.on_disconnected.bind(this));
