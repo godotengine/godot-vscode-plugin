@@ -21,7 +21,7 @@ export class GodotTools {
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
-		setInterval(()=> {
+		setInterval(() => {
 			this.retry_callback()
 		}, get_configuration("reconnect_cooldown", 1000));
 	}
@@ -40,7 +40,7 @@ export class GodotTools {
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
 		
-		this.reconnection_attempts = 0
+		this.reconnection_attempts = 0;
 		this.client.connect_to_server();
 	}
 
@@ -199,13 +199,13 @@ export class GodotTools {
 		const message = `Couldn't connect to the GDScript language server.`;
 		vscode.window.showErrorMessage(message, 'Open Godot Editor', 'Retry', 'Ignore').then(item=>{
 			if (item == 'Retry') {
-				this.reconnection_attempts = 0
+				this.reconnection_attempts = 0;
 				this.client.connect_to_server();
 			} else if (item == 'Open Godot Editor') {
 				this.client.status = ClientStatus.PENDING;
 				this.open_workspace_with_editor("-e").then(()=>{
-					setTimeout(()=>{
-						this.reconnection_attempts = 0
+					setTimeout(() =>{
+						this.reconnection_attempts = 0;
 						this.client.connect_to_server();
 					}, 10 * 1000);
 				});
