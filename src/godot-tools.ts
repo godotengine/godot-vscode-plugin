@@ -22,7 +22,7 @@ export class GodotTools {
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
 		setInterval(() => {
-			this.retry_callback()
+			this.retry_callback();
 		}, get_configuration("reconnect_cooldown", 1000));
 	}
 
