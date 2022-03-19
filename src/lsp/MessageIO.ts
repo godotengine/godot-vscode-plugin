@@ -1,11 +1,11 @@
-import { AbstractMessageReader, MessageReader, DataCallback } from "vscode-jsonrpc/lib/messageReader";
+import { AbstractMessageReader, MessageReader, DataCallback, Disposable } from "vscode-jsonrpc";
 import { EventEmitter } from "events";
 import * as WebSocket from 'ws';
 import { Socket } from 'net';
 
 import MessageBuffer from "./MessageBuffer";
-import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc/lib/messageWriter";
-import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc/lib/messages";
+import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc";
+import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc";
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
@@ -127,7 +127,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		return this._partialMessageTimeout;
 	}
 
-	public listen(callback: DataCallback): void {
+	public listen(callback: DataCallback): Disposable {
 		this.nextMessageLength = -1;
 		this.messageToken = 0;
 		this.partialMessageTimer = undefined;
@@ -137,6 +137,8 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		});
 		this.io.on('error', (error: any) => this.fireError(error));
 		this.io.on('close', () => this.fireClose());
+		
+		return;
 	}
 
 	private onData(data: Buffer | String): void {
@@ -214,8 +216,12 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 		this.io.on('error', (error: any) => this.fireError(error));
 		this.io.on('close', () => this.fireClose());
 	}
+	
+	public end(): void {
+		
+	}
 
-	public write(msg: Message): void {
+	public write(msg: Message): Promise<void> {
 		let json = JSON.stringify(msg);
 		let contentLength = Buffer.byteLength(json, this.encoding);
 
@@ -235,5 +241,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			this.errorCount++;
 			this.fireError(error, msg, this.errorCount);
 		}
+		
+		return;
 	}
 }

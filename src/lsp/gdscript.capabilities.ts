@@ -1,4 +1,5 @@
-import { DocumentSymbol } from "vscode-languageclient";
+import { DocumentSymbol, Range, SymbolKind } from "vscode-languageclient";
+
 
 export const enum Methods {
 	GDSCRIPT_CAPABILITIES = 'gdscript/capabilities',
@@ -11,7 +12,15 @@ export interface NativeSymbolInspectParams {
 	symbol_name: string;
 }
 
-export class GodotNativeSymbol extends DocumentSymbol {
+export class GodotNativeSymbol implements DocumentSymbol {
+	name: string;
+	detail?: string;
+	kind: SymbolKind;
+	tags?: 1[];
+	deprecated?: boolean;
+	range: Range;
+	selectionRange: Range;
+	children?: DocumentSymbol[];
 	documentation: string;
 	native_class: string;
 }
