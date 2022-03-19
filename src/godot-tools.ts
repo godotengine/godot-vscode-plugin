@@ -81,16 +81,49 @@ export class GodotTools {
 
 		return new Promise((resolve, reject) => {
 			const run_godot = (path: string, params: string) => {
+				const is_powershell_path = (path?: string) => {
+					const POWERSHELL = "powershell.exe";
+					const POWERSHELL_CORE = "pwsh.exe";
+					return path && (path.endsWith(POWERSHELL) || path.endsWith(POWERSHELL_CORE)); 
+				};
 				const escape_command = (cmd: string) => {
-					let cmdEsc = `"${cmd}"`;
+					const cmdEsc = `"${cmd}"`;
 					if (process.platform === "win32") {
-						const POWERSHELL = "powershell.exe";
-						const POWERSHELL_CORE = "pwsh.exe";
 						const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
-						let shell = (shell_plugin ? shell_plugin.get("windows", POWERSHELL) : POWERSHELL) || POWERSHELL;
-						if (shell.endsWith(POWERSHELL) || shell.endsWith(POWERSHELL_CORE)) {
-							cmdEsc = `&${cmdEsc}`;
+						
+						if (shell_plugin) {
+							const shell = shell_plugin.get<string>("windows");
+							if (shell) {
+								if (is_powershell_path(shell)) {
+									return `&${cmdEsc}`;
+								} else {
+									return cmdEsc;
+								}
+							}
 						}
+							
+						const POWERSHELL_SOURCE = "PowerShell"
+						const default_profile = vscode.workspace.getConfiguration("terminal.integrated.defaultProfile");
+						if (default_profile) {
+							const profile_name = default_profile.get<string>("windows");
+							if (profile_name) {
+								if (POWERSHELL_SOURCE === profile_name) {
+									return `&${cmdEsc}`;
+								}
+								const profiles = vscode.workspace.getConfiguration("terminal.integrated.profiles.windows");
+								const profile = profiles.get<{source?: string, path?: string}>(profile_name);
+								if (profile) {
+									if (POWERSHELL_SOURCE === profile.source || is_powershell_path(profile.path)) {
+										return `&${cmdEsc}`;
+									} else {
+										return cmdEsc;
+									}
+								}
+							}
+						}
+						// default for Windows if nothing is set is PowerShell
+						return `&${cmdEsc}`
+
 					}
 					return cmdEsc;
 				};
