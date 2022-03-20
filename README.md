@@ -44,6 +44,7 @@ for Godot by following these steps:
 2. Select **Text Editor > External**
 3. Make sure the **Use External Editor** box is checked
 4. Fill **Exec Path** with the path to your VS Code executable
+    * Mac OS: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
 5. Fill **Exec Flags** with `{project} --goto {file}:{line}:{col}`
 
 ### VS Code
