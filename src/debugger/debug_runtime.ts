@@ -82,8 +82,9 @@ export class GodotDebugData {
 
 		bps.push(bp);
 
-		let out_file = `res://${path.relative(this.project_path, bp.file)}`;
-
-		Mediator.notify("set_breakpoint", [out_file.replace(/\\/g, "/"), line]);
+		if (this.project_path) {
+			let out_file = `res://${path.relative(this.project_path, bp.file)}`;
+			Mediator.notify("set_breakpoint", [out_file.replace(/\\/g, "/"), line]);
+		}
 	}
 }

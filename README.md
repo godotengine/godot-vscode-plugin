@@ -44,6 +44,7 @@ for Godot by following these steps:
 2. Select **Text Editor > External**
 3. Make sure the **Use External Editor** box is checked
 4. Fill **Exec Path** with the path to your VS Code executable
+    * On macOS, this executable is typically located at: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
 5. Fill **Exec Flags** with `{project} --goto {file}:{line}:{col}`
 
 ### VS Code
@@ -103,14 +104,12 @@ for the latest changes.
 #### Requirements
 
 - [npm](https://www.npmjs.com/get-npm)
-- Typescript to compile, installed using npm with `npm install -g typescript`
-- VSCE to create a VSIX file, installed using npm with `npm install -g vsce`
 
 #### Process
 
 1. Open a command prompt/terminal and browse to the location of this repository on your local filesystem.
 2. Download dependencies by using the command `npm install`
-3. When done, package a VSIX file by using the command `vsce package`.
+3. When done, package a VSIX file by using the command `npm run package`.
 4. Install it by opening Visual Studio Code, opening the Extensions tab, clicking on the More actions (**...**) button in the top right, and choose **Install from VSIX...** and find the compiled VSIX file.
 
 When developing for the extension, you can open this project in Visual Studio Code and debug the extension by using the **Run Extension** launch configuration instead of going through steps 3 and 4. It will launch a new instance of Visual Studio Code that has the extension running. You can then open a Godot project folder and debug the extension or GDScript debugger.

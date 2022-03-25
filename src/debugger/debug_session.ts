@@ -89,6 +89,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.ConfigurationDoneArguments
 	) {
 		this.configuration_done.notify();
+		this.sendResponse(response);
 	}
 
 	public set_scopes(
@@ -236,7 +237,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.launch_scene,
 			get_configuration("scene_file_config", "") || args.scene_file,
 		]);
-		
+
 		this.sendResponse(response);
 	}
 

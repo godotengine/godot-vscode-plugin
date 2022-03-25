@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient";
+import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient/node";
 import { is_debug_mode, get_configuration } from "../utils";
 import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebsocktMessageIO, TCPMessageIO } from "./MessageIO";
 import logger from "../loggger";
@@ -74,8 +74,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
+		let host = get_configuration("gdscript_lsp_server_host", "127.0.0.1");
 		let port = get_configuration("gdscript_lsp_server_port", 6008);
-		this.io.connect_to_language_server(port);
+		this.io.connect_to_language_server(host, port);
 	}
 
 	start(): vscode.Disposable {

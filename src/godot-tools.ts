@@ -49,6 +49,10 @@ export class GodotTools {
 	}
 
 	private open_workspace_with_editor(params = "") {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1be4ccaaadb6b1607edffc6561c41dea9103fec9
 		return new Promise<void>((resolve, reject) => {
 			let valid = false;
 			if (this.workspace_dir) {
@@ -79,18 +83,55 @@ export class GodotTools {
 	}
 
 	private run_editor(params = "") {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1be4ccaaadb6b1607edffc6561c41dea9103fec9
 		return new Promise<void>((resolve, reject) => {
 			const run_godot = (path: string, params: string) => {
+				const is_powershell_path = (path?: string) => {
+					const POWERSHELL = "powershell.exe";
+					const POWERSHELL_CORE = "pwsh.exe";
+					return path && (path.endsWith(POWERSHELL) || path.endsWith(POWERSHELL_CORE)); 
+				};
 				const escape_command = (cmd: string) => {
-					let cmdEsc = `"${cmd}"`;
+					const cmdEsc = `"${cmd}"`;
 					if (process.platform === "win32") {
-						const POWERSHELL = "powershell.exe";
-						const POWERSHELL_CORE = "pwsh.exe";
 						const shell_plugin = vscode.workspace.getConfiguration("terminal.integrated.shell");
-						let shell = (shell_plugin ? shell_plugin.get("windows", POWERSHELL) : POWERSHELL) || POWERSHELL;
-						if (shell.endsWith(POWERSHELL) || shell.endsWith(POWERSHELL_CORE)) {
-							cmdEsc = `&${cmdEsc}`;
+						
+						if (shell_plugin) {
+							const shell = shell_plugin.get<string>("windows");
+							if (shell) {
+								if (is_powershell_path(shell)) {
+									return `&${cmdEsc}`;
+								} else {
+									return cmdEsc;
+								}
+							}
 						}
+							
+						const POWERSHELL_SOURCE = "PowerShell"
+						const default_profile = vscode.workspace.getConfiguration("terminal.integrated.defaultProfile");
+						if (default_profile) {
+							const profile_name = default_profile.get<string>("windows");
+							if (profile_name) {
+								if (POWERSHELL_SOURCE === profile_name) {
+									return `&${cmdEsc}`;
+								}
+								const profiles = vscode.workspace.getConfiguration("terminal.integrated.profiles.windows");
+								const profile = profiles.get<{source?: string, path?: string}>(profile_name);
+								if (profile) {
+									if (POWERSHELL_SOURCE === profile.source || is_powershell_path(profile.path)) {
+										return `&${cmdEsc}`;
+									} else {
+										return cmdEsc;
+									}
+								}
+							}
+						}
+						// default for Windows if nothing is set is PowerShell
+						return `&${cmdEsc}`
+
 					}
 					return cmdEsc;
 				};
@@ -131,9 +172,11 @@ export class GodotTools {
 	}
 
 	private check_client_status() {
+		let host = get_configuration("gdscript_lsp_server_host", "localhost");
+		let port = get_configuration("gdscript_lsp_server_port", 6008);
 		switch (this.client.status) {
 			case ClientStatus.PENDING:
-				vscode.window.showInformationMessage("Connecting to the GDScript language server...");
+				vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${host}:${port}`);
 				break;
 			case ClientStatus.CONNECTED:
 				vscode.window.showInformationMessage("Connected to the GDScript language server.");
@@ -145,10 +188,12 @@ export class GodotTools {
 	}
 
 	private on_client_status_changed(status: ClientStatus) {
+		let host = get_configuration("gdscript_lsp_server_host", "localhost");
+		let port = get_configuration("gdscript_lsp_server_port", 6008);
 		switch (status) {
 			case ClientStatus.PENDING:
 				this.connection_status.text = `$(sync) Connecting`;
-				this.connection_status.tooltip = `Connecting to the GDScript language server...`;
+				this.connection_status.tooltip = `Connecting to the GDScript language server at ${host}:${port}`;
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
@@ -196,7 +241,9 @@ export class GodotTools {
 		this.connection_status.text = `$(x) Disconnected`;
 		this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 
-		const message = `Couldn't connect to the GDScript language server.`;
+		let host = get_configuration("gdscript_lsp_server_host", "localhost");
+		let port = get_configuration("gdscript_lsp_server_port", 6008);
+		let message = `Couldn't connect to the GDScript language server at ${host}:${port}`;
 		vscode.window.showErrorMessage(message, 'Open Godot Editor', 'Retry', 'Ignore').then(item=>{
 			if (item == 'Retry') {
 				this.reconnection_attempts = 0;

@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as ls from "vscode-languageclient";
 import { EventEmitter } from "events";
 import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
@@ -32,7 +33,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		this.io = io;
 		io.on("message", (message: NotificationMessage) => {
 			if (message.method == Methods.SHOW_NATIVE_SYMBOL) {
-				this.show_native_symbol(message.params);
+				this.show_native_symbol(message.params as GodotNativeSymbol);
 			} else if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
 				for (const gdclass of (message.params as GodotCapabilities)
 					.native_classes) {
@@ -190,8 +191,8 @@ export default class NativeDocumentManager extends EventEmitter {
 			with_class = false
 		): { index?: string; body: string } {
 			switch (s.kind) {
-				case vscode.SymbolKind.Property:
-				case vscode.SymbolKind.Variable:
+				case ls.SymbolKind.Property:
+				case ls.SymbolKind.Variable:
 					{
 						// var Control.anchor_left: float
 						const parts = /\.([A-z_0-9]+)\:\s(.*)$/.exec(s.detail);
@@ -215,7 +216,7 @@ export default class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case vscode.SymbolKind.Constant:
+				case ls.SymbolKind.Constant:
 					{
 						// const Control.FOCUS_ALL: FocusMode = 2
 						// const Control.NOTIFICATION_RESIZED = 40
@@ -243,7 +244,7 @@ export default class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case vscode.SymbolKind.Event:
+				case ls.SymbolKind.Event:
 					{
 						const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail);
 						if (!parts) {
@@ -269,8 +270,8 @@ export default class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case vscode.SymbolKind.Method:
-				case vscode.SymbolKind.Function:
+				case ls.SymbolKind.Method:
+				case ls.SymbolKind.Function:
 					{
 						const signature = make_function_signature(s, with_class);
 						const title = element("h4", signature);
@@ -290,7 +291,7 @@ export default class NativeDocumentManager extends EventEmitter {
 			}
 		}
 
-		if (symbol.kind == vscode.SymbolKind.Class) {
+		if (symbol.kind == ls.SymbolKind.Class) {
 			let doc = element("h2", `Native class ${symbol.name}`);
 			const parts = /extends\s+([A-z0-9]+)/.exec(symbol.detail);
 			let inherits = parts && parts.length > 1 ? parts[1] : "";
@@ -326,19 +327,19 @@ export default class NativeDocumentManager extends EventEmitter {
 			for (let s of symbol.children as GodotNativeSymbol[]) {
 				const elements = make_symbol_elements(s);
 				switch (s.kind) {
-					case vscode.SymbolKind.Property:
-					case vscode.SymbolKind.Variable:
+					case ls.SymbolKind.Property:
+					case ls.SymbolKind.Variable:
 						properties_index += element("li", elements.index);
 						propertyies += element("li", elements.body, { id: s.name });
 						break;
-					case vscode.SymbolKind.Constant:
+					case ls.SymbolKind.Constant:
 						constants += element("li", elements.body, { id: s.name });
 						break;
-					case vscode.SymbolKind.Event:
+					case ls.SymbolKind.Event:
 						signals += element("li", elements.body, { id: s.name });
 						break;
-					case vscode.SymbolKind.Method:
-					case vscode.SymbolKind.Function:
+					case ls.SymbolKind.Method:
+					case ls.SymbolKind.Function:
 						methods_index += element("li", elements.index);
 						methods += element("li", elements.body, { id: s.name });
 						break;
@@ -373,11 +374,8 @@ export default class NativeDocumentManager extends EventEmitter {
 			let doc = "";
 			const elements = make_symbol_elements(symbol, true);
 			if (elements.index) {
-				if (
-					[vscode.SymbolKind.Function, vscode.SymbolKind.Method].indexOf(
-						symbol.kind
-					) == -1
-				) {
+				const symbols: ls.SymbolKind[] = [ls.SymbolKind.Function, ls.SymbolKind.Method];
+				if (!symbols.includes(symbol.kind)) {
 					doc += element("h2", elements.index);
 				}
 			}
@@ -419,7 +417,7 @@ function make_link(classname: string, symbol: string) {
 }
 
 function make_codeblock(code: string) {
-	const md = marked("```gdscript\n" + code + "\n```");
+	const md = marked.parse("```gdscript\n" + code + "\n```");
 	return `<div class="codeblock">${md}</div>`;
 }
 
