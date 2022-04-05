@@ -212,7 +212,7 @@
       "name": "support.function.builtin.gdscript"
     },
     "builtin_get_node_shorthand": {
-      "match": "\\$((\\\"(\\.\\.\\/)+|\\\"\\/|\\\"[0-9]+|\\\")([0-9A-Za-z\\_]+\\/)*[A-Za-z0-9\\_]+\\\"|[A-Za-z\\_]+(\\/[A-Za-z\\_]+)*)",
+      "match": "\\$(((?<quote>\"|')((\\.\\.\\/)+|\\/)?)[0-9A-Za-z_ ]+(\\/[0-9A-Za-z_ ]+)*\\k<quote>|[0-9A-Za-z_]+(\\/[0-9A-Za-z_]+)*)",
       "name": "support.function.builtin.shorthand.gdscript"
     },
     "builtin_classes": {
