@@ -1,5 +1,16 @@
 # Change Log
 
+### 1.2.0
+* [Add support for setting language-server-host](https://github.com/godotengine/godot-vscode-plugin/pull/297)
+* [Improve syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/330)
+* [Update LSP client to 7.0.0 to use the 3.16.0 specification](https://github.com/godotengine/godot-vscode-plugin/pull/264)
+* [Fix some `$` node path shorthand regex bugs in syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/340)
+* [Fix handling of Windows terminals determined by profiles](https://github.com/godotengine/godot-vscode-plugin/pull/303)
+* [Fix "static func" indent error](https://github.com/godotengine/godot-vscode-plugin/pull/279)
+* [Fix restart of debugging sessions](https://github.com/godotengine/godot-vscode-plugin/pull/327)
+* [Use the LSP defined SymbolKind enum and fix marked](https://github.com/godotengine/godot-vscode-plugin/pull/325)
+* [Fix "Continue" for multiple breakpoints in the same script](https://github.com/godotengine/godot-vscode-plugin/pull/324)
+
 ### 1.1.3
 * [Fix conditional breakpoints being parsed as regular breakpoints](https://github.com/godotengine/godot-vscode-plugin/pull/278)
 - [Add `in` to the list of keywords and add rule for `$` shorthand](https://github.com/godotengine/godot-vscode-plugin/pull/274)
