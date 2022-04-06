@@ -238,7 +238,7 @@ export class GodotTools {
 		let host = get_configuration("gdscript_lsp_server_host", "localhost");
 		let port = get_configuration("gdscript_lsp_server_port", 6008);
 		let message = `Couldn't connect to the GDScript language server at ${host}:${port}`;
-		vscode.window.showErrorMessage(message, 'Open Godot Editor', 'Retry', 'Ignore').then(item=>{
+		vscode.window.showErrorMessage(message, 'Open Godot Editor', 'Retry', 'Ignore').then(item => {
 			if (item == 'Retry') {
 				this.reconnection_attempts = 0;
 				this.client.connect_to_server();
