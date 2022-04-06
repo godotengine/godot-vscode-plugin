@@ -212,7 +212,7 @@ export class GodotTools {
 		}
 	}
 
-	private retry = false
+	private retry = false;
 
 	private retry_callback() {
 		if (this.retry) {
