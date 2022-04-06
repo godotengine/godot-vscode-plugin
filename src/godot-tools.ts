@@ -221,7 +221,7 @@ export class GodotTools {
 	}
 
 	private retry_connect_client() {
-		const auto_retry = get_configuration("reconnect_automatically", false);
+		const auto_retry = get_configuration("reconnect_automatically", true);
 		const max_attempts = get_configuration("reconnect_attempts", 10);
 		if (auto_retry && this.reconnection_attempts <= max_attempts) {
 			this.reconnection_attempts++;
