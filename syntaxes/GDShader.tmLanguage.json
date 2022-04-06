@@ -1,0 +1,19 @@
+{
+    "version": "v0.1.0",
+    "scopeName": "source.gdshader",
+    "uuid": "3a95d25d-688b-481f-a581-eee47f00e5ca",
+    "patterns": [
+        {
+            "include": "#shader_type"
+        },
+        {
+            "include": "source.glsl"
+        }
+    ],
+    "repository": {
+        "shader_type": {
+            "match": "(shader_type)",
+            "name": "storage.type.glsl"
+        }
+    }
+}

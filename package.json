@@ -27,6 +27,8 @@
 	"activationEvents": [
 		"workspaceContains:project.godot",
 		"onLanguage:gdscript",
+		"onLanguage:gdshader",
+		"onLanguage:gdresource",
 		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
@@ -142,23 +144,47 @@
 				"configuration": "./configurations/gdscript-configuration.json"
 			},
 			{
-				"id": "properties",
+				"id": "gdresource",
+				"aliases": [
+					"GDResource",
+					"gdresource"
+				],
 				"extensions": [
-					"cfg",
+					"godot",
 					"tres",
 					"tscn",
-					"godot",
+					"import",
 					"gdns",
-					"gdnlib",
-					"import"
-				]
-			}
+					"gdnlib"
+				],
+				"configuration": "./configurations/gdresource-configuration.json"
+			},
+            {
+				"id": "gdshader",
+				"aliases": [
+					"gdshader"
+				],
+				"extensions": [
+					".gdshader"
+				],
+				"configuration": "./configurations/gdshader-configuration.json"
+            }
 		],
 		"grammars": [
 			{
 				"language": "gdscript",
 				"scopeName": "source.gdscript",
 				"path": "./syntaxes/GDScript.tmLanguage.json"
+			},
+			{
+				"language": "gdresource",
+				"scopeName": "source.gdresource",
+				"path": "./syntaxes/GDResource.tmLanguage.json"
+			},
+			{
+				"language": "gdshader",
+				"scopeName": "source.gdshader",
+				"path": "./syntaxes/GDShader.tmLanguage.json"
 			}
 		],
 		"snippets": [
