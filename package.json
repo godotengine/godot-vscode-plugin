@@ -126,6 +126,21 @@
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
+				},
+				"godot_tools.reconnect_automatically": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether the plugin should attempt to reconnect"
+				},
+				"godot_tools.reconnect_cooldown": {
+					"type": "number",
+					"default": 3000,
+					"description": "The number of milliseconds to wait before attempting to reconnect"
+				},
+				"godot_tools.reconnect_attempts": {
+					"type": "number",
+					"default": 10,
+					"description": "How many times the client will attempt to reconnect"
 				}
 			}
 		},
