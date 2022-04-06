@@ -23,7 +23,7 @@ export class GodotTools {
 
 		setInterval(() => {
 			this.retry_callback();
-		}, get_configuration("reconnect_cooldown", 1000));
+		}, get_configuration("reconnect_cooldown", 3000));
 	}
 
 	public activate() {
