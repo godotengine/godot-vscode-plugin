@@ -1,36 +1,93 @@
 {
     "comments": {
         "lineComment": "#",
-        "blockComment": ["\"\"\"", "\"\"\""]
+        "blockComment": [
+            "\"\"\"",
+            "\"\"\""
+        ]
     },
     "brackets": [
-        ["(", ")"],
-        ["[", "]"],
-        ["{", "}"]
+        [
+            "(",
+            ")"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        [
+            "{",
+            "}"
+        ]
     ],
     "autoClosingPairs": [
-        ["'", "'"],
-        ["\"", "\""],
-        ["(", ")"],
-        ["[", "]"],
-        ["{", "}"]
+        [
+            "'",
+            "'"
+        ],
+        [
+            "\"",
+            "\""
+        ],
+        [
+            "(",
+            ")"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        [
+            "{",
+            "}"
+        ]
     ],
     "surroundingPairs": [
-        ["'", "'"],
-        ["\"", "\""],
-        ["(", ")"],
-        ["[", "]"],
-        ["{", "}"]
+        [
+            "'",
+            "'"
+        ],
+        [
+            "\"",
+            "\""
+        ],
+        [
+            "(",
+            ")"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        [
+            "{",
+            "}"
+        ]
     ],
     "indentationRules": {
         "increaseIndentPattern": "^\\s*((class|static func|func|else|elif|for|if|match|while|enum)|(.*\\sdo\\b))\\b[^\\{;]*$",
         "decreaseIndentPattern": "^\\s*([}\\]]([,)]?\\s*(#|$)|\\.[a-zA-Z_]\\w*\\b)|(else|elif)\\b)"
     },
     "folding": {
-		"offSide": true,
-		"markers": {
-			"start": "^\\s*#\\s*region\\b",
-			"end": "^\\s*#\\s*endregion\\b"
-		}
-	}
+        "offSide": true,
+        "markers": {
+            "start": "^\\s*#\\s*region\\b",
+            "end": "^\\s*#\\s*endregion\\b"
+        }
+    },
+    "onEnterRules": [
+        {
+            "beforeText": "^\\s*(?:func|for|if|elif|else|while|match).*?:\\s*$",
+            "afterText": "^.{0}$",
+            "action": {
+                "indent": "indent"
+            }
+        },
+        {
+            "beforeText": "^\\s*$",
+            "action": {
+                "indent": "none"
+            }
+        }
+    ]
 }
