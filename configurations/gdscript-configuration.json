@@ -77,13 +77,6 @@
     },
     "onEnterRules": [
         {
-            "beforeText": "^\\s*(?:func|for|if|elif|else|while|match).*?:\\s*$",
-            "afterText": "^.{0}$",
-            "action": {
-                "indent": "indent"
-            }
-        },
-        {
             "beforeText": "^\\s*$",
             "action": {
                 "indent": "none"
