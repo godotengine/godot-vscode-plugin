@@ -9,6 +9,10 @@ remotesync var c := 20
 master var d :int = 30
 puppet var e :int
 
+signal sig_a
+signal sig_b()
+signal sig_c(param1, param2)
+
 # ------------------------------------------------------------------------------
 
 var f = 40 setget set_f
@@ -42,6 +46,8 @@ var CONSTANT_not
 
 onready var node_a = $Child
 onready var node_b = $Child/GrandChild
+onready var node_bb = $Child/GrandChild/GreatGrandChild
+onready var node_bbb = $Child/GrandChild/GreatGrandChild/GreatGreatGrandChild
 onready var node_c = $"../Sibling"
 onready var node_cc = $'../Sibling'
 onready var node_d = $'..' # parent
@@ -50,6 +56,9 @@ onready var node_e = $"../.." # grandparent
 onready var node_f = get_node('Child')
 onready var node_g = get_node("Child/GrandChild")
 onready var node_h = get_node("../Sibling")
+
+if get_node('Child').has_node('GrandChild'):
+	pass
 
 onready var node_i = $badlyNamedChild
 onready var node_j = $badlyNamedChild/badly_named_grandchild
