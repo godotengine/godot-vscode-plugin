@@ -81,6 +81,12 @@
             "include": "#function-declaration"
         },
         {
+            "include": "#any-method"
+        },
+        {
+            "include": "#any-property"
+        },
+        {
             "include": "#extends"
         }
     ],
@@ -365,11 +371,6 @@
                     "name": "entity.name.function.gdscript"
                 }
             },
-            "endCaptures": {
-                "1": {
-                    "name": "invalid.illegal.line.continuation.gdscript"
-                }
-            },
             "patterns": [
                 {
                     "include": "#parameters"
@@ -398,11 +399,6 @@
                 },
                 "2": {
                     "name": "entity.name.function.gdscript"
-                }
-            },
-            "endCaptures": {
-                "1": {
-                    "name": "invalid.illegal.line.continuation.gdscript"
                 }
             },
             "patterns": [
@@ -547,6 +543,14 @@
                     ]
                 }
             ]
+        },
+        "any-method": {
+            "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
+            "name": "support.function.any-method.gdscript"
+        },
+        "any-property": {
+            "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
+            "name": "variable.other.property.gdscript"
         }
     }
 }
