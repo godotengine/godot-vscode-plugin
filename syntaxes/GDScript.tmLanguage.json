@@ -315,7 +315,8 @@
             "name": "support.function.builtin.gdscript"
         },
         "builtin_get_node_shorthand": {
-            "match": "(\\$)(((?<quote>\"|')((\\.\\.\\/)+|\\/)?)[0-9A-Za-z_ ]+(\\/[0-9A-Za-z_ ]+)*\\k<quote>|[0-9A-Za-z_]+(\\/[0-9A-Za-z_]+)*)",
+            "match": "(\\$)([\\\"\\'].*[\\\"\\']|(?:[a-zA-Z_][a-zA-Z_0-9]*/?)*)",
+            "name": "support.function.builtin.shorthand.gdscript",
             "captures": {
                 "1": {
                     "name": "keyword.control.flow"
