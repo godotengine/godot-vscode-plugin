@@ -12,6 +12,11 @@ puppet var e :int
 signal sig_a
 signal sig_b()
 signal sig_c(param1, param2)
+signal sig_d(param1: int, param2: Dictionary)
+signal sig_e(
+		param1: int, # first param
+		param2: Dictionary,
+	)
 
 # ------------------------------------------------------------------------------
 
@@ -20,11 +25,34 @@ func set_f(value):
 	pass
 
 var g:int setget set_g, get_g
-func set_g(value: int) -> void:
+func set_g(value: int=0) -> void:
 	pass
 
 func get_g() -> int:
 	return 0
+
+# ------------------------------------------------------------------------------
+
+func func_a():
+	pass
+
+func func_b(param1, param2):
+	pass
+
+var dict = {
+	a = 0,
+	b = 0.0,
+	c = 'test',
+} 
+
+func func_c(
+		param1: int = 10,
+		param11,
+		param2 := 1.0,
+		param3: String = 'string',
+		param4 := {a=0, b=0.0, c='test'},
+	):
+	pass
 
 # ------------------------------------------------------------------------------
 
@@ -57,7 +85,7 @@ onready var node_f = get_node('Child')
 onready var node_g = get_node("Child/GrandChild")
 onready var node_h = get_node("../Sibling")
 
-if get_node('Child').has_node('GrandChild'):
+if has_node('Child') and get_node('Child').has_node('GrandChild'):
 	pass
 
 onready var node_i = $badlyNamedChild
