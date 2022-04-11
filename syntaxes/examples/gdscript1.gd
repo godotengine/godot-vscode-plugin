@@ -28,6 +28,10 @@ var g:int setget set_g, get_g
 func set_g(value: int=0) -> void:
 	pass
 
+var h:float = 1.0 setget set_h, get_h
+func set_h(value: int=0) -> void:
+	pass
+
 func get_g() -> int:
 	return 0
 
