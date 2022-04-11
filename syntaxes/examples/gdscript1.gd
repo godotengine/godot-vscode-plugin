@@ -141,5 +141,3 @@ class InnerClass:
 			pass
 		
 		pass
-	
-
