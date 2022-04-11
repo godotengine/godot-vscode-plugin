@@ -39,6 +39,9 @@
             "include": "#class_def"
         },
         {
+            "include": "#var_def"
+        },
+        {
             "include": "#type_hint"
         },
         {
@@ -190,7 +193,7 @@
             "name": "keyword.control.gdscript"
         },
         "keywords": {
-            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|var|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
             "name": "keyword.language.gdscript"
         },
         "letter": {
@@ -233,18 +236,15 @@
             }
         },
         "var_def": {
-            "match": "\\b(?i:(var))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
+            "match": "\\b(?i:(var))\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*)",
             "captures": {
                 "1": {
                     "name": "storage.type.var.gdscript"
-                },
-                "2": {
-                    "name": "variable.language.gdscript"
                 }
             }
         },
         "type_hint": {
-            "match": "\\:\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?:[=\\n]|setget)",
+            "match": "\\:\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?=[=\\n]|setget)",
             "captures": {
                 "1": {
                     "name": "entity.name.type.class.gdscript"
