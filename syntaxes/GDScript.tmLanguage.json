@@ -106,8 +106,18 @@
         "strings": {
             "patterns": [
                 {
-                    "match": "(?<=get_node|has_node|NodePath)\\s*\\(\\s*((([\\\"|'][\\.\\/A-Za-z0-9\\_]*[\\\"|'])|([A-Z][a-z_0-9]*(\\/?[A-Z]?[a-z_0-9]+)*[A-Z]?)*))\\s*\\)",
-                    "name": "constant.character.escape"
+                    "begin": "(?:(?<=get_node|has_node|NodePath)\\s*\\(\\s*)",
+                    "end": "(?:\\s*\\))",
+                    "patterns": [
+                        {
+                            "begin": "[\\\"\\']",
+                            "end": "[\\\"\\']",
+                            "name": "constant.character.escape"
+                        },
+                        {
+                            "include": "#base_expression"
+                        }
+                    ]
                 },
                 {
                     "name": "invalid.illegal.escape.gdscript",
