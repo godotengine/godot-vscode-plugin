@@ -106,7 +106,7 @@
         "strings": {
             "patterns": [
                 {
-                    "begin": "(?:(?<=get_node|has_node|NodePath)\\s*\\(\\s*)",
+                    "begin": "(?:(?<=get_node|has_node|find_node|get_node_or_null|NodePath)\\s*\\(\\s*)",
                     "end": "(?:\\s*\\))",
                     "patterns": [
                         {
