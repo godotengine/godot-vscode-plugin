@@ -242,6 +242,9 @@
                     "include": "#builtin_classes"
                 },
                 {
+                    "include": "#const_vars"
+                },
+                {
                     "include": "#pascal_case_class"
                 },
                 {
