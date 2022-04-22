@@ -89,18 +89,18 @@ func func_c(
 		param1: int = 10,
 		param2 := 1.0,
 		param3: String = 'string',
-		param4 := {a=0, b=0.0, c='test'},
+		param4 := {a=0, b=0.0, c='test'}
 	):
 	pass
 
 # ------------------------------------------------------------------------------
 
-var h = "double quotes"
-var i = 'single quotes'
-var j = """
+var q = "double quotes"
+var r = 'single quotes'
+var s = """
 triple double quotes
 """
-var k = '''triple single quotes''' # this should be red because it's invalid
+var t = '''triple single quotes''' # this should be red because it's invalid
 
 # ------------------------------------------------------------------------------
 
