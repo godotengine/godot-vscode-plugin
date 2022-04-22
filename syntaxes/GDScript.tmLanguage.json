@@ -6,6 +6,12 @@
     "name": "GDScript",
     "patterns": [
         {
+            "include": "#nodepath_object"
+        },
+        {
+            "include": "#nodepath_function"
+        },
+        {
             "include": "#base_expression"
         },
         {
@@ -159,6 +165,40 @@
                 }
             ]
         },
+        "nodepath_object": {
+            "name": "meta.literal.nodepath.gdscript",
+            "begin": "(NodePath)\\s*(?:\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "support.class.library.gdscript"
+                }
+            },
+            "end": "(?:\\))",
+            "patterns": [
+                {
+                    "begin": "[\\\"\\']",
+                    "end": "[\\\"\\']",
+                    "name": "constant.character.escape"
+                }
+            ]
+        },
+        "nodepath_function": {
+            "name": "meta.literal.nodepath.gdscript",
+            "begin": "(get_node_or_null|has_node|find_node|get_node)\\s*(?:\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.function.gdscript"
+                }
+            },
+            "end": "(?:\\))",
+            "patterns": [
+                {
+                    "begin": "[\\\"\\']",
+                    "end": "[\\\"\\']",
+                    "name": "constant.character.escape"
+                }
+            ]
+        },
         "self": {
             "match": "\\bself\\b",
             "name": "variable.language.gdscript"
@@ -166,16 +206,46 @@
         "base_expression": {
             "patterns": [
                 {
+                    "include": "#builtin_get_node_shorthand"
+                },
+                {
+                    "include": "#nodepath_object"
+                },
+                {
+                    "include": "#nodepath_function"
+                },
+                {
                     "include": "#strings"
                 },
                 {
+                    "include": "#keywords"
+                },
+                {
+                    "include": "#function-call"
+                },
+                {
                     "include": "#comment"
+                },
+                {
+                    "include": "#self"
                 },
                 {
                     "include": "#letter"
                 },
                 {
                     "include": "#numbers"
+                },
+                {
+                    "include": "#builtin_func"
+                },
+                {
+                    "include": "#builtin_classes"
+                },
+                {
+                    "include": "#const_vars"
+                },
+                {
+                    "include": "#pascal_case_class"
                 },
                 {
                     "include": "#line-continuation"
@@ -487,6 +557,32 @@
             ]
         },
         "annotated-parameter": {
+            "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:)\n",
+            "end": "(,)|(?=\\))",
+            "beginCaptures": {
+                "1": {
+                    "name": "variable.parameter.function.language.gdscript"
+                },
+                "2": {
+                    "name": "punctuation.separator.annotation.gdscript"
+                }
+            },
+            "endCaptures": {
+                "1": {
+                    "name": "punctuation.separator.parameters.gdscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#base_expression"
+                },
+                {
+                    "name": "keyword.operator.assignment.gdscript",
+                    "match": "=(?!=)"
+                }
+            ]
+        },
+        "annotated-parameter2": {
             "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:) \\s* ([[:alpha:]_]\\w*)? \\s* (=)? \\s* ([[:alpha:].0-9\\'\\\"_]*)?\n",
             "end": "(,)|(?=\\))",
             "beginCaptures": {
@@ -512,10 +608,7 @@
                 "5": {
                     "patterns": [
                         {
-                            "include": "#numbers"
-                        },
-                        {
-                            "include": "#strings"
+                            "include": "#base_expression"
                         }
                     ]
                 }
@@ -562,6 +655,85 @@
         "any-property": {
             "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
             "name": "variable.other.property.gdscript"
+        },
+        "function-call": {
+            "name": "meta.function-call.gdscript",
+            "comment": "Regular function call of the type \"name(args)\"",
+            "begin": "(?x)\n  \\b(?=\n    ([[:alpha:]_]\\w*) \\s* (\\()\n  )\n",
+            "end": "(\\))",
+            "endCaptures": {
+                "1": {
+                    "name": "punctuation.definition.arguments.end.gdscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#function-name"
+                },
+                {
+                    "include": "#function-arguments"
+                }
+            ]
+        },
+        "function-name": {
+            "patterns": [
+                {
+                    "include": "#builtin_func"
+                },
+                {
+                    "include": "#builtin_classes"
+                },
+                {
+                    "comment": "Some color schemas support meta.function-call.generic scope",
+                    "name": "support.function.any-method.gdscript",
+                    "match": "(?x)\n  \\b ([[:alpha:]_]\\w*) \\b\n"
+                }
+            ]
+        },
+        "function-arguments": {
+            "begin": "(\\()",
+            "end": "(?=\\))(?!\\)\\s*\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "punctuation.definition.arguments.begin.gdscript"
+                }
+            },
+            "contentName": "meta.function-call.arguments.gdscript",
+            "patterns": [
+                {
+                    "name": "punctuation.separator.arguments.gdscript",
+                    "match": "(,)"
+                },
+                {
+                    "match": "\\b([[:alpha:]_]\\w*)\\s*(=)(?!=)",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.function-call.gdscript"
+                        },
+                        "2": {
+                            "name": "keyword.operator.assignment.gdscript"
+                        }
+                    }
+                },
+                {
+                    "name": "keyword.operator.assignment.gdscript",
+                    "match": "=(?!=)"
+                },
+                {
+                    "include": "#base_expression"
+                },
+                {
+                    "match": "\\s*(\\))\\s*(\\()",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.arguments.end.gdscript"
+                        },
+                        "2": {
+                            "name": "punctuation.definition.arguments.begin.gdscript"
+                        }
+                    }
+                }
+            ]
         }
     }
 }

@@ -12,11 +12,11 @@ puppet var e :int
 signal sig_a
 signal sig_b()
 signal sig_c(param1, param2)
-signal sig_d(param1: int, param2: Dictionary)
-signal sig_e(
-		param1: int, # first param
-		param2: Dictionary,
-	)
+# signal sig_d(param1: int, param2: Dictionary)
+# signal sig_e(
+# 		param1: int, # first param
+# 		param2: Dictionary,
+# 	)
 
 # ------------------------------------------------------------------------------
 
@@ -37,10 +37,46 @@ func get_g() -> int:
 
 # ------------------------------------------------------------------------------
 
-func func_a():
+func func_a(param1, param2, param3):
+	self.test()
+	$Node.get_node('Foo')
+	$Node.has_node('Foo')
+	$Node.find_node('Foo')
+	$Node.get_node_or_null('Foo')
+	print($Node.has_node('Foo'))
+	print(NodePath('Foo'))
+	print(NodePath("Foo"))
 	pass
 
-func func_b(param1, param2):
+func func_b(param1, param2=func_a(10, 1.0, 'test')) -> void:
+	pass
+
+func func_b1(param1 = false, param2: bool = false, param3 := false):
+	pass
+
+func func_b2(param1 = 10, param2: int = 100, param3 := 1000):
+	pass
+
+func func_b3(param1 = 1.0, param2: float = 10.0, param3 := 100.001):
+	pass
+
+func func_b4(param1 = 'foo', param2: String = 'bar', param3 := 'foobar'):
+	pass
+
+func func_b5(
+		param1 = 'foo', # comment
+		param2: String = 'bar',
+		param3: float = 3.14159,
+		param4:='foobar',
+		param5:=1000,
+		param6:=[],
+		param7:={},
+		param8:=func_a(),
+		param9:=Vector2(0, 1),
+		param10:=Vector2(0, 0),
+		param11:=Color(1, 1, 1, 0.5),
+		param12:=NodePath('Foo')
+	) -> void:
 	pass
 
 var dict = {
@@ -51,21 +87,20 @@ var dict = {
 
 func func_c(
 		param1: int = 10,
-		param11,
 		param2 := 1.0,
 		param3: String = 'string',
-		param4 := {a=0, b=0.0, c='test'},
+		param4 := {a=0, b=0.0, c='test'}
 	):
 	pass
 
 # ------------------------------------------------------------------------------
 
-var h = "double quotes"
-var i = 'single quotes'
-var j = """
+var q = "double quotes"
+var r = 'single quotes'
+var s = """
 triple double quotes
 """
-# var k = '''triple single quotes''' # this should be red because it's invalid
+var t = '''triple single quotes''' # this should be red because it's invalid
 
 # ------------------------------------------------------------------------------
 
