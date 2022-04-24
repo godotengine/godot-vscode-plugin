@@ -3,7 +3,7 @@
 A complete set of tools to code games with
 [Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
 
-**IMPORTANT NOTE:** Versions 1.0.0 and later of this plugin only support
+**IMPORTANT NOTE:** Versions 1.0.0 and later of this extension only support
 Godot 3.2 or later.
 
 ## Features
@@ -24,6 +24,20 @@ experience as comfortable as possible:
 - Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
 ![Showing the documentation on hover feature](img/godot-tools.png)
+
+## Download
+
+- [Visual Studio Marketplace **(recommended)**](https://marketplace.visualstudio.com/items?itemName=geequlim.godot-tools)
+  - Stable release, with support for automatic updates.
+- [GitHub Releases](https://github.com/godotengine/godot-vscode-plugin/releases)
+  - Stable release, but no automatic updates. Can be useful if you need to install an older version of the extension.
+- [Development build (follows the `master` branch)](https://nightly.link/godotengine/godot-vscode-plugin/workflows/ci/master/godot-tools.zip)
+  - Development build. Contains new features and fixes not available in stable releases, but may be unstable.
+  - Extract the ZIP archive before installing (it contains the `.vsix` file inside).
+
+To install from GitHub Releases or a development build,
+see [Install from a VSIX](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix)
+in the Visual Studio Code documentation.
 
 ## Available commands
 
