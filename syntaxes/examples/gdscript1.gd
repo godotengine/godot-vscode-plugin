@@ -161,6 +161,11 @@ func if_test():
 	if some_bool:
 		pass
 
+	while some_bool:
+		pass
+	while (some_bool):
+		pass
+
 	if (some_bool):
 		pass
 	elif !some_bool:
