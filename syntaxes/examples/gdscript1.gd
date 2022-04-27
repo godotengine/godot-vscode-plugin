@@ -155,6 +155,25 @@ export(test_enum) var enum_variable = test_enum.VALUE_1
 
 # ------------------------------------------------------------------------------
 
+func if_test():
+	var some_bool := true
+
+	if some_bool:
+		pass
+
+	if (some_bool):
+		pass
+	elif !some_bool:
+		pass
+	elif !(some_bool):
+		pass
+	elif (some_bool):
+		pass
+	else:
+		pass
+
+# ------------------------------------------------------------------------------
+
 class InnerClass:
 	var some_var = 100
 	var dict = {
