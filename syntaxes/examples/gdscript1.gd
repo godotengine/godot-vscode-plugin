@@ -158,20 +158,20 @@ export(test_enum) var enum_variable = test_enum.VALUE_1
 func if_test():
 	var some_bool := true
 
-	if some_bool:
-		pass
-
 	while some_bool:
 		pass
 	while (some_bool):
 		pass
 
+	if some_bool:
+		return some_bool
+
 	if (some_bool):
-		pass
+		return (some_bool)
 	elif !some_bool:
-		pass
+		return !some_bool
 	elif !(some_bool):
-		pass
+		return !(some_bool)
 	elif (some_bool):
 		pass
 	else:
