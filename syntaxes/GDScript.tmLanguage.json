@@ -221,6 +221,9 @@
                     "include": "#keywords"
                 },
                 {
+                    "include": "#control_flow"
+                },
+                {
                     "include": "#function-call"
                 },
                 {
