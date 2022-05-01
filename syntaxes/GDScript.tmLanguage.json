@@ -104,9 +104,50 @@
             "captures": {
                 "1": {
                     "name": "punctuation.definition.comment.number-sign.gdscript"
+                },
+                "2": {
+                    "name": "punctuation.definition.comment.number-sign.gdscript",
+                    "patterns": [
+                        {
+                            "_comment": "# @annotation id {type,...} description",
+                            "match": "(@[a-z_]+) ([a-zA-Z0-9_]+) \\{([^}]+)\\}(|\\s+.+)",
+                            "captures": {
+                                "1": {
+                                    "name": "storage.type.function.gdscript"
+                                },
+                                "2": {
+                                    "name": "variable.parameter.gdscript"
+                                },
+                                "3": {
+                                    "name": "class.other.gdscript"
+                                }
+                            }
+                        },
+                        {
+                            "_comment": "# @annotation {type,...} description",
+                            "match": "(@[a-z_]+) \\{([^}]+)\\}(|\\s+.+)",
+                            "captures": {
+                                "1": {
+                                    "name": "storage.type.function.gdscript"
+                                },
+                                "2": {
+                                    "name": "class.other.gdscript"
+                                }
+                            }
+                        },
+                        {
+                            "_comment": "# @annotation description",
+                            "match": "(@[a-z_]+)(|\\s+.+)",
+                            "captures": {
+                                "1": {
+                                    "name": "storage.type.function.gdscript"
+                                }
+                            }
+                        }
+                    ]
                 }
             },
-            "match": "(#).*$\\n?",
+            "match": "(#)\\s*(.*)$\\n?",
             "name": "comment.line.number-sign.gdscript"
         },
         "strings": {
