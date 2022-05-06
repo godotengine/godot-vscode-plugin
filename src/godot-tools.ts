@@ -11,12 +11,12 @@ export class GodotTools {
 	private reconnection_attempts = 0;
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
-    // deprecated, need to replace with "vscode.workspace.workspaceFolders", but
-    // that's an array and not a single value
+	// deprecated, need to replace with "vscode.workspace.workspaceFolders", but
+	// that's an array and not a single value
 	private workspace_dir = vscode.workspace.rootPath;
 	private project_file_name = "project.godot";
 	private project_file = "";
-    private project_dir = ""
+	private project_dir = ""
 	private connection_status: vscode.StatusBarItem = null;
 
 	constructor(p_context: vscode.ExtensionContext) {
@@ -49,15 +49,15 @@ export class GodotTools {
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
 
-        // TODO: maybe cache this result somehow
-        const klaw = require('klaw');
-        klaw(this.workspace_dir)
-        .on('data', item => {
-            if (path.basename(item.path) == this.project_file_name) {
-                this.project_dir = path.dirname(item.path);
-                this.project_file = item.path;
-            }
-        });
+		// TODO: maybe cache this result somehow
+		const klaw = require('klaw');
+		klaw(this.workspace_dir)
+			.on('data', item => {
+				if (path.basename(item.path) == this.project_file_name) {
+					this.project_dir = path.dirname(item.path);
+					this.project_file = item.path;
+				}
+			});
 
 		this.reconnection_attempts = 0;
 		this.client.connect_to_server();
@@ -86,19 +86,19 @@ export class GodotTools {
 	}
 
 	private copy_resource_path(uri: vscode.Uri) {
-        if (!this.project_dir) {
-            return;
-        }
+		if (!this.project_dir) {
+			return;
+		}
         
-        if (!uri) {
-            uri = vscode.window.activeTextEditor.document.uri
-        }
+		if (!uri) {
+			uri = vscode.window.activeTextEditor.document.uri
+		}
 
-        var relative_path = path.normalize(path.relative(this.project_dir, uri.fsPath));
-        relative_path = relative_path.split(path.sep).join(path.posix.sep);
-        relative_path = 'res://' + relative_path;
+		let relative_path = path.normalize(path.relative(this.project_dir, uri.fsPath));
+		relative_path = relative_path.split(path.sep).join(path.posix.sep);
+		relative_path = 'res://' + relative_path;
 
-        vscode.env.clipboard.writeText(relative_path);
+		vscode.env.clipboard.writeText(relative_path);
     }
 
 	private set_scene_file(uri: vscode.Uri) {
