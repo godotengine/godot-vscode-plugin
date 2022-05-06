@@ -70,12 +70,12 @@ export class GodotTools {
 
 		return new Promise<void>((resolve, reject) => {
 			let valid = false;
-			if (this.workspace_dir) {
+			if (this.project_dir) {
 				let cfg = this.project_file;
 				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
 			}
 			if (valid) {
-				this.run_editor(`--path "${this.workspace_dir}" ${params}`).then(() => resolve()).catch(err => {
+				this.run_editor(`--path "${this.project_dir}" ${params}`).then(() => resolve()).catch(err => {
 					reject(err);
 				});
 			} else {
