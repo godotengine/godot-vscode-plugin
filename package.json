@@ -92,6 +92,10 @@
 			{
 				"command": "godot-tool.set_scene_file",
 				"title": "Set as Scene File"
+			},
+			{
+				"command": "godot-tool.copy_resource_path",
+				"title": "Copy Resource Path"
 			}
 		],
 		"configuration": {
@@ -188,7 +192,7 @@
 				],
 				"configuration": "./configurations/gdresource-configuration.json"
 			},
-            {
+			{
 				"id": "gdshader",
 				"aliases": [
 					"gdshader"
@@ -197,7 +201,7 @@
 					".gdshader"
 				],
 				"configuration": "./configurations/gdshader-configuration.json"
-            }
+			}
 		],
 		"grammars": [
 			{
@@ -351,6 +355,10 @@
 				{
 					"command": "godot-tool.set_scene_file",
 					"group": "2_workspace"
+				},
+				{
+					"command": "godot-tool.copy_resource_path",
+					"group": "6_copypath"
 				}
 			]
 		}
@@ -369,6 +377,7 @@
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
+		"klaw": "^4.0.1",
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",
