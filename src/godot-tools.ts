@@ -42,6 +42,7 @@ export class GodotTools {
 		});
 		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
 		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
+		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
 
 		this.connection_status.text = "$(sync) Initializing";
@@ -88,6 +89,11 @@ export class GodotTools {
         if (!this.project_dir) {
             return;
         }
+        
+        if (!uri) {
+            uri = vscode.window.activeTextEditor.document.uri
+        }
+
         var relative_path = path.normalize(path.relative(this.project_dir, uri.fsPath));
         relative_path = relative_path.split(path.sep).join(path.posix.sep);
         relative_path = 'res://' + relative_path;

@@ -94,8 +94,12 @@
 				"title": "Set as Scene File"
 			},
 			{
-				"command": "godot-tool.copy_resource_path",
+				"command": "godot-tool.copy_resource_path_context",
 				"title": "Copy Resource Path"
+			},
+			{
+				"command": "godot-tool.copy_resource_path",
+				"title": "Godot Tools: Copy Resource Path"
 			}
 		],
 		"configuration": {
@@ -357,13 +361,13 @@
 					"group": "2_workspace"
 				},
 				{
-					"command": "godot-tool.copy_resource_path",
+					"command": "godot-tool.copy_resource_path_context",
 					"group": "6_copypath"
 				}
 			],
 			"editor/title/context": [
 				{
-					"command": "godot-tool.copy_resource_path",
+					"command": "godot-tool.copy_resource_path_context",
 					"group": "1_godot"
 				}
 			]
