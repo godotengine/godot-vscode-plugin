@@ -360,6 +360,12 @@
 					"command": "godot-tool.copy_resource_path",
 					"group": "6_copypath"
 				}
+			],
+			"editor/title/context": [
+				{
+					"command": "godot-tool.copy_resource_path",
+					"group": "1_godot"
+				}
 			]
 		}
 	},
