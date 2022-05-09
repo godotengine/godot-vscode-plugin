@@ -1,5 +1,12 @@
 # Change Log
 
+### 1.3.0
+* [Add context menu options to copy resource path](https://github.com/godotengine/godot-vscode-plugin/pull/357)
+* [Add option to run the project with visible collision shapes and navigation](https://github.com/godotengine/godot-vscode-plugin/pull/312)
+* [Overhaul syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/342)
+* [Mention that the Godot editor must be running in connection error message](https://github.com/godotengine/godot-vscode-plugin/pull/358)
+* [Fix automatic indentation on line breaks not working as expected](https://github.com/godotengine/godot-vscode-plugin/pull/344)
+
 ### 1.2.0
 * [Add support for setting language-server-host](https://github.com/godotengine/godot-vscode-plugin/pull/297)
 * [Improve syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/330)

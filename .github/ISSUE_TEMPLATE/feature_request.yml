@@ -40,7 +40,7 @@ body:
       Open the **Extensions** side panel and click on the **godot-tools** extension to see your current version.
       Specify the Git commit hash if using a development or non-official build.
       If you use a custom build, please test if your issue is reproducible in official builds too.
-    placeholder: "1.2.0"
+    placeholder: "1.3.0"
   validations:
     required: true
 
