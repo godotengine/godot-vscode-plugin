@@ -92,6 +92,7 @@ export class ServerController {
 		launch_instance: boolean,
 		launch_scene: boolean,
 		scene_file: string | undefined,
+		additional_options: string | undefined,
 		debug_data: GodotDebugData
 	) {
 		this.debug_data = debug_data;
@@ -102,13 +103,16 @@ export class ServerController {
 			const force_visible_nav_mesh = utils.get_configuration("force_visible_nav_mesh", false);
 			let visible_collision_shapes_param = "";
 			let visible_nav_mesh_param = "";
+
 			if (force_visible_collision_shapes) {
 				visible_collision_shapes_param = " --debug-collisions";
 			}
+
 			if (force_visible_nav_mesh) {
 				visible_nav_mesh_param = " --debug-navigation";
 			}
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}""${visible_collision_shapes_param}""${visible_nav_mesh_param}`;
+
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}${visible_collision_shapes_param}${visible_nav_mesh_param}`;
 			if (launch_scene) {
 				let filename = "";
 				if (scene_file) {
@@ -118,15 +122,22 @@ export class ServerController {
 				}
 				executable_line += ` "${filename}"`;
 			}
+
+			if(additional_options){
+				executable_line += " " + additional_options;
+			}
+
 			executable_line += this.breakpoint_string(
 				debug_data.get_all_breakpoints(),
 				project_path
 			);
+
 			let godot_exec = cp.exec(executable_line, (error) => {
 				if (!this.terminated) {
 					window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
 				}
 			});
+
 			this.godot_pid = godot_exec.pid;
 		}
 

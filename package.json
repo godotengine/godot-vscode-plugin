@@ -273,6 +273,11 @@
 								"type": "string",
 								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
 								"default": ""
+							},
+							"additional_options":{
+								"type":"string",
+								"description": "Additional command line arguments.",
+								"default":""
 							}
 						}
 					}
@@ -286,7 +291,8 @@
 						"port": 6007,
 						"address": "127.0.0.1",
 						"launch_game_instance": true,
-						"launch_scene": false
+						"launch_scene": false,
+						"additional_options":""
 					}
 				],
 				"configurationSnippets": [
@@ -300,7 +306,8 @@
 							"port": 6007,
 							"address": "127.0.0.1",
 							"launch_game_instance": true,
-							"launch_scene": false
+							"launch_scene": false,
+							"additional_options":""
 						}
 					}
 				]
