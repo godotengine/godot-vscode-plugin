@@ -93,3 +93,26 @@ int sum2(int a, int b) {
 void sum3(int a, int b, inout int result) {
     result = a + b;
 }
+
+/* ************************************************************************** */
+
+struct Test {
+    vec3 color;
+};
+
+struct MyStruct {
+  float power;
+  vec3 color;
+  Test result;
+};
+
+Test foo(MyStruct a, MyStruct b) {
+    MyStruct k;
+    k.result.color = (a.color + b.color) * k.power;
+    return k.result;
+}
+
+void fragment() {
+    MyStruct inst = MyStruct(0.0, vec3(0.0), Test(vec3(1.0)));
+    Test result = foo(inst, MyStruct(1.0, vec3(0, 1, 0), Test(vec3(0.0))));
+}
