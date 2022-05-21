@@ -65,7 +65,7 @@
         },
         "modifierKeyword": {
             "name": "storage.modifier.gdshader",
-            "match": "\\b(?:const|uniform|varying|(?:low|medium|high)p|in|out|inout|flat|smooth)\\b"
+            "match": "\\b(?:const|global|instance|uniform|varying|(?:low|medium|high)p|in|out|inout|flat|smooth)\\b"
         },
         "controlKeyword": {
             "name": "keyword.control.gdshader",
@@ -77,7 +77,7 @@
         },
         "hintKeyword": {
             "name": "storage.type.gdshader",
-            "match": "\\bhint_(?:color|range|(?:black_)?albedo|normal|white|black|aniso)\\b"
+            "match": "\\bsource_color|hint_(?:default_)?(?:color|range|(?:black_)?albedo|normal|white|black|aniso)\\b"
         },
         "languageConstant_Bool": {
             "name": "constant.language.bool.boolean.gdshader",
