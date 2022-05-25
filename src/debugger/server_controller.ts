@@ -103,12 +103,12 @@ export class ServerController {
 
 			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
 
-            if (force_visible_collision_shapes) {
-                executable_line += ` --debug-collisions`;
-            }
-            if (force_visible_nav_mesh) {
-                executable_line += ` --debug-navigation`;
-            }
+		if (force_visible_collision_shapes) {
+			executable_line += " --debug-collisions";
+		}
+		if (force_visible_nav_mesh) {
+			executable_line += " --debug-navigation";
+		}
 			if (launch_scene) {
 				let filename = "";
 				if (scene_file) {
