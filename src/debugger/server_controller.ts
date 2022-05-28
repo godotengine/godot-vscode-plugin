@@ -100,15 +100,15 @@ export class ServerController {
 			let godot_path: string = utils.get_configuration("editor_path", "godot");
 			const force_visible_collision_shapes = utils.get_configuration("force_visible_collision_shapes", false);
 			const force_visible_nav_mesh = utils.get_configuration("force_visible_nav_mesh", false);
-			let visible_collision_shapes_param = "";
-			let visible_nav_mesh_param = "";
+
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
+
 			if (force_visible_collision_shapes) {
-				visible_collision_shapes_param = " --debug-collisions";
+				executable_line += " --debug-collisions";
 			}
 			if (force_visible_nav_mesh) {
-				visible_nav_mesh_param = " --debug-navigation";
+				executable_line += " --debug-navigation";
 			}
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}""${visible_collision_shapes_param}""${visible_nav_mesh_param}`;
 			if (launch_scene) {
 				let filename = "";
 				if (scene_file) {
