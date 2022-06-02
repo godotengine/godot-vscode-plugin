@@ -221,6 +221,9 @@
                     "include": "#keywords"
                 },
                 {
+                    "include": "#logic_op"
+                },
+                {
                     "include": "#control_flow"
                 },
                 {
@@ -685,9 +688,6 @@
                 },
                 {
                     "include": "#builtin_classes"
-                },
-                {
-                    "include": "#logic_op"
                 },
                 {
                     "comment": "Some color schemas support meta.function-call.generic scope",
