@@ -687,6 +687,9 @@
                     "include": "#builtin_classes"
                 },
                 {
+                    "include": "#logic_op"
+                },
+                {
                     "comment": "Some color schemas support meta.function-call.generic scope",
                     "name": "support.function.any-method.gdscript",
                     "match": "(?x)\n  \\b ([[:alpha:]_]\\w*) \\b\n"
