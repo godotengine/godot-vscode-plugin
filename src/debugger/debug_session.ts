@@ -235,7 +235,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.port,
 			args.launch_game_instance,
 			args.launch_scene,
-			get_configuration("scene_file_config", "") || args.scene_file,
+			get_configuration("sceneFileConfig", "") || args.scene_file,
 		]);
 
 		this.sendResponse(response);

@@ -77,7 +77,7 @@ export default class NativeDocumentManager extends EventEmitter {
 
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
 		let json_data = "";
-		if (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") {
+		if (get_configuration("lsp.serverProtocol", "tcp") == "ws") {
 			json_data = JSON.stringify({
 				id: -1,
 				jsonrpc: "2.0",

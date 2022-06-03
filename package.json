@@ -104,9 +104,9 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Godot Tools configuration",
+			"title": "Godot Tools",
 			"properties": {
-				"godot_tools.gdscript_lsp_server_protocol": {
+				"godot-tools.lsp.serverProtocol": {
 					"type": [
 						"string"
 					],
@@ -116,52 +116,52 @@
 					],
 					"default": "tcp",
 					"enumDescriptions": [
-						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
-						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
+						"Use the WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
+						"Use the TCP protocol to connect to Godot 3.2.2 and newer versions"
 					],
-					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+					"description": "The server protocol of the GDScript language server.\nYou must restart VSCode after changing this value."
 				},
-				"godot_tools.gdscript_lsp_server_host": {
+				"godot-tools.lsp.serverHost": {
 					"type": "string",
 					"default": "127.0.0.1",
 					"description": "The server host of the GDScript language server"
 				},
-				"godot_tools.gdscript_lsp_server_port": {
+				"godot-tools.lsp.serverPort": {
 					"type": "number",
 					"default": 6008,
 					"description": "The server port of the GDScript language server"
 				},
-				"godot_tools.editor_path": {
+				"godot-tools.editorPath": {
 					"type": "string",
 					"default": "",
 					"description": "The absolute path to the Godot editor executable"
 				},
-				"godot_tools.scene_file_config": {
+				"godot-tools.sceneFileConfig": {
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
 				},
-				"godot_tools.reconnect_automatically": {
+				"godot-tools.lsp.autoReconnect.enabled": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether the plugin should attempt to reconnect"
+					"description": "Whether the plugin should attempt to reconnect to the GDScript language server"
 				},
-				"godot_tools.reconnect_cooldown": {
+				"godot-tools.lsp.autoReconnect.cooldown": {
 					"type": "number",
 					"default": 3000,
 					"description": "The number of milliseconds to wait before attempting to reconnect"
 				},
-				"godot_tools.reconnect_attempts": {
+				"godot-tools.lsp.autoReconnect.attempts": {
 					"type": "number",
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
 				},
-				"godot_tools.force_visible_collision_shapes": {
+				"godot-tools.forceVisibleCollisionShapes": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible collision shapes"
 				},
-				"godot_tools.force_visible_nav_mesh": {
+				"godot-tools.forceVisibleNavMesh": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
