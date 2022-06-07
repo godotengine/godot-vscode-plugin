@@ -16,7 +16,8 @@ export function showUpdateMessage(context: ExtensionContext) {
 	if (localVersion !== syncedVersion && syncedVersion.startsWith("2.")) {
 		if (localVersion === undefined || localVersion.startsWith("1.")) {
 			window.showInformationMessage(
-				`Version 2.0.0 of the Godot Tools extension renames various settings. Please update your settings file.`,
+				`Version 2.0.0 of the Godot Tools extension renames various settings.
+				Please view the changelog for a full list, you will need to update any settings you have configured.`,
 				"OK"
 			);
 		}
