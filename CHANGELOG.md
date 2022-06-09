@@ -1,5 +1,9 @@
 # Change Log
 
+### 1.3.1
+* [Fix regression in launching debugger](https://github.com/godotengine/godot-vscode-plugin/pull/371)
+* [Fix operator syntax highlighting when next to an opening parenthesis](https://github.com/godotengine/godot-vscode-plugin/pull/375)
+
 ### 1.3.0
 * [Add context menu options to copy resource path](https://github.com/godotengine/godot-vscode-plugin/pull/357)
 * [Add option to run the project with visible collision shapes and navigation](https://github.com/godotengine/godot-vscode-plugin/pull/312)
