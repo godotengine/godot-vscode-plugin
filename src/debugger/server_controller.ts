@@ -107,7 +107,6 @@ export class ServerController {
 			if (force_visible_collision_shapes) {
 				executable_line += " --debug-collisions";
 			}
-
 			if (force_visible_nav_mesh) {
 				executable_line += " --debug-navigation";
 			}
@@ -120,22 +119,18 @@ export class ServerController {
 				}
 				executable_line += ` "${filename}"`;
 			}
-
 			if(additional_options){
 				executable_line += " " + additional_options;
 			}
-
 			executable_line += this.breakpoint_string(
 				debug_data.get_all_breakpoints(),
 				project_path
 			);
-
 			let godot_exec = cp.exec(executable_line, (error) => {
 				if (!this.terminated) {
 					window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
 				}
 			});
-
 			this.godot_pid = godot_exec.pid;
 		}
 
