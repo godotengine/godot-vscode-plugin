@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient/node";
 import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebsocktMessageIO, TCPMessageIO } from "./MessageIO";
-import logger from "../loggger";
+import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebSocketMessageIO, TCPMessageIO } from "./MessageIO";
+import logger from "../logger";
 import { EventEmitter } from "events";
 import NativeDocumentManager from './NativeDocumentManager';
 
@@ -15,7 +15,7 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public readonly io: MessageIO = (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") ? new WebsocktMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
