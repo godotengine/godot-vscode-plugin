@@ -36,7 +36,7 @@ export class MessageIO extends EventEmitter {
 }
 
 
-export class WebsocktMessageIO extends MessageIO {
+export class WebSocketMessageIO extends MessageIO {
 
 	private socket: WebSocket = null;
 
