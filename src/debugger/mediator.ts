@@ -1,5 +1,5 @@
 import { ServerController } from "./server_controller";
-import { window, OutputChannel } from "vscode";
+import { debug } from "vscode";
 import { GodotDebugSession } from "./debug_session";
 import { StoppedEvent, TerminatedEvent } from "vscode-debugadapter";
 import { GodotDebugData, GodotVariable } from "./debug_runtime";
@@ -12,18 +12,15 @@ export class Mediator {
 		(class_name: string, variable: GodotVariable) => void
 	> = new Map();
 	private static session?: GodotDebugSession;
-	private static first_output = false;
-	private static output: OutputChannel = window.createOutputChannel("Godot");
+	private static did_first_output = false;
 
 	private constructor() {}
 
 	public static notify(event: string, parameters: any[] = []) {
 		switch (event) {
 			case "output":
-				if (!this.first_output) {
-					this.first_output = true;
-					this.output.show(true);
-					this.output.clear();
+				if (!this.did_first_output) {
+					this.did_first_output = true;
 					this.controller?.send_request_scene_tree_command();
 				}
 
@@ -31,11 +28,10 @@ export class Mediator {
 				lines.forEach((line) => {
 					let message_content: string = line[0];
 					//let message_kind: number = line[1];
-
-					// OutputChannel doesn't give a way to distinguish between a 
+					
+					// DebugConsole doesn't give a way to distinguish between a 
 					// regular string (message_kind == 0) and an error string (message_kind == 1).
-
-					this.output.appendLine(message_content);
+					debug.activeDebugConsole.appendLine(message_content);
 				});
 				break;
 
@@ -141,7 +137,7 @@ export class Mediator {
 				break;
 
 			case "start":
-				this.first_output = false;
+				this.did_first_output = false;
 				this.controller?.start(
 					parameters[0],
 					parameters[1],
