@@ -176,12 +176,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 	) {
 		var requestType = "inspect";
 
-		if (["+", "-", "*", "/"].some(m => args.expression.includes(m))) {
+		if (["+", "-", "*", "/", ">", "<", "%", "!", "="].some(m => args.expression.includes(m))) {
 			requestType = "math";
 		}
 
-		if (args.expression.includes("=")) {
+		if (args.expression.split("").filter(x => x == "=").length == 1 && !args.expression.includes("!") && !args.expression.includes("<") && !args.expression.includes(">")) {
 			requestType = "set";
+		}
+
+		if (args.expression.includes("()")) {
+			requestType = "invoke";
 		}
 
 		if (requestType == "inspect") {
@@ -191,43 +195,74 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.evaluateMath(response, args);
 		}
 		else if (requestType == "set") {
-			this.evaluateSet(response, args);
+			response.body = {
+				result: "Setting variables is not implemented.",
+				variablesReference: 0
+			};
+			this.sendResponse(response);
+		}
+		else if (requestType == "invoke") {
+			response.body = {
+				result: "Invoking functions is not implemented.",
+				variablesReference: 0
+			};
+			this.sendResponse(response);
 		}
 	}
 
+	protected async getVariable(expression: string): Promise<{ variable: GodotVariable, index: number }> {
+		var items = expression.split(".");
+
+		if (items.length > 1 && items[0] == "self") {
+			items.shift();
+		}
+
+		var target = items.pop();
+		var index = (target.match(/\[\w*]/) || [null])[0];
+		if (index) {
+			index = index.replace(/\D/g, '');
+		}
+		target = target.split(/\[\w*]/).join("");
+		var path = items.join(".");
+
+		let result_idx = this.all_scopes.findIndex(s =>
+			s
+			&& s.name
+				.split("Members/").join("")
+			== target
+			&& s.scope_path
+				.split("@.member.self").join("")
+				.split("@.member.").join("")
+				.split("@.local.").join("")
+				.split("Members/").join("")
+				.split("@.member").join("")
+				.split("@.local").join("")
+				.split("@").join("")
+			== path
+		);
+
+		if (result_idx !== -1) {
+			let result = this.all_scopes[result_idx];
+			if (index !== null) {
+				result = result.sub_values[index];
+			}
+			return { variable: result, index: result_idx };
+		}
+
+		return null;
+	}
+
 	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		await this.getVariables();
+		var v = await this.getVariables();
 
 		if (this.all_scopes) {
-			var items = args.expression.split(".");
 
-			if (items.length > 1 && items[0] == "self") {
-				items.shift();
-			}
+			var variable = await this.getVariable(args.expression);
 
-			var target = items.pop();
-			var path = items.join(".");
-
-			let result_idx = this.all_scopes.findIndex(s =>
-				s
-				&& s.name
-					.split("Members/").join("")
-				== target
-				&& s.scope_path
-					.split("@.member.").join("")
-					.split("@.local.").join("")
-					.split("Members/").join("")
-					.split("@.member").join("")
-					.split("@.local").join("")
-					.split("@").join("")
-				== path
-			);
-
-			if (result_idx !== -1) {
-				let result = this.all_scopes[result_idx];
+			if (variable != null) {
 				response.body = {
-					result: this.parse_variable(result).value,
-					variablesReference: result_idx,
+					result: this.parse_variable(variable.variable).value,
+					variablesReference: variable.index
 				};
 			}
 		}
@@ -242,28 +277,30 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async evaluateMath(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		function isNumber(str: string): boolean {
-			if (typeof str !== 'string') {
-				return false;
-			}
-
-			if (str.trim() === '') {
-				return false;
-			}
-
-			return !Number.isNaN(Number(str));
+	protected isNumber(str: string): boolean {
+		if (typeof str !== 'string') {
+			return false;
 		}
+
+		if (str.trim() === '') {
+			return false;
+		}
+
+		return !Number.isNaN(Number(str));
+	}
+
+	protected async evaluateMath(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 
 		await this.getVariables();
 
-		var placeholders = args.expression.split(/\*|\+|-|\//).filter((x: string) => !isNumber(x)).map(p => p.trim());
+		var placeholders = args.expression.split(/\*|\+|-|\/|\<\=|\<|\>\=|\>|\=\=|\!\=|\%/).filter((x: string) => !this.isNumber(x)).map(p => p.trim());
 
 		if (placeholders.length > 0) {
-			placeholders.forEach((p: string) => {
-				var variable = this.all_scopes.find(s => s && s.name == p);
+			placeholders.forEach(async (p: string) => {
+				var variable = await this.getVariable(p);
 				if (variable) {
-					args.expression = args.expression.split(variable.name).join(variable.value);
+					args.expression = args.expression.split(p).join(variable.variable.value);
+					// args.expression = args.expression.split(p).join(variable.value);
 				}
 				else {
 					response.body = {
