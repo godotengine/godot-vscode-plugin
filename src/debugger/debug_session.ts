@@ -4,6 +4,9 @@ import {
 	Thread,
 	Source,
 	Breakpoint,
+	StackFrame,
+	Scope,
+	Variable,
 } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
 import { Mediator } from "./mediator";
@@ -14,6 +17,7 @@ const { Subject } = require("await-notify");
 import fs = require("fs");
 import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
 import { get_configuration } from "../utils";
+import { debug } from "vscode";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -46,7 +50,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		Mediator.set_debug_data(this.debug_data);
 	}
 
-	public dispose() {}
+	public dispose() { }
 
 	public set_exception(exception: boolean) {
 		this.exception = true;
@@ -148,24 +152,83 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
+	protected async getVariables(): Promise<{ locals: Variable[], members: Variable[], globals: Variable[], all: Variable[] }> {
+
+		var results = [];
+
+		var stackTrace: { stackFrames: StackFrame[], totalFrames?: number } = await debug.activeDebugSession.customRequest("stackTrace")
+		for (let f = 0; f < stackTrace.stackFrames.length; f++) {
+			const stackFrame = stackTrace.stackFrames[f];
+			var scopes: { scopes: Scope[] } = await debug.activeDebugSession.customRequest("scopes", { frameId: stackFrame.id });
+
+			for (let s = 0; s < scopes.scopes.length; s++) {
+				const scope = scopes.scopes[s];
+				results.push((await debug.activeDebugSession.customRequest("variables", { variablesReference: scope.variablesReference })).variables);
+			}
+		}
+
+		return { locals: results[0], members: results[1], globals: results[2], all: results[0].concat(results[1]).concat(results[2]) };
+	}
+
 	protected evaluateRequest(
 		response: DebugProtocol.EvaluateResponse,
 		args: DebugProtocol.EvaluateArguments
 	) {
+		var requestType = "inspect";
+
+		if (["+", "-", "*", "/"].some(m => args.expression.includes(m))) {
+			requestType = "math";
+		}
+
+		if (args.expression.includes("=")) {
+			requestType = "set";
+		}
+
+		if (requestType == "inspect") {
+			this.evaluateInspect(response, args);
+		}
+		else if (requestType == "math") {
+			this.evaluateMath(response, args);
+		}
+		else if (requestType == "set") {
+			this.evaluateSet(response, args);
+		}
+	}
+
+	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+		await this.getVariables();
+
 		if (this.all_scopes) {
-			let expression = args.expression;
-			let matches = expression.match(/^[_a-zA-Z0-9]+?$/);
-			if (matches) {
-				let result_idx = this.all_scopes.findIndex(
-					(va) => va && va.name === expression
-				);
-				if (result_idx !== -1) {
-					let result = this.all_scopes[result_idx];
-					response.body = {
-						result: this.parse_variable(result).value,
-						variablesReference: result_idx,
-					};
-				}
+			var items = args.expression.split(".");
+
+			if (items.length > 1 && items[0] == "self") {
+				items.shift();
+			}
+
+			var target = items.pop();
+			var path = items.join(".");
+
+			let result_idx = this.all_scopes.findIndex(s =>
+				s
+				&& s.name
+					.split("Members/").join("")
+				== target
+				&& s.scope_path
+					.split("@.member.").join("")
+					.split("@.local.").join("")
+					.split("Members/").join("")
+					.split("@.member").join("")
+					.split("@.local").join("")
+					.split("@").join("")
+				== path
+			);
+
+			if (result_idx !== -1) {
+				let result = this.all_scopes[result_idx];
+				response.body = {
+					result: this.parse_variable(result).value,
+					variablesReference: result_idx,
+				};
 			}
 		}
 
@@ -177,6 +240,93 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		this.sendResponse(response);
+	}
+
+	protected async evaluateMath(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+		function isNumber(str: string): boolean {
+			if (typeof str !== 'string') {
+				return false;
+			}
+
+			if (str.trim() === '') {
+				return false;
+			}
+
+			return !Number.isNaN(Number(str));
+		}
+
+		await this.getVariables();
+
+		var placeholders = args.expression.split(/\*|\+|-|\//).filter((x: string) => !isNumber(x)).map(p => p.trim());
+
+		if (placeholders.length > 0) {
+			placeholders.forEach((p: string) => {
+				var variable = this.all_scopes.find(s => s && s.name == p);
+				if (variable) {
+					args.expression = args.expression.split(variable.name).join(variable.value);
+				}
+				else {
+					response.body = {
+						result: `Could not find variable: ${p}`,
+						variablesReference: 0
+					}
+
+					this.sendResponse(response);
+					return;
+				}
+			});
+		}
+
+		var result = `${eval(args.expression)}`;
+
+		response.body = {
+			result: result,
+			variablesReference: 0
+		}
+
+		this.sendResponse(response);
+	}
+
+	protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+		var variables = (await this.getVariables()).all;
+		var segments: string[] = args.expression.split("=")[0].trim().split(".");
+		var value: string = args.expression.split("=")[1].trim();
+		var variable: Variable = null;
+
+		for (let i = 0; i < segments.length; i++) {
+			const segment = segments[i];
+			variable = variables.find(v => v && v.name.split("Members/").join("") == segment);
+			if (i >= segments.length - 1) break;
+			variables = (await debug.activeDebugSession.customRequest("variables", { variablesReference: variable.variablesReference })).variables;
+		}
+
+		if (variable) {
+			debug.activeDebugSession.customRequest(
+				"setVariable",
+				{
+					name: variable.name,
+					value: value
+				}
+			).then(
+				(reply: {
+					value: string,
+					type?: string,
+					variablesReference?: number,
+					namedVariables?: number,
+					indexedVariables?: number
+				}) => {
+					this.sendResponse(response);
+				},
+				(error: { message: string, name: string }) => {
+					response.body = {
+						result: error.message,
+						variablesReference: 0,
+					};
+
+					this.sendResponse(response);
+				}
+			);
+		}
 	}
 
 	protected initializeRequest(
@@ -212,7 +362,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response.body.supportsRestartFrame = false;
 		response.body.supportsRestartRequest = false;
 
-		response.body.supportsSetExpression = false;
+		response.body.supportsSetExpression = true;
+		response.body.supportsSetVariable = true;
 
 		response.body.supportsStepInTargetsRequest = false;
 
@@ -325,6 +476,28 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
+	protected setExpressionRequest(
+		response: DebugProtocol.SetExpressionResponse,
+		args: DebugProtocol.SetExpressionArguments,
+		request?: DebugProtocol.Request
+	): void {
+		response.success = false;
+		response.message = "Setting expressions is not implemented";
+
+		this.sendResponse(response);
+	}
+
+	protected setVariableRequest(
+		response: DebugProtocol.SetVariableResponse,
+		args: DebugProtocol.SetVariableArguments,
+		request?: DebugProtocol.Request
+	): void {
+		response.success = false;
+		response.message = "Setting variables is not implemented";
+
+		this.sendResponse(response);
+	}
+
 	protected stackTraceRequest(
 		response: DebugProtocol.StackTraceResponse,
 		args: DebugProtocol.StackTraceArguments
@@ -404,7 +577,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 							(va_idx) =>
 								va_idx &&
 								va_idx.scope_path ===
-									`${reference.scope_path}.${reference.name}` &&
+								`${reference.scope_path}.${reference.name}` &&
 								va_idx.name === va.name
 						)
 					);
