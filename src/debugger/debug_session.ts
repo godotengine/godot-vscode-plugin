@@ -195,11 +195,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.evaluateMath(response, args);
 		}
 		else if (requestType == "set") {
-			response.body = {
-				result: "Setting variables is not implemented.",
-				variablesReference: 0
-			};
-			this.sendResponse(response);
+			this.evaluateSet(response, args);
 		}
 		else if (requestType == "invoke") {
 			response.body = {
@@ -210,46 +206,69 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected async getVariable(expression: string): Promise<{ variable: GodotVariable, index: number }> {
-		var items = expression.split(".");
-
-		if (items.length > 1 && items[0] == "self") {
-			items.shift();
-		}
-
-		var target = items.pop();
-		var index = (target.match(/\[\w*]/) || [null])[0];
-		if (index) {
-			index = index.replace(/\D/g, '');
-		}
-		target = target.split(/\[\w*]/).join("");
-		var path = items.join(".");
-
-		let result_idx = this.all_scopes.findIndex(s =>
-			s
-			&& s.name
-				.split("Members/").join("")
-			== target
-			&& s.scope_path
-				.split("@.member.self").join("")
-				.split("@.member.").join("")
-				.split("@.local.").join("")
-				.split("Members/").join("")
-				.split("@.member").join("")
-				.split("@.local").join("")
-				.split("@").join("")
-			== path
-		);
-
-		if (result_idx !== -1) {
-			let result = this.all_scopes[result_idx];
-			if (index !== null) {
-				result = result.sub_values[index];
+	protected getVariable(expression: string, variables: GodotVariable[] = null): { variable: GodotVariable, index: number, object_id: number } {
+		
+		if (!variables) {
+			variables = this.all_scopes
+			if (!expression.includes("self")) {
+				expression = "self." + expression;
 			}
-			return { variable: result, index: result_idx };
 		}
 
-		return null;
+		var items = expression.split(".");
+		var targetName = items.shift();
+		var propertyName = items[0];
+
+		// Detect index/key
+		// var key = (target.match(/\[\w*]/) || [null])[0];
+		// if (key) {
+		// 	key = key.replace(/\D/g, '');
+		// }
+		// target.split(/\[\w*]/).join("")
+
+		var result: { variable: GodotVariable, index: number, object_id: number } = { variable: null, index: null, object_id: null };
+
+		var target: GodotVariable = variables.find(x => x && x.name == targetName);
+		//Array.from(target.value.entries()).find(x => x[0] == "Members/zachary")[1]
+		result.variable = target.sub_values
+			.find(x => x && x.name.split("Members/").join("").split("Locals/").join("") == propertyName);
+		result.object_id = Array.from(target.value.entries())
+			.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
+		result.index = this.all_scopes.findIndex(x => x && x.name == result.variable.name.split("Members/").join("").split("Locals/").join("") && x.scope_path == result.variable.scope_path);
+
+		// if (key) {
+		// 	variable = variable.sub_values[key];
+		// }
+
+		if (items.length > 1) {
+			result = this.getVariable(items.join("."), result.variable.sub_values);
+		}
+
+		return result;
+
+		// var target = items.pop();
+		// var index = (target.match(/\[\w*]/) || [null])[0];
+		// if (index) {
+		// 	index = index.replace(/\D/g, '');
+		// }
+		// target = target.split(/\[\w*]/).join("");
+		// var path = items.join(".");
+
+		// let result_idx = this.all_scopes.findIndex(s =>
+		// 	s
+		// 	&& s.name
+		// 		.split("Members/").join("")
+		// 	== target
+		// 	&& s.scope_path
+		// 		.split("@.member.self").join("")
+		// 		.split("@.member.").join("")
+		// 		.split("@.local.").join("")
+		// 		.split("Members/").join("")
+		// 		.split("@.member").join("")
+		// 		.split("@.local").join("")
+		// 		.split("@").join("")
+		// 	== path
+		// );
 	}
 
 	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
@@ -529,8 +548,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.SetVariableArguments,
 		request?: DebugProtocol.Request
 	): void {
-		response.success = false;
-		response.message = "Setting variables is not implemented";
+		var object_id = this.all_scopes.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value
+
+		Mediator.notify("changed_value", [
+			object_id,
+			args.name,
+			args.value,
+		]);
+
+		response.success = true;
+		response.message = args.value;
 
 		this.sendResponse(response);
 	}
