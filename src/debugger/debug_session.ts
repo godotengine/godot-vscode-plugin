@@ -349,11 +349,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 		var placeholders = args.expression.split(/\*|\+|-|\/|\<\=|\<|\>\=|\>|\=\=|\!\=|\%/).filter((x: string) => !this.isNumber(x)).map(p => p.trim());
 
 		if (placeholders.length > 0) {
-			placeholders.forEach(async (p: string) => {
-				var variable = await this.getVariable(p);
+			for (let p = 0; p < placeholders.length; p++) {
+				const placeholder: string = placeholders[p];
+
+				var variable = await this.getVariable(placeholder);
 				if (variable) {
-					args.expression = args.expression.split(p).join(variable.variable.value);
-					// args.expression = args.expression.split(p).join(variable.value);
+					args.expression = args.expression.split(placeholder).join(variable.variable.value);
 				}
 				else {
 					response.body = {
@@ -364,7 +365,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					this.sendResponse(response);
 					return;
 				}
-			});
+			}
 		}
 
 		var result = `${eval(args.expression)}`;
@@ -379,7 +380,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 		await this.getVariables();
-		
+
 		var firstIndex = args.expression.indexOf("=");
 		var path: string = args.expression.slice(0, firstIndex).trim();
 		var value: string = args.expression.slice(firstIndex + 1).trim();
@@ -389,7 +390,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		Mediator.notify("changed_value", [
 			variable.object_id,
 			variable.variable.name,
-			value,
+			parseFloat(value) ? parseFloat(value) : value,
 		]);
 
 		response.body = {
