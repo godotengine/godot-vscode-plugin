@@ -152,6 +152,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
+	// Fills the all_scopes variable
 	protected async getVariables(): Promise<{ locals: Variable[], members: Variable[], globals: Variable[], all: Variable[] }> {
 
 		var results = [];
@@ -205,70 +206,96 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.sendResponse(response);
 		}
 	}
-
-	protected getVariable(expression: string, variables: GodotVariable[] = null): { variable: GodotVariable, index: number, object_id: number } {
+	
+	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number } {
 		
-		if (!variables) {
-			variables = this.all_scopes
+		var result: { variable: GodotVariable, index: number, object_id: number } = { variable: null, index: null, object_id: null };
+
+		if (!root) {
 			if (!expression.includes("self")) {
 				expression = "self." + expression;
 			}
+
+			root = this.all_scopes.find(x => x && x.name == "self");
+			object_id = this.all_scopes.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value;
 		}
 
 		var items = expression.split(".");
-		var targetName = items.shift();
-		var propertyName = items[0];
+		var propertyName = items[index + 1];
+		var path = items.slice(0, index + 1).join(".")
+			.split("self.").join("")
+			.split("self").join("")
+			.split("[").join(".")
+			.split("]").join("");
+
+		if (items.length == 1 && items[0] == "self") {
+			propertyName = "self";
+		}
 
 		// Detect index/key
-		// var key = (target.match(/\[\w*]/) || [null])[0];
-		// if (key) {
-		// 	key = key.replace(/\D/g, '');
-		// }
-		// target.split(/\[\w*]/).join("")
+		var key = (propertyName.match(/\[\w*]/) || [null])[0];
+		if (key) {
+			key = key.replace(/\D/g, '');
+			propertyName = propertyName.split(/\[\w*]/).join("")
+			path += "." + propertyName;
+			propertyName = key;
+		}
 
-		var result: { variable: GodotVariable, index: number, object_id: number } = { variable: null, index: null, object_id: null };
 
-		var target: GodotVariable = variables.find(x => x && x.name == targetName);
-		//Array.from(target.value.entries()).find(x => x[0] == "Members/zachary")[1]
-		result.variable = target.sub_values
-			.find(x => x && x.name.split("Members/").join("").split("Locals/").join("") == propertyName);
-		result.object_id = Array.from(target.value.entries())
-			.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
-		result.index = this.all_scopes.findIndex(x => x && x.name == result.variable.name.split("Members/").join("").split("Locals/").join("") && x.scope_path == result.variable.scope_path);
+		function sanitizeName(name: string) {
+			return name.split("Members/").join("").split("Locals/").join("");
+		}
 
-		// if (key) {
-		// 	variable = variable.sub_values[key];
-		// }
+		function sanitizeScopePath(scope_path: string) {
+			return scope_path.split("@.member.self").join("")
+				.split("@.member.").join("")
+				.split("@.local.").join("")
+				.split("Members/").join("")
+				.split("@.member").join("")
+				.split("@.local").join("")
+				.split("@").join("");
+		}
 
-		if (items.length > 1) {
-			result = this.getVariable(items.join("."), result.variable.sub_values);
+		var sanitized_all_scopes = this.all_scopes.filter(x => x).map(function (x) {
+			return {
+				sanitized: {
+					name: sanitizeName(x.name),
+					scope_path: sanitizeScopePath(x.scope_path)
+				},
+				real: x
+			}
+		})
+
+		result.variable = sanitized_all_scopes
+			.find(x => x.sanitized.name == propertyName && x.sanitized.scope_path == path)
+			?.real;
+		if (root.value.entries) {
+			if (result.variable.name == "self") {
+				result.object_id = this.all_scopes
+					.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value;
+			}
+			else if (key) {
+				var collection = path.split(".")[path.split(".").length - 1];
+				result.object_id = Array.from(root.value.entries())
+					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == collection)[1][key].id;
+			}
+			else {
+				result.object_id = Array.from(root.value.entries())
+					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
+			}
+		}
+
+		if (!result.object_id) {
+			result.object_id = object_id;
+		}
+
+		result.index = this.all_scopes.findIndex(x => x && x.name == result.variable.name && x.scope_path == result.variable.scope_path);
+
+		if (items.length > 2 && index < items.length - 2) {
+			result = this.getVariable(items.join("."), result.variable, index + 1, result.object_id);
 		}
 
 		return result;
-
-		// var target = items.pop();
-		// var index = (target.match(/\[\w*]/) || [null])[0];
-		// if (index) {
-		// 	index = index.replace(/\D/g, '');
-		// }
-		// target = target.split(/\[\w*]/).join("");
-		// var path = items.join(".");
-
-		// let result_idx = this.all_scopes.findIndex(s =>
-		// 	s
-		// 	&& s.name
-		// 		.split("Members/").join("")
-		// 	== target
-		// 	&& s.scope_path
-		// 		.split("@.member.self").join("")
-		// 		.split("@.member.").join("")
-		// 		.split("@.local.").join("")
-		// 		.split("Members/").join("")
-		// 		.split("@.member").join("")
-		// 		.split("@.local").join("")
-		// 		.split("@").join("")
-		// 	== path
-		// );
 	}
 
 	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
@@ -343,47 +370,66 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		var variables = (await this.getVariables()).all;
-		var segments: string[] = args.expression.split("=")[0].trim().split(".");
-		var value: string = args.expression.split("=")[1].trim();
-		var variable: Variable = null;
+	// protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+	// 	await this.getVariables();
 
-		for (let i = 0; i < segments.length; i++) {
-			const segment = segments[i];
-			variable = variables.find(v => v && v.name.split("Members/").join("") == segment);
-			if (i >= segments.length - 1) break;
-			variables = (await debug.activeDebugSession.customRequest("variables", { variablesReference: variable.variablesReference })).variables;
-		}
+	// 	var path: string = args.expression.split("=")[0].trim();
+	// 	var value: string = args.expression.split("=")[1].trim();
 
-		if (variable) {
-			debug.activeDebugSession.customRequest(
-				"setVariable",
-				{
-					name: variable.name,
-					value: value
-				}
-			).then(
-				(reply: {
-					value: string,
-					type?: string,
-					variablesReference?: number,
-					namedVariables?: number,
-					indexedVariables?: number
-				}) => {
-					this.sendResponse(response);
-				},
-				(error: { message: string, name: string }) => {
-					response.body = {
-						result: error.message,
-						variablesReference: 0,
-					};
+	// 	var variable = this.getVariable(path);
 
-					this.sendResponse(response);
-				}
-			);
-		}
-	}
+	// 	Mediator.notify("changed_value", [
+	// 		variable.object_id,
+	// 		variable.variable.name,
+	// 		value,
+	// 	]);
+
+	// 	response.body = {
+	// 		result: `${value}`,
+	// 		variablesReference: 0
+	// 	};
+
+	// 	this.sendResponse(response);
+	// 	// var variables = (await this.getVariables()).all;
+	// 	// var segments: string[] = args.expression.split("=")[0].trim().split(".");
+	// 	// var value: string = args.expression.split("=")[1].trim();
+	// 	// var variable: Variable = null;
+
+	// 	// for (let i = 0; i < segments.length; i++) {
+	// 	// 	const segment = segments[i];
+	// 	// 	variable = variables.find(v => v && v.name.split("Members/").join("") == segment);
+	// 	// 	if (i >= segments.length - 1) break;
+	// 	// 	variables = (await debug.activeDebugSession.customRequest("variables", { variablesReference: variable.variablesReference })).variables;
+	// 	// }
+
+	// 	// if (variable) {
+	// 	// 	debug.activeDebugSession.customRequest(
+	// 	// 		"setVariable",
+	// 	// 		{
+	// 	// 			name: variable.name,
+	// 	// 			value: value
+	// 	// 		}
+	// 	// 	).then(
+	// 	// 		(reply: {
+	// 	// 			value: string,
+	// 	// 			type?: string,
+	// 	// 			variablesReference?: number,
+	// 	// 			namedVariables?: number,
+	// 	// 			indexedVariables?: number
+	// 	// 		}) => {
+	// 	// 			this.sendResponse(response);
+	// 	// 		},
+	// 	// 		(error: { message: string, name: string }) => {
+	// 	// 			response.body = {
+	// 	// 				result: error.message,
+	// 	// 				variablesReference: 0,
+	// 	// 			};
+
+	// 	// 			this.sendResponse(response);
+	// 	// 		}
+	// 	// 	);
+	// 	// }
+	// }
 
 	protected initializeRequest(
 		response: DebugProtocol.InitializeResponse,
