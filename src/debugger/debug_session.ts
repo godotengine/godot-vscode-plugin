@@ -164,7 +164,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 			for (let s = 0; s < scopes.scopes.length; s++) {
 				const scope = scopes.scopes[s];
-				results.push((await debug.activeDebugSession.customRequest("variables", { variablesReference: scope.variablesReference })).variables);
+				var result = await debug.activeDebugSession.customRequest(
+					"variables",
+					{ variablesReference: scope.variablesReference }
+				);
+				results.push(result.variables);
 			}
 		}
 
@@ -206,9 +210,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.sendResponse(response);
 		}
 	}
-	
+
 	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number } {
-		
+
 		var result: { variable: GodotVariable, index: number, object_id: number } = { variable: null, index: null, object_id: null };
 
 		if (!root) {
@@ -236,8 +240,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		var key = (propertyName.match(/\[\w*]/) || [null])[0];
 		if (key) {
 			key = key.replace(/\D/g, '');
-			propertyName = propertyName.split(/\[\w*]/).join("")
-			path += "." + propertyName;
+			propertyName = propertyName.split(/\[\w*]/).join("");
+			if (path) path += ".";
+			path += propertyName;
 			propertyName = key;
 		}
 
@@ -247,12 +252,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		function sanitizeScopePath(scope_path: string) {
-			return scope_path.split("@.member.self").join("")
+			return scope_path.split("@.member.self.").join("")
+				.split("@.member.self").join("")
 				.split("@.member.").join("")
-				.split("@.local.").join("")
-				.split("Members/").join("")
 				.split("@.member").join("")
+				.split("@.local.").join("")
 				.split("@.local").join("")
+				.split("Locals/").join("")
+				.split("Members/").join("")
 				.split("@").join("");
 		}
 
@@ -370,66 +377,28 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	// protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-	// 	await this.getVariables();
+	protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+		await this.getVariables();
+		
+		var firstIndex = args.expression.indexOf("=");
+		var path: string = args.expression.slice(0, firstIndex).trim();
+		var value: string = args.expression.slice(firstIndex + 1).trim();
 
-	// 	var path: string = args.expression.split("=")[0].trim();
-	// 	var value: string = args.expression.split("=")[1].trim();
+		var variable = this.getVariable(path);
 
-	// 	var variable = this.getVariable(path);
+		Mediator.notify("changed_value", [
+			variable.object_id,
+			variable.variable.name,
+			value,
+		]);
 
-	// 	Mediator.notify("changed_value", [
-	// 		variable.object_id,
-	// 		variable.variable.name,
-	// 		value,
-	// 	]);
+		response.body = {
+			result: `${value}`,
+			variablesReference: 0
+		};
 
-	// 	response.body = {
-	// 		result: `${value}`,
-	// 		variablesReference: 0
-	// 	};
-
-	// 	this.sendResponse(response);
-	// 	// var variables = (await this.getVariables()).all;
-	// 	// var segments: string[] = args.expression.split("=")[0].trim().split(".");
-	// 	// var value: string = args.expression.split("=")[1].trim();
-	// 	// var variable: Variable = null;
-
-	// 	// for (let i = 0; i < segments.length; i++) {
-	// 	// 	const segment = segments[i];
-	// 	// 	variable = variables.find(v => v && v.name.split("Members/").join("") == segment);
-	// 	// 	if (i >= segments.length - 1) break;
-	// 	// 	variables = (await debug.activeDebugSession.customRequest("variables", { variablesReference: variable.variablesReference })).variables;
-	// 	// }
-
-	// 	// if (variable) {
-	// 	// 	debug.activeDebugSession.customRequest(
-	// 	// 		"setVariable",
-	// 	// 		{
-	// 	// 			name: variable.name,
-	// 	// 			value: value
-	// 	// 		}
-	// 	// 	).then(
-	// 	// 		(reply: {
-	// 	// 			value: string,
-	// 	// 			type?: string,
-	// 	// 			variablesReference?: number,
-	// 	// 			namedVariables?: number,
-	// 	// 			indexedVariables?: number
-	// 	// 		}) => {
-	// 	// 			this.sendResponse(response);
-	// 	// 		},
-	// 	// 		(error: { message: string, name: string }) => {
-	// 	// 			response.body = {
-	// 	// 				result: error.message,
-	// 	// 				variablesReference: 0,
-	// 	// 			};
-
-	// 	// 			this.sendResponse(response);
-	// 	// 		}
-	// 	// 	);
-	// 	// }
-	// }
+		this.sendResponse(response);
+	}
 
 	protected initializeRequest(
 		response: DebugProtocol.InitializeResponse,
@@ -594,17 +563,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.SetVariableArguments,
 		request?: DebugProtocol.Request
 	): void {
-		var object_id = this.all_scopes.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value
-
-		Mediator.notify("changed_value", [
-			object_id,
-			args.name,
-			args.value,
-		]);
-
-		response.success = true;
+		response.success = false;
 		response.message = args.value;
-
 		this.sendResponse(response);
 	}
 
