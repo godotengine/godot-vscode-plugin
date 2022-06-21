@@ -153,73 +153,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	// Fills the all_scopes variable
-	protected async getVariables(): Promise<{ locals: Variable[], members: Variable[], globals: Variable[], all: Variable[] }> {
-
-		var results = [];
-
-		var stackTrace: { stackFrames: StackFrame[], totalFrames?: number } = await debug.activeDebugSession.customRequest("stackTrace")
-		for (let f = 0; f < stackTrace.stackFrames.length; f++) {
-			const stackFrame = stackTrace.stackFrames[f];
-			var scopes: { scopes: Scope[] } = await debug.activeDebugSession.customRequest("scopes", { frameId: stackFrame.id });
-
-			for (let s = 0; s < scopes.scopes.length; s++) {
-				const scope = scopes.scopes[s];
-				var result = await debug.activeDebugSession.customRequest(
-					"variables",
-					{ variablesReference: scope.variablesReference }
-				);
-				results.push(result.variables);
-			}
-		}
-
-		return { locals: results[0], members: results[1], globals: results[2], all: results[0].concat(results[1]).concat(results[2]) };
-	}
-
-	protected evaluateRequest(
-		response: DebugProtocol.EvaluateResponse,
-		args: DebugProtocol.EvaluateArguments
-	) {
-		var requestType = "inspect";
-
-		if (["+", "-", "*", "/", ">", "<", "%", "!", "="].some(m => args.expression.includes(m))) {
-			requestType = "operations";
-		}
-
-		if (args.expression.split("").filter(x => x == "=").length == 1 && !args.expression.includes("!") && !args.expression.includes("<") && !args.expression.includes(">")) {
-			requestType = "set";
-		}
-
-		if (args.expression.includes("()")) {
-			requestType = "invoke";
-		}
-
-		if (requestType == "inspect") {
-			this.evaluateInspect(response, args);
-		}
-		else if (requestType == "operations") {
-			response.body = {
-				result: "Operations are not implemented.",
-				variablesReference: 0
-			};
-			this.sendResponse(response);
-			// this.evaluateOperation(response, args);
-		}
-		else if (requestType == "set") {
-			response.body = {
-				result: "Assignments are not implemented.",
-				variablesReference: 0
-			};
-			this.sendResponse(response);
-			// this.evaluateSet(response, args);
-		}
-		else if (requestType == "invoke") {
-			response.body = {
-				result: "Invoking functions is not implemented.",
-				variablesReference: 0
-			};
-			this.sendResponse(response);
-			// this.evaluateExpression(response, args);
-		}
+	protected async getStackFrame(): Promise<void> {
+		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 	}
 
 	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number, error: string } {
@@ -324,8 +259,15 @@ export class GodotDebugSession extends LoggingDebugSession {
 		return result;
 	}
 
+	protected evaluateRequest(
+		response: DebugProtocol.EvaluateResponse,
+		args: DebugProtocol.EvaluateArguments
+	) {
+		this.evaluateInspect(response, args);
+	}
+
 	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		await this.getVariables();
+		await this.getStackFrame();
 
 		if (this.all_scopes) {
 
@@ -350,77 +292,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 				variablesReference: 0,
 			};
 		}
-
-		this.sendResponse(response);
-	}
-
-	protected isNumber(str: string): boolean {
-		if (typeof str !== 'string') {
-			return false;
-		}
-
-		if (str.trim() === '') {
-			return false;
-		}
-
-		return !Number.isNaN(Number(str));
-	}
-
-	protected async evaluateOperation(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-
-		await this.getVariables();
-
-		var placeholders = args.expression.split(/\*|\+|-|\/|\<\=|\<|\>\=|\>|\=\=|\!\=|\%/).filter((x: string) => !this.isNumber(x)).map(p => p.trim());
-
-		if (placeholders.length > 0) {
-			for (let p = 0; p < placeholders.length; p++) {
-				const placeholder: string = placeholders[p];
-
-				var variable = this.getVariable(placeholder);
-				if (variable) {
-					args.expression = args.expression.split(placeholder).join(variable.variable.value);
-				}
-				else {
-					response.body = {
-						result: `Could not find variable: ${p}`,
-						variablesReference: 0
-					}
-
-					this.sendResponse(response);
-					return;
-				}
-			}
-		}
-
-		var result = `${eval(args.expression)}`;
-
-		response.body = {
-			result: result,
-			variablesReference: 0
-		}
-
-		this.sendResponse(response);
-	}
-
-	protected async evaluateSet(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		await this.getVariables();
-
-		var firstIndex = args.expression.indexOf("=");
-		var path: string = args.expression.slice(0, firstIndex).trim();
-		var value: string = args.expression.slice(firstIndex + 1).trim();
-
-		var variable = this.getVariable(path);
-
-		Mediator.notify("changed_value", [
-			variable.object_id,
-			variable.variable.name,
-			parseFloat(value) ? parseFloat(value) : value,
-		]);
-
-		response.body = {
-			result: `${value}`,
-			variablesReference: 0
-		};
 
 		this.sendResponse(response);
 	}
@@ -457,9 +328,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		response.body.supportsRestartFrame = false;
 		response.body.supportsRestartRequest = false;
-
-		response.body.supportsSetExpression = true;
-		response.body.supportsSetVariable = true;
 
 		response.body.supportsStepInTargetsRequest = false;
 
@@ -570,27 +438,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 			this.sendResponse(response);
 		}
-	}
-
-	protected setExpressionRequest(
-		response: DebugProtocol.SetExpressionResponse,
-		args: DebugProtocol.SetExpressionArguments,
-		request?: DebugProtocol.Request
-	): void {
-		response.success = false;
-		response.message = "Setting expressions is not implemented";
-
-		this.sendResponse(response);
-	}
-
-	protected setVariableRequest(
-		response: DebugProtocol.SetVariableResponse,
-		args: DebugProtocol.SetVariableArguments,
-		request?: DebugProtocol.Request
-	): void {
-		response.success = false;
-		response.message = "Setting variables is not implemented";
-		this.sendResponse(response);
 	}
 
 	protected stackTraceRequest(
