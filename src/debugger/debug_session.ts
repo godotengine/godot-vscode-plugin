@@ -211,9 +211,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number } {
+	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number, error: string } {
 
-		var result: { variable: GodotVariable, index: number, object_id: number } = { variable: null, index: null, object_id: null };
+		var result: { variable: GodotVariable, index: number, object_id: number, error: string } = { variable: null, index: null, object_id: null, error: null };
 
 		if (!root) {
 			if (!expression.includes("self")) {
@@ -237,10 +237,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		// Detect index/key
-		var key = (propertyName.match(/\[\w*]/) || [null])[0];
+		var key = (propertyName.match(/(?<=\[).*(?=\])/) || [null])[0];
 		if (key) {
-			key = key.replace(/\D/g, '');
-			propertyName = propertyName.split(/\[\w*]/).join("");
+			key = key.replace(/['"]+/g, '')
+			propertyName = propertyName.split(/(?<=\[).*(?=\])/).join("").split("\[\]").join("");
 			if (path) path += ".";
 			path += propertyName;
 			propertyName = key;
@@ -276,6 +276,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 		result.variable = sanitized_all_scopes
 			.find(x => x.sanitized.name == propertyName && x.sanitized.scope_path == path)
 			?.real;
+		if (!result.variable) {
+			result.error = `Could not find: ${propertyName}`;
+			return result;
+		}
+
 		if (root.value.entries) {
 			if (result.variable.name == "self") {
 				result.object_id = this.all_scopes
@@ -283,8 +288,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 			else if (key) {
 				var collection = path.split(".")[path.split(".").length - 1];
-				result.object_id = Array.from(root.value.entries())
-					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == collection)[1][key].id;
+				var collection_items = Array.from(root.value.entries())
+					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == collection)[1];
+				result.object_id = collection_items.get
+					? collection_items.get(key)?.id
+					: collection_items[key]?.id;
 			}
 			else {
 				result.object_id = Array.from(root.value.entries())
@@ -306,17 +314,22 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		var v = await this.getVariables();
+		await this.getVariables();
 
 		if (this.all_scopes) {
 
-			var variable = await this.getVariable(args.expression);
+			var variable = this.getVariable(args.expression, null, null, null, false);
 
-			if (variable != null) {
+			if (variable.error == null) {
+				var parsed_variable = this.parse_variable(variable.variable);
 				response.body = {
-					result: this.parse_variable(variable.variable).value,
-					variablesReference: variable.index
+					result: parsed_variable.value,
+					variablesReference:!this.is_variable_built_in_type(variable.variable) ? variable.index : 0
 				};
+			}
+			else {
+				response.success = false;
+				response.message = variable.error;
 			}
 		}
 
@@ -352,7 +365,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			for (let p = 0; p < placeholders.length; p++) {
 				const placeholder: string = placeholders[p];
 
-				var variable = await this.getVariable(placeholder);
+				var variable = this.getVariable(placeholder);
 				if (variable) {
 					args.expression = args.expression.split(placeholder).join(variable.variable.value);
 				}
@@ -690,6 +703,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 				this.append_variable(va, index ? index + i + 1 : undefined);
 			});
 		}
+	}
+
+	private is_variable_built_in_type(va: GodotVariable) {
+		var type = typeof va.value;
+		return ["number", "bigint", "boolean", "string"].some(x => x == type);
 	}
 
 	private parse_variable(va: GodotVariable, i?: number) {
