@@ -259,14 +259,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		return result;
 	}
 
-	protected evaluateRequest(
+	protected async evaluateRequest(
 		response: DebugProtocol.EvaluateResponse,
 		args: DebugProtocol.EvaluateArguments
 	) {
-		this.evaluateInspect(response, args);
-	}
-
-	protected async evaluateInspect(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 		await this.getStackFrame();
 
 		if (this.all_scopes) {
@@ -328,6 +324,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		response.body.supportsRestartFrame = false;
 		response.body.supportsRestartRequest = false;
+
+		response.body.supportsSetExpression = false;
 
 		response.body.supportsStepInTargetsRequest = false;
 
