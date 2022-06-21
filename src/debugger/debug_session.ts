@@ -182,7 +182,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		var requestType = "inspect";
 
 		if (["+", "-", "*", "/", ">", "<", "%", "!", "="].some(m => args.expression.includes(m))) {
-			requestType = "math";
+			requestType = "operations";
 		}
 
 		if (args.expression.split("").filter(x => x == "=").length == 1 && !args.expression.includes("!") && !args.expression.includes("<") && !args.expression.includes(">")) {
@@ -196,11 +196,21 @@ export class GodotDebugSession extends LoggingDebugSession {
 		if (requestType == "inspect") {
 			this.evaluateInspect(response, args);
 		}
-		else if (requestType == "math") {
-			this.evaluateMath(response, args);
+		else if (requestType == "operations") {
+			response.body = {
+				result: "Operations are not implemented.",
+				variablesReference: 0
+			};
+			this.sendResponse(response);
+			// this.evaluateOperation(response, args);
 		}
 		else if (requestType == "set") {
-			this.evaluateSet(response, args);
+			response.body = {
+				result: "Assignments are not implemented.",
+				variablesReference: 0
+			};
+			this.sendResponse(response);
+			// this.evaluateSet(response, args);
 		}
 		else if (requestType == "invoke") {
 			response.body = {
@@ -208,6 +218,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 				variablesReference: 0
 			};
 			this.sendResponse(response);
+			// this.evaluateExpression(response, args);
 		}
 	}
 
@@ -318,13 +329,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		if (this.all_scopes) {
 
-			var variable = this.getVariable(args.expression, null, null, null, false);
+			var variable = this.getVariable(args.expression, null, null, null);
 
 			if (variable.error == null) {
 				var parsed_variable = this.parse_variable(variable.variable);
 				response.body = {
 					result: parsed_variable.value,
-					variablesReference:!this.is_variable_built_in_type(variable.variable) ? variable.index : 0
+					variablesReference: !this.is_variable_built_in_type(variable.variable) ? variable.index : 0
 				};
 			}
 			else {
@@ -355,7 +366,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		return !Number.isNaN(Number(str));
 	}
 
-	protected async evaluateMath(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+	protected async evaluateOperation(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 
 		await this.getVariables();
 
@@ -578,7 +589,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		request?: DebugProtocol.Request
 	): void {
 		response.success = false;
-		response.message = args.value;
+		response.message = "Setting variables is not implemented";
 		this.sendResponse(response);
 	}
 
