@@ -231,16 +231,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 			if (result.variable.name == "self") {
 				result.object_id = this.all_scopes
 					.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value;
-			}
-			else if (key) {
+			} else if (key) {
 				var collection = path.split(".")[path.split(".").length - 1];
 				var collection_items = Array.from(root.value.entries())
 					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == collection)[1];
 				result.object_id = collection_items.get
 					? collection_items.get(key)?.id
 					: collection_items[key]?.id;
-			}
-			else {
+			} else {
 				result.object_id = Array.from(root.value.entries())
 					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
 			}
@@ -275,8 +273,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					result: parsed_variable.value,
 					variablesReference: !this.is_variable_built_in_type(variable.variable) ? variable.index : 0
 				};
-			}
-			else {
+			} else {
 				response.success = false;
 				response.message = variable.error;
 			}
