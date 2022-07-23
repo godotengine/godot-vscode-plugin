@@ -90,6 +90,9 @@
             "include": "#function-declaration"
         },
         {
+            "include": "#function_keyword"
+        },
+        {
             "include": "#any-method"
         },
         {
@@ -505,6 +508,10 @@
                     }
                 }
             ]
+        },
+        "function_keyword": {
+            "match": "func",
+            "name": "keyword.language.gdscript"
         },
         "parameters": {
             "name": "meta.function.parameters.gdscript",
