@@ -54,13 +54,7 @@ export class CommandParser {
 			},
 		],
 	]);
-	private current_command?: Command;
 	private encoder = new VariantEncoder();
-	private parameters: any[] = [];
-
-	public has_command() {
-		return this.current_command;
-	}
 
 	public make_break_command(): Buffer {
 		return this.build_buffered_command("break");
@@ -116,54 +110,27 @@ export class CommandParser {
 
 	public parse_message(dataset: any[]) {
 		while (dataset && dataset.length > 0) {
-			if (this.current_command) {
-				this.parameters.push(dataset.shift());
-				if (this.current_command.param_count !== -1) {
-					if (this.current_command.param_count === this.parameters.length) {
-						try {
-							this.current_command.trigger(this.parameters);
-						} catch (e) {
-							// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-							// class_name is the key of Mediator.inspect_callbacks
-							console.error("Catch exception during trigger command: " + e);
-						} finally {
-							this.current_command = undefined;
-							this.parameters = [];
-						}
-					} else if(this.current_command.param_count < this.parameters.length) {
-						// we debugged that an exception occures during this.current_command.trigger(this.parameters)
-						// because we do not understand the root cause of the exception, we set the current command to undefined
-						// to avoid a infinite loop of parse_message(...)
-						this.current_command = undefined;
-						this.parameters = [];
-						console.log("Exception not catched. Reset current_command to avoid infinite loop.");
-					}
-				} else {
-					this.current_command.param_count = this.parameters.shift();
-					if (this.current_command.param_count === 0) {
-						this.current_command.trigger([]);
-						this.current_command = undefined;
-					}
-				}
+			let command: Command;
+			const command_name = dataset.shift();
+			if (command_name && this.commands.has(command_name)) {
+				command = this.commands.get(command_name)();
 			} else {
-				let data = dataset.shift();
-				if (data && this.commands.has(data)) {
-					this.current_command = this.commands.get(data)();
-				} else {
-					this.current_command = new CommandNull();
-				}
+				command = new CommandNull();
+			}
+
+			const parameters = dataset.shift();
+			try {
+				command.trigger(parameters);
+			} catch (e) {
+				// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
+				// class_name is the key of Mediator.inspect_callbacks
+				console.error("Catch exception during trigger command: " + e);
 			}
 		}
 	}
 
 	private build_buffered_command(command: string, parameters?: any[]) {
-		let command_array: any[] = [command];
-		if (parameters) {
-			parameters.forEach((param) => {
-				command_array.push(param);
-			});
-		}
-
+		let command_array: any[] = [command, parameters ?? []];
 		let buffer = this.encoder.encode_variant(command_array);
 		return buffer;
 	}
