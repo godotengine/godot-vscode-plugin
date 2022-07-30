@@ -102,7 +102,7 @@ export class ServerController {
 			const force_visible_collision_shapes = utils.get_configuration("force_visible_collision_shapes", false);
 			const force_visible_nav_mesh = utils.get_configuration("force_visible_nav_mesh", false);
 
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug tcp://${address}:${port}`;
 
 			if (force_visible_collision_shapes) {
 				executable_line += " --debug-collisions";
@@ -151,7 +151,7 @@ export class ServerController {
 				let buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
 					let sub_buffer = buffers.shift();
-					let data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					let data = this.decoder.get_dataset(sub_buffer, 0)[1];
 					this.commands.parse_message(data);
 				}
 			});
