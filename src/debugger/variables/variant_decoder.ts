@@ -14,6 +14,12 @@ import {
 	Transform,
 	Transform2D,
 	RawObject,
+	Vector2i,
+	Vector3i,
+	Rect2i,
+	Vector4,
+	Vector4i,
+	StringName,
 } from "./variants";
 
 export class VariantDecoder {
@@ -28,60 +34,84 @@ export class VariantDecoder {
 				} else {
 					return this.decode_Int32(model);
 				}
-			case GDScriptTypes.REAL:
+			case GDScriptTypes.FLOAT:
 				if (type & (1 << 16)) {
 					return this.decode_Double(model);
 				} else {
-					return this.decode_Float(model);
+					return this.decode_Float32(model);
 				}
 			case GDScriptTypes.STRING:
 				return this.decode_String(model);
 			case GDScriptTypes.VECTOR2:
 				return this.decode_Vector2(model);
+			case GDScriptTypes.VECTOR2I:
+				return this.decode_Vector2i(model);
 			case GDScriptTypes.RECT2:
 				return this.decode_Rect2(model);
+			case GDScriptTypes.RECT2I:
+				return this.decode_Rect2i(model);
 			case GDScriptTypes.VECTOR3:
 				return this.decode_Vector3(model);
+			case GDScriptTypes.VECTOR3I:
+				return this.decode_Vector3i(model);
 			case GDScriptTypes.TRANSFORM2D:
 				return this.decode_Transform2D(model);
 			case GDScriptTypes.PLANE:
 				return this.decode_Plane(model);
-			case GDScriptTypes.QUAT:
+			case GDScriptTypes.VECTOR4:
+				return this.decode_Vector4(model);
+			case GDScriptTypes.VECTOR4I:
+				return this.decode_Vector4i(model);
+			case GDScriptTypes.QUATERNION:
 				return this.decode_Quat(model);
 			case GDScriptTypes.AABB:
 				return this.decode_AABB(model);
 			case GDScriptTypes.BASIS:
 				return this.decode_Basis(model);
-			case GDScriptTypes.TRANSFORM:
-				return this.decode_Transform(model);
+			case GDScriptTypes.TRANSFORM3D:
+				return this.decode_Transform3D(model);
+			case GDScriptTypes.PROJECTION:
+				return undefined; // TODO
 			case GDScriptTypes.COLOR:
 				return this.decode_Color(model);
+			case GDScriptTypes.STRING_NAME:
+				return this.decode_StringName(model);
 			case GDScriptTypes.NODE_PATH:
 				return this.decode_NodePath(model);
+			case GDScriptTypes.RID:
+				return undefined; // TODO
 			case GDScriptTypes.OBJECT:
 				if (type & (1 << 16)) {
 					return this.decode_Object_id(model);
 				} else {
 					return this.decode_Object(model);
 				}
+			case GDScriptTypes.CALLABLE:
+				return undefined; // TODO
+			case GDScriptTypes.SIGNAL:
+				return undefined; // TODO
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
 				return this.decode_Array(model);
-			case GDScriptTypes.POOL_BYTE_ARRAY:
-				return this.decode_PoolByteArray(model);
-			case GDScriptTypes.POOL_INT_ARRAY:
-				return this.decode_PoolIntArray(model);
-			case GDScriptTypes.POOL_REAL_ARRAY:
-				return this.decode_PoolFloatArray(model);
-			case GDScriptTypes.POOL_STRING_ARRAY:
-				return this.decode_PoolStringArray(model);
-			case GDScriptTypes.POOL_VECTOR2_ARRAY:
-				return this.decode_PoolVector2Array(model);
-			case GDScriptTypes.POOL_VECTOR3_ARRAY:
-				return this.decode_PoolVector3Array(model);
-			case GDScriptTypes.POOL_COLOR_ARRAY:
-				return this.decode_PoolColorArray(model);
+			case GDScriptTypes.PACKED_BYTE_ARRAY:
+				return this.decode_PackedByteArray(model);
+			case GDScriptTypes.PACKED_INT32_ARRAY:
+				return this.decode_PackedInt32Array(model);
+			case GDScriptTypes.PACKED_INT64_ARRAY:
+				return this.decode_PackedInt64Array(model);
+			case GDScriptTypes.PACKED_FLOAT32_ARRAY:
+				return this.decode_PackedFloat32Array(model);
+			case GDScriptTypes.PACKED_FLOAT64_ARRAY:
+				return this.decode_PackedFloat32Array(model);
+			case GDScriptTypes.PACKED_STRING_ARRAY:
+				return this.decode_PackedStringArray(model);
+			case GDScriptTypes.PACKED_VECTOR2_ARRAY:
+				return this.decode_PackedVector2Array(model);
+			case GDScriptTypes.PACKED_VECTOR3_ARRAY:
+				return this.decode_PackedVector3Array(model);
+			case GDScriptTypes.PACKED_COLOR_ARRAY:
+				return this.decode_PackedColorArray(model);
 			default:
 				return undefined;
 		}
@@ -99,6 +129,9 @@ export class VariantDecoder {
 		output.push(len + 4);
 		do {
 			let value = this.decode_variant(model);
+			if (value === undefined) {
+				throw new Error("Unable to decode variant.");
+			}
 			output.push(value);
 		} while (model.len > 0);
 
@@ -132,7 +165,7 @@ export class VariantDecoder {
 
 	private decode_Color(model: BufferModel) {
 		let rgb = this.decode_Vector3(model);
-		let a = this.decode_Float(model);
+		let a = this.decode_Float32(model);
 
 		return new Color(rgb.x, rgb.y, rgb.z, a);
 	}
@@ -159,11 +192,20 @@ export class VariantDecoder {
 		return d; // + (d < 0 ? -1e-10 : 1e-10);
 	}
 
-	private decode_Float(model: BufferModel) {
+	private decode_Float32(model: BufferModel) {
 		let f = model.buffer.readFloatLE(model.offset);
 
 		model.offset += 4;
 		model.len -= 4;
+
+		return f; // + (f < 0 ? -1e-10 : 1e-10);
+	}
+
+	private decode_Float64(model: BufferModel) {
+		let f = model.buffer.readDoubleLE(model.offset);
+
+		model.offset += 8;
+		model.len -= 8;
 
 		return f; // + (f < 0 ? -1e-10 : 1e-10);
 	}
@@ -235,15 +277,15 @@ export class VariantDecoder {
 	}
 
 	private decode_Plane(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
-		let d = this.decode_Float(model);
+		let x = this.decode_Float32(model);
+		let y = this.decode_Float32(model);
+		let z = this.decode_Float32(model);
+		let d = this.decode_Float32(model);
 
 		return new Plane(x, y, z, d);
 	}
 
-	private decode_PoolByteArray(model: BufferModel) {
+	private decode_PackedByteArray(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: number[] = [];
 		for (let i = 0; i < count; i++) {
@@ -255,7 +297,7 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_PoolColorArray(model: BufferModel) {
+	private decode_PackedColorArray(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: Color[] = [];
 		for (let i = 0; i < count; i++) {
@@ -265,17 +307,27 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_PoolFloatArray(model: BufferModel) {
+	private decode_PackedFloat32Array(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: number[] = [];
 		for (let i = 0; i < count; i++) {
-			output.push(this.decode_Float(model));
+			output.push(this.decode_Float32(model));
 		}
 
 		return output;
 	}
 
-	private decode_PoolIntArray(model: BufferModel) {
+	private decode_PackedFloat64Array(model: BufferModel) {
+		let count = this.decode_UInt32(model);
+		let output: number[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Float64(model));
+		}
+
+		return output;
+	}
+
+	private decode_PackedInt32Array(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: number[] = [];
 		for (let i = 0; i < count; i++) {
@@ -285,7 +337,17 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_PoolStringArray(model: BufferModel) {
+	private decode_PackedInt64Array(model: BufferModel) {
+		let count = this.decode_UInt32(model);
+		let output: BigInt[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Int64(model));
+		}
+
+		return output;
+	}
+
+	private decode_PackedStringArray(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: string[] = [];
 		for (let i = 0; i < count; i++) {
@@ -295,7 +357,7 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_PoolVector2Array(model: BufferModel) {
+	private decode_PackedVector2Array(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: Vector2[] = [];
 		for (let i = 0; i < count; i++) {
@@ -305,7 +367,7 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_PoolVector3Array(model: BufferModel) {
+	private decode_PackedVector3Array(model: BufferModel) {
 		let count = this.decode_UInt32(model);
 		let output: Vector3[] = [];
 		for (let i = 0; i < count; i++) {
@@ -316,16 +378,20 @@ export class VariantDecoder {
 	}
 
 	private decode_Quat(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
-		let w = this.decode_Float(model);
+		let x = this.decode_Float32(model);
+		let y = this.decode_Float32(model);
+		let z = this.decode_Float32(model);
+		let w = this.decode_Float32(model);
 
 		return new Quat(x, y, z, w);
 	}
 
 	private decode_Rect2(model: BufferModel) {
 		return new Rect2(this.decode_Vector2(model), this.decode_Vector2(model));
+	}
+
+	private decode_Rect2i(model: BufferModel) {
+		return new Rect2i(this.decode_Vector2(model), this.decode_Vector2(model));
 	}
 
 	private decode_String(model: BufferModel) {
@@ -344,7 +410,11 @@ export class VariantDecoder {
 		return str;
 	}
 
-	private decode_Transform(model: BufferModel) {
+	private decode_StringName(model: BufferModel) {
+		return new StringName(this.decode_String(model));
+	}
+
+	private decode_Transform3D(model: BufferModel) {
 		return new Transform(this.decode_Basis(model), this.decode_Vector3(model));
 	}
 
@@ -376,17 +446,50 @@ export class VariantDecoder {
 	}
 
 	private decode_Vector2(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
+		let x = this.decode_Float32(model);
+		let y = this.decode_Float32(model);
 
 		return new Vector2(x, y);
 	}
 
 	private decode_Vector3(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
+		let x = this.decode_Float32(model);
+		let y = this.decode_Float32(model);
+		let z = this.decode_Float32(model);
 
 		return new Vector3(x, y, z);
+	}
+
+	private decode_Vector2i(model: BufferModel) {
+		let x = this.decode_Int32(model);
+		let y = this.decode_Int32(model);
+
+		return new Vector2i(x, y);
+	}
+
+	private decode_Vector3i(model: BufferModel) {
+		let x = this.decode_Int32(model);
+		let y = this.decode_Int32(model);
+		let z = this.decode_Int32(model);
+
+		return new Vector3i(x, y, z);
+	}
+
+	private decode_Vector4(model: BufferModel) {
+		let x = this.decode_Float32(model);
+		let y = this.decode_Float32(model);
+		let z = this.decode_Float32(model);
+		let w = this.decode_Float32(model);
+
+		return new Vector4(x, y, z, w);
+	}
+
+	private decode_Vector4i(model: BufferModel) {
+		let x = this.decode_Int32(model);
+		let y = this.decode_Int32(model);
+		let z = this.decode_Int32(model);
+		let w = this.decode_Int32(model);
+
+		return new Vector4i(x, y, z, w);
 	}
 }
