@@ -251,11 +251,23 @@ export class VariantEncoder {
 	}
 
 	private encode_UInt64(value: bigint, model: BufferModel) {
-		let hi = Number(value >> BigInt(32));
-		let lo = Number(value);
-
-		this.encode_UInt32(lo, model);
-		this.encode_UInt32(hi, model);
+		const max = (BigInt(1) << BigInt(8)) - BigInt(1);
+		let lo = Number(value & max);
+		model.buffer[model.offset++] = lo;
+		lo = lo >> 8;
+		model.buffer[model.offset++] = lo;
+		lo = lo >> 8;
+		model.buffer[model.offset++] = lo;
+		lo = lo >> 8;
+		model.buffer[model.offset++] = lo;
+		let hi = Number(value >> BigInt(32) & max);
+		model.buffer[model.offset++] = hi;
+		hi = hi >> 8;
+		model.buffer[model.offset++] = hi;
+		hi = hi >> 8;
+		model.buffer[model.offset++] = hi;
+		hi = hi >> 8;
+		model.buffer[model.offset++] = hi;
 	}
 
 	private encode_Vector2(value: Vector2, model: BufferModel) {
