@@ -435,14 +435,25 @@ export class VariantDecoder {
 	}
 
 	private decode_UInt64(model: BufferModel) {
-		let hi = model.buffer.readUInt32LE(model.offset);
-		let lo = model.buffer.readUInt32LE(model.offset + 4);
-
-		let u = BigInt((hi << 32) | lo);
+		const first = model.buffer[model.offset];
+		const last = model.buffer[model.offset + 7];
+		const val =
+			model.buffer[model.offset + 4] +
+			model.buffer[model.offset + 5] * 2 ** 8 +
+			model.buffer[model.offset + 6] * 2 ** 16 +
+			(last << 24); // Overflow
+		const result = (
+			(BigInt(val) << BigInt(32)) +
+			BigInt(
+				first +
+					model.buffer[model.offset + 1] * 2 ** 8 +
+					model.buffer[model.offset + 2] * 2 ** 16 +
+					model.buffer[model.offset + 3] * 2 ** 24,
+			)
+		);
 		model.len -= 8;
 		model.offset += 8;
-
-		return u;
+		return result;
 	}
 
 	private decode_Vector2(model: BufferModel) {
