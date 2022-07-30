@@ -11,7 +11,7 @@ import {
 	Plane,
 	Quat,
 	Rect2,
-	Transform,
+	Transform3D,
 	Transform2D,
 	RawObject,
 	Vector2i,
@@ -20,6 +20,7 @@ import {
 	Vector4,
 	Vector4i,
 	StringName,
+	Projection,
 } from "./variants";
 
 export class VariantDecoder {
@@ -71,7 +72,7 @@ export class VariantDecoder {
 			case GDScriptTypes.TRANSFORM3D:
 				return this.decode_Transform3D(model);
 			case GDScriptTypes.PROJECTION:
-				return undefined; // TODO
+				return this.decode_Projection(model);
 			case GDScriptTypes.COLOR:
 				return this.decode_Color(model);
 			case GDScriptTypes.STRING_NAME:
@@ -415,7 +416,11 @@ export class VariantDecoder {
 	}
 
 	private decode_Transform3D(model: BufferModel) {
-		return new Transform(this.decode_Basis(model), this.decode_Vector3(model));
+		return new Transform3D(this.decode_Basis(model), this.decode_Vector3(model));
+	}
+
+	private decode_Projection(model: BufferModel) {
+		return new Projection(this.decode_Vector4(model), this.decode_Vector4(model), this.decode_Vector4(model), this.decode_Vector4(model));
 	}
 
 	private decode_Transform2D(model: BufferModel) {

@@ -9,7 +9,7 @@ import {
 	Plane,
 	Quat,
 	Rect2,
-	Transform,
+	Transform3D,
 	Transform2D,
 	Vector3i,
 	Vector2i,
@@ -17,6 +17,7 @@ import {
 	Vector4i,
 	Vector4,
 	StringName,
+	Projection,
 } from "./variants";
 
 export class VariantEncoder {
@@ -119,6 +120,9 @@ export class VariantEncoder {
 					} else if (value instanceof Plane) {
 						this.encode_UInt32(GDScriptTypes.PLANE, model);
 						this.encode_Plane(value, model);
+					} else if (value instanceof Projection) {
+						this.encode_UInt32(GDScriptTypes.PROJECTION, model);
+						this.encode_Projection(value, model);
 					} else if (value instanceof Quat) {
 						this.encode_UInt32(GDScriptTypes.QUATERNION, model);
 						this.encode_Quat(value, model);
@@ -128,7 +132,7 @@ export class VariantEncoder {
 					} else if (value instanceof Basis) {
 						this.encode_UInt32(GDScriptTypes.BASIS, model);
 						this.encode_Basis(value, model);
-					} else if (value instanceof Transform) {
+					} else if (value instanceof Transform3D) {
 						this.encode_UInt32(GDScriptTypes.TRANSFORM3D, model);
 						this.encode_Transform3D(value, model);
 					} else if (value instanceof Color) {
@@ -229,7 +233,7 @@ export class VariantEncoder {
 		}
 	}
 
-	private encode_Transform3D(value: Transform, model: BufferModel) {
+	private encode_Transform3D(value: Transform3D, model: BufferModel) {
 		this.encode_Basis(value.basis, model);
 		this.encode_Vector3(value.origin, model);
 	}
@@ -238,6 +242,13 @@ export class VariantEncoder {
 		this.encode_Vector2(value.origin, model);
 		this.encode_Vector2(value.x, model);
 		this.encode_Vector2(value.y, model);
+	}
+
+	private encode_Projection(value: Projection, model: BufferModel) {
+		this.encode_Vector4(value.x, model);
+		this.encode_Vector4(value.y, model);
+		this.encode_Vector4(value.z, model);
+		this.encode_Vector4(value.w, model);
 	}
 
 	private encode_UInt32(int: number, model: BufferModel) {
@@ -419,7 +430,7 @@ export class VariantEncoder {
 							size += this.size_UInt32() * 6;
 							break;
 						case "Projection":
-							// TODO
+							size += this.size_UInt32() * 16;
 							break;
 						case "Plane":
 							size += this.size_UInt32() * 4;

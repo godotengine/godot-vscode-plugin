@@ -356,7 +356,28 @@ export class Rect2i extends Rect2 {
 	}
 }
 
-export class Transform implements GDObject {
+export class Projection implements GDObject {
+	constructor(public x: Vector4, public y: Vector4, public z: Vector4, public w: Vector4) {}
+
+	public stringify_value(): string {
+		return `(${this.x.stringify_value()}, ${this.y.stringify_value()}, ${this.z.stringify_value()}, ${this.w.stringify_value()})`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [
+			{ name: "x", value: this.x },
+			{ name: "y", value: this.y },
+			{ name: "z", value: this.z },
+			{ name: "w", value: this.w },
+		];
+	}
+
+	public type_name(): string {
+		return "Projection";
+	}
+}
+
+export class Transform3D implements GDObject {
 	constructor(public basis: Basis, public origin: Vector3) {}
 
 	public stringify_value(): string {
