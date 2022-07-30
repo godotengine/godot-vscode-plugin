@@ -152,7 +152,7 @@ export class ServerController {
 				while (buffers.length > 0) {
 					let sub_buffer = buffers.shift();
 					let data = this.decoder.get_dataset(sub_buffer, 0)[1];
-					this.commands.parse_message(data);
+					this.commands.parse_message(data[0], data[1]);
 				}
 			});
 
