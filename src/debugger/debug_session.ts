@@ -385,6 +385,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
+		if (!this.all_scopes) {
+			response.body = {
+				variables: []
+			};
+			this.sendResponse(response);
+			return;
+		}
+
 		let reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
