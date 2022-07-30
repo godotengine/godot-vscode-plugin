@@ -211,6 +211,11 @@ export class ServerController {
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
 		let continue_stepping = false;
 		let stack_count = stack_frames.length;
+		if (stack_count === 0) {
+			// Engine code is being executed, no user stack trace
+			Mediator.notify("stopped_on_breakpoint", [[]]);
+			return;
+		}
 
 		let file = stack_frames[0].file.replace(
 			"res://",
