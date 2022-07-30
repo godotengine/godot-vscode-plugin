@@ -108,24 +108,20 @@ export class CommandParser {
 		return this.build_buffered_command("step");
 	}
 
-	public parse_message(dataset: any[]) {
-		while (dataset && dataset.length > 0) {
-			let command: Command;
-			const command_name = dataset.shift();
-			if (command_name && this.commands.has(command_name)) {
-				command = this.commands.get(command_name)();
-			} else {
-				command = new CommandNull();
-			}
+	public parse_message(command_name: string, parameters: any[]) {
+		let command: Command;
+		if (command_name && this.commands.has(command_name)) {
+			command = this.commands.get(command_name)();
+		} else {
+			command = new CommandNull();
+		}
 
-			const parameters = dataset.shift();
-			try {
-				command.trigger(parameters);
-			} catch (e) {
-				// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-				// class_name is the key of Mediator.inspect_callbacks
-				console.error("Catch exception during trigger command: " + e);
-			}
+		try {
+			command.trigger(parameters);
+		} catch (e) {
+			// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
+			// class_name is the key of Mediator.inspect_callbacks
+			console.error("Catch exception during trigger command: " + e);
 		}
 	}
 
