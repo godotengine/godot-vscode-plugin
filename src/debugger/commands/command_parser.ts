@@ -143,14 +143,12 @@ export class CommandParser {
 				command = new CommandNull();
 			}
 
-			const parameters = dataset.shift();
-			try {
-				command.trigger(parameters);
-			} catch (e) {
-				// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-				// class_name is the key of Mediator.inspect_callbacks
-				console.error("Catch exception during trigger command: " + e);
-			}
+		try {
+			command.trigger(parameters);
+		} catch (e) {
+			// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
+			// class_name is the key of Mediator.inspect_callbacks
+			console.error("Catch exception during trigger command: " + e);
 		}
 	}
 
