@@ -18,13 +18,13 @@ export class CommandParser {
 			},
 		],
 		[
-			"message:scene_tree",
+			"scene:scene_tree",
 			function () {
 				return new CommandMessageSceneTree();
 			},
 		],
 		[
-			"message:inspect_object",
+			"scene:inspect_object",
 			function () {
 				return new CommandMessageInspectObject();
 			},
@@ -77,7 +77,7 @@ export class CommandParser {
 	}
 
 	public make_request_scene_tree_command(): Buffer {
-		return this.build_buffered_command("request_scene_tree");
+		return this.build_buffered_command("scene:request_scene_tree");
 	}
 
 	public make_send_breakpoint_command(path_to: string, line: number): Buffer {
