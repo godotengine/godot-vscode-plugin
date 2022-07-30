@@ -11,6 +11,12 @@ import {
 	Rect2,
 	Transform,
 	Transform2D,
+	Vector3i,
+	Vector2i,
+	Rect2i,
+	Vector4i,
+	Vector4,
+	StringName,
 } from "./variants";
 
 export class VariantEncoder {
@@ -53,8 +59,8 @@ export class VariantEncoder {
 						this.encode_UInt32(GDScriptTypes.INT, model);
 						this.encode_UInt32(value, model);
 					} else {
-						this.encode_UInt32(GDScriptTypes.REAL | (1 << 16), model);
-						this.encode_Float(value, model);
+						this.encode_UInt32(GDScriptTypes.FLOAT | (1 << 16), model);
+						this.encode_Float32(value, model);
 					}
 				}
 				break;
@@ -80,23 +86,41 @@ export class VariantEncoder {
 					this.encode_UInt32(GDScriptTypes.DICTIONARY, model);
 					this.encode_Dictionary(value, model);
 				} else {
-					if (value instanceof Vector2) {
+					if (value instanceof Vector2i) {
+						this.encode_UInt32(GDScriptTypes.VECTOR2I, model);
+						this.encode_Vector2i(value, model);
+					} else if (value instanceof Vector2) {
 						this.encode_UInt32(GDScriptTypes.VECTOR2, model);
 						this.encode_Vector2(value, model);
+					} else if (value instanceof Rect2i) {
+						this.encode_UInt32(GDScriptTypes.RECT2I, model);
+						this.encode_Rect2i(value, model);
 					} else if (value instanceof Rect2) {
 						this.encode_UInt32(GDScriptTypes.RECT2, model);
 						this.encode_Rect2(value, model);
+					} else if (value instanceof Vector3i) {
+						this.encode_UInt32(GDScriptTypes.VECTOR3I, model);
+						this.encode_Vector3i(value, model);
 					} else if (value instanceof Vector3) {
 						this.encode_UInt32(GDScriptTypes.VECTOR3, model);
 						this.encode_Vector3(value, model);
+					} else if (value instanceof Vector4i) {
+						this.encode_UInt32(GDScriptTypes.VECTOR4I, model);
+						this.encode_Vector4i(value, model);
+					} else if (value instanceof Vector4) {
+						this.encode_UInt32(GDScriptTypes.VECTOR4, model);
+						this.encode_Vector4(value, model);
 					} else if (value instanceof Transform2D) {
 						this.encode_UInt32(GDScriptTypes.TRANSFORM2D, model);
 						this.encode_Transform2D(value, model);
+					} else if (value instanceof StringName) {
+						this.encode_UInt32(GDScriptTypes.STRING_NAME, model);
+						this.encode_StringName(value, model);
 					} else if (value instanceof Plane) {
 						this.encode_UInt32(GDScriptTypes.PLANE, model);
 						this.encode_Plane(value, model);
 					} else if (value instanceof Quat) {
-						this.encode_UInt32(GDScriptTypes.QUAT, model);
+						this.encode_UInt32(GDScriptTypes.QUATERNION, model);
 						this.encode_Quat(value, model);
 					} else if (value instanceof AABB) {
 						this.encode_UInt32(GDScriptTypes.AABB, model);
@@ -105,8 +129,8 @@ export class VariantEncoder {
 						this.encode_UInt32(GDScriptTypes.BASIS, model);
 						this.encode_Basis(value, model);
 					} else if (value instanceof Transform) {
-						this.encode_UInt32(GDScriptTypes.TRANSFORM, model);
-						this.encode_Transform(value, model);
+						this.encode_UInt32(GDScriptTypes.TRANSFORM3D, model);
+						this.encode_Transform3D(value, model);
 					} else if (value instanceof Color) {
 						this.encode_UInt32(GDScriptTypes.COLOR, model);
 						this.encode_Color(value, model);
@@ -141,10 +165,10 @@ export class VariantEncoder {
 	}
 
 	private encode_Color(value: Color, model: BufferModel) {
-		this.encode_Float(value.r, model);
-		this.encode_Float(value.g, model);
-		this.encode_Float(value.b, model);
-		this.encode_Float(value.a, model);
+		this.encode_Float32(value.r, model);
+		this.encode_Float32(value.g, model);
+		this.encode_Float32(value.b, model);
+		this.encode_Float32(value.a, model);
 	}
 
 	private encode_Dictionary(dict: Map<any, any>, model: BufferModel) {
@@ -158,33 +182,38 @@ export class VariantEncoder {
 		});
 	}
 
-	private encode_Double(value: number, model: BufferModel) {
+	private encode_Float64(value: number, model: BufferModel) {
 		model.buffer.writeDoubleLE(value, model.offset);
 		model.offset += 8;
 	}
 
-	private encode_Float(value: number, model: BufferModel) {
+	private encode_Float32(value: number, model: BufferModel) {
 		model.buffer.writeFloatLE(value, model.offset);
 		model.offset += 4;
 	}
 
 	private encode_Plane(value: Plane, model: BufferModel) {
-		this.encode_Float(value.x, model);
-		this.encode_Float(value.y, model);
-		this.encode_Float(value.z, model);
-		this.encode_Float(value.d, model);
+		this.encode_Float32(value.x, model);
+		this.encode_Float32(value.y, model);
+		this.encode_Float32(value.z, model);
+		this.encode_Float32(value.d, model);
 	}
 
 	private encode_Quat(value: Quat, model: BufferModel) {
-		this.encode_Float(value.x, model);
-		this.encode_Float(value.y, model);
-		this.encode_Float(value.z, model);
-		this.encode_Float(value.w, model);
+		this.encode_Float32(value.x, model);
+		this.encode_Float32(value.y, model);
+		this.encode_Float32(value.z, model);
+		this.encode_Float32(value.w, model);
 	}
 
 	private encode_Rect2(value: Rect2, model: BufferModel) {
 		this.encode_Vector2(value.position, model);
 		this.encode_Vector2(value.size, model);
+	}
+
+	private encode_Rect2i(value: Rect2i, model: BufferModel) {
+		this.encode_Vector2i(value.position, model);
+		this.encode_Vector2i(value.size, model);
 	}
 
 	private encode_String(str: string, model: BufferModel) {
@@ -200,7 +229,7 @@ export class VariantEncoder {
 		}
 	}
 
-	private encode_Transform(value: Transform, model: BufferModel) {
+	private encode_Transform3D(value: Transform, model: BufferModel) {
 		this.encode_Basis(value.basis, model);
 		this.encode_Vector3(value.origin, model);
 	}
@@ -216,6 +245,11 @@ export class VariantEncoder {
 		model.offset += 4;
 	}
 
+	private encode_Int32(int: number, model: BufferModel) {
+		model.buffer.writeInt32LE(int, model.offset);
+		model.offset += 4;
+	}
+
 	private encode_UInt64(value: bigint, model: BufferModel) {
 		let hi = Number(value >> BigInt(32));
 		let lo = Number(value);
@@ -225,14 +259,43 @@ export class VariantEncoder {
 	}
 
 	private encode_Vector2(value: Vector2, model: BufferModel) {
-		this.encode_Float(value.x, model);
-		this.encode_Float(value.y, model);
+		this.encode_Float32(value.x, model);
+		this.encode_Float32(value.y, model);
 	}
 
 	private encode_Vector3(value: Vector3, model: BufferModel) {
-		this.encode_Float(value.x, model);
-		this.encode_Float(value.y, model);
-		this.encode_Float(value.z, model);
+		this.encode_Float32(value.x, model);
+		this.encode_Float32(value.y, model);
+		this.encode_Float32(value.z, model);
+	}
+
+	private encode_Vector4(value: Vector4, model: BufferModel) {
+		this.encode_Float32(value.x, model);
+		this.encode_Float32(value.y, model);
+		this.encode_Float32(value.z, model);
+		this.encode_Float32(value.w, model);
+	}
+
+	private encode_Vector2i(value: Vector2i, model: BufferModel) {
+		this.encode_Int32(value.x, model);
+		this.encode_Int32(value.y, model);
+	}
+
+	private encode_Vector3i(value: Vector3i, model: BufferModel) {
+		this.encode_Int32(value.x, model);
+		this.encode_Int32(value.y, model);
+		this.encode_Int32(value.z, model);
+	}
+
+	private encode_Vector4i(value: Vector4i, model: BufferModel) {
+		this.encode_Int32(value.x, model);
+		this.encode_Int32(value.y, model);
+		this.encode_Int32(value.z, model);
+		this.encode_Int32(value.w, model);
+	}
+
+	private encode_StringName(value: StringName, model: BufferModel) {
+		this.encode_String(value.value, model);
 	}
 
 	private size_Bool(): number {
@@ -312,30 +375,44 @@ export class VariantEncoder {
 			case "undefined":
 				break;
 			default:
+				// TODO: size of nodepath, rid, object, callable, signal
 				if (Array.isArray(value)) {
 					size += this.size_array(value);
 					break;
 				} else if (value instanceof Map) {
 					size += this.size_Dictionary(value);
 					break;
+				} else if (value instanceof StringName) {
+					size += this.size_String(value.value);
+					break;
 				} else {
 					switch (value["__type__"]) {
 						case "Vector2":
+						case "Vector2i":
 							size += this.size_UInt32() * 2;
 							break;
 						case "Rect2":
+						case "Rect2i":
 							size += this.size_UInt32() * 4;
 							break;
 						case "Vector3":
+						case "Vector3i":
 							size += this.size_UInt32() * 3;
+							break;
+						case "Vector4":
+						case "Vector4i":
+							size += this.size_UInt32() * 4;
 							break;
 						case "Transform2D":
 							size += this.size_UInt32() * 6;
 							break;
+						case "Projection":
+							// TODO
+							break;
 						case "Plane":
 							size += this.size_UInt32() * 4;
 							break;
-						case "Quat":
+						case "Quaternion":
 							size += this.size_UInt32() * 4;
 							break;
 						case "AABB":
@@ -344,7 +421,7 @@ export class VariantEncoder {
 						case "Basis":
 							size += this.size_UInt32() * 9;
 							break;
-						case "Transform":
+						case "Transform3D":
 							size += this.size_UInt32() * 12;
 							break;
 						case "Color":
@@ -352,6 +429,7 @@ export class VariantEncoder {
 							break;
 					}
 				}
+				break;
 		}
 
 		return size;
