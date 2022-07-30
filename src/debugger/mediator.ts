@@ -14,6 +14,12 @@ export class Mediator {
 	private static session?: GodotDebugSession;
 	private static first_output = false;
 	private static output: OutputChannel = window.createOutputChannel("Godot");
+	private static partial_stack_vars = {
+		locals: [] as GodotVariable[],
+		members: [] as GodotVariable[],
+		globals: [] as GodotVariable[],
+		remaining: 0,
+	};
 
 	private constructor() {}
 
@@ -94,7 +100,11 @@ export class Mediator {
 				break;
 
 			case "stack_frame_vars":
-				this.do_stack_frame_vars(parameters[0], parameters[1], parameters[2]);
+				this.partial_stack_vars.remaining = parameters[0];
+				break;
+
+			case "stack_frame_var":
+				this.do_stack_frame_var(parameters[0], parameters[1], parameters[2]);
 				break;
 
 			case "remove_breakpoint":
@@ -216,48 +226,42 @@ export class Mediator {
 		sub_values?.forEach((sva) => this.build_sub_values(sva));
 	}
 
-	private static do_stack_frame_vars(
-		locals: any[],
-		members: any[],
-		globals: any[]
+	private static do_stack_frame_var(
+		name: string,
+		value: any,
+		/** 0 = locals, 1 = members, 2 = globals */
+		type: number
 	) {
-		let locals_out: GodotVariable[] = [];
-		let members_out: GodotVariable[] = [];
-		let globals_out: GodotVariable[] = [];
-
-		for (
-			let i = 0;
-			i < locals.length + members.length + globals.length;
-			i += 2
-		) {
-			const name =
-				i < locals.length
-					? locals[i]
-					: i < members.length + locals.length
-					? members[i - locals.length]
-					: globals[i - locals.length - members.length];
-
-			const value =
-				i < locals.length
-					? locals[i + 1]
-					: i < members.length + locals.length
-					? members[i - locals.length + 1]
-					: globals[i - locals.length - members.length + 1];
-
-			let variable: GodotVariable = {
-				name: name,
-				value: value,
-			};
-
-			this.build_sub_values(variable);
-
-			i < locals.length
-				? locals_out.push(variable)
-				: i < members.length + locals.length
-				? members_out.push(variable)
-				: globals_out.push(variable);
+		if (this.partial_stack_vars.remaining === 0) {
+			throw new Error('More stack frame variables were sent than expected.');
 		}
 
-		this.session?.set_scopes(locals_out, members_out, globals_out);
+		let variable: GodotVariable = {
+			name,
+			value,
+		};
+		this.build_sub_values(variable);
+
+		let type_name;
+		switch (type) {
+			case 0:
+				type_name = "locals";
+				break;
+			case 1:
+				type_name = "members";
+				break;
+			case 2:
+				type_name = "globals";
+				break;
+		}
+		this.partial_stack_vars[type_name].push(variable);
+		this.partial_stack_vars.remaining--;
+
+		if (this.partial_stack_vars.remaining === 0) {
+			this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
+			this.partial_stack_vars.locals = [];
+			this.partial_stack_vars.members = [];
+			this.partial_stack_vars.globals = [];
+		}
 	}
 }

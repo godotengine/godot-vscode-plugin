@@ -2,6 +2,7 @@ import { Command } from "./command";
 import { CommandDebugEnter } from "./commands/command_debug_enter";
 import { CommandOutput } from "./commands/command_output";
 import { CommandStackDump } from "./commands/command_stack_dump";
+import { CommandStackFrameVar } from "./commands/command_stack_frame_var";
 import { CommandStackFrameVars } from "./commands/command_stack_frame_vars";
 import { CommandNull } from "./commands/command_null";
 import { CommandMessageSceneTree } from "./commands/command_message_scene_tree";
@@ -39,6 +40,12 @@ export class CommandParser {
 			"stack_frame_vars",
 			function () {
 				return new CommandStackFrameVars();
+			},
+		],
+		[
+			"stack_frame_var",
+			function () {
+				return new CommandStackFrameVar();
 			},
 		],
 		[
