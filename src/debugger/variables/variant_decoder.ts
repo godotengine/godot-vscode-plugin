@@ -23,6 +23,9 @@ import {
 	Projection,
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
+	RID,
+	Callable,
+	Signal,
 } from "./variants";
 
 export class VariantDecoder {
@@ -126,7 +129,7 @@ export class VariantDecoder {
 			case GDScriptTypes.NODE_PATH:
 				return this.decode_NodePath(model);
 			case GDScriptTypes.RID:
-				return undefined; // TODO
+				return this.decode_RID(model);
 			case GDScriptTypes.OBJECT:
 				if (type & ENCODE_FLAG_OBJECT_AS_ID) {
 					return this.decode_Object_id(model);
@@ -134,9 +137,9 @@ export class VariantDecoder {
 					return this.decode_Object(model);
 				}
 			case GDScriptTypes.CALLABLE:
-				return undefined; // TODO
+				return this.decode_Callable(model);
 			case GDScriptTypes.SIGNAL:
-				return undefined; // TODO
+				return this.decode_Signal(model);
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
@@ -332,6 +335,20 @@ export class VariantDecoder {
 		let id = this.decode_UInt64(model);
 
 		return new ObjectId(id);
+	}
+
+	private decode_RID(model: BufferModel) {
+		let id = this.decode_UInt64(model);
+
+		return new RID(id);
+	}
+
+	private decode_Callable(model: BufferModel) {
+		return new Callable();
+	}
+
+	private decode_Signal(model: BufferModel) {
+		return new Signal(this.decode_String(model), this.decode_Object_id(model));
 	}
 
 	private decode_Planef(model: BufferModel) {
