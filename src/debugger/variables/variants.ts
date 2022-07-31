@@ -278,6 +278,12 @@ export class ObjectId implements GDObject {
 	}
 }
 
+export class RID extends ObjectId {
+	public type_name(): string {
+		return "RID";
+	}
+}
+
 export class Plane implements GDObject {
 	constructor(
 		public x: number,
@@ -354,6 +360,7 @@ export class Rect2 implements GDObject {
 }
 
 export class Rect2i extends Rect2 {
+	// TODO: Truncate values in sub_values and stringify_value
 	public type_name(): string {
 		return "Rect2i";
 	}
@@ -434,5 +441,35 @@ export class StringName implements GDObject {
 
 	public type_name(): string {
 		return "StringName";
+	}
+}
+
+export class Callable implements GDObject {
+	public stringify_value(): string {
+		return "()";
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [];
+	}
+
+	public type_name(): string {
+		return "Callable";
+	}
+}
+
+export class Signal implements GDObject {
+	constructor(public name: string, public oid: ObjectId) {}
+
+	public stringify_value(): string {
+		return `${this.name}() ${this.oid.stringify_value()}`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return undefined;
+	}
+
+	public type_name(): string {
+		return "Signal";
 	}
 }
