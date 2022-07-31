@@ -101,8 +101,9 @@ export class ServerController {
 			let godot_path: string = utils.get_configuration("editor_path", "godot");
 			const force_visible_collision_shapes = utils.get_configuration("force_visible_collision_shapes", false);
 			const force_visible_nav_mesh = utils.get_configuration("force_visible_nav_mesh", false);
+			const protocol = utils.get_configuration("gdscript_lsp_server_protocol", "tcp");
 
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug tcp://${address}:${port}`;
+			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${protocol}://${address}:${port}`;
 
 			if (force_visible_collision_shapes) {
 				executable_line += " --debug-collisions";
