@@ -18,6 +18,7 @@ import {
 	Vector4,
 	StringName,
 	Projection,
+	ENCODE_FLAG_64,
 } from "./variants";
 
 export class VariantEncoder {
@@ -60,13 +61,13 @@ export class VariantEncoder {
 						this.encode_UInt32(GDScriptTypes.INT, model);
 						this.encode_UInt32(value, model);
 					} else {
-						this.encode_UInt32(GDScriptTypes.FLOAT | (1 << 16), model);
+						this.encode_UInt32(GDScriptTypes.FLOAT, model);
 						this.encode_Float32(value, model);
 					}
 				}
 				break;
 			case "bigint":
-				this.encode_UInt32(GDScriptTypes.INT | (1 << 16), model);
+				this.encode_UInt32(GDScriptTypes.INT | ENCODE_FLAG_64, model);
 				this.encode_UInt64(value, model);
 				break;
 			case "boolean":
@@ -125,7 +126,7 @@ export class VariantEncoder {
 						this.encode_Projection(value, model);
 					} else if (value instanceof Quat) {
 						this.encode_UInt32(GDScriptTypes.QUATERNION, model);
-						this.encode_Quat(value, model);
+						this.encode_Quaternion(value, model);
 					} else if (value instanceof AABB) {
 						this.encode_UInt32(GDScriptTypes.AABB, model);
 						this.encode_AABB(value, model);
@@ -203,7 +204,7 @@ export class VariantEncoder {
 		this.encode_Float32(value.d, model);
 	}
 
-	private encode_Quat(value: Quat, model: BufferModel) {
+	private encode_Quaternion(value: Quat, model: BufferModel) {
 		this.encode_Float32(value.x, model);
 		this.encode_Float32(value.y, model);
 		this.encode_Float32(value.z, model);

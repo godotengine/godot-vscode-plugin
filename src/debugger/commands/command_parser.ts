@@ -96,7 +96,7 @@ export class CommandParser {
 		label: string,
 		new_parsed_value: any
 	): Buffer {
-		return this.build_buffered_command("set_object_property", [
+		return this.build_buffered_command("scene:set_object_property", [
 			object_id,
 			label,
 			new_parsed_value,
