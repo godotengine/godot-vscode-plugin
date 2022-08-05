@@ -132,10 +132,13 @@ if has_node('Child') and get_node('Child').has_node('GrandChild'):
 
 onready var node_i = $"%Unique"
 onready var node_ii = get_node("%Unique")
+onready var node_iii = NodePath("%Unique")
 onready var node_j = $'%Unique/Child'
 onready var node_jj = get_node('%Unique/Child')
+onready var node_jjj = NodePath('%Unique/Child')
 onready var node_k = $"%Unique/%UniqueChild"
 onready var node_kk = get_node("%Unique/%UniqueChild")
+onready var node_kkk = NodePath("%Unique/%UniqueChild")
 
 if has_node('%Unique') and get_node('%Child').has_node('%GrandChild'):
 	pass
