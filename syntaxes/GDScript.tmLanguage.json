@@ -60,9 +60,6 @@
             "include": "#node_path"
         },
         {
-            "include": "#builtin_get_node_shorthand_quoted"
-        },
-        {
             "include": "#builtin_get_node_shorthand"
         },
         {
@@ -223,9 +220,6 @@
         },
         "base_expression": {
             "patterns": [
-                {
-                    "include": "#builtin_get_node_shorthand_quoted"
-                },
                 {
                     "include": "#builtin_get_node_shorthand"
                 },
@@ -421,6 +415,16 @@
             "match": "(?<![^.]\\.|:)\\b(abs|absf|absi|acos|asin|assert|atan|atan2|bytes2var|bytes2var_with_objects|ceil|char|clamp|clampf|clampi|Color8|convert|cos|cosh|cubic_interpolate|db2linear|decimals|dectime|deg2rad|dict2inst|ease|error_string|exp|floor|fmod|fposmod|funcref|get_stack|hash|inst2dict|instance_from_id|inverse_lerp|is_equal_approx|is_inf|is_instance_id_valid|is_instance_valid|is_nan|is_zero_approx|len|lerp|lerp_angle|linear2db|load|log|max|maxf|maxi|min|minf|mini|move_toward|nearest_po2|pingpong|posmod|pow|preload|print|printerr|printraw|prints|printt|print_debug|print_stack|print_verbose|push_error|push_warning|rad2deg|randf|randfn|randf_range|randi|randi_range|randomize|rand_from_seed|rand_range|rand_seed|range|range_lerp|range_step_decimals|rid_allocate_id|rid_from_int64|round|seed|sign|signf|signi|sin|sinh|smoothstep|snapped|sqrt|stepify|step_decimals|str|str2var|tan|tanh|typeof|type_exists|var2bytes|var2bytes_with_objects|var2str|weakref|wrapf|wrapi|yield)\\b(?=(\\()([^)]*)(\\)))",
             "name": "support.function.builtin.gdscript"
         },
+        "builtin_get_node_shorthand": {
+            "patterns": [
+                {
+                    "include": "#builtin_get_node_shorthand_quoted"
+                },
+                {
+                    "include": "#builtin_get_node_shorthand_bare"
+                }
+            ]
+        },
         "builtin_get_node_shorthand_quoted": {
             "begin": "(\\$)([\\\"\\'])",
             "end": "([\\\"\\'])",
@@ -449,20 +453,22 @@
                 }
             ]
         },
-        "builtin_get_node_shorthand": {
-            "match": "(\\$)((?:[a-zA-Z_][a-zA-Z_0-9]*/?)*)",
+        "builtin_get_node_shorthand_bare": {
+            "begin": "(\\$)",
+            "end": "[^\\w%]",
             "name": "support.function.builtin.shorthand.gdscript",
-            "captures": {
+            "beginCaptures": {
                 "1": {
                     "name": "keyword.control.flow"
-                },
-                "2": {
-                    "name": "constant.character.escape"
                 }
             },
             "patterns": [
                 {
-                    "match": "%",
+                    "match": "[a-zA-Z_][a-zA-Z_0-9]*/?",
+                    "name": "constant.character.escape"
+                },
+                {
+                    "match": "%[a-zA-Z_][a-zA-Z_0-9]*/?",
                     "name": "invalid.illegal.escape.gdscript"
                 }
             ]

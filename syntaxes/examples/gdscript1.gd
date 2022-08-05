@@ -130,6 +130,11 @@ if has_node('Child') and get_node('Child').has_node('GrandChild'):
 #! NOTE: scene unique nodes can only appear inside quoted nodepaths, not
 #! naked ones using the $ operator
 
+onready var bad_unique_nodepath_a = $%Unique
+onready var bad_unique_nodepath_b = $Child/%Unique
+onready var bad_unique_nodepath_c = $Child/GrandChild/%Unique
+onready var bad_unique_nodepath_c = $Child/%Unique/ChildOfUnique
+
 onready var node_i = $"%Unique"
 onready var node_ii = get_node("%Unique")
 onready var node_iii = NodePath("%Unique")
