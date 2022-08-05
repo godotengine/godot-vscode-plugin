@@ -60,6 +60,9 @@
             "include": "#node_path"
         },
         {
+            "include": "#builtin_get_node_shorthand_quoted"
+        },
+        {
             "include": "#builtin_get_node_shorthand"
         },
         {
@@ -181,13 +184,19 @@
                 {
                     "begin": "[\\\"\\']",
                     "end": "[\\\"\\']",
-                    "name": "constant.character.escape"
+                    "name": "constant.character.escape",
+                    "patterns": [
+                        {
+                            "match": "%",
+                            "name": "keyword.control.flow"
+                        }
+                    ]
                 }
             ]
         },
         "nodepath_function": {
             "name": "meta.literal.nodepath.gdscript",
-            "begin": "(get_node_or_null|has_node|find_node|get_node)\\s*(?:\\()",
+            "begin": "(get_node_or_null|has_node|has_node_and_resource|find_node|get_node)\\s*(?:\\()",
             "beginCaptures": {
                 "1": {
                     "name": "entity.name.function.gdscript"
@@ -198,7 +207,13 @@
                 {
                     "begin": "[\\\"\\']",
                     "end": "[\\\"\\']",
-                    "name": "constant.character.escape"
+                    "name": "constant.character.escape",
+                    "patterns": [
+                        {
+                            "match": "%",
+                            "name": "keyword.control.flow"
+                        }
+                    ]
                 }
             ]
         },
@@ -208,6 +223,9 @@
         },
         "base_expression": {
             "patterns": [
+                {
+                    "include": "#builtin_get_node_shorthand_quoted"
+                },
                 {
                     "include": "#builtin_get_node_shorthand"
                 },
@@ -403,8 +421,36 @@
             "match": "(?<![^.]\\.|:)\\b(abs|absf|absi|acos|asin|assert|atan|atan2|bytes2var|bytes2var_with_objects|ceil|char|clamp|clampf|clampi|Color8|convert|cos|cosh|cubic_interpolate|db2linear|decimals|dectime|deg2rad|dict2inst|ease|error_string|exp|floor|fmod|fposmod|funcref|get_stack|hash|inst2dict|instance_from_id|inverse_lerp|is_equal_approx|is_inf|is_instance_id_valid|is_instance_valid|is_nan|is_zero_approx|len|lerp|lerp_angle|linear2db|load|log|max|maxf|maxi|min|minf|mini|move_toward|nearest_po2|pingpong|posmod|pow|preload|print|printerr|printraw|prints|printt|print_debug|print_stack|print_verbose|push_error|push_warning|rad2deg|randf|randfn|randf_range|randi|randi_range|randomize|rand_from_seed|rand_range|rand_seed|range|range_lerp|range_step_decimals|rid_allocate_id|rid_from_int64|round|seed|sign|signf|signi|sin|sinh|smoothstep|snapped|sqrt|stepify|step_decimals|str|str2var|tan|tanh|typeof|type_exists|var2bytes|var2bytes_with_objects|var2str|weakref|wrapf|wrapi|yield)\\b(?=(\\()([^)]*)(\\)))",
             "name": "support.function.builtin.gdscript"
         },
+        "builtin_get_node_shorthand_quoted": {
+            "begin": "(\\$)([\\\"\\'])",
+            "end": "([\\\"\\'])",
+            "name": "support.function.builtin.shorthand.gdscript",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.control.flow"
+                },
+                "2": {
+                    "name": "constant.character.escape"
+                }
+            },
+            "endCaptures": {
+                "1": {
+                    "name": "constant.character.escape"
+                }
+            },
+            "patterns": [
+                {
+                    "match": "%",
+                    "name": "keyword.control.flow"
+                },
+                {
+                    "match": "[^%]*",
+                    "name": "constant.character.escape"
+                }
+            ]
+        },
         "builtin_get_node_shorthand": {
-            "match": "(\\$)([\\\"\\'].*[\\\"\\']|(?:[a-zA-Z_][a-zA-Z_0-9]*/?)*)",
+            "match": "(\\$)((?:[a-zA-Z_][a-zA-Z_0-9]*/?)*)",
             "name": "support.function.builtin.shorthand.gdscript",
             "captures": {
                 "1": {
@@ -413,7 +459,13 @@
                 "2": {
                     "name": "constant.character.escape"
                 }
-            }
+            },
+            "patterns": [
+                {
+                    "match": "%",
+                    "name": "invalid.illegal.escape.gdscript"
+                }
+            ]
         },
         "decorators": {
             "match": "(@)(export|export_color_no_alpha|export_dir|export_enum|export_exp_easing|export_file|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_global_dir|export_global_file|export_multiline|export_node_path|export_placeholder|export_range|icon|onready|rpc|tool|warning_ignore)\\b",
