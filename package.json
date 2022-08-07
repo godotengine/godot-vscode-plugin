@@ -165,6 +165,18 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
+				},
+				"godot_tools.native_symbol_placement": {
+					"enum": [
+						"active",
+						"beside"
+					],
+					"enumDescriptions": [
+						"Place the native symbol window in the active tabs group",
+						"Place the native symbol window beside the active tabs group"
+					],
+					"default": "beside",
+					"description": "Where to place the native symbol windows"
 				}
 			}
 		},
