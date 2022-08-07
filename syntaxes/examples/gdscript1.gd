@@ -221,3 +221,8 @@ class InnerClass:
 			pass
 		
 		pass
+
+# ------------------------------------------------------------------------------
+
+func test_function():
+	OS.get_name()
