@@ -15,7 +15,7 @@
 	"author": "The Godot Engine community",
 	"publisher": "geequlim",
 	"engines": {
-		"vscode": "^1.33.0"
+		"vscode": "^1.68.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -165,6 +165,18 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
+				},
+				"godot_tools.native_symbol_placement": {
+					"enum": [
+						"active",
+						"beside"
+					],
+					"enumDescriptions": [
+						"Place the native symbol window in the active tabs group",
+						"Place the native symbol window beside the active tabs group"
+					],
+					"default": "beside",
+					"description": "Where to place the native symbol windows"
 				}
 			}
 		},
@@ -378,7 +390,7 @@
 		"@types/mocha": "^9.1.0",
 		"@types/node": "^10.12.21",
 		"@types/prismjs": "^1.16.8",
-		"@types/vscode": "^1.33.0",
+		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
