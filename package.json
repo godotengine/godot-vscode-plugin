@@ -61,6 +61,10 @@
 				"title": "Godot Tools: List native classes of godot"
 			},
 			{
+				"command": "godot-tool.open_symbol_documentation",
+				"title": "Open Symbol Documentation"
+			},
+			{
 				"command": "godot-tool.debugger.inspect_node",
 				"title": "Inspect Remote Node",
 				"icon": {
@@ -384,6 +388,12 @@
 				{
 					"command": "godot-tool.copy_resource_path_context",
 					"group": "1_godot"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "godot-tool.open_symbol_documentation",
+					"group": "navigation@9"
 				}
 			]
 		}

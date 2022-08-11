@@ -44,6 +44,7 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
+		vscode.commands.registerCommand("godot-tool.open_symbol_documentation", this.open_symbol_documentation.bind(this));
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -99,6 +100,17 @@ export class GodotTools {
 		relative_path = 'res://' + relative_path;
 
 		vscode.env.clipboard.writeText(relative_path);
+    }
+
+    private open_symbol_documentation(uri: vscode.Uri) {
+        // get word under cursor
+        let activeEditor = vscode.window.activeTextEditor;
+        let document = activeEditor.document;
+        let curPos = activeEditor.selection.active;
+        let wordRange = document.getWordRangeAtPosition(curPos);
+        let symbolName = document.getText(wordRange);
+
+        this.client.open_documentation(symbolName);
     }
 
 	private set_scene_file(uri: vscode.Uri) {
