@@ -390,7 +390,7 @@
 		"@types/mocha": "^9.1.0",
 		"@types/node": "^10.12.21",
 		"@types/prismjs": "^1.16.8",
-		"@types/vscode": "^1.33.0",
+		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
