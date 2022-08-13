@@ -18,6 +18,9 @@
             "include": "#logic_op"
         },
         {
+            "include": "#in_keyword"
+        },
+        {
             "include": "#compare_op"
         },
         {
@@ -239,6 +242,9 @@
                     "include": "#logic_op"
                 },
                 {
+                    "include": "#in_keyword"
+                },
+                {
                     "include": "#control_flow"
                 },
                 {
@@ -277,6 +283,18 @@
             "match": "\\b(and|or|not)\\b",
             "name": "keyword.operator.wordlike.gdscript"
         },
+        "in_keyword": {
+            "patterns": [
+                {
+                    "match": "\\b(?<=for\\s[\\w]*\\s)(in)\\b",
+                    "name": "keyword.control.gdscript"
+                },
+                {
+                    "match": "\\bin\\b",
+                    "name": "keyword.operator.wordlike.gdscript"
+                }
+            ]
+        },
         "compare_op": {
             "match": "<=|>=|==|<|>|!=",
             "name": "keyword.operator.comparison.gdscript"
@@ -290,7 +308,7 @@
             "name": "keyword.operator.assignment.gdscript"
         },
         "control_flow": {
-            "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|in|yield)\\b",
+            "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|yield)\\b",
             "name": "keyword.control.gdscript"
         },
         "keywords": {

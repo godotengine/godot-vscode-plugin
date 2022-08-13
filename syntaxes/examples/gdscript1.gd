@@ -212,7 +212,14 @@ class InnerClass:
 	}
 
 	func _ready():
+		var list = []
+
+		for i in range(10):
+			list.append(i)
+
 		if true and true:
+			pass
+		elif 'foo' in list:
 			pass
 		elif false:
 			while true:
