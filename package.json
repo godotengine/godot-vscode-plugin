@@ -61,8 +61,8 @@
 				"title": "Godot Tools: List native classes of godot"
 			},
 			{
-				"command": "godot-tool.open_symbol_documentation",
-				"title": "Open Symbol Documentation"
+				"command": "godot-tool.open_type_documentation",
+				"title": "Godot Tools: Open Type Documentation"
 			},
 			{
 				"command": "godot-tool.debugger.inspect_node",
@@ -392,7 +392,7 @@
 			],
 			"editor/context": [
 				{
-					"command": "godot-tool.open_symbol_documentation",
+					"command": "godot-tool.open_type_documentation",
 					"group": "navigation@9"
 				}
 			]

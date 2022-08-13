@@ -44,7 +44,7 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godot-tool.open_symbol_documentation", this.open_symbol_documentation.bind(this));
+		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -102,7 +102,7 @@ export class GodotTools {
 		vscode.env.clipboard.writeText(relative_path);
     }
 
-    private open_symbol_documentation(uri: vscode.Uri) {
+    private open_type_documentation(uri: vscode.Uri) {
         // get word under cursor
         let activeEditor = vscode.window.activeTextEditor;
         let document = activeEditor.document;
