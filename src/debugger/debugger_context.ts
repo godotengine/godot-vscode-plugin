@@ -104,12 +104,12 @@ export function register_debugger(context: ExtensionContext) {
 						case "number":
 							if (is_float) {
 								new_parsed_value = parseFloat(value);
-								if (new_parsed_value === NaN) {
+								if (isNaN(new_parsed_value)) {
 									return;
 								}
 							} else {
 								new_parsed_value = parseInt(value);
-								if (new_parsed_value === NaN) {
+								if (isNaN(new_parsed_value)) {
 									return;
 								}
 							}
