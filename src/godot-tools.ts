@@ -16,7 +16,7 @@ export class GodotTools {
 	private workspace_dir = vscode.workspace.rootPath;
 	private project_file_name = "project.godot";
 	private project_file = "";
-	private project_dir = ""
+	private project_dir = "";
 	private connection_status: vscode.StatusBarItem = null;
 
 	constructor(p_context: vscode.ExtensionContext) {
@@ -91,7 +91,7 @@ export class GodotTools {
 		}
         
 		if (!uri) {
-			uri = vscode.window.activeTextEditor.document.uri
+			uri = vscode.window.activeTextEditor.document.uri;
 		}
 
 		let relative_path = path.normalize(path.relative(this.project_dir, uri.fsPath));
@@ -102,13 +102,13 @@ export class GodotTools {
     }
 
 	private set_scene_file(uri: vscode.Uri) {
-		let right_clicked_scene_path = uri.fsPath
+		let right_clicked_scene_path = uri.fsPath;
 		let scene_config = get_configuration("scene_file_config");
 		if (scene_config == right_clicked_scene_path) {
-			scene_config = ""
+			scene_config = "";
 		}
 		else {
-			scene_config = right_clicked_scene_path
+			scene_config = right_clicked_scene_path;
 		}
 
 		set_configuration("scene_file_config", scene_config);
@@ -139,7 +139,7 @@ export class GodotTools {
 							}
 						}
 
-						const POWERSHELL_SOURCE = "PowerShell"
+						const POWERSHELL_SOURCE = "PowerShell";
 						const default_profile = vscode.workspace.getConfiguration("terminal.integrated.defaultProfile");
 						if (default_profile) {
 							const profile_name = default_profile.get<string>("windows");
@@ -159,7 +159,7 @@ export class GodotTools {
 							}
 						}
 						// default for Windows if nothing is set is PowerShell
-						return `&${cmdEsc}`
+						return `&${cmdEsc}`;
 
 					}
 					return cmdEsc;
@@ -266,7 +266,7 @@ export class GodotTools {
 			return;
 		}
 
-		this.retry = false
+		this.retry = false;
 		this.connection_status.text = `$(x) Disconnected`;
 		this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 
