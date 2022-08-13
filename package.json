@@ -393,6 +393,7 @@
 			"editor/context": [
 				{
 					"command": "godot-tool.open_type_documentation",
+					"when": "godotTools.connectedToEditor",
 					"group": "navigation@9"
 				}
 			]

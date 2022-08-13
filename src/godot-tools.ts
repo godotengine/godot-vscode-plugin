@@ -46,6 +46,8 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
 
+        vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
+
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
@@ -238,6 +240,7 @@ export class GodotTools {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
+                vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', true);
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to the GDScript language server.`;
 				if (!this.client.started) {
@@ -249,6 +252,7 @@ export class GodotTools {
 					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
 					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				} else {
+                    vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
 					this.connection_status.text = `$(x) Disconnected`;
 					this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 				}
