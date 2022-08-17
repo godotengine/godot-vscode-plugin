@@ -185,6 +185,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 				config.address = "127.0.0.1";
 				config.launch_game_instance = true;
 				config.launch_scene = false;
+				config.additional_options = "";
 			}
 		}
 

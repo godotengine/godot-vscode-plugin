@@ -22,6 +22,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	port: number;
 	project: string;
 	scene_file: string;
+	additional_options: string;
 }
 
 export class GodotDebugSession extends LoggingDebugSession {
@@ -235,6 +236,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.port,
 			args.launch_game_instance,
 			args.launch_scene,
+			args.scene_file,
+			args.additional_options,
 			get_configuration("scene_file_config", "") || args.scene_file,
 		]);
 
