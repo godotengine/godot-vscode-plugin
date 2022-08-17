@@ -35,13 +35,6 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 		}
 		return links;
 	}
-
-	async resolveDocumentLink(
-		link: any,
-		token: vscode.CancellationToken
-	): Promise<vscode.DocumentLink> {
-		return;
-	}
 }
 
 async function resourcePathToUri(
