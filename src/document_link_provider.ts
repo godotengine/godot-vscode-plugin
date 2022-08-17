@@ -8,7 +8,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 		this.context = context;
 
 		const disp = vscode.languages.registerDocumentLinkProvider(
-			["gdscript", "gdresource"],
+			["gdresource"],
 			this
 		);
 
