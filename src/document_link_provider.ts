@@ -22,7 +22,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 		let links = [];
 		let lines = document.getText().split("\n");
 		for (let i = 0; i < lines.length; i++) {
-			const match = lines[i].match(/res:\/\/[^"]*/);
+			const match = lines[i].match(/res:\/\/[^"^']*/);
 			if (match) {
 				const start = new Position(i, match.index);
 				const end = new Position(i, match.index + match[0].length);
