@@ -3,6 +3,17 @@ class_name TestClass2
 
 # ******************************************************************************
 
+@export var x : int
+@export(int) var y : int
+@export(String) var z : String
+@export_node_path(Resource) var resource_name
+
+@rpc
+func remote_function():
+	pass
+
+# ------------------------------------------------------------------------------
+
 func f():
     await $Button.button_up
     super()
