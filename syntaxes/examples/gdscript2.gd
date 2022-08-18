@@ -27,9 +27,16 @@ func f():
     super()
     super.some_function()
 
-	var lambda = func(x):
+	var lambda_a = func(param1, param2, param3):
 		pass
-	lambda.call()
+	var lambda_b = func(param1, param2=func_a(10, 1.0, 'test')):
+		pass
+	var lambda_c = func(param1 = false, param2: bool = false, param3 := false):
+		pass
+
+	lambda_a.call()
+	lambda_b.call()
+	lambda_c.call()
 
     for i in range(1): # `in` is a control keyword
         print(i in range(1)) # `in` is an operator keyword
