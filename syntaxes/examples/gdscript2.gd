@@ -1,15 +1,20 @@
 extends Node
 class_name TestClass2
+@icon("res://path/to/icon.png")
 
 # ******************************************************************************
 
 @export var x : int
-@export(int) var y : int
-@export(String) var z : String
+@export var y : int
+@export var z : String
 @export_node_path(Resource) var resource_name
 
 @rpc
 func remote_function():
+	pass
+
+@rpc(any_peer, call_local, unreliable)
+func remote_function1():
 	pass
 
 # ------------------------------------------------------------------------------
@@ -18,6 +23,10 @@ func f():
     await $Button.button_up
     super()
     super.some_function()
+
+	var lambda = func(x):
+		pass
+
     for i in range(1): # `in` is a control keyword
         print(i in range(1)) # `in` is an operator keyword
 
