@@ -9,6 +9,8 @@ class_name TestClass2
 @export var z : String
 @export_node_path(Resource) var resource_name
 
+var my_array: Array[int] = [1, 2, 3]
+
 @rpc
 func remote_function():
 	pass
