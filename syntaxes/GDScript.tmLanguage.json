@@ -33,6 +33,9 @@
             "include": "#assignment_op"
         },
         {
+            "include": "#lambda_declaration"
+        },
+        {
             "include": "#control_flow"
         },
         {
@@ -243,6 +246,9 @@
                 },
                 {
                     "include": "#logic_op"
+                },
+                {
+                    "include": "#lambda_declaration"
                 },
                 {
                     "include": "#in_keyword"
@@ -594,6 +600,27 @@
                             "name": "entity.name.type.class.gdscript"
                         }
                     }
+                }
+            ]
+        },
+        "lambda_declaration": {
+            "name": "meta.function.gdscript",
+            "begin": "(func)(?=\\()",
+            "end": "(:|(?=[#'\"\\n]))",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.function.gdscript"
+                },
+                "2": {
+                    "name": "entity.name.function.gdscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#parameters"
+                },
+                {
+                    "include": "#line-continuation"
                 }
             ]
         },
