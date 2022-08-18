@@ -9,14 +9,15 @@ class_name TestClass2
 @export var z : String
 @export_node_path(Resource) var resource_name
 
-var my_array: Array[int] = [1, 2, 3]
+var array_a: Array[int] = [1, 2, 3]
+var array_b: Array[String] = ['1', '2', '3']
 
 @rpc
-func remote_function():
+func remote_function_a():
 	pass
 
 @rpc(any_peer, call_local, unreliable)
-func remote_function1():
+func remote_function_b():
 	pass
 
 # ------------------------------------------------------------------------------
