@@ -26,6 +26,7 @@ func f():
 
 	var lambda = func(x):
 		pass
+	lambda.call()
 
     for i in range(1): # `in` is a control keyword
         print(i in range(1)) # `in` is an operator keyword
