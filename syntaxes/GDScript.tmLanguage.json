@@ -321,7 +321,7 @@
             "name": "keyword.control.gdscript"
         },
         "keywords": {
-            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
             "name": "keyword.language.gdscript"
         },
         "letter": {
