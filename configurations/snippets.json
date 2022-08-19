@@ -37,6 +37,14 @@
       "\t${1:pass}"
     ]
 	},
+	
+	"_physics_process method of Node": {
+		"prefix": "physics",
+		"body": [
+      "func _physics_process(delta):",
+      "\t${1:pass}"
+    ]
+	},
 
 	"_input method of Node": {
 		"prefix": "input",
