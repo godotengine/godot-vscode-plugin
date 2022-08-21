@@ -18,6 +18,12 @@
             "include": "#logic_op"
         },
         {
+            "include": "#in_keyword"
+        },
+        {
+            "include": "#getter_setter_godot4"
+        },
+        {
             "include": "#compare_op"
         },
         {
@@ -27,10 +33,13 @@
             "include": "#assignment_op"
         },
         {
+            "include": "#lambda_declaration"
+        },
+        {
             "include": "#control_flow"
         },
         {
-            "include": "#decorators"
+            "include": "#annotations"
         },
         {
             "include": "#keywords"
@@ -239,6 +248,12 @@
                     "include": "#logic_op"
                 },
                 {
+                    "include": "#lambda_declaration"
+                },
+                {
+                    "include": "#in_keyword"
+                },
+                {
                     "include": "#control_flow"
                 },
                 {
@@ -277,6 +292,18 @@
             "match": "\\b(and|or|not)\\b",
             "name": "keyword.operator.wordlike.gdscript"
         },
+        "in_keyword": {
+            "patterns": [
+                {
+                    "match": "\\b(?<=for\\s[\\w]*\\s)(in)\\b",
+                    "name": "keyword.control.gdscript"
+                },
+                {
+                    "match": "\\bin\\b",
+                    "name": "keyword.operator.wordlike.gdscript"
+                }
+            ]
+        },
         "compare_op": {
             "match": "<=|>=|==|<|>|!=",
             "name": "keyword.operator.comparison.gdscript"
@@ -290,11 +317,11 @@
             "name": "keyword.operator.assignment.gdscript"
         },
         "control_flow": {
-            "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|in|yield)\\b",
+            "match": "\\b(?i:if|elif|else|for|while|break|continue|pass|return|match|yield|await)\\b",
             "name": "keyword.control.gdscript"
         },
         "keywords": {
-            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync)\\b",
+            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
             "name": "keyword.language.gdscript"
         },
         "letter": {
@@ -343,6 +370,45 @@
                     "name": "storage.type.var.gdscript"
                 }
             }
+        },
+        "getter_setter_godot4": {
+            "patterns": [
+                {
+                    "match": "\\b(get):",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.gdscript"
+                        }
+                    }
+                },
+                {
+                    "name": "meta.function.gdscript",
+                    "begin": "(?x) \\s+\n (set) \\s*\n (?=\\()",
+                    "end": "(:|(?=[#'\"\\n]))",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "entity.name.function.gdscript"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#parameters"
+                        },
+                        {
+                            "include": "#line-continuation"
+                        },
+                        {
+                            "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                            "captures": {
+                                "1": {},
+                                "2": {
+                                    "name": "entity.name.type.class.gdscript"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
         },
         "type_hint": {
             "match": "\\:\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?=[=\\n]|setget)",
@@ -473,11 +539,11 @@
                 }
             ]
         },
-        "decorators": {
+        "annotations": {
             "match": "(@)(export|export_color_no_alpha|export_dir|export_enum|export_exp_easing|export_file|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_global_dir|export_global_file|export_multiline|export_node_path|export_placeholder|export_range|icon|onready|rpc|tool|warning_ignore)\\b",
             "captures": {
                 "1": {
-                    "name": "keyword.control.flow"
+                    "name": "entity.name.function.decorator.gdscript"
                 },
                 "2": {
                     "name": "entity.name.function.decorator.gdscript"
@@ -485,7 +551,7 @@
             }
         },
         "builtin_classes": {
-            "match": "(?<![^.]\\.|:)\\b(OS|Vector2|Vector2i|Vector3|Vector3i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|Object|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|StringName|Quaternion|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedColorArray)\\b",
+            "match": "(?<![^.]\\.|:)\\b(OS|Vector2|Vector2i|Vector3|Vector3i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|Object|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|StringName|Quaternion|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedColorArray|super)\\b",
             "name": "support.class.library.gdscript"
         },
         "const_vars": {
@@ -534,6 +600,27 @@
                             "name": "entity.name.type.class.gdscript"
                         }
                     }
+                }
+            ]
+        },
+        "lambda_declaration": {
+            "name": "meta.function.gdscript",
+            "begin": "(func)(?=\\()",
+            "end": "(:|(?=[#'\"\\n]))",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.function.gdscript"
+                },
+                "2": {
+                    "name": "entity.name.function.gdscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#parameters"
+                },
+                {
+                    "include": "#line-continuation"
                 }
             ]
         },
