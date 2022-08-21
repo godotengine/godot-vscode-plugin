@@ -106,11 +106,11 @@ export class GodotTools {
 
     private open_type_documentation(uri: vscode.Uri) {
         // get word under cursor
-        let activeEditor = vscode.window.activeTextEditor;
-        let document = activeEditor.document;
-        let curPos = activeEditor.selection.active;
-        let wordRange = document.getWordRangeAtPosition(curPos);
-        let symbolName = document.getText(wordRange);
+        const activeEditor = vscode.window.activeTextEditor;
+        const document = activeEditor.document;
+        const curPos = activeEditor.selection.active;
+        const wordRange = document.getWordRangeAtPosition(curPos);
+        const symbolName = document.getText(wordRange);
 
         this.client.open_documentation(symbolName);
     }
