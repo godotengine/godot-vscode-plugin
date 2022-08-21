@@ -42,9 +42,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-    public open_documentation(symbolName: string) {
-        this.native_doc_manager.request_documentation(symbolName);
-    }
+	public open_documentation(symbolName: string) {
+		this.native_doc_manager.request_documentation(symbolName);
+	}
 
 	constructor(context: vscode.ExtensionContext) {
 		super(

@@ -59,14 +59,14 @@ export default class NativeDocumentManager extends EventEmitter {
 		);
 	}
 
-    public request_documentation(symbolName: string) {
-        if (symbolName in this.native_classes) {
-            this.inspect_native_symbol({
-                native_class: symbolName,
-                symbol_name: symbolName,
-            });
-        }
-    }
+	public request_documentation(symbolName: string) {
+		if (symbolName in this.native_classes) {
+			this.inspect_native_symbol({
+				native_class: symbolName,
+				symbol_name: symbolName,
+			});
+		}
+	}
 
 	private async list_native_classes() {
 		let classname = await vscode.window.showQuickPick(
