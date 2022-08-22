@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import * as fs from 'fs';
+import { GDDocumentLinkProvider } from "./document_link_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
 
@@ -11,6 +12,8 @@ export class GodotTools {
 	private reconnection_attempts = 0;
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
+	private linkProvider: GDDocumentLinkProvider = null;
+
 	// deprecated, need to replace with "vscode.workspace.workspaceFolders", but
 	// that's an array and not a single value
 	private workspace_dir = vscode.workspace.rootPath;
@@ -25,6 +28,8 @@ export class GodotTools {
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
+		this.linkProvider = new GDDocumentLinkProvider(p_context);
+                
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("reconnect_cooldown", 3000));
