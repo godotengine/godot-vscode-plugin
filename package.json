@@ -97,6 +97,10 @@
 				}
 			},
 			{
+				"command": "godotTools.refreshScenePreview",
+				"title": "Godot Tools: Refresh Scene Preview"
+			},
+			{
 				"command": "godot-tool.set_scene_file",
 				"title": "Set as Scene File"
 			},
@@ -337,6 +341,15 @@
 				"language": "gdscript"
 			}
 		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "godotTools",
+					"title": "Godot Tools",
+					"icon": "resources/light/icon_node.svg"
+				}
+			]
+		},
 		"views": {
 			"debug": [
 				{
@@ -348,6 +361,12 @@
 					"id": "inspect-node",
 					"name": "Inspector",
 					"when": "inDebugMode && debugType == 'godot'"
+				}
+			],
+			"godotTools": [
+				{
+					"id": "scenePreview",
+					"name": "Scene Preview"
 				}
 			]
 		},

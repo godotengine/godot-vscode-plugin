@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from 'path';
 import * as fs from 'fs';
 import { GDDocumentLinkProvider } from "./document_link_provider";
+import { ScenePreviewProvider } from "./scene_preview_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
 
@@ -52,6 +53,8 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
 
 		vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
+
+		const scenePreviewManager = new ScenePreviewProvider();
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
