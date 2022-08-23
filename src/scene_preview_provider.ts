@@ -7,9 +7,10 @@ import {
 	TreeItem,
 	TreeItemCollapsibleState,
 } from "vscode";
+import path = require("path");
+import fs = require("fs");
 import * as vscode from "vscode";
 import logger from "./logger";
-import { SceneNode } from "./debugger/scene_tree/scene_tree_provider";
 
 function log(...messages) {
 	logger.log("[scene preview]", messages);
@@ -146,5 +147,69 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		tree_item.iconPath = element.iconPath;
 
 		return tree_item;
+	}
+}
+
+function match_icon_to_class(class_name: string) {
+	let icon_name = `icon${class_name
+		.replace(/(2|3)D/, "$1d")
+		.replace(/([A-Z0-9])/g, "_$1")
+		.toLowerCase()}.svg`;
+	return icon_name;
+}
+
+// If this class isn't duplicated here, then the compiled extension 
+// won't find the icons correctly. 
+export class SceneNode extends TreeItem {
+	constructor(
+		public label: string,
+		public class_name: string,
+		public object_id: number,
+		public children: SceneNode[],
+		public collapsibleState?: TreeItemCollapsibleState
+	) {
+		super(label, collapsibleState);
+
+		let light = path.join(
+			__filename,
+			"..",
+			"..",
+			"resources",
+			"light",
+			match_icon_to_class(class_name)
+		);
+		if (!fs.existsSync(light)) {
+			path.join(
+				__filename,
+				"..",
+				"..",
+				"resources",
+				"light",
+				"node.svg"
+			);
+		}
+		let dark = path.join(
+			__filename,
+			"..",
+			"..",
+			"resources",
+			"dark",
+			match_icon_to_class(class_name)
+		);
+		if (!fs.existsSync(light)) {
+			path.join(
+				__filename,
+				"..",
+				"..",
+				"resources",
+				"dark",
+				"node.svg"
+			);
+		}
+
+		this.iconPath = {
+			light: light,
+			dark: dark,
+		};
 	}
 }
