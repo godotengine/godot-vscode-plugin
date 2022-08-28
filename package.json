@@ -346,7 +346,7 @@
 				{
 					"id": "godotTools",
 					"title": "Godot Tools",
-					"icon": "resources/light/icon_tree.svg"
+					"icon": "resources/godot_icon.svg"
 				}
 			]
 		},
