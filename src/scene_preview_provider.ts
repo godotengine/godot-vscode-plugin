@@ -10,6 +10,7 @@ import {
 import path = require("path");
 import fs = require("fs");
 import * as vscode from "vscode";
+import { get_configuration, set_configuration, find_file, set_context, convert_resource_path_to_uri } from "./utils";
 import logger from "./logger";
 
 function log(...messages) {
@@ -19,6 +20,8 @@ function log(...messages) {
 export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private root: SceneNode | undefined;
 	private tree: TreeView<SceneNode>;
+    private scenePreviewPinned = false;
+    private currentScene = '';
 
 	private changeEvent = new EventEmitter<void>();
 
@@ -26,102 +29,176 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		return this.changeEvent.event;
 	}
 
-	public refresh(): void {
-		this.changeEvent.fire();
+	public async refresh() {
+        if (this.scenePreviewPinned) {
+            return;
+        }
+        
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            let fileName = editor.document.uri.fsPath;
+            if (!fileName.endsWith(".tscn")) {
+                const relatedScene = await find_file(fileName.replace('.gd', '.tscn'));
+                if (!relatedScene) {
+                    return;
+                }
+                fileName = relatedScene.fsPath;
+            }
+            if (this.currentScene == fileName) {
+                return;
+            }
+            await this.parse_scene(fileName);
+            this.changeEvent.fire();
+        }
 	}
 
 	constructor() {
 		this.tree = vscode.window.createTreeView("scenePreview", {
 			treeDataProvider: this,
 		});
-		this.tree.onDidChangeSelection(this.tree_selection_changed)
 
-		vscode.commands.registerCommand("godotTools.refreshScenePreview", () =>
+		this.tree.onDidChangeSelection(this.tree_selection_changed);
+
+		vscode.commands.registerCommand("godotTools.scenePreview.pin", this.pin_preview.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
+
+		vscode.commands.registerCommand("godotTools.scenePreview.refresh", () =>
 			this.refresh()
 		);
 
 		vscode.window.onDidChangeActiveTextEditor(() => {
-			vscode.commands.executeCommand("godotTools.refreshScenePreview");
+			vscode.commands.executeCommand("godotTools.scenePreview.refresh");
 		});
+
+        this.refresh();
 	}
 
+    private pin_preview() {
+        this.scenePreviewPinned = true;
+		set_context('godotTools.context.scenePreviewPinned', true);
+    }
+
+    private unpin_preview() {
+        this.scenePreviewPinned = false;
+		set_context('godotTools.context.scenePreviewPinned', false);
+        this.refresh();
+    }
+
+    private copy_node_path(item: SceneNode) {
+        if (item.unique) {
+            vscode.env.clipboard.writeText('%' + item.label);
+            return;
+        }
+		vscode.env.clipboard.writeText(item.relativePath);
+    }
+
+    private async open_scene(item: SceneNode) {
+        const uri = await convert_resource_path_to_uri(item.resourcePath);
+        if (uri) {
+            vscode.window.showTextDocument(uri, {preview:true});
+        }
+    }
+
+    private async go_to_definition(item: SceneNode) {
+        const document = await vscode.workspace.openTextDocument(this.currentScene);
+        const start = document.positionAt(item.position);
+        const end = document.positionAt(item.position + item.text.length);
+        const range = new vscode.Range(start, end);
+        vscode.window.showTextDocument(document, {selection:range});
+    }
+
     private tree_selection_changed(event:vscode.TreeViewSelectionChangeEvent<SceneNode>) {
-        // const text = event.selection[0].id
-        // log(text)
+        // const item = event.selection[0];
+        // log(item.body);
         
 		// const editor = vscode.window.activeTextEditor;
         // const range = editor.document.getText()
         // editor.revealRange(range)
     }
 
-	public parse_current_editor() {
-		const editor = vscode.window.activeTextEditor;
-		const fileName = editor.document.uri.toString();
-		if (!fileName.endsWith(".tscn")) {
-			this.root = null;
-			return;
-		}
+	public async parse_scene(scene) {
+        this.currentScene = scene;
+        this.tree.message = scene;
+      
+        const document = await vscode.workspace.openTextDocument(scene);
+        const text = document.getText();
 
-		const text = editor.document.getText();
-		const result = text.matchAll(
-			/\[node name="([\w]*)" type="([\w]*)"(?: parent="([\w\.]*)")?\]/g
-		);
+        let externalResources = {};
+        
+        const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;   
+		for (const match of text.matchAll(resourceRegex)) {
+            let path = match[1];
+            let type = match[2];
+            let id = match[3];
+            externalResources[id] = {
+                path: path,
+                type: type,
+                id: id,
+            };
+        }
 
-		let nodeData = {};
 		let root = "";
+		let nodes = {};
+        let lastNode = null;
 
-		for (const match of result) {
+        const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\( ([\w\.]*) \))?\]/g;
+		for (const match of text.matchAll(nodeRegex)) {
 			let name = match[1];
-			let type = match[2];
+			let type = match[2] ? match[2] : 'PackedScene';
 			let parent = match[3];
+			let instance = match[4] ? match[4] : 0;
 			let path = "";
+			let relativePath = "";
 
 			if (parent == undefined) {
 				root = name;
 				path = name;
 			} else if (parent == ".") {
 				parent = root;
+                relativePath = name;
 				path = parent + "/" + name;
 			} else {
+                relativePath = parent + "/" + name;
 				parent = root + "/" + parent;
 				path = parent + "/" + name;
 			}
+            if (lastNode) {
+                lastNode.body = text.slice(lastNode.position, match.index);
+                lastNode.parse_body();
+            }
 
-			let node = {
-				name: name,
-				type: type,
-				parent: parent,
-				path: path,
-				text: match[0],
-				children: [],
-			};
-
-			if (parent in nodeData) {
-				nodeData[parent].children.push(node.path);
+			let node = new SceneNode(name, type, 0, []);
+            node.path = path;
+            node.description = type;
+            node.relativePath = relativePath;
+            node.parent = parent;
+            node.text = match[0];
+            node.position = match.index;
+            if (instance) {
+                node.tooltip = externalResources[instance].path;
+                node.resourcePath = externalResources[instance].path;
+                node.contextValue = 'PackedScene';
+            }
+			if (path == root) {
+				this.root = node;
 			}
-			nodeData[path] = node;
-		}
-		let nodes = {};
-		let rootNode: SceneNode;
-
-		for (const path in nodeData) {
-			const data = nodeData[path];
-			let node = new SceneNode(data.name, data.type, 0, []);
-			node.id = data.text;
-			if (data.path == root) {
-				rootNode = node;
-			}
-			if (data.parent in nodes) {
-				nodes[data.parent].children.push(node);
+			if (parent in nodes) {
+				nodes[parent].children.push(node);
 			}
 			nodes[path] = node;
+
+            lastNode = node;
 		}
-		this.root = rootNode;
+        
+        lastNode.body = text.slice(lastNode.position, text.length);
+        lastNode.parse_body();
 	}
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
 		if (!element) {
-			this.parse_current_editor();
 			if (!this.root) {
 				return Promise.resolve([]);
 			} else {
@@ -133,20 +210,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
-		let has_children = element.children.length > 0;
-		let tree_item: TreeItem | undefined;
-		tree_item = new TreeItem(
-			element.label,
-			has_children
-				? TreeItemCollapsibleState.Expanded
-				: TreeItemCollapsibleState.None
-		);
+        if (element.children.length > 0) {
+            element.collapsibleState = TreeItemCollapsibleState.Expanded;
+        } else {
+            element.collapsibleState = TreeItemCollapsibleState.None;
+        }
 
-		tree_item.id = element.id;
-		tree_item.description = element.class_name;
-		tree_item.iconPath = element.iconPath;
-
-		return tree_item;
+		return element;
 	}
 }
 
@@ -158,9 +228,16 @@ function match_icon_to_class(class_name: string) {
 	return icon_name;
 }
 
-// If this class isn't duplicated here, then the compiled extension 
-// won't find the icons correctly. 
 export class SceneNode extends TreeItem {
+    public path: string;
+    public relativePath: string;
+    public resourcePath: string;
+    public parent: string;
+    public text: string;
+    public position: number;
+    public body: string;
+    public unique: boolean = false;
+
 	constructor(
 		public label: string,
 		public class_name: string,
@@ -170,41 +247,22 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		let light = path.join(
-			__filename,
-			"..",
-			"..",
-			"resources",
-			"light",
-			match_icon_to_class(class_name)
-		);
+        const iconDir = path.join(__filename, "..", "..", "resources");
+
+        if (class_name == 'PackedScene') {
+            this.iconPath = path.join(iconDir, "InstanceOptions.svg");
+            return;
+        }
+
+        const iconName = match_icon_to_class(class_name);
+
+		let light = path.join(iconDir, "light", iconName);
 		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"resources",
-				"light",
-				"node.svg"
-			);
+			light = path.join(iconDir, "light", "node.svg");
 		}
-		let dark = path.join(
-			__filename,
-			"..",
-			"..",
-			"resources",
-			"dark",
-			match_icon_to_class(class_name)
-		);
-		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"resources",
-				"dark",
-				"node.svg"
-			);
+		let dark = path.join(iconDir, "dark", iconName);
+		if (!fs.existsSync(dark)) {
+			dark = path.join(iconDir, "dark", "node.svg");
 		}
 
 		this.iconPath = {
@@ -212,4 +270,33 @@ export class SceneNode extends TreeItem {
 			dark: dark,
 		};
 	}
+
+    public parse_body() {
+        const lines = this.body.split('\n');
+        let newLines = [];
+		for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (line.startsWith('tile_data')) {
+                line = 'tile_data = PoolIntArray(...)';
+            }
+            if (line != '') {
+                newLines.push(line);
+            }
+        }
+        this.body = newLines.join('\n');
+
+        const content = new vscode.MarkdownString();
+        content.appendCodeblock(this.body, 'gdresource');
+        this.tooltip = content;
+
+        let match = null;
+        if (this.body.match("unique_name_in_owner = true")) {
+            this.unique = true;
+            this.description = '% | ' + this.description;
+        }
+        match = this.body.match(/script = ExtResource\( ([0-9]+) \)/);
+        if (match) {
+            this.unique = true;
+        }
+    }
 }

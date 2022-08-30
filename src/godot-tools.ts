@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ScenePreviewProvider } from "./scene_preview_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
-import { get_configuration, set_configuration, find_file } from "./utils";
+import { get_configuration, set_configuration, find_file, set_context } from "./utils";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
@@ -14,6 +14,7 @@ export class GodotTools {
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
 	private linkProvider: GDDocumentLinkProvider = null;
+	private scenePreviewManager: ScenePreviewProvider = null;
 
 	// deprecated, need to replace with "vscode.workspace.workspaceFolders", but
 	// that's an array and not a single value
@@ -53,9 +54,9 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
 		vscode.commands.registerCommand("godotTools.switchSceneScript", this.switch_scene_script.bind(this));
 
-		vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
+		set_context('godotTools.context.connectedToEditor', false);
 
-		const scenePreviewManager = new ScenePreviewProvider();
+		this.scenePreviewManager = new ScenePreviewProvider();
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -128,9 +129,9 @@ export class GodotTools {
         let path = vscode.window.activeTextEditor.document.uri.fsPath;
 
         if (path.endsWith('.tscn')) {
-            path = path.replace('.tscn', '.gd')
+            path = path.replace('.tscn', '.gd');
         } else if (path.endsWith('.gd')) {
-            path = path.replace('.gd', '.tscn')
+            path = path.replace('.gd', '.tscn');
         }
 
         const file = await find_file(path);
@@ -264,7 +265,7 @@ export class GodotTools {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
-				vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', true);
+				set_context('godotTools.context.connectedToEditor', true);
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to the GDScript language server.`;
 				if (!this.client.started) {
@@ -276,7 +277,7 @@ export class GodotTools {
 					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
 					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				} else {
-					vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
+					set_context('godotTools.context.connectedToEditor', false);
 					this.connection_status.text = `$(x) Disconnected`;
 					this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 				}
