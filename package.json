@@ -101,6 +101,10 @@
 				"title": "Godot Tools: Refresh Scene Preview"
 			},
 			{
+				"command": "godotTools.switchSceneScript",
+				"title": "Godot Tools: Switch Scene/Script"
+			},
+			{
 				"command": "godot-tool.set_scene_file",
 				"title": "Set as Scene File"
 			},
@@ -111,6 +115,13 @@
 			{
 				"command": "godot-tool.copy_resource_path",
 				"title": "Godot Tools: Copy Resource Path"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "godotTools.switchSceneScript",
+				"key": "alt+o",
+				"when": "editorLangId == 'gdscript' && editorTextFocus || editorLangId == 'gdresource' && editorTextFocus"
 			}
 		],
 		"configuration": {
@@ -421,6 +432,11 @@
 					"command": "godot-tool.open_type_documentation",
 					"when": "godotTools.connectedToEditor",
 					"group": "navigation@9"
+				},
+				{
+					"command": "godotTools.switchSceneScript",
+					"when": "editorLangId == 'gdscript' || editorLangId == 'gdresource'",
+					"group": "custom1@1"
 				}
 			]
 		}

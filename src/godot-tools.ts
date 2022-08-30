@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ScenePreviewProvider } from "./scene_preview_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
-import { get_configuration, set_configuration } from "./utils";
+import { get_configuration, set_configuration, find_file } from "./utils";
 
 const CONFIG_CONTAINER = "godot_tools";
 const TOOL_NAME = "GodotTools";
@@ -51,6 +51,7 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
+		vscode.commands.registerCommand("godotTools.switchSceneScript", this.switch_scene_script.bind(this));
 
 		vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
 
@@ -122,6 +123,21 @@ export class GodotTools {
 
 		this.client.open_documentation(symbolName);
 	}
+
+    private async switch_scene_script() {
+        let path = vscode.window.activeTextEditor.document.uri.fsPath;
+
+        if (path.endsWith('.tscn')) {
+            path = path.replace('.tscn', '.gd')
+        } else if (path.endsWith('.gd')) {
+            path = path.replace('.gd', '.tscn')
+        }
+
+        const file = await find_file(path);
+        if (file) {
+            vscode.window.showTextDocument(file);
+        }
+    }
 
 	private set_scene_file(uri: vscode.Uri) {
 		let right_clicked_scene_path = uri.fsPath;
