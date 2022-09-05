@@ -341,12 +341,26 @@
             "match": "\\b[a-zA-Z_]\\w*(?=(?:\\s|/\\*(?:\\*(?!/)|[^*])*\\*/)*[(])"
         },
         "swizzling": {
-            "name": "variable.other.property.gdshader",
-            "match": "(?:[.]\\s*)(?:[xyzw]{2,4}|[rgba]{2,4}|[stpq]{2,4})\\b"
+            "match": "([.])\\s*([xyzw]{2,4}|[rgba]{2,4}|[stpq]{2,4})\\b",
+            "captures": {
+                "1": {
+                    "name": "punctuation.accessor.gdshader"
+                },
+                "2": {
+                    "name": "variable.other.property.gdshader"
+                }
+            }
         },
         "identifierField": {
-            "name": "entity.name.variable.field.gdshader",
-            "match": "(?:[.]\\s*)[a-zA-Z_]\\w*\\b"
+            "match": "([.])\\s*([a-zA-Z_]+)\\w*\\b",
+            "captures": {
+                "1": {
+                    "name": "punctuation.accessor.gdshader"
+                },
+                "2": {
+                    "name": "entity.name.variable.field.gdshader"
+                }
+            }
         },
         "constantFloat": {
             "name": "constant.language.float.gdshader",
