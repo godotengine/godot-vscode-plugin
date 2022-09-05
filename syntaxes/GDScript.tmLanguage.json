@@ -286,7 +286,7 @@
         "in_keyword": {
             "patterns": [
                 {
-                    "match": "\\b(?<=for\\s[\\w]*\\s)(in)\\b",
+                    "match": "\\b(?:for\\s[\\w]*\\s)(in)\\b",
                     "name": "keyword.control.gdscript"
                 },
                 {
