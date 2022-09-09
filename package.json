@@ -123,6 +123,10 @@
 				"title": "Open Scene"
 			},
 			{
+				"command": "godotTools.scenePreview.openScript",
+				"title": "Open Script"
+			},
+			{
 				"command": "godotTools.switchSceneScript",
 				"title": "Godot Tools: Switch Scene/Script"
 			},
@@ -489,7 +493,12 @@
 				},
 				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem == PackedScene",
+					"when": "view == scenePreview && viewItem =~ /PackedScene/",
+					"group": "1@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "view == scenePreview && viewItem =~ /hasScript/",
 					"group": "1@2"
 				}
 			],

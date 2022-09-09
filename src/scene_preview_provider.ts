@@ -22,6 +22,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private tree: TreeView<SceneNode>;
     private scenePreviewPinned = false;
     private currentScene = '';
+    private externalResources = {};
 
 	private changeEvent = new EventEmitter<void>();
 
@@ -81,6 +82,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.openScript", this.open_script.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
 
 		vscode.commands.registerCommand("godotTools.scenePreview.refresh", () =>
@@ -120,6 +122,15 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
         }
     }
 
+    private async open_script(item: SceneNode) {
+        const id = this.externalResources[item.scriptId].path;
+        
+        const uri = await convert_resource_path_to_uri(id);
+        if (uri) {
+            vscode.window.showTextDocument(uri, {preview:true});
+        }
+    }
+
     private async go_to_definition(item: SceneNode) {
         const document = await vscode.workspace.openTextDocument(this.currentScene);
         const start = document.positionAt(item.position);
@@ -144,14 +155,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
         const document = await vscode.workspace.openTextDocument(scene);
         const text = document.getText();
 
-        let externalResources = {};
+        this.externalResources = {};
         
         const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;   
 		for (const match of text.matchAll(resourceRegex)) {
             let path = match[1];
             let type = match[2];
             let id = match[3];
-            externalResources[id] = {
+            this.externalResources[id] = {
                 path: path,
                 type: type,
                 id: id,
@@ -196,8 +207,8 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
             node.text = match[0];
             node.position = match.index;
             if (instance) {
-                node.tooltip = externalResources[instance].path;
-                node.resourcePath = externalResources[instance].path;
+                node.tooltip = this.externalResources[instance].path;
+                node.resourcePath = this.externalResources[instance].path;
                 node.contextValue = 'PackedScene';
             }
 			if (path == root) {
@@ -255,7 +266,8 @@ export class SceneNode extends TreeItem {
     public position: number;
     public body: string;
     public unique: boolean = false;
-    public has_script: boolean = false;
+    public hasScript: boolean = false;
+    public scriptId: string;
 
 	constructor(
 		public label: string,
@@ -293,19 +305,21 @@ export class SceneNode extends TreeItem {
     public parse_body() {
         const lines = this.body.split('\n');
         let newLines = [];
-        let tags = []
+        let tags = [];
 		for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line.startsWith('tile_data')) {
                 line = 'tile_data = PoolIntArray(...)';
             }
             if (line.startsWith("unique_name_in_owner = true")) {
-                tags.push('%')
+                tags.push('%');
                 this.unique = true;
             }
-            if (line.startsWith("script =")) {
-                tags.push('S')
-                this.has_script = true;
+            if (line.startsWith("script = ExtResource")) {
+                tags.push('S');
+                this.hasScript = true;
+                this.scriptId = line.match(/script = ExtResource\( ([0-9]+) \)/)[1];
+                this.contextValue += 'hasScript';
             }
             if (line != '') {
                 newLines.push(line);
