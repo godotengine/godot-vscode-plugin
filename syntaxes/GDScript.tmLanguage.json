@@ -48,16 +48,10 @@
             "include": "#self"
         },
         {
-            "include": "#const_def"
-        },
-        {
             "include": "#class_definition"
         },
         {
-            "include": "#var_def"
-        },
-        {
-            "include": "#type_hint"
+            "include": "#variable_definition"
         },
         {
             "include": "#class_name"
@@ -318,7 +312,7 @@
             "name": "keyword.control.gdscript"
         },
         "keywords": {
-            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|setget|const|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
+            "match": "\\b(?i:class|class_name|extends|is|onready|tool|static|export|as|void|enum|preload|assert|breakpoint|rpc|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
             "name": "keyword.language.gdscript"
         },
         "letter": {
@@ -349,24 +343,51 @@
                 }
             ]
         },
-        "const_def": {
-            "match": "\\b(?i:(const))\\s+([a-zA-Z_][a-zA-Z_0-9]*)",
-            "captures": {
-                "1": {
-                    "name": "storage.type.const.gdscript"
-                },
-                "2": {
-                    "name": "constant.language.gdscript"
-                }
-            }
-        },
-        "var_def": {
-            "match": "\\b(?i:(var))\\s+(?=[a-zA-Z_][a-zA-Z_0-9]*)",
-            "captures": {
+        "variable_definition": {
+            "begin": "\\b(?:(var)|(const))",
+            "end": "$",
+            "beginCaptures": {
                 "1": {
                     "name": "storage.type.var.gdscript"
+                },
+                "2": {
+                    "name": "storage.type.const.gdscript"
                 }
-            }
+            },
+            "patterns": [
+                {
+                    "match": "(:)\\s*([\\w]*)?",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.separator.annotation.gdscript"
+                        },
+                        "2": {
+                            "name": "entity.name.type.class.gdscript"
+                        }
+                    }
+                },
+                {
+                    "match": "=(?!=)",
+                    "name": "keyword.operator.assignment.gdscript"
+                },
+                {
+                    "match": "(setget)\\s+([\\w]*)(?:[,]\\s*([\\w]*))?",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.const.gdscript"
+                        },
+                        "2": {
+                            "name": "entity.name.function.gdscript"
+                        },
+                        "3": {
+                            "name": "entity.name.function.gdscript"
+                        }
+                    }
+                },
+                {
+                    "include": "#base_expression"
+                }
+            ]
         },
         "getter_setter_godot4": {
             "patterns": [
@@ -406,14 +427,6 @@
                     ]
                 }
             ]
-        },
-        "type_hint": {
-            "match": "\\:\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*(?=[=\\n]|setget)",
-            "captures": {
-                "1": {
-                    "name": "entity.name.type.class.gdscript"
-                }
-            }
         },
         "class_definition": {
             "captures": {
@@ -489,8 +502,8 @@
             ]
         },
         "builtin_get_node_shorthand_quoted": {
-            "begin": "(\\$)([\\\"\\'])",
-            "end": "([\\\"\\'])",
+            "begin": "(\\$)([\"'])",
+            "end": "([\"'])|$",
             "name": "support.function.builtin.shorthand.gdscript",
             "beginCaptures": {
                 "1": {
