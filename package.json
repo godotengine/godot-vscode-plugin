@@ -226,7 +226,7 @@
 					"default": "beside",
 					"description": "Where to place the native symbol windows"
 				},
-                "godot_tools.scenePreview.previewRelatedScenes": {
+				"godot_tools.scenePreview.previewRelatedScenes": {
 					"enum": [
 						"anyFolder",
 						"sameFolder",
@@ -235,7 +235,7 @@
 					"enumDescriptions": [
 						"Attempt to preview a related scene from anywhere in the workspace.",
 						"Attempt to preview a related scene from the same folder.",
-                        "Do not attempt to preview a related scene."
+						"Do not attempt to preview a related scene."
 					],
 					"default": "sameFolder",
 					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."

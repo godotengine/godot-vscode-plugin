@@ -17,20 +17,20 @@ export function is_debug_mode(): boolean {
 }
 
 export function set_context(name: string, value: any) {
-    vscode.commands.executeCommand('setContext', name, value);
+	vscode.commands.executeCommand('setContext', name, value);
 }
 
 export async function find_file(file: string): Promise<vscode.Uri|null> {
-    if (fs.existsSync(file)) {
-        return vscode.Uri.file(file);
-    } else {
-        const fileName = path.basename(file);
-        const results = await vscode.workspace.findFiles('**/' + fileName);
-        if (results.length == 1) {
-            return results[0];
-        }
-    }
-    return null;
+	if (fs.existsSync(file)) {
+		return vscode.Uri.file(file);
+	} else {
+		const fileName = path.basename(file);
+		const results = await vscode.workspace.findFiles('**/' + fileName);
+		if (results.length == 1) {
+			return results[0];
+		}
+	}
+	return null;
 }
 
 export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri|null> {

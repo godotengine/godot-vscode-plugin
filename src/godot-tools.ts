@@ -31,7 +31,7 @@ export class GodotTools {
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
 		this.linkProvider = new GDDocumentLinkProvider(p_context);
-                
+
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("reconnect_cooldown", 3000));
@@ -125,20 +125,20 @@ export class GodotTools {
 		this.client.open_documentation(symbolName);
 	}
 
-    private async switch_scene_script() {
-        let path = vscode.window.activeTextEditor.document.uri.fsPath;
+	private async switch_scene_script() {
+		let path = vscode.window.activeTextEditor.document.uri.fsPath;
 
-        if (path.endsWith('.tscn')) {
-            path = path.replace('.tscn', '.gd');
-        } else if (path.endsWith('.gd')) {
-            path = path.replace('.gd', '.tscn');
-        }
+		if (path.endsWith('.tscn')) {
+			path = path.replace('.tscn', '.gd');
+		} else if (path.endsWith('.gd')) {
+			path = path.replace('.gd', '.tscn');
+		}
 
-        const file = await find_file(path);
-        if (file) {
-            vscode.window.showTextDocument(file);
-        }
-    }
+		const file = await find_file(path);
+		if (file) {
+			vscode.window.showTextDocument(file);
+		}
+	}
 
 	private set_scene_file(uri: vscode.Uri) {
 		let right_clicked_scene_path = uri.fsPath;
