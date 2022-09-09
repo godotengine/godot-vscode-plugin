@@ -62,6 +62,14 @@
     ]
   },
 
+  "_unhandled_input method of Node": {
+	  "prefix": "uinput",
+	  "body": [
+	"func _unhandled_input(event):",
+	"\t${1:pass}"
+  ]
+  },
+
     "_draw method of Node": {
       "prefix": "draw",
       "body": [
