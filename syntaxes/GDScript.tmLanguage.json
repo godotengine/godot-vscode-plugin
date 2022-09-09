@@ -740,44 +740,7 @@
                 }
             ]
         },
-        "annotated-parameter2": {
-            "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:) \\s* ([[:alpha:]_]\\w*)? \\s* (=)? \\s* ([[:alpha:].0-9\\'\\\"_]*)?\n",
-            "end": "(,)|(?=\\))",
-            "beginCaptures": {
-                "1": {
-                    "name": "variable.parameter.function.language.gdscript"
-                },
-                "2": {
-                    "name": "punctuation.separator.annotation.gdscript"
-                },
-                "3": {
-                    "patterns": [
-                        {
-                            "include": "#builtin_classes"
-                        },
-                        {
-                            "include": "#pascal_case_class"
-                        }
-                    ]
-                },
-                "4": {
-                    "name": "keyword.operator.assignment.gdscript"
-                },
-                "5": {
-                    "patterns": [
-                        {
-                            "include": "#base_expression"
-                        }
-                    ]
-                }
-            },
-            "endCaptures": {
-                "1": {
-                    "name": "punctuation.separator.parameters.gdscript"
-                }
-            }
-        },
-        "line-continuation": {
+        "line_continuation": {
             "patterns": [
                 {
                     "match": "(\\\\)\\s*(\\S.*$\\n?)",
