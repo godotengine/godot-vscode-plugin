@@ -352,7 +352,7 @@
             }
         },
         "identifierField": {
-            "match": "([.])\\s*([a-zA-Z_]+)\\w*\\b(?!\\()",
+            "match": "([.])\\s*([a-zA-Z_]\\w*)\\b(?!\\s*\\()",
             "captures": {
                 "1": {
                     "name": "punctuation.accessor.gdshader"
