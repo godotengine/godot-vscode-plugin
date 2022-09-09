@@ -3,6 +3,22 @@ class_name TestClass
 
 # ******************************************************************************
 
+var var_a = 0
+var var_b = true
+var var_c := true
+var var_d : bool = true
+var var_e :    bool = true
+var var_f:bool=true
+var var_g : string = 'foo'
+
+const const_a = 0
+const const_b = true
+const const_c := true
+const const_d : bool = true
+const const_e :    bool = true
+const const_f:bool=true
+const const_g : string = 'foo'
+
 var a
 remote var b = 10.0
 remotesync var c := 20
@@ -211,15 +227,23 @@ class InnerClass:
 		key_f = Vector2(10, -10)
 	}
 
+	dict = {}
+
+	var dict_b = {
+		1: true,
+		4: true,
+		6: true
+	}
+
 	func _ready():
 		var list = []
 
-		for i in range(10):
+		for i in range(10): # "in" should be purple (control flow)
 			list.append(i)
 
 		if true and true:
 			pass
-		elif 'foo' in list:
+		elif 'foo' in list: # "in" should be blue (boolean operator)
 			pass
 		elif false:
 			while true:
