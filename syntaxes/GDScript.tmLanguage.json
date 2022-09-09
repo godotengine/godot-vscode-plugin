@@ -66,9 +66,6 @@
             "include": "#builtin_func"
         },
         {
-            "include": "#node_path"
-        },
-        {
             "include": "#builtin_get_node_shorthand"
         },
         {
