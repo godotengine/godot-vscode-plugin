@@ -37,13 +37,31 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             let fileName = editor.document.uri.fsPath;
+            const mode = get_configuration('scenePreview.previewRelatedScenes');
+
             if (!fileName.endsWith(".tscn")) {
-                const relatedScene = await find_file(fileName.replace('.gd', '.tscn'));
-                if (!relatedScene) {
+                const searchName = fileName.replace('.gd', '.tscn');
+
+                if (mode == 'anyFolder') {
+                    const relatedScene = await find_file(searchName);
+                    if (!relatedScene) {
+                        return;
+                    }
+                    fileName = relatedScene.fsPath;
+                }
+                
+                if (mode == 'sameFolder') {
+                    if (fs.existsSync(searchName)) {
+                        fileName = searchName;
+                    } else {
+                        return;
+                    }
+                }
+                if (mode == 'off') {
                     return;
                 }
-                fileName = relatedScene.fsPath;
             }
+
             if (this.currentScene == fileName) {
                 return;
             }
@@ -119,9 +137,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
         // editor.revealRange(range)
     }
 
-	public async parse_scene(scene) {
+	public async parse_scene(scene: string) {
         this.currentScene = scene;
-        this.tree.message = scene;
+        this.tree.message = path.basename(scene);
       
         const document = await vscode.workspace.openTextDocument(scene);
         const text = document.getText();
