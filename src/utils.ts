@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from "path";
+import * as fs from "fs";
 
 const CONFIG_CONTAINER = "godot_tools";
 
@@ -17,7 +17,7 @@ export function is_debug_mode(): boolean {
 }
 
 export function set_context(name: string, value: any) {
-	vscode.commands.executeCommand('setContext', name, value);
+	vscode.commands.executeCommand("setContext", name, value);
 }
 
 export async function find_file(file: string): Promise<vscode.Uri|null> {
@@ -25,7 +25,7 @@ export async function find_file(file: string): Promise<vscode.Uri|null> {
 		return vscode.Uri.file(file);
 	} else {
 		const fileName = path.basename(file);
-		const results = await vscode.workspace.findFiles('**/' + fileName);
+		const results = await vscode.workspace.findFiles("**/" + fileName);
 		if (results.length == 1) {
 			return results[0];
 		}

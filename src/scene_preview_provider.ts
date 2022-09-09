@@ -21,7 +21,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private root: SceneNode | undefined;
 	private tree: TreeView<SceneNode>;
 	private scenePreviewPinned = false;
-	private currentScene = '';
+	private currentScene = "";
 	private externalResources = {};
 
 	private changeEvent = new EventEmitter<void>();
@@ -38,12 +38,12 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
-			const mode = get_configuration('scenePreview.previewRelatedScenes');
+			const mode = get_configuration("scenePreview.previewRelatedScenes");
 
 			if (!fileName.endsWith(".tscn")) {
-				const searchName = fileName.replace('.gd', '.tscn');
+				const searchName = fileName.replace(".gd", ".tscn");
 
-				if (mode == 'anyFolder') {
+				if (mode == "anyFolder") {
 					const relatedScene = await find_file(searchName);
 					if (!relatedScene) {
 						return;
@@ -51,14 +51,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 					fileName = relatedScene.fsPath;
 				}
 				
-				if (mode == 'sameFolder') {
+				if (mode == "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
 					} else {
 						return;
 					}
 				}
-				if (mode == 'off') {
+				if (mode == "off") {
 					return;
 				}
 			}
@@ -98,18 +98,18 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 	private pin_preview() {
 		this.scenePreviewPinned = true;
-		set_context('godotTools.context.scenePreviewPinned', true);
+		set_context("godotTools.context.scenePreviewPinned", true);
 	}
 
 	private unpin_preview() {
 		this.scenePreviewPinned = false;
-		set_context('godotTools.context.scenePreviewPinned', false);
+		set_context("godotTools.context.scenePreviewPinned", false);
 		this.refresh();
 	}
 
 	private copy_node_path(item: SceneNode) {
 		if (item.unique) {
-			vscode.env.clipboard.writeText('%' + item.label);
+			vscode.env.clipboard.writeText("%" + item.label);
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
@@ -176,7 +176,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\( ([\w\.]*) \))?\]/g;
 		for (const match of text.matchAll(nodeRegex)) {
 			let name = match[1];
-			let type = match[2] ? match[2] : 'PackedScene';
+			let type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
 			let instance = match[4] ? match[4] : 0;
 			let path = "";
@@ -209,7 +209,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			if (instance) {
 				node.tooltip = this.externalResources[instance].path;
 				node.resourcePath = this.externalResources[instance].path;
-				node.contextValue = 'PackedScene';
+				node.contextValue = "PackedScene";
 			}
 			if (path == root) {
 				this.root = node;
@@ -280,7 +280,7 @@ export class SceneNode extends TreeItem {
 
 		const iconDir = path.join(__filename, "..", "..", "resources");
 
-		if (class_name == 'PackedScene') {
+		if (class_name == "PackedScene") {
 			this.iconPath = path.join(iconDir, "InstanceOptions.svg");
 			return;
 		}
@@ -303,37 +303,37 @@ export class SceneNode extends TreeItem {
 	}
 
 	public parse_body() {
-		const lines = this.body.split('\n');
+		const lines = this.body.split("\n");
 		let newLines = [];
 		let tags = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
-			if (line.startsWith('tile_data')) {
-				line = 'tile_data = PoolIntArray(...)';
+			if (line.startsWith("tile_data")) {
+				line = "tile_data = PoolIntArray(...)";
 			}
 			if (line.startsWith("unique_name_in_owner = true")) {
-				tags.push('%');
+				tags.push("%");
 				this.unique = true;
 			}
 			if (line.startsWith("script = ExtResource")) {
-				tags.push('S');
+				tags.push("S");
 				this.hasScript = true;
 				this.scriptId = line.match(/script = ExtResource\( ([0-9]+) \)/)[1];
-				this.contextValue += 'hasScript';
+				this.contextValue += "hasScript";
 			}
-			if (line != '') {
+			if (line != "") {
 				newLines.push(line);
 			}
 		}
-		this.body = newLines.join('\n');
+		this.body = newLines.join("\n");
 
-		let prefix = ''
+		let prefix = ""
 		if (tags.length != 0) {
-			prefix = tags.join(' ') + ' | '
+			prefix = tags.join(" ") + " | "
 		}
 		this.description = prefix + this.description;
 		const content = new vscode.MarkdownString();
-		content.appendCodeblock(this.body, 'gdresource');
+		content.appendCodeblock(this.body, "gdresource");
 		this.tooltip = content;
 	}
 }
