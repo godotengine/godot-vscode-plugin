@@ -255,6 +255,7 @@ export class SceneNode extends TreeItem {
     public position: number;
     public body: string;
     public unique: boolean = false;
+    public has_script: boolean = false;
 
 	constructor(
 		public label: string,
@@ -292,10 +293,19 @@ export class SceneNode extends TreeItem {
     public parse_body() {
         const lines = this.body.split('\n');
         let newLines = [];
+        let tags = []
 		for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line.startsWith('tile_data')) {
                 line = 'tile_data = PoolIntArray(...)';
+            }
+            if (line.startsWith("unique_name_in_owner = true")) {
+                tags.push('%')
+                this.unique = true;
+            }
+            if (line.startsWith("script =")) {
+                tags.push('S')
+                this.has_script = true;
             }
             if (line != '') {
                 newLines.push(line);
@@ -303,18 +313,13 @@ export class SceneNode extends TreeItem {
         }
         this.body = newLines.join('\n');
 
+        let prefix = ''
+        if (tags.length != 0) {
+            prefix = tags.join(' ') + ' | '
+        }
+        this.description = prefix + this.description;
         const content = new vscode.MarkdownString();
         content.appendCodeblock(this.body, 'gdresource');
         this.tooltip = content;
-
-        let match = null;
-        if (this.body.match("unique_name_in_owner = true")) {
-            this.unique = true;
-            this.description = '% | ' + this.description;
-        }
-        match = this.body.match(/script = ExtResource\( ([0-9]+) \)/);
-        if (match) {
-            this.unique = true;
-        }
     }
 }
