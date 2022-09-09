@@ -42,6 +42,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
+	public open_documentation(symbolName: string) {
+		this.native_doc_manager.request_documentation(symbolName);
+	}
+
 	constructor(context: vscode.ExtensionContext) {
 		super(
 			`GDScriptLanguageClient`,
@@ -97,6 +101,19 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (is_debug_mode()) {
 			logger.log("[server]", JSON.stringify(message));
 		}
+
+		// This is a dirty hack to fix the language server sending us
+		// invalid file URIs
+		// This should be forward-compatible, meaning that it will work
+		// with the current broken version, AND the fixed future version.
+		const match = JSON.stringify(message).match(/"target":"file:\/\/[^\/][^"]*"/);
+		if (match) {
+			for (let i = 0; i < message["result"].length; i++) {
+				const x = message["result"][i]["target"];
+				message["result"][i]["target"] = x.replace('file://', 'file:///');
+			}
+		}
+		
 		this.message_handler.on_message(message);
 	}
 

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import * as fs from 'fs';
+import { GDDocumentLinkProvider } from "./document_link_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { get_configuration, set_configuration } from "./utils";
 
@@ -11,6 +12,8 @@ export class GodotTools {
 	private reconnection_attempts = 0;
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
+	private linkProvider: GDDocumentLinkProvider = null;
+
 	// deprecated, need to replace with "vscode.workspace.workspaceFolders", but
 	// that's an array and not a single value
 	private workspace_dir = vscode.workspace.rootPath;
@@ -25,6 +28,8 @@ export class GodotTools {
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
+		this.linkProvider = new GDDocumentLinkProvider(p_context);
+                
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("reconnect_cooldown", 3000));
@@ -44,6 +49,9 @@ export class GodotTools {
 		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
+		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
+
+		vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godot-tool.check_status";
@@ -89,7 +97,7 @@ export class GodotTools {
 		if (!this.project_dir) {
 			return;
 		}
-        
+		
 		if (!uri) {
 			uri = vscode.window.activeTextEditor.document.uri;
 		}
@@ -99,7 +107,18 @@ export class GodotTools {
 		relative_path = 'res://' + relative_path;
 
 		vscode.env.clipboard.writeText(relative_path);
-    }
+	}
+
+	private open_type_documentation(uri: vscode.Uri) {
+		// get word under cursor
+		const activeEditor = vscode.window.activeTextEditor;
+		const document = activeEditor.document;
+		const curPos = activeEditor.selection.active;
+		const wordRange = document.getWordRangeAtPosition(curPos);
+		const symbolName = document.getText(wordRange);
+
+		this.client.open_documentation(symbolName);
+	}
 
 	private set_scene_file(uri: vscode.Uri) {
 		let right_clicked_scene_path = uri.fsPath;
@@ -226,6 +245,7 @@ export class GodotTools {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
+				vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', true);
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to the GDScript language server.`;
 				if (!this.client.started) {
@@ -237,6 +257,7 @@ export class GodotTools {
 					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
 					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				} else {
+					vscode.commands.executeCommand('setContext', 'godotTools.connectedToEditor', false);
 					this.connection_status.text = `$(x) Disconnected`;
 					this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 				}
