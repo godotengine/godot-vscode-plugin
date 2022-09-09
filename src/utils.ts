@@ -16,10 +16,6 @@ export function is_debug_mode(): boolean {
 	return process.env.VSCODE_DEBUG_MODE === "true";
 }
 
-// export function get_context(name: string, default_value: any = null) {
-
-// }
-
 export function set_context(name: string, value: any) {
     vscode.commands.executeCommand('setContext', name, value);
 }
