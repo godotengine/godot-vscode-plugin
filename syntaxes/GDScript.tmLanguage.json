@@ -51,7 +51,7 @@
             "include": "#const_def"
         },
         {
-            "include": "#class_def"
+            "include": "#class_definition"
         },
         {
             "include": "#var_def"
@@ -87,22 +87,22 @@
             "include": "#class_enum"
         },
         {
-            "include": "#signal-declaration-bare"
+            "include": "#signal_declaration_bare"
         },
         {
-            "include": "#signal-declaration"
+            "include": "#signal_declaration"
         },
         {
-            "include": "#function-declaration"
+            "include": "#function_declaration"
         },
         {
             "include": "#function_keyword"
         },
         {
-            "include": "#any-method"
+            "include": "#any_method"
         },
         {
-            "include": "#any-property"
+            "include": "#any_property"
         },
         {
             "include": "#extends"
@@ -254,7 +254,7 @@
                     "include": "#control_flow"
                 },
                 {
-                    "include": "#function-call"
+                    "include": "#function_call"
                 },
                 {
                     "include": "#comment"
@@ -281,7 +281,7 @@
                     "include": "#pascal_case_class"
                 },
                 {
-                    "include": "#line-continuation"
+                    "include": "#line_continuation"
                 }
             ]
         },
@@ -392,7 +392,7 @@
                             "include": "#parameters"
                         },
                         {
-                            "include": "#line-continuation"
+                            "include": "#line_continuation"
                         },
                         {
                             "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
@@ -415,7 +415,7 @@
                 }
             }
         },
-        "class_def": {
+        "class_definition": {
             "captures": {
                 "1": {
                     "name": "entity.name.type.class.gdscript"
@@ -559,7 +559,7 @@
             "match": "\\b([A-Z][a-z_0-9]*([A-Z]?[a-z_0-9]+)*[A-Z]?)\\b",
             "name": "support.class.library.gdscript"
         },
-        "signal-declaration-bare": {
+        "signal_declaration_bare": {
             "match": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*)(?=[\\n\\s])",
             "captures": {
                 "1": {
@@ -570,7 +570,7 @@
                 }
             }
         },
-        "signal-declaration": {
+        "signal_declaration": {
             "name": "meta.signal.gdscript",
             "begin": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
             "end": "((?=[#'\"\\n]))",
@@ -587,7 +587,7 @@
                     "include": "#parameters"
                 },
                 {
-                    "include": "#line-continuation"
+                    "include": "#line_continuation"
                 },
                 {
                     "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
@@ -617,11 +617,11 @@
                     "include": "#parameters"
                 },
                 {
-                    "include": "#line-continuation"
+                    "include": "#line_continuation"
                 }
             ]
         },
-        "function-declaration": {
+        "function_declaration": {
             "name": "meta.function.gdscript",
             "begin": "(?x) \\s*\n (func) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
             "end": "(:|(?=[#'\"\\n]))",
@@ -638,7 +638,7 @@
                     "include": "#parameters"
                 },
                 {
-                    "include": "#line-continuation"
+                    "include": "#line_continuation"
                 },
                 {
                     "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
@@ -671,7 +671,7 @@
             },
             "patterns": [
                 {
-                    "include": "#annotated-parameter"
+                    "include": "#annotated_parameter"
                 },
                 {
                     "match": "(?x)\n  ([[:alpha:]_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
@@ -688,11 +688,11 @@
                     "include": "#comment"
                 },
                 {
-                    "include": "#loose-default"
+                    "include": "#loose_default"
                 }
             ]
         },
-        "loose-default": {
+        "loose_default": {
             "begin": "(=)",
             "end": "(,)|(?=\\))",
             "beginCaptures": {
@@ -711,7 +711,7 @@
                 }
             ]
         },
-        "annotated-parameter": {
+        "annotated_parameter": {
             "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:)\n",
             "end": "(,)|(?=\\))",
             "beginCaptures": {
@@ -766,15 +766,15 @@
                 }
             ]
         },
-        "any-method": {
+        "any_method": {
             "match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
             "name": "support.function.any-method.gdscript"
         },
-        "any-property": {
+        "any_property": {
             "match": "(?<=[^.]\\.)\\b([A-Za-z_]\\w*)\\b(?![(])",
             "name": "variable.other.property.gdscript"
         },
-        "function-call": {
+        "function_call": {
             "name": "meta.function-call.gdscript",
             "comment": "Regular function call of the type \"name(args)\"",
             "begin": "(?x)\n  \\b(?=\n    ([[:alpha:]_]\\w*) \\s* (\\()\n  )\n",
@@ -786,14 +786,14 @@
             },
             "patterns": [
                 {
-                    "include": "#function-name"
+                    "include": "#function_name"
                 },
                 {
-                    "include": "#function-arguments"
+                    "include": "#function_arguments"
                 }
             ]
         },
-        "function-name": {
+        "function_name": {
             "patterns": [
                 {
                     "include": "#builtin_func"
@@ -808,7 +808,7 @@
                 }
             ]
         },
-        "function-arguments": {
+        "function_arguments": {
             "begin": "(\\()",
             "end": "(?=\\))(?!\\)\\s*\\()",
             "beginCaptures": {
