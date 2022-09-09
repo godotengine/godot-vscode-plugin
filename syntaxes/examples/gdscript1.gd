@@ -211,6 +211,12 @@ class InnerClass:
 		key_f = Vector2(10, -10)
 	}
 
+	var dict_b = {
+		1: true,
+		4: true,
+		6: true
+	}
+
 	func _ready():
 		var list = []
 
