@@ -1,7 +1,5 @@
 {
-    "fileTypes": [
-        "gd"
-    ],
+    "fileTypes": ["gd"],
     "scopeName": "source.gdscript",
     "name": "GDScript",
     "patterns": [
@@ -419,7 +417,7 @@
                             "include": "#line_continuation"
                         },
                         {
-                            "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                            "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                             "captures": {
                                 "1": {},
                                 "2": {
@@ -451,7 +449,7 @@
                     "name": "storage.type.new.gdscript"
                 }
             },
-            "match": "\\b([a-zA-Z_][a-zA-Z_0-9]*).(new)\\("
+            "match": "\\b([a-zA-Z_]\\w*).(new)\\("
         },
         "class_is": {
             "captures": {
@@ -462,7 +460,7 @@
                     "name": "entity.name.type.class.gdscript"
                 }
             },
-            "match": "\\s+(is)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+            "match": "\\s+(is)\\s+([a-zA-Z_]\\w*)"
         },
         "class_enum": {
             "captures": {
@@ -484,10 +482,10 @@
                     "name": "class.other.gdscript"
                 }
             },
-            "match": "(?<=class_name)\\s+([a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?)"
+            "match": "(?<=class_name)\\s+([a-zA-Z_]\\w*(\\.([a-zA-Z_]\\w*))?)"
         },
         "extends": {
-            "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+            "match": "(?<=extends)\\s+[a-zA-Z_]\\w*(\\.([a-zA-Z_]\\w*))?",
             "name": "entity.other.inherited-class.gdscript"
         },
         "builtin_func": {
@@ -543,11 +541,11 @@
             },
             "patterns": [
                 {
-                    "match": "[a-zA-Z_][a-zA-Z_0-9]*/?",
+                    "match": "[a-zA-Z_]\\w*/?",
                     "name": "constant.character.escape"
                 },
                 {
-                    "match": "%[a-zA-Z_][a-zA-Z_0-9]*/?",
+                    "match": "%[a-zA-Z_]\\w*/?",
                     "name": "invalid.illegal.escape.gdscript"
                 }
             ]
@@ -576,7 +574,7 @@
             "name": "support.class.library.gdscript"
         },
         "signal_declaration_bare": {
-            "match": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*)(?=[\\n\\s])",
+            "match": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_]\\w*)(?=[\\n\\s])",
             "captures": {
                 "1": {
                     "name": "storage.type.function.gdscript"
@@ -588,7 +586,7 @@
         },
         "signal_declaration": {
             "name": "meta.signal.gdscript",
-            "begin": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
+            "begin": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_]\\w*) \\s*\n (?=\\()",
             "end": "((?=[#'\"\\n]))",
             "beginCaptures": {
                 "1": {
@@ -606,7 +604,7 @@
                     "include": "#line_continuation"
                 },
                 {
-                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                     "captures": {
                         "1": {},
                         "2": {
@@ -639,7 +637,7 @@
         },
         "function_declaration": {
             "name": "meta.function.gdscript",
-            "begin": "(?x) \\s*\n (func) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
+            "begin": "(?x) \\s*\n (func) \\s+\n ([a-zA-Z_]\\w*) \\s*\n (?=\\()",
             "end": "((:)|(?=[#'\"\\n]))",
             "beginCaptures": {
                 "1": {
@@ -662,7 +660,7 @@
                     "include": "#line_continuation"
                 },
                 {
-                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                     "captures": {
                         "1": {},
                         "2": {
