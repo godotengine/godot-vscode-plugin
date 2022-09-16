@@ -286,8 +286,11 @@
         "in_keyword": {
             "patterns": [
                 {
-                    "match": "\\b(?:for\\s[\\w]*\\s)(in)\\b",
-                    "name": "keyword.control.gdscript"
+                    "match": "\\b(for)\\s+[a-zA-Z_]\\w*\\s+(in)\\b",
+                    "captures": {
+                        "1": { "name": "keyword.control.gdscript" },
+                        "2": { "name": "keyword.control.gdscript" }
+                    }
                 },
                 {
                     "match": "\\bin\\b",
