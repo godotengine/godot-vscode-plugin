@@ -241,6 +241,12 @@ class InnerClass:
 		for i in range(10): # "in" should be purple (control flow)
 			list.append(i)
 
+		for child in get_children():
+			print(child)
+			
+		for    child   in    get_children():
+			print(child)
+
 		if true and true:
 			pass
 		elif 'foo' in list: # "in" should be blue (boolean operator)
