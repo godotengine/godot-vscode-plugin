@@ -1,7 +1,5 @@
 {
-    "fileTypes": [
-        "gd"
-    ],
+    "fileTypes": ["gd"],
     "scopeName": "source.gdscript",
     "name": "GDScript",
     "patterns": [
@@ -286,8 +284,11 @@
         "in_keyword": {
             "patterns": [
                 {
-                    "match": "\\b(?<=for\\s[\\w]*\\s)(in)\\b",
-                    "name": "keyword.control.gdscript"
+                    "match": "\\b(for)\\s+[a-zA-Z_]\\w*\\s+(in)\\b",
+                    "captures": {
+                        "1": { "name": "keyword.control.gdscript" },
+                        "2": { "name": "keyword.control.gdscript" }
+                    }
                 },
                 {
                     "match": "\\bin\\b",
@@ -356,7 +357,7 @@
             },
             "patterns": [
                 {
-                    "match": "(:)\\s*([\\w]*)?",
+                    "match": "(:)\\s*([a-zA-Z_]\\w*)?",
                     "captures": {
                         "1": {
                             "name": "punctuation.separator.annotation.gdscript"
@@ -371,7 +372,7 @@
                     "name": "keyword.operator.assignment.gdscript"
                 },
                 {
-                    "match": "(setget)\\s+([\\w]*)(?:[,]\\s*([\\w]*))?",
+                    "match": "(setget)\\s+([a-zA-Z_]\\w*)(?:[,]\\s*([a-zA-Z_]\\w*))?",
                     "captures": {
                         "1": {
                             "name": "storage.type.const.gdscript"
@@ -416,7 +417,7 @@
                             "include": "#line_continuation"
                         },
                         {
-                            "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                            "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                             "captures": {
                                 "1": {},
                                 "2": {
@@ -448,7 +449,7 @@
                     "name": "storage.type.new.gdscript"
                 }
             },
-            "match": "\\b([a-zA-Z_][a-zA-Z_0-9]*).(new)\\("
+            "match": "\\b([a-zA-Z_]\\w*).(new)\\("
         },
         "class_is": {
             "captures": {
@@ -459,7 +460,7 @@
                     "name": "entity.name.type.class.gdscript"
                 }
             },
-            "match": "\\s+(is)\\s+([a-zA-Z_][a-zA-Z_0-9]*)"
+            "match": "\\s+(is)\\s+([a-zA-Z_]\\w*)"
         },
         "class_enum": {
             "captures": {
@@ -481,10 +482,10 @@
                     "name": "class.other.gdscript"
                 }
             },
-            "match": "(?<=class_name)\\s+([a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?)"
+            "match": "(?<=class_name)\\s+([a-zA-Z_]\\w*(\\.([a-zA-Z_]\\w*))?)"
         },
         "extends": {
-            "match": "(?<=extends)\\s+[a-zA-Z_][a-zA-Z_0-9]*(\\.([a-zA-Z_][a-zA-Z_0-9]*))?",
+            "match": "(?<=extends)\\s+[a-zA-Z_]\\w*(\\.([a-zA-Z_]\\w*))?",
             "name": "entity.other.inherited-class.gdscript"
         },
         "builtin_func": {
@@ -540,11 +541,11 @@
             },
             "patterns": [
                 {
-                    "match": "[a-zA-Z_][a-zA-Z_0-9]*/?",
+                    "match": "[a-zA-Z_]\\w*/?",
                     "name": "constant.character.escape"
                 },
                 {
-                    "match": "%[a-zA-Z_][a-zA-Z_0-9]*/?",
+                    "match": "%[a-zA-Z_]\\w*/?",
                     "name": "invalid.illegal.escape.gdscript"
                 }
             ]
@@ -573,7 +574,7 @@
             "name": "support.class.library.gdscript"
         },
         "signal_declaration_bare": {
-            "match": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*)(?=[\\n\\s])",
+            "match": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_]\\w*)(?=[\\n\\s])",
             "captures": {
                 "1": {
                     "name": "storage.type.function.gdscript"
@@ -585,7 +586,7 @@
         },
         "signal_declaration": {
             "name": "meta.signal.gdscript",
-            "begin": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
+            "begin": "(?x) \\s*\n (signal) \\s+\n ([a-zA-Z_]\\w*) \\s*\n (?=\\()",
             "end": "((?=[#'\"\\n]))",
             "beginCaptures": {
                 "1": {
@@ -603,7 +604,7 @@
                     "include": "#line_continuation"
                 },
                 {
-                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                     "captures": {
                         "1": {},
                         "2": {
@@ -636,7 +637,7 @@
         },
         "function_declaration": {
             "name": "meta.function.gdscript",
-            "begin": "(?x) \\s*\n (func) \\s+\n ([a-zA-Z_][a-zA-Z_0-9]*) \\s*\n (?=\\()",
+            "begin": "(?x) \\s*\n (func) \\s+\n ([a-zA-Z_]\\w*) \\s*\n (?=\\()",
             "end": "((:)|(?=[#'\"\\n]))",
             "beginCaptures": {
                 "1": {
@@ -659,7 +660,7 @@
                     "include": "#line_continuation"
                 },
                 {
-                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_][a-zA-Z_0-9]*)\\s*\\:",
+                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
                     "captures": {
                         "1": {},
                         "2": {
@@ -692,7 +693,7 @@
                     "include": "#annotated_parameter"
                 },
                 {
-                    "match": "(?x)\n  ([[:alpha:]_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
+                    "match": "(?x)\n  ([a-zA-Z_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
                     "captures": {
                         "1": {
                             "name": "variable.parameter.function.language.gdscript"
@@ -730,7 +731,7 @@
             ]
         },
         "annotated_parameter": {
-            "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:)\n",
+            "begin": "(?x)\n  \\b\n  ([a-zA-Z_]\\w*) \\s* (:)\n",
             "end": "(,)|(?=\\))",
             "beginCaptures": {
                 "1": {
@@ -795,7 +796,7 @@
         "function_call": {
             "name": "meta.function-call.gdscript",
             "comment": "Regular function call of the type \"name(args)\"",
-            "begin": "(?x)\n  \\b(?=\n    ([[:alpha:]_]\\w*) \\s* (\\()\n  )\n",
+            "begin": "(?x)\n  \\b(?=\n    ([a-zA-Z_]\\w*) \\s* (\\()\n  )\n",
             "end": "(\\))",
             "endCaptures": {
                 "1": {
@@ -822,7 +823,7 @@
                 {
                     "comment": "Some color schemas support meta.function-call.generic scope",
                     "name": "support.function.any-method.gdscript",
-                    "match": "(?x)\n  \\b ([[:alpha:]_]\\w*) \\b\n"
+                    "match": "(?x)\n  \\b ([a-zA-Z_]\\w*) \\b\n"
                 }
             ]
         },
@@ -841,7 +842,7 @@
                     "match": "(,)"
                 },
                 {
-                    "match": "\\b([[:alpha:]_]\\w*)\\s*(=)(?!=)",
+                    "match": "\\b([a-zA-Z_]\\w*)\\s*(=)(?!=)",
                     "captures": {
                         "1": {
                             "name": "variable.parameter.function-call.gdscript"
