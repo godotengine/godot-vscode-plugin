@@ -357,7 +357,7 @@
             },
             "patterns": [
                 {
-                    "match": "(:)\\s*([\\w]*)?",
+                    "match": "(:)\\s*([a-zA-Z_]\\w*)?",
                     "captures": {
                         "1": {
                             "name": "punctuation.separator.annotation.gdscript"
@@ -372,7 +372,7 @@
                     "name": "keyword.operator.assignment.gdscript"
                 },
                 {
-                    "match": "(setget)\\s+([\\w]*)(?:[,]\\s*([\\w]*))?",
+                    "match": "(setget)\\s+([a-zA-Z_]\\w*)(?:[,]\\s*([a-zA-Z_]\\w*))?",
                     "captures": {
                         "1": {
                             "name": "storage.type.const.gdscript"
@@ -693,7 +693,7 @@
                     "include": "#annotated_parameter"
                 },
                 {
-                    "match": "(?x)\n  ([[:alpha:]_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
+                    "match": "(?x)\n  ([a-zA-Z_]\\w*)\n    \\s* (?: (,) | (?=[)#\\n=]))\n",
                     "captures": {
                         "1": {
                             "name": "variable.parameter.function.language.gdscript"
@@ -731,7 +731,7 @@
             ]
         },
         "annotated_parameter": {
-            "begin": "(?x)\n  \\b\n  ([[:alpha:]_]\\w*) \\s* (:)\n",
+            "begin": "(?x)\n  \\b\n  ([a-zA-Z_]\\w*) \\s* (:)\n",
             "end": "(,)|(?=\\))",
             "beginCaptures": {
                 "1": {
@@ -796,7 +796,7 @@
         "function_call": {
             "name": "meta.function-call.gdscript",
             "comment": "Regular function call of the type \"name(args)\"",
-            "begin": "(?x)\n  \\b(?=\n    ([[:alpha:]_]\\w*) \\s* (\\()\n  )\n",
+            "begin": "(?x)\n  \\b(?=\n    ([a-zA-Z_]\\w*) \\s* (\\()\n  )\n",
             "end": "(\\))",
             "endCaptures": {
                 "1": {
@@ -823,7 +823,7 @@
                 {
                     "comment": "Some color schemas support meta.function-call.generic scope",
                     "name": "support.function.any-method.gdscript",
-                    "match": "(?x)\n  \\b ([[:alpha:]_]\\w*) \\b\n"
+                    "match": "(?x)\n  \\b ([a-zA-Z_]\\w*) \\b\n"
                 }
             ]
         },
@@ -842,7 +842,7 @@
                     "match": "(,)"
                 },
                 {
-                    "match": "\\b([[:alpha:]_]\\w*)\\s*(=)(?!=)",
+                    "match": "\\b([a-zA-Z_]\\w*)\\s*(=)(?!=)",
                     "captures": {
                         "1": {
                             "name": "variable.parameter.function-call.gdscript"
