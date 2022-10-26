@@ -97,6 +97,40 @@
 				}
 			},
 			{
+				"command": "godotTools.scenePreview.refresh",
+				"title": "Godot Tools: Refresh Scene Preview"
+			},
+			{
+				"command": "godotTools.scenePreview.pin",
+				"title": "Pin Scene Preview",
+				"icon": "resources/pin_off.svg"
+			},
+			{
+				"command": "godotTools.scenePreview.unpin",
+				"title": "Unpin Scene Preview",
+				"icon": "resources/pin_on.svg"
+			},
+			{
+				"command": "godotTools.scenePreview.goToDefinition",
+				"title": "Go to Definition"
+			},
+			{
+				"command": "godotTools.scenePreview.copyNodePath",
+				"title": "Copy Node Path"
+			},
+			{
+				"command": "godotTools.scenePreview.openScene",
+				"title": "Open Scene"
+			},
+			{
+				"command": "godotTools.scenePreview.openScript",
+				"title": "Open Script"
+			},
+			{
+				"command": "godotTools.switchSceneScript",
+				"title": "Godot Tools: Switch Scene/Script"
+			},
+			{
 				"command": "godot-tool.set_scene_file",
 				"title": "Set as Scene File"
 			},
@@ -107,6 +141,13 @@
 			{
 				"command": "godot-tool.copy_resource_path",
 				"title": "Godot Tools: Copy Resource Path"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "godotTools.switchSceneScript",
+				"key": "alt+o",
+				"when": "editorLangId == 'gdscript' && editorTextFocus || editorLangId == 'gdresource' && editorTextFocus"
 			}
 		],
 		"configuration": {
@@ -184,6 +225,20 @@
 					],
 					"default": "beside",
 					"description": "Where to place the native symbol windows"
+				},
+				"godot_tools.scenePreview.previewRelatedScenes": {
+					"enum": [
+						"anyFolder",
+						"sameFolder",
+						"off"
+					],
+					"enumDescriptions": [
+						"Attempt to preview a related scene from anywhere in the workspace.",
+						"Attempt to preview a related scene from the same folder.",
+						"Do not attempt to preview a related scene."
+					],
+					"default": "sameFolder",
+					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
 				}
 			}
 		},
@@ -337,6 +392,15 @@
 				"language": "gdscript"
 			}
 		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "godotTools",
+					"title": "Godot Tools",
+					"icon": "resources/godot_icon.svg"
+				}
+			]
+		},
 		"views": {
 			"debug": [
 				{
@@ -349,9 +413,37 @@
 					"name": "Inspector",
 					"when": "inDebugMode && debugType == 'godot'"
 				}
+			],
+			"godotTools": [
+				{
+					"id": "scenePreview",
+					"name": "Scene Preview"
+				}
 			]
 		},
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "godotTools.scenePreview.refresh",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.pin",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.unpin",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "false"
+				},
+				{
+					"command": "godot-tool.copy_resource_path_context",
+					"when": "false"
+				}
+			],
 			"view/title": [
 				{
 					"command": "godot-tool.debugger.refresh_scene_tree",
@@ -361,6 +453,16 @@
 				{
 					"command": "godot-tool.debugger.refresh_inspector",
 					"when": "view == inspect-node",
+					"group": "navigation"
+				},
+				{
+					"command": "godotTools.scenePreview.pin",
+					"when": "view == scenePreview && !godotTools.context.scenePreviewPinned",
+					"group": "navigation"
+				},
+				{
+					"command": "godotTools.scenePreview.unpin",
+					"when": "view == scenePreview && godotTools.context.scenePreviewPinned",
 					"group": "navigation"
 				}
 			],
@@ -379,6 +481,25 @@
 					"command": "godot-tool.debugger.edit_value",
 					"when": "view == inspect-node && viewItem == editable_value",
 					"group": "inline"
+				},
+				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "view == scenePreview",
+					"group": "1@1"
+				},
+				{
+					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "view == scenePreview"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
+					"when": "view == scenePreview && viewItem =~ /PackedScene/",
+					"group": "1@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "view == scenePreview && viewItem =~ /hasScript/",
+					"group": "1@2"
 				}
 			],
 			"explorer/context": [
@@ -400,8 +521,13 @@
 			"editor/context": [
 				{
 					"command": "godot-tool.open_type_documentation",
-					"when": "godotTools.connectedToEditor",
+					"when": "godotTools.context.connectedToEditor",
 					"group": "navigation@9"
+				},
+				{
+					"command": "godotTools.switchSceneScript",
+					"when": "editorLangId == 'gdscript' || editorLangId == 'gdresource'",
+					"group": "custom1@1"
 				}
 			]
 		}
