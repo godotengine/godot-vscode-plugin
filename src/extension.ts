@@ -1,31 +1,15 @@
-import { ExtensionContext, extensions, window } from "vscode";
+import { ExtensionContext } from "vscode";
 import { GodotTools } from "./godot-tools";
+import { shouldUpdateSettings, updateOldStyleSettings, updateStoredVersion } from "./settings_updater";
 import debuggerContext = require("./debugger/debugger_context");
 
 let tools: GodotTools = null;
 
-export function showUpdateMessage(context: ExtensionContext) {
-	const localVersion: string | undefined =
-		context.globalState.get("previousVersion");
-	const syncedVersion: string = extensions.getExtension(context.extension.id)!
-		.packageJSON.version;
-
-	// Store the current version of the extension, this persists across reloads & updates.
-	context.globalState.update("previousVersion", syncedVersion);
-
-	if (localVersion !== syncedVersion && syncedVersion.startsWith("2.")) {
-		if (localVersion === undefined || localVersion.startsWith("1.")) {
-			window.showInformationMessage(
-				`Version 2.0.0 of the Godot Tools extension renames various settings.
-				Please view the changelog for a full list, you will need to update any settings you have configured.`,
-				"OK"
-			);
-		}
-	}
-}
-
 export function activate(context: ExtensionContext) {
-	showUpdateMessage(context);
+	if (shouldUpdateSettings(context)) {
+		updateOldStyleSettings();
+	}
+	updateStoredVersion(context);
 
 	tools = new GodotTools(context);
 	tools.activate();
