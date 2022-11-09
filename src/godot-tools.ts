@@ -229,7 +229,7 @@ export class GodotTools {
 						reject("Invalid editor path to run the project");
 					} else {
 						run_godot(path, params);
-						set_configuration("editor_path", path);
+						set_configuration("editorPath", path);
 					}
 				});
 			} else {

@@ -214,7 +214,7 @@
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
 				},
-				"godot_tools.native_symbol_placement": {
+				"godot-tools.nativeSymbolPlacement": {
 					"enum": [
 						"active",
 						"beside"
@@ -226,7 +226,7 @@
 					"default": "beside",
 					"description": "Where to place the native symbol windows"
 				},
-				"godot_tools.scenePreview.previewRelatedScenes": {
+				"godot-tools.scenePreview.previewRelatedScenes": {
 					"enum": [
 						"anyFolder",
 						"sameFolder",
@@ -348,10 +348,10 @@
 								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
 								"default": ""
 							},
-							"additional_options":{
-								"type":"string",
+							"additional_options": {
+								"type": "string",
 								"description": "Additional command line arguments.",
-								"default":""
+								"default": ""
 							}
 						}
 					}
@@ -366,7 +366,7 @@
 						"address": "127.0.0.1",
 						"launch_game_instance": true,
 						"launch_scene": false,
-						"additional_options":""
+						"additional_options": ""
 					}
 				],
 				"configurationSnippets": [
@@ -381,7 +381,7 @@
 							"address": "127.0.0.1",
 							"launch_game_instance": true,
 							"launch_scene": false,
-							"additional_options":""
+							"additional_options": ""
 						}
 					}
 				]

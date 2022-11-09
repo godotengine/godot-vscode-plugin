@@ -130,7 +130,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	 * configuration and previously opened native symbols.
 	 */
 	private get_new_native_symbol_column(): vscode.ViewColumn {
-		const config_placement = get_configuration("native_symbol_placement", "beside");
+		const config_placement = get_configuration("nativeSymbolPlacement", "beside");
 
 		if (config_placement == "active") {
 			return vscode.ViewColumn.Active;
@@ -148,7 +148,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		if (is_non_editor_column_active) {
 			return active_column;
 		}
-		
+
 		const all_columns = tab_groups.all.map(group => group.viewColumn);
 		const first_non_editor_column = all_columns.find(column => !editor_columns.includes(column));
 		if (first_non_editor_column) {
