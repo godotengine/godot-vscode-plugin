@@ -1,6 +1,6 @@
 import { AbstractMessageReader, MessageReader, DataCallback, Disposable } from "vscode-jsonrpc";
 import { EventEmitter } from "events";
-import * as WebSocket from 'ws';
+import { WebSocket, Data } from 'ws';
 import { Socket } from 'net';
 
 import MessageBuffer from "./MessageBuffer";
@@ -17,7 +17,7 @@ export class MessageIO extends EventEmitter {
 		// virtual
 	}
 
-	protected on_message(chunk: WebSocket.Data) {
+	protected on_message(chunk: Data) {
 		let message = chunk.toString();
 		this.emit('data', message);
 	}
@@ -36,7 +36,7 @@ export class MessageIO extends EventEmitter {
 }
 
 
-export class WebsocktMessageIO extends MessageIO {
+export class WebSocketMessageIO extends MessageIO {
 
 	private socket: WebSocket = null;
 

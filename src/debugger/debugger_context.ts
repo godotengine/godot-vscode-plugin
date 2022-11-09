@@ -104,12 +104,12 @@ export function register_debugger(context: ExtensionContext) {
 						case "number":
 							if (is_float) {
 								new_parsed_value = parseFloat(value);
-								if (new_parsed_value === NaN) {
+								if (isNaN(new_parsed_value)) {
 									return;
 								}
 							} else {
 								new_parsed_value = parseInt(value);
-								if (new_parsed_value === NaN) {
+								if (isNaN(new_parsed_value)) {
 									return;
 								}
 							}
@@ -185,6 +185,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 				config.address = "127.0.0.1";
 				config.launch_game_instance = true;
 				config.launch_scene = false;
+				config.additional_options = "";
 			}
 		}
 

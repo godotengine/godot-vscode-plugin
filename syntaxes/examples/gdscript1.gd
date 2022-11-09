@@ -3,6 +3,22 @@ class_name TestClass
 
 # ******************************************************************************
 
+var var_a = 0
+var var_b = true
+var var_c := true
+var var_d : bool = true
+var var_e :    bool = true
+var var_f:bool=true
+var var_g : string = 'foo'
+
+const const_a = 0
+const const_b = true
+const const_c := true
+const const_d : bool = true
+const const_e :    bool = true
+const const_f:bool=true
+const const_g : string = 'foo'
+
 var a
 remote var b = 10.0
 remotesync var c := 20
@@ -127,6 +143,27 @@ onready var node_h = get_node("../Sibling")
 if has_node('Child') and get_node('Child').has_node('GrandChild'):
 	pass
 
+#! NOTE: scene unique nodes can only appear inside quoted nodepaths, not
+#! naked ones using the $ operator
+
+onready var bad_unique_nodepath_a = $%Unique
+onready var bad_unique_nodepath_b = $Child/%Unique
+onready var bad_unique_nodepath_c = $Child/GrandChild/%Unique
+onready var bad_unique_nodepath_c = $Child/%Unique/ChildOfUnique
+
+onready var node_i = $"%Unique"
+onready var node_ii = get_node("%Unique")
+onready var node_iii = NodePath("%Unique")
+onready var node_j = $'%Unique/Child'
+onready var node_jj = get_node('%Unique/Child')
+onready var node_jjj = NodePath('%Unique/Child')
+onready var node_k = $"%Unique/%UniqueChild"
+onready var node_kk = get_node("%Unique/%UniqueChild")
+onready var node_kkk = NodePath("%Unique/%UniqueChild")
+
+if has_node('%Unique') and get_node('%Child').has_node('%GrandChild'):
+	pass
+
 onready var node_i = $badlyNamedChild
 onready var node_j = $badlyNamedChild/badly_named_grandchild
 
@@ -190,8 +227,29 @@ class InnerClass:
 		key_f = Vector2(10, -10)
 	}
 
+	dict = {}
+
+	var dict_b = {
+		1: true,
+		4: true,
+		6: true
+	}
+
 	func _ready():
+		var list = []
+
+		for i in range(10): # "in" should be purple (control flow)
+			list.append(i)
+
+		for child in get_children():
+			print(child)
+			
+		for    child   in    get_children():
+			print(child)
+
 		if true and true:
+			pass
+		elif 'foo' in list: # "in" should be blue (boolean operator)
 			pass
 		elif false:
 			while true:
@@ -200,3 +258,8 @@ class InnerClass:
 			pass
 		
 		pass
+
+# ------------------------------------------------------------------------------
+
+func test_function():
+	OS.get_name()

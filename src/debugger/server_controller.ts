@@ -92,6 +92,7 @@ export class ServerController {
 		launch_instance: boolean,
 		launch_scene: boolean,
 		scene_file: string | undefined,
+		additional_options: string | undefined,
 		debug_data: GodotDebugData
 	) {
 		this.debug_data = debug_data;
@@ -117,6 +118,9 @@ export class ServerController {
 					filename = window.activeTextEditor.document.fileName;
 				}
 				executable_line += ` "${filename}"`;
+			}
+			if(additional_options){
+				executable_line += " " + additional_options;
 			}
 			executable_line += this.breakpoint_string(
 				debug_data.get_all_breakpoints(),

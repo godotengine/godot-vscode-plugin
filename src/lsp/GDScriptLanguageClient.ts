@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient/node";
-import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebsocktMessageIO, TCPMessageIO } from "./MessageIO";
-import logger from "../loggger";
 import { EventEmitter } from "events";
+import * as vscode from 'vscode';
+import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
+import logger from "../logger";
+import { get_configuration, is_debug_mode } from "../utils";
+import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
 
 export enum ClientStatus {
@@ -15,7 +15,7 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol", "tcp") == "ws") ? new WebsocktMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
@@ -40,6 +40,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (this._status_changed_callbacks.indexOf(callback) == -1) {
 			this._status_changed_callbacks.push(callback);
 		}
+	}
+
+	public open_documentation(symbolName: string) {
+		this.native_doc_manager.request_documentation(symbolName);
 	}
 
 	constructor(context: vscode.ExtensionContext) {
@@ -97,6 +101,19 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (is_debug_mode()) {
 			logger.log("[server]", JSON.stringify(message));
 		}
+
+		// This is a dirty hack to fix the language server sending us
+		// invalid file URIs
+		// This should be forward-compatible, meaning that it will work
+		// with the current broken version, AND the fixed future version.
+		const match = JSON.stringify(message).match(/"target":"file:\/\/[^\/][^"]*"/);
+		if (match) {
+			for (let i = 0; i < message["result"].length; i++) {
+				const x = message["result"][i]["target"];
+				message["result"][i]["target"] = x.replace('file://', 'file:///');
+			}
+		}
+
 		this.message_handler.on_message(message);
 	}
 

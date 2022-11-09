@@ -59,6 +59,15 @@ export default class NativeDocumentManager extends EventEmitter {
 		);
 	}
 
+	public request_documentation(symbolName: string) {
+		if (symbolName in this.native_classes) {
+			this.inspect_native_symbol({
+				native_class: symbolName,
+				symbol_name: symbolName,
+			});
+		}
+	}
+
 	private async list_native_classes() {
 		let classname = await vscode.window.showQuickPick(
 			Object.keys(this.native_classes).sort(),
@@ -104,7 +113,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		const panel = vscode.window.createWebviewPanel(
 			"doc",
 			symbol.name,
-			vscode.ViewColumn.Nine,
+			this.get_new_native_symbol_column(),
 			{
 				enableScripts: true, // 启用JS，默认禁用
 				retainContextWhenHidden: false, // webview被隐藏时保持状态，避免被重置
@@ -114,6 +123,39 @@ export default class NativeDocumentManager extends EventEmitter {
 		panel.title = symbol.name;
 		panel.webview.html = this.make_html_content(symbol);
 		panel.webview.onDidReceiveMessage(this.on_webview_message.bind(this));
+	}
+
+	/**
+	 * Returns placement for a new native symbol window based on the extension
+	 * configuration and previously opened native symbols.
+	 */
+	private get_new_native_symbol_column(): vscode.ViewColumn {
+		const config_placement = get_configuration("native_symbol_placement", "beside");
+
+		if (config_placement == "active") {
+			return vscode.ViewColumn.Active;
+		}
+
+		const tab_groups = vscode.window.tabGroups;
+		const visible_text_editors = vscode.window.visibleTextEditors;
+		const editor_columns = visible_text_editors.map(editor => editor.viewColumn);
+
+		// Assume the first non-editor column is the column where other native
+		// symbols have been opened.
+
+		const active_column = tab_groups.activeTabGroup.viewColumn;
+		const is_non_editor_column_active = !editor_columns.includes(active_column);
+		if (is_non_editor_column_active) {
+			return active_column;
+		}
+		
+		const all_columns = tab_groups.all.map(group => group.viewColumn);
+		const first_non_editor_column = all_columns.find(column => !editor_columns.includes(column));
+		if (first_non_editor_column) {
+			return first_non_editor_column;
+		} else {
+			return vscode.ViewColumn.Beside;
+		}
 	}
 
 	private on_webview_message(msg: any) {
