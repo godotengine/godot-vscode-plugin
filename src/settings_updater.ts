@@ -32,7 +32,8 @@ export function updateOldStyleSettings() {
 		// are just reinstalling the extension from receiveing it.
 		vscode.window.showInformationMessage(
 			`Settings from godot-tools version <1.5.0 have been updated to the new format.
-			Please view the changelog for version 1.5.0 for more information.`
+			Please view the changelog for version 1.5.0 for more information.`,
+            'Okay'
 		);
 	}
 }
