@@ -346,7 +346,7 @@
         },
         "variable_definition": {
             "begin": "\\b(?:(var)|(const))",
-            "end": "$",
+            "end": "$|;",
             "beginCaptures": {
                 "1": {
                     "name": "storage.type.var.gdscript"

@@ -21,6 +21,10 @@ const const_f:bool=true
 const const_g : string = 'foo'
 const const_h : string = "foo"
 
+var pls_no_a = "don't do this"; var pls_no_b = "I don't care if it's valid";
+var pls_no_c = 0; var pls_no_d = false; var pls_no_e = seriously_why();
+var pls_no_f: bool; var pls_no_g: int; var pls_no_h: string;
+
 var a
 remote var b = 10.0
 remotesync var c := 20
@@ -228,6 +232,8 @@ func if_test():
 		pass
 	else:
 		pass
+
+	if some_bool: return
 
 # ------------------------------------------------------------------------------
 
