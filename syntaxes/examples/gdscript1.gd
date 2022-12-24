@@ -10,6 +10,7 @@ var var_d : bool = true
 var var_e :    bool = true
 var var_f:bool=true
 var var_g : string = 'foo'
+var var_h : string = "foo"
 
 const const_a = 0
 const const_b = true
@@ -18,6 +19,7 @@ const const_d : bool = true
 const const_e :    bool = true
 const const_f:bool=true
 const const_g : string = 'foo'
+const const_h : string = "foo"
 
 var a
 remote var b = 10.0
@@ -170,6 +172,19 @@ onready var node_j = $badlyNamedChild/badly_named_grandchild
 var node_path_a = NodePath("Child")
 var node_path_b = NodePath('Child/GrandChild')
 var node_path_c = NodePath('../Sibling')
+
+var node_method_result_a = get_node("Child").some_method()
+var node_method_result_b = get_node("Child/GrandChild").some_method()
+var node_method_result_c = get_node("%Child").some_method()
+var node_method_result_d = $Child.some_method()
+var node_method_result_e = $'Child'.some_method()
+var node_method_result_f = $'%Child'.some_method()
+var node_method_result_g = $Child/GrandChild.some_method()
+var node_method_result_h = $"Child/GrandChild".some_method()
+var node_method_result_i = $"%Child/GrandChild".some_method()
+var node_method_result_j = $Child.get_node('GrandChild').some_method()
+var node_method_result_k = $"Child".get_node('GrandChild').some_method()
+var node_method_result_l = $"%Child".get_node('GrandChild').some_method()
 
 # ------------------------------------------------------------------------------
 
