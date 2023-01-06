@@ -21,7 +21,7 @@ jobs:
           ls -l godot-tools.vsix
 
       - name: Upload extension VSIX
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: godot-tools
           path: godot-tools.vsix
