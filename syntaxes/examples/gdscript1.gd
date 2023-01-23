@@ -40,6 +40,9 @@ signal sig_c(param1, param2)
 # 		param2: Dictionary,
 # 	)
 
+var variant_a = 0
+const variant_b = 0
+
 # ------------------------------------------------------------------------------
 
 var f = 40 setget set_f

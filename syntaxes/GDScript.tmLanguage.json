@@ -345,7 +345,7 @@
             ]
         },
         "variable_definition": {
-            "begin": "\\b(?:(var)|(const))",
+            "begin": "\\b(?:(var)|(const))\\s+",
             "end": "$|;",
             "beginCaptures": {
                 "1": {
