@@ -249,14 +249,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	}
 }
 
-function match_icon_to_class(class_name: string) {
-	let icon_name = `icon${class_name
-		.replace(/(2|3)D/, "$1d")
-		.replace(/([A-Z0-9])/g, "_$1")
-		.toLowerCase()}.svg`;
-	return icon_name;
-}
-
 export class SceneNode extends TreeItem {
 	public path: string;
 	public relativePath: string;
@@ -278,14 +270,14 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		const iconDir = path.join(__filename, "..", "..", "resources");
+		const iconDir = path.join(__filename, "..", "..", "resources", "godot_icons");
 
 		if (class_name == "PackedScene") {
 			this.iconPath = path.join(iconDir, "InstanceOptions.svg");
 			return;
 		}
 
-		const iconName = match_icon_to_class(class_name);
+		const iconName = class_name + '.svg';
 
 		let light = path.join(iconDir, "light", iconName);
 		if (!fs.existsSync(light)) {
