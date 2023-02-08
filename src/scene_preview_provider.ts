@@ -323,9 +323,9 @@ export class SceneNode extends TreeItem {
 		}
 		this.body = newLines.join("\n");
 
-		let prefix = ""
+		let prefix = "";
 		if (tags.length != 0) {
-			prefix = tags.join(" ") + " | "
+			prefix = tags.join(" ") + " | ";
 		}
 		this.description = prefix + this.description;
 		const content = new vscode.MarkdownString();
