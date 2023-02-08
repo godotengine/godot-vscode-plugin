@@ -157,14 +157,18 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.externalResources = {};
 		
-		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id="([\w]*)"/g;   
+		const resourceRegex = /\[ext_resource.*/g;
 		for (const match of text.matchAll(resourceRegex)) {
-			let path = match[1];
-			let type = match[2];
-			let id = match[3];
+            const line = match[0];
+            const type = line.match(/type="([\w]+)"/)?.[1];
+            const path = line.match(/path="([\w.:/]+)"/)?.[1];
+            const uid = line.match(/uid="([\w:/]+)"/)?.[1];
+            const id = line.match(/id="([\w]+)"/)?.[1];
+            
 			this.externalResources[id] = {
 				path: path,
 				type: type,
+				uid: uid,
 				id: id,
 			};
 		}
@@ -173,7 +177,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		let nodes = {};
 		let lastNode = null;
 
-		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\( ([\w\.]*) \))?\]/g;
+		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*"?([\w]+)"?\s*\))?\]/g;
 		for (const match of text.matchAll(nodeRegex)) {
 			let name = match[1];
 			let type = match[2] ? match[2] : "PackedScene";
