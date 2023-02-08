@@ -157,7 +157,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.externalResources = {};
 		
-		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;   
+		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id="([\w]*)"/g;   
 		for (const match of text.matchAll(resourceRegex)) {
 			let path = match[1];
 			let type = match[2];
@@ -318,7 +318,7 @@ export class SceneNode extends TreeItem {
 			if (line.startsWith("script = ExtResource")) {
 				tags.push("S");
 				this.hasScript = true;
-				this.scriptId = line.match(/script = ExtResource\( ([0-9]+) \)/)[1];
+				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)[1];
 				this.contextValue += "hasScript";
 			}
 			if (line != "") {
