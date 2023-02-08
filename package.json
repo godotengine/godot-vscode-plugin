@@ -119,6 +119,10 @@
 				"title": "Copy Node Path"
 			},
 			{
+				"command": "godotTools.scenePreview.copyResourcePath",
+				"title": "Copy Resource Path"
+			},
+			{
 				"command": "godotTools.scenePreview.openScene",
 				"title": "Open Scene"
 			},
@@ -428,6 +432,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.pin",
 					"when": "false"
 				},
@@ -437,6 +445,18 @@
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
 					"when": "false"
 				},
 				{
@@ -492,8 +512,12 @@
 					"when": "view == scenePreview"
 				},
 				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "view == scenePreview && viewItem =~ /hasResourcePath/"
+				},
+				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /PackedScene/",
+					"when": "view == scenePreview && viewItem =~ /openable/",
 					"group": "1@2"
 				},
 				{

@@ -81,6 +81,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		vscode.commands.registerCommand("godotTools.scenePreview.pin", this.pin_preview.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.copyResourcePath", this.copy_resource_path.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.openScript", this.open_script.bind(this));
 		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
@@ -113,6 +114,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
+	}
+
+	private copy_resource_path(item: SceneNode) {
+		vscode.env.clipboard.writeText(item.resourcePath);
 	}
 
 	private async open_scene(item: SceneNode) {
@@ -183,20 +188,20 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			let type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
 			let instance = match[4] ? match[4] : 0;
-			let path = "";
+			let _path = "";
 			let relativePath = "";
 
 			if (parent == undefined) {
 				root = name;
-				path = name;
+				_path = name;
 			} else if (parent == ".") {
 				parent = root;
 				relativePath = name;
-				path = parent + "/" + name;
+				_path = parent + "/" + name;
 			} else {
 				relativePath = parent + "/" + name;
 				parent = root + "/" + parent;
-				path = parent + "/" + name;
+				_path = parent + "/" + name;
 			}
 			if (lastNode) {
 				lastNode.body = text.slice(lastNode.position, match.index);
@@ -204,24 +209,29 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			}
 
 			let node = new SceneNode(name, type, 0, []);
-			node.path = path;
+			node.path = _path;
 			node.description = type;
 			node.relativePath = relativePath;
 			node.parent = parent;
 			node.text = match[0];
 			node.position = match.index;
 			if (instance) {
-				node.tooltip = this.externalResources[instance].path;
-				node.resourcePath = this.externalResources[instance].path;
-				node.contextValue = "PackedScene";
+                if (instance in this.externalResources) {
+                    node.tooltip = this.externalResources[instance].path;
+                    node.resourcePath = this.externalResources[instance].path;
+                    if (['.tscn'].includes(path.extname(node.resourcePath))) {
+                        node.contextValue += "openable";
+                    }
+                }
+				node.contextValue += "hasResourcePath";
 			}
-			if (path == root) {
+			if (_path == root) {
 				this.root = node;
 			}
 			if (parent in nodes) {
 				nodes[parent].children.push(node);
 			}
-			nodes[path] = node;
+			nodes[_path] = node;
 
 			lastNode = node;
 		}
