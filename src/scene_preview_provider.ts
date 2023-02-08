@@ -274,7 +274,7 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		const iconDir = path.join(__filename, "..", "..", "resources", "godot_icons");
+		const iconDir = path.join(__filename, "..", "..", "resources");
 
 		if (class_name == "PackedScene") {
 			this.iconPath = path.join(iconDir, "InstanceOptions.svg");
@@ -283,13 +283,13 @@ export class SceneNode extends TreeItem {
 
 		const iconName = class_name + '.svg';
 
-		let light = path.join(iconDir, "light", iconName);
+		let light = path.join(iconDir, "godot_icons", "light", iconName);
 		if (!fs.existsSync(light)) {
-			light = path.join(iconDir, "light", "node.svg");
+			light = path.join(iconDir, "godot_icons", "light", "node.svg");
 		}
-		let dark = path.join(iconDir, "dark", iconName);
+		let dark = path.join(iconDir, "godot_icons", "dark", iconName);
 		if (!fs.existsSync(dark)) {
-			dark = path.join(iconDir, "dark", "node.svg");
+			dark = path.join(iconDir, "godot_icons", "dark", "node.svg");
 		}
 
 		this.iconPath = {
