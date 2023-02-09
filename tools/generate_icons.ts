@@ -37,6 +37,7 @@ async function exec(command) {
 }
 
 const git = {
+    diff: 'git diff HEAD',
     check_branch: 'git rev-parse --abbrev-ref HEAD',
     reset: 'git reset --hard',
     stash_push: 'git stash push',
@@ -55,7 +56,31 @@ function to_title_case(str) {
     );
 }
 
+function get_class_list() {
+    let classes = [];
+
+    let file = fs.readFileSync('scene/register_scene_types.cpp', 'utf8');
+
+    const patterns = [
+        /GDREGISTER_CLASS\((\w*)\)/,
+        /register_class<(\w*)>/,
+    ];
+
+    file.split("\n").forEach(line => {
+        patterns.forEach(pattern => {
+            const match = line.match(pattern);
+            if (match) {
+                classes.push(match[1] + '.svg');
+            }
+        });
+    });
+
+    return classes;
+}
+
 function get_icons() {
+    const classes = get_class_list();
+
     let icons = [];
     fs.readdirSync('./editor/icons').forEach(file => {
         if (path.extname(file) === '.svg') {
@@ -66,59 +91,87 @@ function get_icons() {
                 parts = parts.map(to_title_case);
                 name = parts.join('');
             }
+            if (!classes.includes(name)) {
+                return;
+            }
             let f = {
                 name: name,
                 contents: fs.readFileSync(join(iconsPath, file), 'utf8')
             };
             icons.push(f);
         }
-    })
+    });
     return icons;
+}
+
+function ensure_paths() {
+    let paths = [
+        outputPath,
+        join(outputPath, 'light'),
+        join(outputPath, 'dark'),
+    ];
+
+    paths.forEach(path => {
+        if (!fs.existsSync(path)) {
+            fs.mkdirSync(path);
+        }
+    });
 }
 
 async function run() {
     if (godotPath == undefined) {
-        console.log('Please provide the path to your godot repo');
+        console.log('Please provide the absolute path to your godot repo');
         return;
     }
 
     const original_cwd = process.cwd();
 
     process.chdir(godotPath);
+
+    const diff = (await exec(git.diff)).trim();
+    if (diff) {
+        console.log('There appear to be uncommitted changes in your godot repo');
+        console.log('Revert or stash these changes and try again');
+        return;
+    }
+
     const branch = (await exec(git.check_branch)).trim();
 
-    // await exec(git.stash_push);
+    console.log('Gathering Godot 3 icons...');
     await exec(git.checkout_3);
     let g3 = get_icons();
 
+    console.log('Gathering Godot 4 icons...');
     await exec(git.checkout_4);
     let g4 = get_icons();
 
     await exec(git.checkout + branch);
-    // await exec(git.stash_pop);
 
     process.chdir(original_cwd);
+
+    console.log(`Found ${g3.length + g4.length} icons...`);
 
     let light_icons = {};
     let dark_icons = {};
 
+    console.log('Generating themed icons...');
     g3.forEach(file => {
         light_icons[file.name] = replace_colors(light_colors, file.contents);
-    })
+    });
     g4.forEach(file => {
         light_icons[file.name] = replace_colors(light_colors, file.contents);
-    })
+    });
     g3.forEach(file => {
         dark_icons[file.name] = replace_colors(dark_colors, file.contents);
-    })
+    });
     g4.forEach(file => {
         dark_icons[file.name] = replace_colors(dark_colors, file.contents);
-    })
+    });
 
-    fs.mkdirSync(outputPath)
-    fs.mkdirSync(join(outputPath, 'light'))
-    fs.mkdirSync(join(outputPath, 'dark'))
+    console.log('Ensuring output directory...');
+    ensure_paths();
 
+    console.log('Writing icons to output directory...');
     for (const [file, contents] of Object.entries(light_icons)) {
         fs.writeFileSync(join(outputPath, 'light', file), contents);
     }
