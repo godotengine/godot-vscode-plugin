@@ -208,7 +208,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 				lastNode.parse_body();
 			}
 
-			let node = new SceneNode(name, type, 0, []);
+			let node = new SceneNode(name, type);
 			node.path = _path;
 			node.description = type;
 			node.relativePath = relativePath;
@@ -274,12 +274,11 @@ export class SceneNode extends TreeItem {
 	public unique: boolean = false;
 	public hasScript: boolean = false;
 	public scriptId: string;
+    public children: SceneNode[];
 
 	constructor(
 		public label: string,
 		public class_name: string,
-		public object_id: number,
-		public children: SceneNode[],
 		public collapsibleState?: TreeItemCollapsibleState
 	) {
 		super(label, collapsibleState);
