@@ -667,6 +667,9 @@
                             "name": "entity.name.type.class.gdscript"
                         }
                     }
+                },
+                {
+                    "include": "#base_expression"
                 }
             ]
         },

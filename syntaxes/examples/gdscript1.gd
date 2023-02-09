@@ -118,6 +118,12 @@ func func_c(
 	):
 	pass
 
+# one line functions, please don't actually do this
+func one_line_int_fn() -> int: return 3
+func one_line_dict_fn() -> int: return {a=0, b=0.0, c='test'}
+func one_line_print() -> void: print("Uh oh")
+func one_line_fn() -> void: return
+
 # ------------------------------------------------------------------------------
 
 var q = "double quotes"
