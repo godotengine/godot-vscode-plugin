@@ -34,7 +34,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		if (this.scenePreviewPinned) {
 			return;
 		}
-		
+
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
@@ -50,7 +50,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 					}
 					fileName = relatedScene.fsPath;
 				}
-				
+
 				if (mode == "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
@@ -123,16 +123,16 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private async open_scene(item: SceneNode) {
 		const uri = await convert_resource_path_to_uri(item.resourcePath);
 		if (uri) {
-			vscode.window.showTextDocument(uri, {preview:true});
+			vscode.window.showTextDocument(uri, { preview: true });
 		}
 	}
 
 	private async open_script(item: SceneNode) {
 		const id = this.externalResources[item.scriptId].path;
-		
+
 		const uri = await convert_resource_path_to_uri(id);
 		if (uri) {
-			vscode.window.showTextDocument(uri, {preview:true});
+			vscode.window.showTextDocument(uri, { preview: true });
 		}
 	}
 
@@ -141,13 +141,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		const start = document.positionAt(item.position);
 		const end = document.positionAt(item.position + item.text.length);
 		const range = new vscode.Range(start, end);
-		vscode.window.showTextDocument(document, {selection:range});
+		vscode.window.showTextDocument(document, { selection: range });
 	}
 
-	private tree_selection_changed(event:vscode.TreeViewSelectionChangeEvent<SceneNode>) {
+	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
 		// const item = event.selection[0];
 		// log(item.body);
-		
+
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -156,20 +156,20 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	public async parse_scene(scene: string) {
 		this.currentScene = scene;
 		this.tree.message = path.basename(scene);
-	  
+
 		const document = await vscode.workspace.openTextDocument(scene);
 		const text = document.getText();
 
 		this.externalResources = {};
-		
+
 		const resourceRegex = /\[ext_resource.*/g;
 		for (const match of text.matchAll(resourceRegex)) {
-            const line = match[0];
-            const type = line.match(/type="([\w]+)"/)?.[1];
-            const path = line.match(/path="([\w.:/]+)"/)?.[1];
-            const uid = line.match(/uid="([\w:/]+)"/)?.[1];
-            const id = line.match(/id="([\w]+)"/)?.[1];
-            
+			const line = match[0];
+			const type = line.match(/type="([\w]+)"/)?.[1];
+			const path = line.match(/path="([\w.:/]+)"/)?.[1];
+			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
+			const id = line.match(/id="([\w]+)"/)?.[1];
+
 			this.externalResources[id] = {
 				path: path,
 				type: type,
@@ -216,13 +216,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			node.text = match[0];
 			node.position = match.index;
 			if (instance) {
-                if (instance in this.externalResources) {
-                    node.tooltip = this.externalResources[instance].path;
-                    node.resourcePath = this.externalResources[instance].path;
-                    if (['.tscn'].includes(path.extname(node.resourcePath))) {
-                        node.contextValue += "openable";
-                    }
-                }
+				if (instance in this.externalResources) {
+					node.tooltip = this.externalResources[instance].path;
+					node.resourcePath = this.externalResources[instance].path;
+					if (['.tscn'].includes(path.extname(node.resourcePath))) {
+						node.contextValue += "openable";
+					}
+				}
 				node.contextValue += "hasResourcePath";
 			}
 			if (_path == root) {
@@ -235,7 +235,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 			lastNode = node;
 		}
-		
+
 		lastNode.body = text.slice(lastNode.position, text.length);
 		lastNode.parse_body();
 	}
@@ -274,7 +274,7 @@ export class SceneNode extends TreeItem {
 	public unique: boolean = false;
 	public hasScript: boolean = false;
 	public scriptId: string;
-    public children: SceneNode[];
+	public children: SceneNode[];
 
 	constructor(
 		public label: string,
