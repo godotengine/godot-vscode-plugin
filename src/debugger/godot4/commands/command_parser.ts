@@ -131,7 +131,7 @@ export class CommandParser {
 							this.current_command = undefined;
 							this.parameters = [];
 						}
-					} else if(this.current_command.param_count < this.parameters.length) {
+					} else if (this.current_command.param_count < this.parameters.length) {
 						// we debugged that an exception occures during this.current_command.trigger(this.parameters)
 						// because we do not understand the root cause of the exception, we set the current command to undefined
 						// to avoid a infinite loop of parse_message(...)
@@ -150,12 +150,13 @@ export class CommandParser {
 				command = new CommandNull();
 			}
 
-		try {
-			command.trigger(parameters);
-		} catch (e) {
-			// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-			// class_name is the key of Mediator.inspect_callbacks
-			console.error("Catch exception during trigger command: " + e);
+			try {
+				command.trigger(parameters);
+			} catch (e) {
+				// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
+				// class_name is the key of Mediator.inspect_callbacks
+				console.error("Catch exception during trigger command: " + e);
+			}
 		}
 	}
 
