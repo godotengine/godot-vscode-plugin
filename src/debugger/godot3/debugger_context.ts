@@ -70,11 +70,11 @@ export function register_debugger(context: ExtensionContext) {
 		}
 	);
 
-	commands.registerCommand("godotTools.debugger.refreshSceneTree", () => {
+	commands.registerCommand("godot-tool.debugger.refresh_scene_tree", () => {
 		Mediator.notify("request_scene_tree", []);
 	});
 
-	commands.registerCommand("godotTools.debugger.refreshInspector", () => {
+	commands.registerCommand("godot-tool.debugger.refresh_inspector", () => {
 		if (inspector_provider.has_tree()) {
 			let name = inspector_provider.get_top_name();
 			let id = inspector_provider.get_top_id();
@@ -88,7 +88,7 @@ export function register_debugger(context: ExtensionContext) {
 	});
 
 	commands.registerCommand(
-		"godotTools.debugger.editValue",
+		"godot-tool.debugger.edit_value",
 		(property: RemoteProperty) => {
 			let previous_value = property.value;
 			let type = typeof previous_value;

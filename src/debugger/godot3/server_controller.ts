@@ -9,7 +9,7 @@ import {
 import { window } from "vscode";
 const TERMINATE = require("terminate");
 import net = require("net");
-import utils = require("../utils");
+import utils = require("../../utils");
 import cp = require("child_process");
 import path = require("path");
 
@@ -152,8 +152,8 @@ export class ServerController {
 				let buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
 					let sub_buffer = buffers.shift();
-					let data = this.decoder.get_dataset(sub_buffer, 0)[1];
-					this.commands.parse_message(data[0], data[1]);
+					let data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					this.commands.parse_message(data);
 				}
 			});
 
@@ -212,11 +212,6 @@ export class ServerController {
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
 		let continue_stepping = false;
 		let stack_count = stack_frames.length;
-		if (stack_count === 0) {
-			// Engine code is being executed, no user stack trace
-			Mediator.notify("stopped_on_breakpoint", [[]]);
-			return;
-		}
 
 		let file = stack_frames[0].file.replace(
 			"res://",
