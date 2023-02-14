@@ -2,10 +2,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate } from "./settings_updater";
-import { register_debugger } from "./debugger/debugger_context";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
+import debuggerContextv3 = require("./debugger/godot3/debugger_context");
+import debuggerContextv4 = require("./debugger/godot4/debugger_context");
 import {
 	get_configuration,
 	set_configuration,
@@ -27,7 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
 	linkProvider = new GDDocumentLinkProvider(context);
 	scenePreviewManager = new ScenePreviewProvider();
 
-	register_debugger(context);
+	debuggerContextv3.register_debugger(context);
+	debuggerContextv4.register_debugger(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", () => {
