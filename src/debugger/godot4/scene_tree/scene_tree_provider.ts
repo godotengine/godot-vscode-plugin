@@ -82,7 +82,7 @@ export class SceneNode extends TreeItem {
 			"..",
 			"resources",
 			"light",
-			match_icon_to_class(class_name)
+			match_icon_to_class(class_name.toString())
 		);
 		if (!fs.existsSync(light)) {
 			path.join(
@@ -104,7 +104,7 @@ export class SceneNode extends TreeItem {
 			"..",
 			"resources",
 			"dark",
-			match_icon_to_class(class_name)
+			match_icon_to_class(class_name.toString())
 		);
 		if (!fs.existsSync(light)) {
 			path.join(

@@ -34,7 +34,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		if (this.scenePreviewPinned) {
 			return;
 		}
-		
+
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
@@ -50,7 +50,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 					}
 					fileName = relatedScene.fsPath;
 				}
-				
+
 				if (mode == "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
@@ -124,7 +124,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 	private async open_script(item: SceneNode) {
 		const id = this.externalResources[item.scriptId].path;
-		
+
 		const uri = await convert_resource_path_to_uri(id);
 		if (uri) {
 			vscode.window.showTextDocument(uri, {preview:true});
@@ -142,7 +142,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private tree_selection_changed(event:vscode.TreeViewSelectionChangeEvent<SceneNode>) {
 		// const item = event.selection[0];
 		// log(item.body);
-		
+
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -151,13 +151,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	public async parse_scene(scene: string) {
 		this.currentScene = scene;
 		this.tree.message = path.basename(scene);
-	  
+
 		const document = await vscode.workspace.openTextDocument(scene);
 		const text = document.getText();
 
 		this.externalResources = {};
-		
-		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;   
+
+		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;
 		for (const match of text.matchAll(resourceRegex)) {
 			let path = match[1];
 			let type = match[2];
@@ -221,9 +221,11 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 			lastNode = node;
 		}
-		
-		lastNode.body = text.slice(lastNode.position, text.length);
-		lastNode.parse_body();
+		// Prevent error from non scene files
+		if (lastNode !== null) {
+			lastNode.body = text.slice(lastNode.position, text.length);
+			lastNode.parse_body();
+		}
 	}
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
@@ -285,7 +287,7 @@ export class SceneNode extends TreeItem {
 			return;
 		}
 
-		const iconName = match_icon_to_class(class_name);
+		const iconName = match_icon_to_class(class_name.toString());
 
 		let light = path.join(iconDir, "light", iconName);
 		if (!fs.existsSync(light)) {
