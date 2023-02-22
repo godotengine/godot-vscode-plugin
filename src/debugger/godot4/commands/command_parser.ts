@@ -4,13 +4,13 @@ import { CommandOutput } from "./commands/command_output";
 import { CommandStackDump } from "./commands/command_stack_dump";
 import { CommandStackFrameVar } from "./commands/command_stack_frame_var";
 import { CommandStackFrameVars } from "./commands/command_stack_frame_vars";
-import { CommandNull } from "./commands/command_null";
 import { CommandMessageSceneTree } from "./commands/command_message_scene_tree";
 import { CommandMessageInspectObject } from "./commands/command_message_inspect_object";
 import { CommandDebugExit } from "./commands/command_debug_exit";
 import { VariantEncoder } from "../variables/variant_encoder";
 
 export class CommandParser {
+	// TODO implements new commands like: set_pid, performance , etc...
 	private commands: Map<string, () => Command> = new Map([
 		[
 			"output",
@@ -115,48 +115,18 @@ export class CommandParser {
 		return this.build_buffered_command("step");
 	}
 
-	public parse_message(dataset: any[]) {
-		while (dataset && dataset.length > 0) {
-			if (this.current_command) {
-				this.parameters.push(dataset.shift());
-				if (this.current_command.param_count !== -1) {
-					if (this.current_command.param_count === this.parameters.length) {
-						try {
-							this.current_command.trigger(this.parameters);
-						} catch (e) {
-							// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-							// class_name is the key of Mediator.inspect_callbacks
-							console.error("Catch exception during trigger command: " + e);
-						} finally {
-							this.current_command = undefined;
-							this.parameters = [];
-						}
-					} else if (this.current_command.param_count < this.parameters.length) {
-						// we debugged that an exception occures during this.current_command.trigger(this.parameters)
-						// because we do not understand the root cause of the exception, we set the current command to undefined
-						// to avoid a infinite loop of parse_message(...)
-						this.current_command = undefined;
-						this.parameters = [];
-						console.log("Exception not catched. Reset current_command to avoid infinite loop.");
-					}
-				} else {
-					this.current_command.param_count = this.parameters.shift();
-					if (this.current_command.param_count === 0) {
-						this.current_command.trigger([]);
-						this.current_command = undefined;
-					}
-				}
-			} else {
-				command = new CommandNull();
-			}
+	public parse_message(command: string, params: any[]) {
 
-			try {
-				command.trigger(parameters);
-			} catch (e) {
-				// FIXME: Catch exception during trigger command: TypeError: class_name.replace is not a function
-				// class_name is the key of Mediator.inspect_callbacks
-				console.error("Catch exception during trigger command: " + e);
-			}
+		const current_command = this.commands.get(command);
+		// Avoid get commands null
+		if (!current_command) {
+			return;
+		}
+		try {
+			current_command().trigger(params);
+		} catch (e) {
+			// class_name is the key of Mediator.inspect_callbacks
+			console.error("Catch exception during trigger command: " + e);
 		}
 	}
 
