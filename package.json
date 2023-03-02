@@ -40,7 +40,8 @@
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"generate-icons": "ts-node tools/generate_icons.ts"
 	},
 	"contributes": {
 		"commands": [
@@ -359,7 +360,7 @@
 				"initialConfigurations": [
 					{
 						"name": "GDScript Godot",
-						"type": "godot",
+						"type": "godot3",
 						"request": "launch",
 						"project": "${workspaceFolder}",
 						"port": 6007,
@@ -373,7 +374,7 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"type": "godot",
+							"type": "godot3",
 							"request": "launch",
 							"project": "${workspaceFolder}",
 							"port": 6007,
@@ -384,7 +385,7 @@
 					}
 				]
 			},
-            {
+			{
 				"type": "godot4",
 				"label": "GDScript Godot 4 Debug",
 				"program": "./out/debugger/godot4/debug_adapter.js",
@@ -438,7 +439,7 @@
 				"initialConfigurations": [
 					{
 						"name": "GDScript Godot",
-						"type": "godot",
+						"type": "godot4",
 						"request": "launch",
 						"project": "${workspaceFolder}",
 						"port": 6007,
@@ -452,7 +453,7 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"type": "godot",
+							"type": "godot4",
 							"request": "launch",
 							"project": "${workspaceFolder}",
 							"port": 6007,
@@ -628,6 +629,7 @@
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",
+		"ts-node": "^10.9.1",
 		"vscode-debugadapter": "^1.38.0",
 		"vscode-languageclient": "^7.0.0",
 		"ws": "^8.4.2"
