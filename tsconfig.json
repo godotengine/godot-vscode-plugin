@@ -14,6 +14,7 @@
     "sourceMap": true,
     "declaration": true,
     "outDir": "out",
+		"rootDir": "src",
     "allowJs": true,
     "noEmit": false,
     "esModuleInterop": true,
@@ -25,6 +26,5 @@
       "@/*": ["*"]
     }
   },
-  "include": ["src/**/*.ts", "tools/**/*.ts"],
-  "exclude": ["node_modules", "out", "deps/prism/prism.js"]
+  "exclude": ["node_modules", "out", "src/deps/prism/prism.js", "tools"]
 }
