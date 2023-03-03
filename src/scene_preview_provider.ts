@@ -198,7 +198,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			let type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
 			let instance = match[4] ? match[4] : '';
-			let path = "";
+			let _path = "";
 			let relativePath = "";
 			instance = instance.toString().replace(/"/g, '')
 			if (parent == undefined) {
@@ -226,14 +226,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			node.text = match[0];
 			node.position = match.index;
 			if (instance) {
-				if (instance in this.externalResources) {
-					node.tooltip = this.externalResources[instance].path;
-					node.resourcePath = this.externalResources[instance].path;
-					if (['.tscn'].includes(path.extname(node.resourcePath))) {
-						node.contextValue += "openable";
-					}
-				}
-				node.contextValue += "hasResourcePath";
+				node.tooltip = this.externalResources[instance].path;
+				node.resourcePath = this.externalResources[instance].path;
+				node.contextValue = "PackedScene";
 			}
 			if (_path == root) {
 				this.root = node;
@@ -286,7 +281,7 @@ export class SceneNode extends TreeItem {
 	public unique: boolean = false;
 	public hasScript: boolean = false;
 	public scriptId: string;
-	public children: SceneNode[];
+	public children: SceneNode[] = [];
 
 	constructor(
 		public label: string,
