@@ -120,6 +120,10 @@
 				"title": "Copy Node Path"
 			},
 			{
+				"command": "godotTools.scenePreview.copyResourcePath",
+				"title": "Copy Resource Path"
+			},
+			{
 				"command": "godotTools.scenePreview.openScene",
 				"title": "Open Scene"
 			},
@@ -506,6 +510,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.pin",
 					"when": "false"
 				},
@@ -515,6 +523,18 @@
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
 					"when": "false"
 				},
 				{
@@ -570,8 +590,12 @@
 					"when": "view == scenePreview"
 				},
 				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "view == scenePreview && viewItem =~ /hasResourcePath/"
+				},
+				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /PackedScene/",
+					"when": "view == scenePreview && viewItem =~ /openable/",
 					"group": "1@2"
 				},
 				{
@@ -618,6 +642,7 @@
 		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"esbuild": "^0.15.2",
+		"ts-node": "^10.9.1",
 		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
 		"vsce": "^2.10.0"

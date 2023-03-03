@@ -84,30 +84,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.tree.onDidChangeSelection(this.tree_selection_changed);
 
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.pin",
-			this.pin_preview.bind(this)
-		);
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.unpin",
-			this.unpin_preview.bind(this)
-		);
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.copyNodePath",
-			this.copy_node_path.bind(this)
-		);
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.openScene",
-			this.open_scene.bind(this)
-		);
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.openScript",
-			this.open_script.bind(this)
-		);
-		vscode.commands.registerCommand(
-			"godotTools.scenePreview.goToDefinition",
-			this.go_to_definition.bind(this)
-		);
+		vscode.commands.registerCommand("godotTools.scenePreview.pin", this.pin_preview.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.copyResourcePath", this.copy_resource_path.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.openScript", this.open_script.bind(this));
+		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
 
 		vscode.commands.registerCommand("godotTools.scenePreview.refresh", () =>
 			this.refresh()
@@ -139,6 +122,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		vscode.env.clipboard.writeText(item.relativePath);
 	}
 
+	private copy_resource_path(item: SceneNode) {
+		vscode.env.clipboard.writeText(item.resourcePath);
+	}
+
 	private async open_scene(item: SceneNode) {
 		const uri = await convert_resource_path_to_uri(item.resourcePath);
 		if (uri) {
@@ -168,6 +155,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	) {
 		// const item = event.selection[0];
 		// log(item.body);
+
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -215,40 +203,45 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			instance = instance.toString().replace(/"/g, '')
 			if (parent == undefined) {
 				root = name;
-				path = name;
+				_path = name;
 			} else if (parent == ".") {
 				parent = root;
 				relativePath = name;
-				path = parent + "/" + name;
+				_path = parent + "/" + name;
 			} else {
 				relativePath = parent + "/" + name;
 				parent = root + "/" + parent;
-				path = parent + "/" + name;
+				_path = parent + "/" + name;
 			}
 			if (lastNode) {
 				lastNode.body = text.slice(lastNode.position, match.index);
 				lastNode.parse_body();
 			}
 
-			let node = new SceneNode(name, type, 0, []);
-			node.path = path;
+			let node = new SceneNode(name, type);
+			node.path = _path;
 			node.description = type;
 			node.relativePath = relativePath;
 			node.parent = parent;
 			node.text = match[0];
 			node.position = match.index;
 			if (instance) {
-				node.tooltip = this.externalResources[instance].path;
-				node.resourcePath = this.externalResources[instance].path;
-				node.contextValue = "PackedScene";
+				if (instance in this.externalResources) {
+					node.tooltip = this.externalResources[instance].path;
+					node.resourcePath = this.externalResources[instance].path;
+					if (['.tscn'].includes(path.extname(node.resourcePath))) {
+						node.contextValue += "openable";
+					}
+				}
+				node.contextValue += "hasResourcePath";
 			}
-			if (path == root) {
+			if (_path == root) {
 				this.root = node;
 			}
 			if (parent in nodes) {
 				nodes[parent].children.push(node);
 			}
-			nodes[path] = node;
+			nodes[_path] = node;
 
 			lastNode = node;
 		}
@@ -282,14 +275,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	}
 }
 
-function match_icon_to_class(class_name: string) {
-	let icon_name = `icon${class_name
-		.replace(/(2|3)D/, "$1d")
-		.replace(/([A-Z0-9])/g, "_$1")
-		.toLowerCase()}.svg`;
-	return icon_name;
-}
-
 export class SceneNode extends TreeItem {
 	public path: string;
 	public relativePath: string;
@@ -301,37 +286,21 @@ export class SceneNode extends TreeItem {
 	public unique: boolean = false;
 	public hasScript: boolean = false;
 	public scriptId: string;
+	public children: SceneNode[];
 
 	constructor(
 		public label: string,
-		public class_name: string,
-		public object_id: number,
-		public children: SceneNode[],
+		public className: string,
 		public collapsibleState?: TreeItemCollapsibleState
 	) {
 		super(label, collapsibleState);
 
-		const iconDir = path.join(__filename, "..", "..", "resources");
-
-		if (class_name == "PackedScene") {
-			this.iconPath = path.join(iconDir, "InstanceOptions.svg");
-			return;
-		}
-
-		const iconName = match_icon_to_class(class_name.toString());
-
-		let light = path.join(iconDir, "light", iconName);
-		if (!fs.existsSync(light)) {
-			light = path.join(iconDir, "light", "node.svg");
-		}
-		let dark = path.join(iconDir, "dark", iconName);
-		if (!fs.existsSync(dark)) {
-			dark = path.join(iconDir, "dark", "node.svg");
-		}
+		const iconDir = path.join(__filename, "..", "..", "resources", "godot_icons");
+		const iconName = className + '.svg';
 
 		this.iconPath = {
-			light: light,
-			dark: dark,
+			light: path.join(iconDir, "light", iconName),
+			dark: path.join(iconDir, "dark", iconName),
 		};
 	}
 
