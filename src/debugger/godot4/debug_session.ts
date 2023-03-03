@@ -666,7 +666,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		return {
 			name: va.name,
-			value: rendered_value?.value || rendered_value,
+			value:  rendered_value,
 			variablesReference: reference,
 			array_size: array_size > 0 ? array_size : undefined,
 			filter: array_type,
