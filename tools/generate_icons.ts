@@ -25,6 +25,7 @@ function replace_colors(colors: Object, data: String) {
 }
 
 const iconsPath = 'editor/icons';
+const modulesCSGIconPath = 'modules/csg/icons'
 const outputPath = 'resources/godot_icons';
 const godotPath = process.argv[2];
 
@@ -101,6 +102,23 @@ function get_icons() {
 			icons.push(f);
 		}
 	});
+	// Modules
+	fs.readdirSync('./modules/csg/icons').forEach(file => {
+		if (path.extname(file) === '.svg') {
+			let name = file;
+			if (name.startsWith('icon_')) {
+				name = name.replace('icon_', '');
+				let parts = name.split('_');
+				parts = parts.map(to_title_case);
+				name = parts.join('');
+			}
+			let f = {
+				name: name,
+				contents: fs.readFileSync(join(modulesCSGIconPath, file), 'utf8')
+			};
+			icons.push(f);
+		}
+	});
 	return icons;
 }
 
@@ -173,10 +191,17 @@ async function run() {
 
 	console.log('Writing icons to output directory...');
 	for (const [file, contents] of Object.entries(light_icons)) {
-		fs.writeFileSync(join(outputPath, 'light', file), contents);
+		const target = join(outputPath, 'light', file)
+		if (!fs.existsSync(target)) {
+			fs.writeFileSync(target, contents);
+		}
+
 	}
 	for (const [file, contents] of Object.entries(dark_icons)) {
-		fs.writeFileSync(join(outputPath, 'dark', file), contents);
+		const target = join(outputPath, 'dark', file)
+		if (!fs.existsSync(target)) {
+			fs.writeFileSync(target, contents);
+		}
 	}
 }
 
