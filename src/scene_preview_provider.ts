@@ -10,7 +10,13 @@ import {
 import path = require("path");
 import fs = require("fs");
 import * as vscode from "vscode";
-import { get_configuration, set_configuration, find_file, set_context, convert_resource_path_to_uri } from "./utils";
+import {
+	get_configuration,
+	set_configuration,
+	find_file,
+	set_context,
+	convert_resource_path_to_uri,
+} from "./utils";
 import logger from "./logger";
 
 function log(...messages) {
@@ -78,12 +84,30 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.tree.onDidChangeSelection(this.tree_selection_changed);
 
-		vscode.commands.registerCommand("godotTools.scenePreview.pin", this.pin_preview.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.openScript", this.open_script.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.pin",
+			this.pin_preview.bind(this)
+		);
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.unpin",
+			this.unpin_preview.bind(this)
+		);
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.copyNodePath",
+			this.copy_node_path.bind(this)
+		);
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.openScene",
+			this.open_scene.bind(this)
+		);
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.openScript",
+			this.open_script.bind(this)
+		);
+		vscode.commands.registerCommand(
+			"godotTools.scenePreview.goToDefinition",
+			this.go_to_definition.bind(this)
+		);
 
 		vscode.commands.registerCommand("godotTools.scenePreview.refresh", () =>
 			this.refresh()
@@ -118,7 +142,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private async open_scene(item: SceneNode) {
 		const uri = await convert_resource_path_to_uri(item.resourcePath);
 		if (uri) {
-			vscode.window.showTextDocument(uri, {preview:true});
+			vscode.window.showTextDocument(uri, { preview: true });
 		}
 	}
 
@@ -127,7 +151,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		const uri = await convert_resource_path_to_uri(id);
 		if (uri) {
-			vscode.window.showTextDocument(uri, {preview:true});
+			vscode.window.showTextDocument(uri, { preview: true });
 		}
 	}
 
@@ -136,13 +160,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		const start = document.positionAt(item.position);
 		const end = document.positionAt(item.position + item.text.length);
 		const range = new vscode.Range(start, end);
-		vscode.window.showTextDocument(document, {selection:range});
+		vscode.window.showTextDocument(document, { selection: range });
 	}
 
-	private tree_selection_changed(event:vscode.TreeViewSelectionChangeEvent<SceneNode>) {
+	private tree_selection_changed(
+		event: vscode.TreeViewSelectionChangeEvent<SceneNode>
+	) {
 		// const item = event.selection[0];
 		// log(item.body);
-
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -157,31 +182,37 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.externalResources = {};
 
-		const resourceRegex = /\[ext_resource path="([\w.:/]*)" type="([\w]*)" id=([0-9]*)/g;
+		const resourceRegex = /\[ext_resource.*/g;
 		for (const match of text.matchAll(resourceRegex)) {
-			let path = match[1];
-			let type = match[2];
-			let id = match[3];
+			const line = match[0];
+			const type = line.match(/type="([\w]+)"/)?.[1];
+			const path = line.match(/path="([\w.:/]+)"/)?.[1];
+			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
+			const id = line.match(/id="([\w]+)"/)?.[1];
+
 			this.externalResources[id] = {
 				path: path,
 				type: type,
+				uid: uid,
 				id: id,
 			};
 		}
+
 
 		let root = "";
 		let nodes = {};
 		let lastNode = null;
 
-		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\( ([\w\.]*) \))?\]/g;
+		const nodeRegex =
+			/\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*(.*?)\s*\))?\]/g;
 		for (const match of text.matchAll(nodeRegex)) {
 			let name = match[1];
 			let type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
-			let instance = match[4] ? match[4] : 0;
+			let instance = match[4] ? match[4] : '';
 			let path = "";
 			let relativePath = "";
-
+			instance = instance.toString().replace(/"/g, '')
 			if (parent == undefined) {
 				root = name;
 				path = name;
@@ -310,6 +341,9 @@ export class SceneNode extends TreeItem {
 		let tags = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
+			if (!line) {
+				continue;
+			}
 			if (line.startsWith("tile_data")) {
 				line = "tile_data = PoolIntArray(...)";
 			}
@@ -319,9 +353,12 @@ export class SceneNode extends TreeItem {
 			}
 			if (line.startsWith("script = ExtResource")) {
 				tags.push("S");
-				this.hasScript = true;
-				this.scriptId = line.match(/script = ExtResource\( ([0-9]+) \)/)[1];
-				this.contextValue += "hasScript";
+				const match = line.match(/ExtResource\(\s*(.*?)\s*\)/);
+				if (match && match.length > 1) {
+					this.hasScript = true;
+					this.scriptId = match[1];
+					this.contextValue += "hasScript";
+				}
 			}
 			if (line != "") {
 				newLines.push(line);
@@ -329,9 +366,9 @@ export class SceneNode extends TreeItem {
 		}
 		this.body = newLines.join("\n");
 
-		let prefix = ""
+		let prefix = "";
 		if (tags.length != 0) {
-			prefix = tags.join(" ") + " | "
+			prefix = tags.join(" ") + " | ";
 		}
 		this.description = prefix + this.description;
 		const content = new vscode.MarkdownString();
