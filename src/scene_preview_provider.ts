@@ -200,7 +200,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			let instance = match[4] ? match[4] : '';
 			let _path = "";
 			let relativePath = "";
-			instance = instance.toString().replace(/"/g, '')
+			instance = instance.toString().replace(/"/g, '');
 			if (parent == undefined) {
 				root = name;
 				_path = name;
@@ -226,9 +226,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			node.text = match[0];
 			node.position = match.index;
 			if (instance) {
-				node.tooltip = this.externalResources[instance].path;
-				node.resourcePath = this.externalResources[instance].path;
-				node.contextValue = "PackedScene";
+				if (instance in this.externalResources) {
+					node.tooltip = this.externalResources[instance].path;
+					node.resourcePath = this.externalResources[instance].path;
+					if (['.tscn'].includes(path.extname(node.resourcePath))) {
+						node.contextValue += "openable";
+					}
+				}
+				node.contextValue += "hasResourcePath";
 			}
 			if (_path == root) {
 				this.root = node;
