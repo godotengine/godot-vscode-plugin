@@ -10,7 +10,12 @@ import {
 import path = require("path");
 import fs = require("fs");
 import * as vscode from "vscode";
-import { get_configuration, set_configuration, find_file, set_context, convert_resource_path_to_uri } from "./utils";
+import {
+	get_configuration,
+	find_file,
+	set_context,
+	convert_resource_path_to_uri,
+} from "./utils";
 import logger from "./logger";
 
 function log(...messages) {
@@ -144,7 +149,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		vscode.window.showTextDocument(document, { selection: range });
 	}
 
-	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
+	private tree_selection_changed(
+		event: vscode.TreeViewSelectionChangeEvent<SceneNode>
+	) {
 		// const item = event.selection[0];
 		// log(item.body);
 
@@ -178,19 +185,22 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			};
 		}
 
+
 		let root = "";
 		let nodes = {};
 		let lastNode = null;
 
-		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*"?([\w]+)"?\s*\))?\]/g;
+		const nodeRegex =
+			/\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*(.*?)\s*\))?\]/g;
 		for (const match of text.matchAll(nodeRegex)) {
 			let name = match[1];
 			let type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
-			let instance = match[4] ? match[4] : 0;
+			let instance = match[4] ? match[4] : '';
 			let _path = "";
 			let relativePath = "";
-
+			// Remove " manually to keep godot 3 compatibility
+			instance = instance.toString().replace(/"/g, '');
 			if (parent == undefined) {
 				root = name;
 				_path = name;
@@ -235,9 +245,11 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 			lastNode = node;
 		}
-
-		lastNode.body = text.slice(lastNode.position, text.length);
-		lastNode.parse_body();
+		// Prevent error from non scene files
+		if (lastNode !== null) {
+			lastNode.body = text.slice(lastNode.position, text.length);
+			lastNode.parse_body();
+		}
 	}
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
@@ -274,7 +286,7 @@ export class SceneNode extends TreeItem {
 	public unique: boolean = false;
 	public hasScript: boolean = false;
 	public scriptId: string;
-	public children: SceneNode[];
+	public children: SceneNode[] = [];
 
 	constructor(
 		public label: string,
@@ -298,6 +310,9 @@ export class SceneNode extends TreeItem {
 		let tags = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
+			if (!line) {
+				continue;
+			}
 			if (line.startsWith("tile_data")) {
 				line = "tile_data = PoolIntArray(...)";
 			}
@@ -307,9 +322,12 @@ export class SceneNode extends TreeItem {
 			}
 			if (line.startsWith("script = ExtResource")) {
 				tags.push("S");
-				this.hasScript = true;
-				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)[1];
-				this.contextValue += "hasScript";
+				const match = line.match(/ExtResource\(\s*(.*?)\s*\)/);
+				if (match && match.length > 1) {
+					this.hasScript = true;
+					this.scriptId = match[1];
+					this.contextValue += "hasScript";
+				}
 			}
 			if (line != "") {
 				newLines.push(line);
