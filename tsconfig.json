@@ -1,30 +1,20 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "target": "es2020",
-    "lib": ["es2020", "esnext.asynciterable", "DOM"],
-    "typeRoots": ["node_modules/@types"],
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "module": "commonjs",
-    "pretty": true,
-    "sourceMap": true,
-    "declaration": true,
-    "outDir": "out",
-    "allowJs": true,
-    "noEmit": false,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "importHelpers": true,
-    "baseUrl": "src",
-    "strict": false,
-    "paths": {
-      "@/*": ["*"]
-    }
-  },
-  "include": ["src/**/*.ts", "tools/**/*.ts"],
-  "exclude": ["node_modules", "out", "deps/prism/prism.js"]
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es6",
+		"outDir": "out",
+		"lib": [
+			"es2020",
+			"dom"
+		],
+		"sourceMap": true,
+		"rootDir": "src",
+		"strict": false,
+		"allowJs": true
+	},
+	"exclude": [
+		"node_modules",
+		"out",
+		"tools"
+	]
 }

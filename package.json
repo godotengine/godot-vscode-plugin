@@ -41,7 +41,7 @@
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-		"generate-icons": "ts-node -r tsconfig-paths/register --transpile-only tools/generate_icons.ts"
+		"generate-icons": "ts-node tools/generate_icons.ts"
 	},
 	"contributes": {
 		"commands": [
@@ -637,15 +637,14 @@
 	"devDependencies": {
 		"@types/marked": "^0.6.5",
 		"@types/mocha": "^9.1.0",
-		"@types/node": "^10.17.60",
+		"@types/node": "^10.12.21",
 		"@types/prismjs": "^1.16.8",
 		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"esbuild": "^0.15.2",
 		"ts-node": "^10.9.1",
-		"tsconfig-paths": "^3.14.2",
 		"tslint": "^5.20.1",
-		"typescript": "^4.9.5",
+		"typescript": "^3.5.1",
 		"vsce": "^2.10.0"
 	},
 	"dependencies": {
@@ -655,6 +654,7 @@
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",
+		"ts-node": "^10.9.1",
 		"vscode-debugadapter": "^1.38.0",
 		"vscode-languageclient": "^7.0.0",
 		"ws": "^8.4.2"
