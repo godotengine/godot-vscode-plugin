@@ -102,7 +102,7 @@ export class GodotTools {
 		if (!this.project_dir) {
 			return;
 		}
-		
+
 		if (!uri) {
 			uri = vscode.window.activeTextEditor.document.uri;
 		}
