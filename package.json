@@ -40,8 +40,7 @@
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-		"generate-icons": "ts-node tools/generate_icons.ts"
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
 	},
 	"contributes": {
 		"commands": [
@@ -642,7 +641,6 @@
 		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"esbuild": "^0.15.2",
-		"ts-node": "^10.9.1",
 		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
 		"vsce": "^2.10.0"
