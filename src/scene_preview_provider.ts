@@ -39,7 +39,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
 			const mode = get_configuration("scenePreview.previewRelatedScenes");
-
+			// attempt to find related scene
 			if (!fileName.endsWith(".tscn")) {
 				const searchName = fileName.replace(".gd", ".tscn");
 
@@ -62,8 +62,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 					return;
 				}
 			}
-
+			// don't attempt to parse non-scenes
+			if (!fileName.endsWith(".tscn")) {
+				return;
+			}
+			// don't reparse the currently selected scene
 			if (this.currentScene == fileName) {
+				// TODO: reparse the currentScene if it's changed
+				// ideas: store a hash? check last modified time?
 				return;
 			}
 			await this.parse_scene(fileName);
