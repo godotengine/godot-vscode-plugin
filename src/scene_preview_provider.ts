@@ -273,8 +273,8 @@ export class SceneNode extends TreeItem {
 	public body: string;
 	public unique: boolean = false;
 	public hasScript: boolean = false;
-	public scriptId: string;
-	public children: SceneNode[];
+	public scriptId: string = '';
+	public children: SceneNode[] = [];
 
 	constructor(
 		public label: string,
