@@ -1,6 +1,5 @@
-import path = require("path");
-import { join } from "path";
-import fs = require("fs");
+import { join, extname } from 'path';
+import fs = require('fs');
 
 const dark_colors = {
 	'#fc7f7f': '#fc9c9c',
@@ -25,6 +24,7 @@ function replace_colors(colors: Object, data: String) {
 }
 
 const iconsPath = 'editor/icons';
+const modulesPath = 'modules';
 const outputPath = 'resources/godot_icons';
 const godotPath = process.argv[2];
 
@@ -56,56 +56,89 @@ function to_title_case(str) {
 	);
 }
 
-function get_class_list() {
-	let classes = [];
+function get_class_list(modules) {
+	const classes = [];
 
-	let file = fs.readFileSync('scene/register_scene_types.cpp', 'utf8');
+	const files = ['scene/register_scene_types.cpp'];
+	modules.forEach(mod => {
+		files.push(join(mod, 'register_types.cpp'));
+	});
 
 	const patterns = [
 		/GDREGISTER_CLASS\((\w*)\)/,
 		/register_class<(\w*)>/,
 	];
 
-	file.split("\n").forEach(line => {
-		patterns.forEach(pattern => {
-			const match = line.match(pattern);
-			if (match) {
-				classes.push(match[1] + '.svg');
-			}
+	files.forEach(fileName => {
+		const file = fs.readFileSync(fileName, 'utf8');
+		file.split('\n').forEach(line => {
+			patterns.forEach(pattern => {
+				const match = line.match(pattern);
+				if (match) {
+					classes.push(match[1] + '.svg');
+				}
+			});
 		});
 	});
+
 
 	return classes;
 }
 
-function get_icons() {
-	const classes = get_class_list();
+function discover_modules() {
+	const modules = []
 
-	let icons = [];
-	fs.readdirSync('./editor/icons').forEach(file => {
-		if (path.extname(file) === '.svg') {
-			let name = file;
-			if (name.startsWith('icon_')) {
-				name = name.replace('icon_', '');
-				let parts = name.split('_');
-				parts = parts.map(to_title_case);
-				name = parts.join('');
-			}
-			if (!classes.includes(name)) {
-				return;
-			}
-			let f = {
-				name: name,
-				contents: fs.readFileSync(join(iconsPath, file), 'utf8')
-			};
-			icons.push(f);
+	// a valid module is a subdir of modulesPath, and contains a subdir 'icons'
+	fs.readdirSync(modulesPath, {withFileTypes:true}).forEach(mod => {
+		if (mod.isDirectory()) {
+			fs.readdirSync(join(modulesPath, mod.name), {withFileTypes:true}).forEach(child => {
+				if (child.isDirectory() && child.name == 'icons') {
+					modules.push(join(modulesPath, mod.name));
+				}
+			});
 		}
 	});
+	return modules;
+}
+
+
+function get_icons() {
+	const modules = discover_modules();
+	const classes = get_class_list(modules);
+
+	const searchPaths = [iconsPath]
+	modules.forEach(mod => {
+		searchPaths.push(join(mod, 'icons'));
+	});
+
+	const icons = [];
+	searchPaths.forEach(searchPath => {
+		fs.readdirSync(searchPath).forEach(file => {
+			if (extname(file) === '.svg') {
+				let name = file;
+				if (name.startsWith('icon_')) {
+					name = name.replace('icon_', '');
+					let parts = name.split('_');
+					parts = parts.map(to_title_case);
+					name = parts.join('');
+				}
+				if (!classes.includes(name)) {
+					return;
+				}
+				const f = {
+					name: name,
+					contents: fs.readFileSync(join(searchPath, file), 'utf8')
+				};
+				icons.push(f);
+			}
+		});
+	});
+	
 	return icons;
 }
 
 function ensure_paths() {
-	let paths = [
+	const paths = [
 		outputPath,
 		join(outputPath, 'light'),
 		join(outputPath, 'dark'),
@@ -139,11 +172,11 @@ async function run() {
 
 	console.log('Gathering Godot 3 icons...');
 	await exec(git.checkout_3);
-	let g3 = get_icons();
+	const g3 = get_icons();
 
 	console.log('Gathering Godot 4 icons...');
 	await exec(git.checkout_4);
-	let g4 = get_icons();
+	const g4 = get_icons();
 
 	await exec(git.checkout + branch);
 
@@ -151,8 +184,8 @@ async function run() {
 
 	console.log(`Found ${g3.length + g4.length} icons...`);
 
-	let light_icons = {};
-	let dark_icons = {};
+	const light_icons = {};
+	const dark_icons = {};
 
 	console.log('Generating themed icons...');
 	g3.forEach(file => {
