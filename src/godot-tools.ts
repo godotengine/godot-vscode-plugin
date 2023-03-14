@@ -103,7 +103,6 @@ export class GodotTools {
 		relative_path = relative_path.split(path.sep).join(path.posix.sep);
 		relative_path = "res://" + relative_path;
 
-        logger.log(relative_path)
 		vscode.env.clipboard.writeText(relative_path);
 	}
 
