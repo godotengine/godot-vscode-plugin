@@ -103,7 +103,6 @@ export class GodotTools {
 		relative_path = relative_path.split(path.sep).join(path.posix.sep);
 		relative_path = "res://" + relative_path;
 
-        logger.log(relative_path)
 		vscode.env.clipboard.writeText(relative_path);
 	}
 
@@ -209,7 +208,6 @@ export class GodotTools {
 			};
 
 			let editorPath = get_configuration("editor_path", "");
-			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
 					openLabel: "Run",
