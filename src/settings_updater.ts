@@ -31,8 +31,8 @@ export function updateOldStyleSettings() {
 		// Only show this message if things have actually changed, to prevent users who
 		// are just reinstalling the extension from receiveing it.
 		vscode.window.showInformationMessage(
-			`Settings from godot-tools version <1.5.0 have been updated to the new format.
-			Please view the changelog for version 1.5.0 for more information.`,
+			`Settings from godot-tools version <1.4.0 have been updated to the new format.
+			Please view the changelog for version 1.4.0 for more information.`,
             'Okay'
 		);
 	}
@@ -49,11 +49,11 @@ export function updateStoredVersion(context: vscode.ExtensionContext) {
 }
 
 /**
- * Checks if settings should try and be converted from the <1.5.0 style.
+ * Checks if settings should try and be converted from the <1.4.0 style.
  *
  * Returns `true` if the extension has no value saved for `localVersion`
  * in `context.globalState`, meaning it was either just installed,
- *  or updated from a version <1.5.0. Otherwise, returns `false`.
+ *  or updated from a version <1.4.0. Otherwise, returns `false`.
  */
 export function shouldUpdateSettings(context: vscode.ExtensionContext) : boolean {
     const localVersion: string | undefined = context.globalState.get("previousVersion");
