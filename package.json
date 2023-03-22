@@ -40,7 +40,8 @@
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"generate-icons": "ts-node tools/generate_icons.ts"
 	},
 	"contributes": {
 		"commands": [
@@ -117,6 +118,10 @@
 			{
 				"command": "godotTools.scenePreview.copyNodePath",
 				"title": "Copy Node Path"
+			},
+			{
+				"command": "godotTools.scenePreview.copyResourcePath",
+				"title": "Copy Resource Path"
 			},
 			{
 				"command": "godotTools.scenePreview.openScene",
@@ -428,6 +433,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.pin",
 					"when": "false"
 				},
@@ -437,6 +446,18 @@
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
 					"when": "false"
 				},
 				{
@@ -492,8 +513,12 @@
 					"when": "view == scenePreview"
 				},
 				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "view == scenePreview && viewItem =~ /hasResourcePath/"
+				},
+				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /PackedScene/",
+					"when": "view == scenePreview && viewItem =~ /openable/",
 					"group": "1@2"
 				},
 				{
@@ -540,6 +565,7 @@
 		"@types/vscode": "^1.68.0",
 		"@types/ws": "^8.2.2",
 		"esbuild": "^0.15.2",
+		"ts-node": "^10.9.1",
 		"tslint": "^5.20.1",
 		"typescript": "^3.5.1",
 		"vsce": "^2.10.0"
@@ -547,7 +573,6 @@
 	"dependencies": {
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
-		"klaw": "^4.0.1",
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",

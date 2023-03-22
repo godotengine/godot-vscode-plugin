@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import { find_file, get_configuration, set_configuration, set_context } from "./utils";
+import { get_configuration, set_configuration, find_file, set_context, find_project_file } from "./utils";
 
 const TOOL_NAME = "GodotTools";
 
@@ -15,12 +15,6 @@ export class GodotTools {
 	private linkProvider: GDDocumentLinkProvider = null;
 	private scenePreviewManager: ScenePreviewProvider = null;
 
-	// deprecated, need to replace with "vscode.workspace.workspaceFolders", but
-	// that's an array and not a single value
-	private workspace_dir = vscode.workspace.rootPath;
-	private project_file_name = "project.godot";
-	private project_file = "";
-	private project_dir = "";
 	private connection_status: vscode.StatusBarItem = null;
 
 	constructor(p_context: vscode.ExtensionContext) {
@@ -61,16 +55,6 @@ export class GodotTools {
 		this.connection_status.command = "godot-tool.check_status";
 		this.connection_status.show();
 
-		// TODO: maybe cache this result somehow
-		const klaw = require("klaw");
-		klaw(this.workspace_dir)
-			.on("data", item => {
-				if (path.basename(item.path) == this.project_file_name) {
-					this.project_dir = path.dirname(item.path);
-					this.project_file = item.path;
-				}
-			});
-
 		this.reconnection_attempts = 0;
 		this.client.connect_to_server();
 	}
@@ -80,15 +64,22 @@ export class GodotTools {
 	}
 
 	private open_workspace_with_editor(params = "") {
-
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<void>(async (resolve, reject) => {
 			let valid = false;
-			if (this.project_dir) {
-				let cfg = this.project_file;
-				valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
-			}
+            let project_dir = '';
+            let project_file = '';
+            
+            if (vscode.workspace.workspaceFolders != undefined) {
+                const files = await vscode.workspace.findFiles("**/project.godot");
+                if (files) {
+                    project_file = files[0].fsPath;
+                    project_dir = path.dirname(project_file);
+                    let cfg = project_file;
+                    valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
+                }
+            }
 			if (valid) {
-				this.run_editor(`--path "${this.project_dir}" ${params}`).then(() => resolve()).catch(err => {
+				this.run_editor(`--path "${project_dir}" ${params}`).then(() => resolve()).catch(err => {
 					reject(err);
 				});
 			} else {
@@ -98,15 +89,16 @@ export class GodotTools {
 	}
 
 	private copy_resource_path(uri: vscode.Uri) {
-		if (!this.project_dir) {
-			return;
-		}
-
 		if (!uri) {
 			uri = vscode.window.activeTextEditor.document.uri;
 		}
 
-		let relative_path = path.normalize(path.relative(this.project_dir, uri.fsPath));
+        const project_dir = path.dirname(find_project_file(uri.fsPath));
+        if (project_dir === null) {
+            return
+        }
+        
+		let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));
 		relative_path = relative_path.split(path.sep).join(path.posix.sep);
 		relative_path = "res://" + relative_path;
 
@@ -215,7 +207,6 @@ export class GodotTools {
 			};
 
 			let editorPath = get_configuration("editorPath", "");
-			editorPath = editorPath.replace("${workspaceRoot}", this.workspace_dir);
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
 					openLabel: "Run",

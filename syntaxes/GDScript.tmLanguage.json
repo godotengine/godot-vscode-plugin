@@ -117,8 +117,8 @@
                     "end": "(?:\\s*\\))",
                     "patterns": [
                         {
-                            "begin": "[\\\"\\']",
-                            "end": "[\\\"\\']",
+                            "begin": "[\"']",
+                            "end": "[\"']",
                             "name": "constant.character.escape"
                         },
                         {
@@ -177,8 +177,8 @@
             "end": "(?:\\))",
             "patterns": [
                 {
-                    "begin": "[\\\"\\']",
-                    "end": "[\\\"\\']",
+                    "begin": "[\"']",
+                    "end": "[\"']",
                     "name": "constant.character.escape",
                     "patterns": [
                         {
@@ -200,8 +200,8 @@
             "end": "(?:\\))",
             "patterns": [
                 {
-                    "begin": "[\\\"\\']",
-                    "end": "[\\\"\\']",
+                    "begin": "[\"']",
+                    "end": "[\"']",
                     "name": "constant.character.escape",
                     "patterns": [
                         {
@@ -345,8 +345,8 @@
             ]
         },
         "variable_definition": {
-            "begin": "\\b(?:(var)|(const))",
-            "end": "$",
+            "begin": "\\b(?:(var)|(const))\\s+",
+            "end": "$|;",
             "beginCaptures": {
                 "1": {
                     "name": "storage.type.var.gdscript"
@@ -504,7 +504,7 @@
         },
         "builtin_get_node_shorthand_quoted": {
             "begin": "(\\$)([\"'])",
-            "end": "([\"'])|$",
+            "end": "([\"'])",
             "name": "support.function.builtin.shorthand.gdscript",
             "beginCaptures": {
                 "1": {
@@ -525,7 +525,7 @@
                     "name": "keyword.control.flow"
                 },
                 {
-                    "match": "[^%]*",
+                    "match": "[^%^\"^']*",
                     "name": "constant.character.escape"
                 }
             ]
@@ -667,6 +667,9 @@
                             "name": "entity.name.type.class.gdscript"
                         }
                     }
+                },
+                {
+                    "include": "#base_expression"
                 }
             ]
         },

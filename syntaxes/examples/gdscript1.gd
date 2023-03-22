@@ -10,6 +10,7 @@ var var_d : bool = true
 var var_e :    bool = true
 var var_f:bool=true
 var var_g : string = 'foo'
+var var_h : string = "foo"
 
 const const_a = 0
 const const_b = true
@@ -18,6 +19,11 @@ const const_d : bool = true
 const const_e :    bool = true
 const const_f:bool=true
 const const_g : string = 'foo'
+const const_h : string = "foo"
+
+var pls_no_a = "don't do this"; var pls_no_b = "I don't care if it's valid";
+var pls_no_c = 0; var pls_no_d = false; var pls_no_e = seriously_why();
+var pls_no_f: bool; var pls_no_g: int; var pls_no_h: string;
 
 var a
 remote var b = 10.0
@@ -33,6 +39,9 @@ signal sig_c(param1, param2)
 # 		param1: int, # first param
 # 		param2: Dictionary,
 # 	)
+
+var variant_a = 0
+const variant_b = 0
 
 # ------------------------------------------------------------------------------
 
@@ -109,6 +118,12 @@ func func_c(
 	):
 	pass
 
+# one line functions, please don't actually do this
+func one_line_int_fn() -> int: return 3
+func one_line_dict_fn() -> int: return {a=0, b=0.0, c='test'}
+func one_line_print() -> void: print("Uh oh")
+func one_line_fn() -> void: return
+
 # ------------------------------------------------------------------------------
 
 var q = "double quotes"
@@ -171,6 +186,19 @@ var node_path_a = NodePath("Child")
 var node_path_b = NodePath('Child/GrandChild')
 var node_path_c = NodePath('../Sibling')
 
+var node_method_result_a = get_node("Child").some_method()
+var node_method_result_b = get_node("Child/GrandChild").some_method()
+var node_method_result_c = get_node("%Child").some_method()
+var node_method_result_d = $Child.some_method()
+var node_method_result_e = $'Child'.some_method()
+var node_method_result_f = $'%Child'.some_method()
+var node_method_result_g = $Child/GrandChild.some_method()
+var node_method_result_h = $"Child/GrandChild".some_method()
+var node_method_result_i = $"%Child/GrandChild".some_method()
+var node_method_result_j = $Child.get_node('GrandChild').some_method()
+var node_method_result_k = $"Child".get_node('GrandChild').some_method()
+var node_method_result_l = $"%Child".get_node('GrandChild').some_method()
+
 # ------------------------------------------------------------------------------
 
 var _script = GDScript.new()
@@ -213,6 +241,8 @@ func if_test():
 		pass
 	else:
 		pass
+
+	if some_bool: return
 
 # ------------------------------------------------------------------------------
 

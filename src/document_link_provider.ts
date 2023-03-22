@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { Uri, Position, Range, TextDocument } from "vscode";
+import { convert_resource_path_to_uri } from "./utils";
 
 export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 	private context: vscode.ExtensionContext;
@@ -27,7 +28,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 				const start = new Position(i, match.index);
 				const end = new Position(i, match.index + match[0].length);
 				const r = new Range(start, end);
-				const uri = await resourcePathToUri(match[0]);
+				const uri = await convert_resource_path_to_uri(match[0]);
 				if (uri instanceof Uri) {
 					links.push(new vscode.DocumentLink(r, uri));
 				}
@@ -35,13 +36,4 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 		}
 		return links;
 	}
-}
-
-async function resourcePathToUri(resPath: string) {
-	const files = await vscode.workspace.findFiles("**/project.godot");
-	if (!files) {
-		return resPath;
-	}
-	const project_dir = files[0].fsPath.replace("project.godot", "");
-	return Uri.joinPath(Uri.file(project_dir), resPath.substring(6));
 }
