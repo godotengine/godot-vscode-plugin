@@ -1,18 +1,18 @@
 import * as vscode from "vscode";
 
 const OLD_SETTINGS_CONVERSIONS = [
-    ["godot_tools.gdscript_lsp_server_protocol", "godotTools.lsp.serverProtocol"],
-    ["godot_tools.gdscript_lsp_server_host", "godotTools.lsp.serverHost"],
-    ["godot_tools.gdscript_lsp_server_port", "godotTools.lsp.serverPort"],
-    ["godot_tools.editor_path", "godotTools.editorPath"],
-    ["godot_tools.scene_file_config", "godotTools.sceneFileConfig"],
-    ["godot_tools.reconnect_automatically", "godotTools.lsp.autoReconnect.enabled"],
-    ["godot_tools.reconnect_cooldown", "godotTools.lsp.autoReconnect.cooldown"],
-    ["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
-    ["godot_tools.force_visible_collision_shapes", "godotTools.forceVisibleCollisionShapes"],
-    ["godot_tools.force_visible_nav_mesh", "godotTools.forceVisibleNavMesh"],
-    ["godot_tools.native_symbol_placement", "godotTools.nativeSymbolPlacement"],
-    ["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
+	["godot_tools.gdscript_lsp_server_protocol", "godotTools.lsp.serverProtocol"],
+	["godot_tools.gdscript_lsp_server_host", "godotTools.lsp.serverHost"],
+	["godot_tools.gdscript_lsp_server_port", "godotTools.lsp.serverPort"],
+	["godot_tools.editor_path", "godotTools.editorPath"],
+	["godot_tools.scene_file_config", "godotTools.sceneFileConfig"],
+	["godot_tools.reconnect_automatically", "godotTools.lsp.autoReconnect.enabled"],
+	["godot_tools.reconnect_cooldown", "godotTools.lsp.autoReconnect.cooldown"],
+	["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
+	["godot_tools.force_visible_collision_shapes", "godotTools.forceVisibleCollisionShapes"],
+	["godot_tools.force_visible_nav_mesh", "godotTools.forceVisibleNavMesh"],
+	["godot_tools.native_symbol_placement", "godotTooPtabls.nativeSymbolPlacement"],
+	["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
 ];
 
 export function updateOldStyleSettings() {
@@ -33,7 +33,7 @@ export function updateOldStyleSettings() {
 		vscode.window.showInformationMessage(
 			`Settings from godot-tools version <1.4.0 have been updated to the new format.
 			Please view the changelog for version 1.4.0 for more information.`,
-            'Okay'
+			'Okay'
 		);
 	}
 }
@@ -56,6 +56,6 @@ export function updateStoredVersion(context: vscode.ExtensionContext) {
  *  or updated from a version <1.4.0. Otherwise, returns `false`.
  */
 export function shouldUpdateSettings(context: vscode.ExtensionContext) : boolean {
-    const localVersion: string | undefined = context.globalState.get("previousVersion");
-    return localVersion === undefined;
+	const localVersion: string | undefined = context.globalState.get("previousVersion");
+	return localVersion === undefined;
 }
