@@ -1,18 +1,18 @@
 import * as vscode from "vscode";
 
 const OLD_SETTINGS_CONVERSIONS = [
-    ["godot_tools.gdscript_lsp_server_protocol", "godot-tools.lsp.serverProtocol"],
-    ["godot_tools.gdscript_lsp_server_host", "godot-tools.lsp.serverHost"],
-    ["godot_tools.gdscript_lsp_server_port", "godot-tools.lsp.serverPort"],
-    ["godot_tools.editor_path", "godot-tools.editorPath"],
-    ["godot_tools.scene_file_config", "godot-tools.sceneFileConfig"],
-    ["godot_tools.reconnect_automatically", "godot-tools.lsp.autoReconnect.enabled"],
-    ["godot_tools.reconnect_cooldown", "godot-tools.lsp.autoReconnect.cooldown"],
-    ["godot_tools.reconnect_attempts", "godot-tools.lsp.autoReconnect.attempts"],
-    ["godot_tools.force_visible_collision_shapes", "godot-tools.forceVisibleCollisionShapes"],
-    ["godot_tools.force_visible_nav_mesh", "godot-tools.forceVisibleNavMesh"],
-    ["godot_tools.native_symbol_placement", "godot-tools.nativeSymbolPlacement"],
-    ["godot_tools.scenePreview.previewRelatedScenes", "godot-tools.scenePreview.previewRelatedScenes"]
+    ["godot_tools.gdscript_lsp_server_protocol", "godotTools.lsp.serverProtocol"],
+    ["godot_tools.gdscript_lsp_server_host", "godotTools.lsp.serverHost"],
+    ["godot_tools.gdscript_lsp_server_port", "godotTools.lsp.serverPort"],
+    ["godot_tools.editor_path", "godotTools.editorPath"],
+    ["godot_tools.scene_file_config", "godotTools.sceneFileConfig"],
+    ["godot_tools.reconnect_automatically", "godotTools.lsp.autoReconnect.enabled"],
+    ["godot_tools.reconnect_cooldown", "godotTools.lsp.autoReconnect.cooldown"],
+    ["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
+    ["godot_tools.force_visible_collision_shapes", "godotTools.forceVisibleCollisionShapes"],
+    ["godot_tools.force_visible_nav_mesh", "godotTools.forceVisibleNavMesh"],
+    ["godot_tools.native_symbol_placement", "godotTools.nativeSymbolPlacement"],
+    ["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
 ];
 
 export function updateOldStyleSettings() {

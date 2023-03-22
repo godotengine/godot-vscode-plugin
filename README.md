@@ -67,7 +67,7 @@ You can use the following settings to configure Godot Tools:
 
 - `editor_path` - The absolute path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
 - `gdscript_lsp_server_port` - The WebSocket server port of the GDScript language server.
-- `check_status` - Check the GDScript language server connection status.
+- `checkStatus` - Check the GDScript language server connection status.
 
 #### GDScript Debugger
 

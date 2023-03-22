@@ -31,20 +31,20 @@ export class GodotTools {
 	}
 
 	public activate() {
-		vscode.commands.registerCommand("godot-tool.open_editor", () => {
+		vscode.commands.registerCommand("godotTools.openEditor", () => {
 			this.open_workspace_with_editor("-e").catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.run_project", () => {
+		vscode.commands.registerCommand("godotTools.runProject", () => {
 			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.run_project_debug", () => {
+		vscode.commands.registerCommand("godotTools.runProjectDebug", () => {
 			this.open_workspace_with_editor("--debug-collisions --debug-navigation").catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godot-tool.check_status", this.check_client_status.bind(this));
-		vscode.commands.registerCommand("godot-tool.set_scene_file", this.set_scene_file.bind(this));
-		vscode.commands.registerCommand("godot-tool.copy_resource_path_context", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godot-tool.copy_resource_path", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godot-tool.open_type_documentation", this.open_type_documentation.bind(this));
+		vscode.commands.registerCommand("godotTools.checkStatus", this.check_client_status.bind(this));
+		vscode.commands.registerCommand("godotTools.setSceneFile", this.set_scene_file.bind(this));
+		vscode.commands.registerCommand("godotTools.copyResourcePathContext", this.copy_resource_path.bind(this));
+		vscode.commands.registerCommand("godotTools.copyResourcePath", this.copy_resource_path.bind(this));
+		vscode.commands.registerCommand("godotTools.openTypeDocumentation", this.open_type_documentation.bind(this));
 		vscode.commands.registerCommand("godotTools.switchSceneScript", this.switch_scene_script.bind(this));
 
 		set_context("godotTools.context.connectedToEditor", false);
@@ -52,7 +52,7 @@ export class GodotTools {
 		this.scenePreviewManager = new ScenePreviewProvider();
 
 		this.connection_status.text = "$(sync) Initializing";
-		this.connection_status.command = "godot-tool.check_status";
+		this.connection_status.command = "godotTools.checkStatus";
 		this.connection_status.show();
 
 		this.reconnection_attempts = 0;

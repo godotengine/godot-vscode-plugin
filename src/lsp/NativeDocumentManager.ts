@@ -22,7 +22,6 @@ marked.setOptions({
 const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
-const LIST_NATIVE_CLASS_COMMAND = "godot-tool.list_native_classes";
 
 export default class NativeDocumentManager extends EventEmitter {
 	private io: MessageIO = null;
@@ -54,7 +53,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		});
 
 		vscode.commands.registerCommand(
-			LIST_NATIVE_CLASS_COMMAND,
+			"godotTools.listNativeClasses",
 			this.list_native_classes.bind(this)
 		);
 	}
