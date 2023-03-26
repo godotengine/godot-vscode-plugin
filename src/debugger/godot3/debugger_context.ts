@@ -36,7 +36,7 @@ export function register_debugger(context: ExtensionContext) {
 
 	let factory = new GodotDebugAdapterFactory(scene_tree_provider);
 	context.subscriptions.push(
-		debug.registerDebugAdapterDescriptorFactory("godot", factory)
+		debug.registerDebugAdapterDescriptorFactory("godot3", factory)
 	);
 
 	commands.registerCommand(
