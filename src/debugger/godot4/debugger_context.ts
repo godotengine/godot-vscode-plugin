@@ -25,7 +25,7 @@ import { Mediator } from "./mediator";
 export function register_debugger(context: ExtensionContext) {
 	let provider = new GodotConfigurationProvider();
 	context.subscriptions.push(
-		debug.registerDebugConfigurationProvider("godot", provider)
+		debug.registerDebugConfigurationProvider("godot4", provider)
 	);
 
 	let inspector_provider = new InspectorProvider();
@@ -177,7 +177,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 		if (!config.type && !config.request && !config.name) {
 			const editor = window.activeTextEditor;
 			if (editor && fs.existsSync(`${folder.uri.fsPath}/project.godot`)) {
-				config.type = "godot";
+				config.type = "godot4";
 				config.name = "Debug Godot";
 				config.request = "launch";
 				config.project = "${workspaceFolder}";
