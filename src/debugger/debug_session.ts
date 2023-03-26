@@ -1,19 +1,15 @@
 import {
-	LoggingDebugSession,
-	InitializedEvent,
-	Thread,
-	Source,
-	Breakpoint,
+	Breakpoint, InitializedEvent, LoggingDebugSession, Source, Thread
 } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
-import { Mediator } from "./mediator";
+import { get_configuration } from "../utils";
 import { GodotDebugData, GodotVariable } from "./debug_runtime";
-import { ObjectId, RawObject } from "./variables/variants";
+import { Mediator } from "./mediator";
+import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
 import { ServerController } from "./server_controller";
+import { ObjectId, RawObject } from "./variables/variants";
 const { Subject } = require("await-notify");
 import fs = require("fs");
-import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
-import { get_configuration } from "../utils";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -238,7 +234,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			args.launch_scene,
 			args.scene_file,
 			args.additional_options,
-			get_configuration("scene_file_config", "") || args.scene_file,
+			get_configuration("sceneFileConfig", "") || args.scene_file,
 		]);
 
 		this.sendResponse(response);

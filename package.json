@@ -46,27 +46,27 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "godot-tool.open_editor",
+				"command": "godotTools.openEditor",
 				"title": "Godot Tools: Open workspace with Godot editor"
 			},
 			{
-				"command": "godot-tool.run_project",
+				"command": "godotTools.runProject",
 				"title": "Godot Tools: Run workspace as Godot project"
 			},
 			{
-				"command": "godot-tool.run_project_debug",
+				"command": "godotTools.runProjectDebug",
 				"title": "Godot Tools: Run workspace as Godot project with visible collision shapes and navigation meshes"
 			},
 			{
-				"command": "godot-tool.list_native_classes",
+				"command": "godotTools.listNativeClasses",
 				"title": "Godot Tools: List native classes of godot"
 			},
 			{
-				"command": "godot-tool.open_type_documentation",
+				"command": "godotTools.openTypeDocumentation",
 				"title": "Godot Tools: Open Type Documentation"
 			},
 			{
-				"command": "godot-tool.debugger.inspect_node",
+				"command": "godotTools.debugger.inspectNode",
 				"title": "Inspect Remote Node",
 				"icon": {
 					"light": "resources/light/icon_GUI_visibility_visible.svg",
@@ -74,7 +74,7 @@
 				}
 			},
 			{
-				"command": "godot-tool.debugger.refresh_scene_tree",
+				"command": "godotTools.debugger.refreshSceneTree",
 				"title": "Refresh",
 				"icon": {
 					"light": "resources/light/icon_refresh.svg",
@@ -82,7 +82,7 @@
 				}
 			},
 			{
-				"command": "godot-tool.debugger.refresh_inspector",
+				"command": "godotTools.debugger.refreshInspector",
 				"title": "Refresh",
 				"icon": {
 					"light": "resources/light/icon_refresh.svg",
@@ -90,7 +90,7 @@
 				}
 			},
 			{
-				"command": "godot-tool.debugger.edit_value",
+				"command": "godotTools.debugger.editValue",
 				"title": "Edit value",
 				"icon": {
 					"light": "resources/light/icon_edit.svg",
@@ -136,15 +136,15 @@
 				"title": "Godot Tools: Switch Scene/Script"
 			},
 			{
-				"command": "godot-tool.set_scene_file",
+				"command": "godotTools.setSceneFile",
 				"title": "Set as Scene File"
 			},
 			{
-				"command": "godot-tool.copy_resource_path_context",
+				"command": "godotTools.copyResourcePathContext",
 				"title": "Copy Resource Path"
 			},
 			{
-				"command": "godot-tool.copy_resource_path",
+				"command": "godotTools.copyResourcePath",
 				"title": "Godot Tools: Copy Resource Path"
 			}
 		],
@@ -157,9 +157,9 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Godot Tools configuration",
+			"title": "Godot Tools",
 			"properties": {
-				"godot_tools.gdscript_lsp_server_protocol": {
+				"godotTools.lsp.serverProtocol": {
 					"type": [
 						"string"
 					],
@@ -169,57 +169,57 @@
 					],
 					"default": "tcp",
 					"enumDescriptions": [
-						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
-						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
+						"Use the WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
+						"Use the TCP protocol to connect to Godot 3.2.2 and newer versions"
 					],
-					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+					"description": "The server protocol of the GDScript language server.\nYou must restart VSCode after changing this value."
 				},
-				"godot_tools.gdscript_lsp_server_host": {
+				"godotTools.lsp.serverHost": {
 					"type": "string",
 					"default": "127.0.0.1",
 					"description": "The server host of the GDScript language server"
 				},
-				"godot_tools.gdscript_lsp_server_port": {
+				"godotTools.lsp.serverPort": {
 					"type": "number",
 					"default": 6008,
 					"description": "The server port of the GDScript language server"
 				},
-				"godot_tools.editor_path": {
+				"godotTools.editorPath": {
 					"type": "string",
 					"default": "",
 					"description": "The absolute path to the Godot editor executable"
 				},
-				"godot_tools.scene_file_config": {
+				"godotTools.sceneFileConfig": {
 					"type": "string",
 					"default": "",
 					"description": "The scene file to run"
 				},
-				"godot_tools.reconnect_automatically": {
+				"godotTools.lsp.autoReconnect.enabled": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether the plugin should attempt to reconnect"
+					"description": "Whether the plugin should attempt to reconnect to the GDScript language server"
 				},
-				"godot_tools.reconnect_cooldown": {
+				"godotTools.lsp.autoReconnect.cooldown": {
 					"type": "number",
 					"default": 3000,
 					"description": "The number of milliseconds to wait before attempting to reconnect"
 				},
-				"godot_tools.reconnect_attempts": {
+				"godotTools.lsp.autoReconnect.attempts": {
 					"type": "number",
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
 				},
-				"godot_tools.force_visible_collision_shapes": {
+				"godotTools.forceVisibleCollisionShapes": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible collision shapes"
 				},
-				"godot_tools.force_visible_nav_mesh": {
+				"godotTools.forceVisibleNavMesh": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
 				},
-				"godot_tools.native_symbol_placement": {
+				"godotTools.nativeSymbolPlacement": {
 					"enum": [
 						"active",
 						"beside"
@@ -231,7 +231,7 @@
 					"default": "beside",
 					"description": "Where to place the native symbol windows"
 				},
-				"godot_tools.scenePreview.previewRelatedScenes": {
+				"godotTools.scenePreview.previewRelatedScenes": {
 					"enum": [
 						"anyFolder",
 						"sameFolder",
@@ -353,10 +353,10 @@
 								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
 								"default": ""
 							},
-							"additional_options":{
-								"type":"string",
+							"additional_options": {
+								"type": "string",
 								"description": "Additional command line arguments.",
-								"default":""
+								"default": ""
 							}
 						}
 					}
@@ -371,7 +371,7 @@
 						"address": "127.0.0.1",
 						"launch_game_instance": true,
 						"launch_scene": false,
-						"additional_options":""
+						"additional_options": ""
 					}
 				],
 				"configurationSnippets": [
@@ -386,7 +386,7 @@
 							"address": "127.0.0.1",
 							"launch_game_instance": true,
 							"launch_scene": false,
-							"additional_options":""
+							"additional_options": ""
 						}
 					}
 				]
@@ -461,18 +461,18 @@
 					"when": "false"
 				},
 				{
-					"command": "godot-tool.copy_resource_path_context",
+					"command": "godotTools.copyResourcePathContext",
 					"when": "false"
 				}
 			],
 			"view/title": [
 				{
-					"command": "godot-tool.debugger.refresh_scene_tree",
+					"command": "godotTools.debugger.refreshSceneTree",
 					"when": "view == active-scene-tree",
 					"group": "navigation"
 				},
 				{
-					"command": "godot-tool.debugger.refresh_inspector",
+					"command": "godotTools.debugger.refreshInspector",
 					"when": "view == inspect-node",
 					"group": "navigation"
 				},
@@ -489,17 +489,17 @@
 			],
 			"view/item/context": [
 				{
-					"command": "godot-tool.debugger.inspect_node",
+					"command": "godotTools.debugger.inspectNode",
 					"when": "view == active-scene-tree",
 					"group": "inline"
 				},
 				{
-					"command": "godot-tool.debugger.inspect_node",
+					"command": "godotTools.debugger.inspectNode",
 					"when": "view == inspect-node && viewItem == remote_object",
 					"group": "inline"
 				},
 				{
-					"command": "godot-tool.debugger.edit_value",
+					"command": "godotTools.debugger.editValue",
 					"when": "view == inspect-node && viewItem == editable_value",
 					"group": "inline"
 				},
@@ -529,23 +529,23 @@
 			],
 			"explorer/context": [
 				{
-					"command": "godot-tool.set_scene_file",
+					"command": "godotTools.setSceneFile",
 					"group": "2_workspace"
 				},
 				{
-					"command": "godot-tool.copy_resource_path_context",
+					"command": "godotTools.copyResourcePathContext",
 					"group": "6_copypath"
 				}
 			],
 			"editor/title/context": [
 				{
-					"command": "godot-tool.copy_resource_path_context",
+					"command": "godotTools.copyResourcePathContext",
 					"group": "1_godot"
 				}
 			],
 			"editor/context": [
 				{
-					"command": "godot-tool.open_type_documentation",
+					"command": "godotTools.openTypeDocumentation",
 					"when": "godotTools.context.connectedToEditor",
 					"group": "navigation@9"
 				},

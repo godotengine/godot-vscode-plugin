@@ -40,7 +40,7 @@ export function register_debugger(context: ExtensionContext) {
 	);
 
 	commands.registerCommand(
-		"godot-tool.debugger.inspect_node",
+		"godotTools.debugger.inspectNode",
 		(element: SceneNode | RemoteProperty) => {
 			if (element instanceof SceneNode) {
 				Mediator.notify("inspect_object", [
@@ -70,11 +70,11 @@ export function register_debugger(context: ExtensionContext) {
 		}
 	);
 
-	commands.registerCommand("godot-tool.debugger.refresh_scene_tree", () => {
+	commands.registerCommand("godotTools.debugger.refreshSceneTree", () => {
 		Mediator.notify("request_scene_tree", []);
 	});
 
-	commands.registerCommand("godot-tool.debugger.refresh_inspector", () => {
+	commands.registerCommand("godotTools.debugger.refreshInspector", () => {
 		if (inspector_provider.has_tree()) {
 			let name = inspector_provider.get_top_name();
 			let id = inspector_provider.get_top_id();
@@ -88,7 +88,7 @@ export function register_debugger(context: ExtensionContext) {
 	});
 
 	commands.registerCommand(
-		"godot-tool.debugger.edit_value",
+		"godotTools.debugger.editValue",
 		(property: RemoteProperty) => {
 			let previous_value = property.value;
 			let type = typeof previous_value;

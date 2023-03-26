@@ -22,7 +22,6 @@ marked.setOptions({
 const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
-const LIST_NATIVE_CLASS_COMMAND = "godot-tool.list_native_classes";
 
 export default class NativeDocumentManager extends EventEmitter {
 	private io: MessageIO = null;
@@ -54,7 +53,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		});
 
 		vscode.commands.registerCommand(
-			LIST_NATIVE_CLASS_COMMAND,
+			"godotTools.listNativeClasses",
 			this.list_native_classes.bind(this)
 		);
 	}
@@ -86,7 +85,7 @@ export default class NativeDocumentManager extends EventEmitter {
 
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
 		let json_data = "";
-		if (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") {
+		if (get_configuration("lsp.serverProtocol", "tcp") == "ws") {
 			json_data = JSON.stringify({
 				id: -1,
 				jsonrpc: "2.0",
@@ -130,7 +129,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	 * configuration and previously opened native symbols.
 	 */
 	private get_new_native_symbol_column(): vscode.ViewColumn {
-		const config_placement = get_configuration("native_symbol_placement", "beside");
+		const config_placement = get_configuration("nativeSymbolPlacement", "beside");
 
 		if (config_placement == "active") {
 			return vscode.ViewColumn.Active;
@@ -148,7 +147,7 @@ export default class NativeDocumentManager extends EventEmitter {
 		if (is_non_editor_column_active) {
 			return active_column;
 		}
-		
+
 		const all_columns = tab_groups.all.map(group => group.viewColumn);
 		const first_non_editor_column = all_columns.find(column => !editor_columns.includes(column));
 		if (first_non_editor_column) {

@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, RequestMessage } from "vscode-languageclient/node";
-import { is_debug_mode, get_configuration } from "../utils";
-import { MessageIO, MessageIOReader, MessageIOWriter, Message, WebSocketMessageIO, TCPMessageIO } from "./MessageIO";
-import logger from "../logger";
 import { EventEmitter } from "events";
+import * as vscode from 'vscode';
+import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
+import logger from "../logger";
+import { get_configuration, is_debug_mode } from "../utils";
+import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
 
 export enum ClientStatus {
@@ -15,7 +15,7 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public readonly io: MessageIO = (get_configuration("gdscript_lsp_server_protocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
@@ -78,8 +78,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		let host = get_configuration("gdscript_lsp_server_host", "127.0.0.1");
-		let port = get_configuration("gdscript_lsp_server_port", 6008);
+		let host = get_configuration("lsp.serverHost", "127.0.0.1");
+		let port = get_configuration("lsp.serverPort", 6008);
 		this.io.connect_to_language_server(host, port);
 	}
 
@@ -113,7 +113,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				message["result"][i]["target"] = x.replace('file://', 'file:///');
 			}
 		}
-		
+
 		this.message_handler.on_message(message);
 	}
 
