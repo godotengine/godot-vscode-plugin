@@ -56,14 +56,6 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	}
 }
 
-function match_icon_to_class(class_name: string) {
-	let icon_name = `icon${class_name
-		.replace(/(2|3)D/, "$1d")
-		.replace(/([A-Z0-9])/g, "_$1")
-		.toLowerCase()}.svg`;
-	return icon_name;
-}
-
 export class SceneNode extends TreeItem {
 	constructor(
 		public label: string,
@@ -74,54 +66,12 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		let light = path.join(
-			__filename,
-			"..",
-			"..",
-			"..",
-			"..",
-			"resources",
-			"light",
-			match_icon_to_class(class_name)
-		);
-		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"..",
-				"..",
-				"resources",
-				"light",
-				"node.svg"
-			);
-		}
-		let dark = path.join(
-			__filename,
-			"..",
-			"..",
-			"..",
-			"..",
-			"resources",
-			"dark",
-			match_icon_to_class(class_name)
-		);
-		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"..",
-				"..",
-				"resources",
-				"dark",
-				"node.svg"
-			);
-		}
+		const iconDir = path.join(__filename, "..", "..", "..", "..", "..", "resources", "godot_icons");
+		const iconName = class_name + '.svg';
 
 		this.iconPath = {
-			light: light,
-			dark: dark,
+			light: path.join(iconDir, "light", iconName),
+			dark: path.join(iconDir, "dark", iconName),
 		};
 	}
 }
