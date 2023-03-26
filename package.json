@@ -449,7 +449,11 @@
 							},
 							"editor_path": {
 								"type": "string",
-								"description": "Absolute path to the Godot executable to be used for this debug profile.",
+								"description": "Absolute path to the Godot executable to be used for this debug profile."
+							},
+							"additional_options": {
+								"type": "string",
+								"description": "Additional command line arguments.",
 								"default": ""
 							}
 						}
