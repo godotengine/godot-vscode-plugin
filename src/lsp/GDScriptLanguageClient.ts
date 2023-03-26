@@ -13,7 +13,7 @@ export enum ClientStatus {
 	DISCONNECTED,
 	CONNECTED,
 }
-const CUSTOM_MESSAGE = "gdscrip_client/";
+const CUSTOM_MESSAGE = "gdscript_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
