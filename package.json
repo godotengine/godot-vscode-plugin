@@ -204,6 +204,16 @@
 					"default": "godot4",
 					"description": "The absolute path to the Godot 4 editor executable"
 				},
+				"godotTools.editorPath.godot3": {
+					"type": "string",
+					"default": "",
+					"description": "The absolute path to the Godot 3 editor executable"
+				},
+				"godotTools.editorPath.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "The absolute path to the Godot 4 editor executable"
+				},
 				"godotTools.sceneFileConfig": {
 					"type": "string",
 					"default": "",
@@ -374,12 +384,36 @@
 								"default": ""
 							}
 						}
+					}, 
+					"attach": {
+						"required": [
+							"project",
+							"port",
+							"address"
+						],
+						"properties": {
+							"project": {
+								"type": "string",
+								"description": "Absolute path to a directory with a project.godot file.",
+								"default": "${workspaceFolder}"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
+							},
+							"address": {
+								"type": "string",
+								"description": "The IP address for the Godot remote debugger to use.",
+								"default": "127.0.0.1"
+							}
+						}
 					}
 				},
 				"initialConfigurations": [
 					{
 						"name": "GDScript Godot",
-						"type": "godot",
+						"type": "godot3",
 						"request": "launch",
 						"project": "${workspaceFolder}",
 						"port": 6007,
@@ -393,13 +427,26 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"type": "godot",
+							"name": "GDScript Godot",
+							"type": "godot3",
 							"request": "launch",
 							"project": "${workspaceFolder}",
 							"port": 6007,
 							"address": "127.0.0.1",
 							"launch_game_instance": true,
 							"launch_scene": false
+						}
+					},
+					{
+						"label": "GDScript Godot Debug: Attach",
+						"description": "A new configuration for debugging a Godot project.",
+						"body": {
+							"name": "GDScript Godot",
+							"type": "godot3",
+							"request": "attach",
+							"project": "${workspaceFolder}",
+							"port": 6007,
+							"address": "127.0.0.1"
 						}
 					}
 				]
@@ -457,12 +504,36 @@
 								"default": ""
 							}
 						}
+					},
+					"attach": {
+						"required": [
+							"project",
+							"port",
+							"address"
+						],
+						"properties": {
+							"project": {
+								"type": "string",
+								"description": "Absolute path to a directory with a project.godot file.",
+								"default": "${workspaceFolder}"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
+							},
+							"address": {
+								"type": "string",
+								"description": "The IP address for the Godot remote debugger to use.",
+								"default": "127.0.0.1"
+							}
+						}
 					}
 				},
 				"initialConfigurations": [
 					{
 						"name": "GDScript Godot",
-						"type": "godot",
+						"type": "godot4",
 						"request": "launch",
 						"project": "${workspaceFolder}",
 						"port": 6007,
@@ -477,7 +548,8 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"type": "godot",
+							"name": "GDScript Godot",
+							"type": "godot4",
 							"request": "launch",
 							"project": "${workspaceFolder}",
 							"port": 6007,
@@ -508,13 +580,11 @@
 			"debug": [
 				{
 					"id": "active-scene-tree",
-					"name": "Active Scene Tree",
-					"when": "inDebugMode && debugType == 'godot'"
+					"name": "Active Scene Tree"
 				},
 				{
 					"id": "inspect-node",
-					"name": "Inspector",
-					"when": "inDebugMode && debugType == 'godot'"
+					"name": "Inspector"
 				}
 			],
 			"godotTools": [
