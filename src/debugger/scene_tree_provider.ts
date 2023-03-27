@@ -66,7 +66,7 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		const iconDir = path.join(__filename, "..", "..", "..", "..", "..", "resources", "godot_icons");
+		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
 		const iconName = class_name + '.svg';
 
 		this.iconPath = {

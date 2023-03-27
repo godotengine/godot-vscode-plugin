@@ -6,14 +6,14 @@ import {
 	Breakpoint,
 } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
+import { get_configuration } from "../../utils";
+import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { Mediator } from "./mediator";
-import { GodotDebugData, GodotVariable } from "./debug_runtime";
-import { ObjectId, RawObject } from "./variables/variants";
+import { SceneTreeProvider } from "../scene_tree_provider";
 import { ServerController } from "./server_controller";
+import { ObjectId, RawObject } from "./variables/variants";
 const { Subject } = require("await-notify");
 import fs = require("fs");
-import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
-import { get_configuration } from "../../utils";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -28,7 +28,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
 	private controller?: ServerController;
-	private debug_data = new GodotDebugData();
+	private debug_data = new GodotDebugData(Mediator);
 	private exception = false;
 	private got_scope = new Subject();
 	private ongoing_inspections: bigint[] = [];

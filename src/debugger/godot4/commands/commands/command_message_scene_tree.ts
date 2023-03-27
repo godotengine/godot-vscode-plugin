@@ -1,6 +1,6 @@
 import { Command } from "../command";
 import { Mediator } from "../../mediator";
-import { SceneNode } from "../../scene_tree/scene_tree_provider";
+import { SceneNode } from "../../../scene_tree_provider";
 
 export class CommandMessageSceneTree extends Command {
 	public trigger(parameters: any[]) {
