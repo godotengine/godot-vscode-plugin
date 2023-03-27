@@ -14,6 +14,8 @@ export class CommandMessageSceneTree extends Command {
 		let name: string = params[ofs.offset++];
 		let class_name: string = params[ofs.offset++];
 		let id: number = params[ofs.offset++];
+		let unknown1: string = params[ofs.offset++];
+		let unknown2: number = params[ofs.offset++];
 
 		let children: SceneNode[] = [];
 		for (let i = 0; i < child_count; ++i) {
