@@ -23,7 +23,6 @@ export function updateOldStyleSettings() {
 		if (value === undefined) {
 			continue;
 		}
-		configuration.update(old_style_key, undefined, true);
 		configuration.update(new_style_key, value, true);
 		settings_changed = true;
 	}
