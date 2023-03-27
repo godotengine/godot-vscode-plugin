@@ -98,7 +98,7 @@ export class ServerController {
 		this.debug_data = debug_data;
 
 		if (launch_instance) {
-			let godot_path: string = utils.get_configuration("editorPath", "godot");
+			let godot_path: string = utils.get_configuration("editorPath.godot4", "godot");
 			const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 			const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 			const protocol = utils.get_configuration("lsp.serverProtocol", "tcp");
