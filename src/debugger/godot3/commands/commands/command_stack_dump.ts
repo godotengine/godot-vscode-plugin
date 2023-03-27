@@ -1,6 +1,6 @@
 import { Command } from "../command";
 import { Mediator } from "../../mediator";
-import { GodotStackFrame } from "../../debug_runtime";
+import { GodotStackFrame } from "../../../debug_runtime";
 
 export class CommandStackDump extends Command {
 	public trigger(parameters: any[]) {

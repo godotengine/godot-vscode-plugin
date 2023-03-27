@@ -5,7 +5,7 @@ import {
 	GodotBreakpoint,
 	GodotStackFrame,
 	GodotDebugData,
-} from "./debug_runtime";
+} from "../debug_runtime";
 import { window } from "vscode";
 const TERMINATE = require("terminate");
 import net = require("net");

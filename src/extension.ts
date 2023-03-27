@@ -5,8 +5,7 @@ import { attemptSettingsUpdate } from "./settings_updater";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import debuggerContextv3 = require("./debugger/godot3/debugger_context");
-import debuggerContextv4 = require("./debugger/godot4/debugger_context");
+import { GodotDebugManager } from "./debugger/debugger";
 import {
 	get_configuration,
 	set_configuration,
@@ -20,6 +19,7 @@ const TOOL_NAME = "GodotTools";
 let lspClientManager: ClientConnectionManager = null;
 let linkProvider: GDDocumentLinkProvider = null;
 let scenePreviewManager: ScenePreviewProvider = null;
+let debugManager: GodotDebugManager = null;
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
@@ -28,8 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 	linkProvider = new GDDocumentLinkProvider(context);
 	scenePreviewManager = new ScenePreviewProvider();
 
-	debuggerContextv3.register_debugger(context);
-	debuggerContextv4.register_debugger(context);
+	debugManager = new GodotDebugManager(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", () => {

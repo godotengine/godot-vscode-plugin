@@ -2,7 +2,7 @@ import { ServerController } from "./server_controller";
 import { window, OutputChannel } from "vscode";
 import { GodotDebugSession } from "./debug_session";
 import { StoppedEvent, TerminatedEvent } from "vscode-debugadapter";
-import { GodotDebugData, GodotVariable } from "./debug_runtime";
+import { GodotDebugData, GodotVariable } from "../debug_runtime";
 
 export class Mediator {
 	private static controller?: ServerController;

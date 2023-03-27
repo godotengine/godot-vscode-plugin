@@ -11,161 +11,34 @@ import {
 	CancellationToken,
 	ProviderResult,
 	window,
-	commands,
 } from "vscode";
 import { GodotDebugSession } from "./debug_session";
 import fs = require("fs");
-import { SceneTreeProvider, SceneNode } from "./scene_tree/scene_tree_provider";
-import {
-	RemoteProperty,
-	InspectorProvider,
-} from "./scene_tree/inspector_provider";
+import { SceneTreeProvider } from "../scene_tree_provider";
 import { Mediator } from "./mediator";
 
-export function register_debugger(context: ExtensionContext) {
-	let provider = new GodotConfigurationProvider();
-	context.subscriptions.push(
-		debug.registerDebugConfigurationProvider("godot3", provider)
-	);
+export class Godot3Debugger {
+	public provider: GodotConfigurationProvider;
+	public factory: GodotDebugAdapterFactory;
 
-	let inspector_provider = new InspectorProvider();
-	window.registerTreeDataProvider("inspect-node", inspector_provider);
+	constructor(
+		context: ExtensionContext, 
+		scene_tree_provider: SceneTreeProvider,
+	) {
+		this.provider = new GodotConfigurationProvider();
+		this.factory = new GodotDebugAdapterFactory(scene_tree_provider);
 
-	let scene_tree_provider = new SceneTreeProvider();
-	window.registerTreeDataProvider("active-scene-tree", scene_tree_provider);
+		context.subscriptions.push(
+			debug.registerDebugConfigurationProvider("godot3", this.provider),
+			debug.registerDebugAdapterDescriptorFactory("godot3", this.factory),
+		);
 
-	let factory = new GodotDebugAdapterFactory(scene_tree_provider);
-	context.subscriptions.push(
-		debug.registerDebugAdapterDescriptorFactory("godot3", factory)
-	);
+		context.subscriptions.push(this.factory);
+	}
 
-	commands.registerCommand(
-		"godotTools.debugger.inspectNode",
-		(element: SceneNode | RemoteProperty) => {
-			if (element instanceof SceneNode) {
-				Mediator.notify("inspect_object", [
-					element.object_id,
-					(class_name, variable) => {
-						inspector_provider.fill_tree(
-							element.label,
-							class_name,
-							element.object_id,
-							variable
-						);
-					},
-				]);
-			} else if (element instanceof RemoteProperty) {
-				Mediator.notify("inspect_object", [
-					element.object_id,
-					(class_name, properties) => {
-						inspector_provider.fill_tree(
-							element.label,
-							class_name,
-							element.object_id,
-							properties
-						);
-					},
-				]);
-			}
-		}
-	);
-
-	commands.registerCommand("godot-tool.debugger.refresh_scene_tree", () => {
-		Mediator.notify("request_scene_tree", []);
-	});
-
-	commands.registerCommand("godot-tool.debugger.refresh_inspector", () => {
-		if (inspector_provider.has_tree()) {
-			let name = inspector_provider.get_top_name();
-			let id = inspector_provider.get_top_id();
-			Mediator.notify("inspect_object", [
-				id,
-				(class_name, properties) => {
-					inspector_provider.fill_tree(name, class_name, id, properties);
-				},
-			]);
-		}
-	});
-
-	commands.registerCommand(
-		"godot-tool.debugger.edit_value",
-		(property: RemoteProperty) => {
-			let previous_value = property.value;
-			let type = typeof previous_value;
-			let is_float = type === "number" && !Number.isInteger(previous_value);
-			window
-				.showInputBox({ value: `${property.description}` })
-				.then((value) => {
-					let new_parsed_value: any;
-					switch (type) {
-						case "string":
-							new_parsed_value = value;
-							break;
-						case "number":
-							if (is_float) {
-								new_parsed_value = parseFloat(value);
-								if (isNaN(new_parsed_value)) {
-									return;
-								}
-							} else {
-								new_parsed_value = parseInt(value);
-								if (isNaN(new_parsed_value)) {
-									return;
-								}
-							}
-							break;
-						case "boolean":
-							if (
-								value.toLowerCase() === "true" ||
-								value.toLowerCase() === "false"
-							) {
-								new_parsed_value = value.toLowerCase() === "true";
-							} else if (value === "0" || value === "1") {
-								new_parsed_value = value === "1";
-							} else {
-								return;
-							}
-					}
-					if (property.changes_parent) {
-						let parents = [property.parent];
-						let idx = 0;
-						while (parents[idx].changes_parent) {
-							parents.push(parents[idx++].parent);
-						}
-						let changed_value = inspector_provider.get_changed_value(
-							parents,
-							property,
-							new_parsed_value
-						);
-						Mediator.notify("changed_value", [
-							property.object_id,
-							parents[idx].label,
-							changed_value,
-						]);
-					} else {
-						Mediator.notify("changed_value", [
-							property.object_id,
-							property.label,
-							new_parsed_value,
-						]);
-					}
-
-					Mediator.notify("inspect_object", [
-						inspector_provider.get_top_id(),
-						(class_name, properties) => {
-							inspector_provider.fill_tree(
-								inspector_provider.get_top_name(),
-								class_name,
-								inspector_provider.get_top_id(),
-								properties
-							);
-						},
-					]);
-				});
-		}
-	);
-
-	context.subscriptions.push(factory);
+	public notify(event: string, parameters: any[] = []) {
+		Mediator.notify(event, parameters);
+	}
 }
 
 class GodotConfigurationProvider implements DebugConfigurationProvider {

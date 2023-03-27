@@ -6,8 +6,7 @@ import {
 	TreeItem,
 	TreeItemCollapsibleState,
 } from "vscode";
-import { GodotVariable } from "../debug_runtime";
-import { RawObject, ObjectId } from "../variables/variants";
+import { GodotVariable, RawObject, ObjectId } from "./debug_runtime";
 
 export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	private _on_did_change_tree_data: EventEmitter<

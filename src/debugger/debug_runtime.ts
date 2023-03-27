@@ -1,5 +1,4 @@
-import { Mediator } from "./mediator";
-import { SceneTreeProvider } from "./scene_tree/scene_tree_provider";
+import { SceneTreeProvider } from "./scene_tree_provider";
 const path = require("path");
 
 export interface GodotBreakpoint {
@@ -22,6 +21,34 @@ export interface GodotVariable {
 	value: any;
 }
 
+export interface GDObject {
+	stringify_value(): string;
+	sub_values(): GodotVariable[];
+	type_name(): string;
+}
+
+export class RawObject extends Map<any, any> {
+	constructor(public class_name: string) {
+		super();
+	}
+}
+
+export class ObjectId implements GDObject {
+	constructor(public id: bigint) {}
+
+	public stringify_value(): string {
+		return `<${this.id}>`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [{ name: "id", value: this.id }];
+	}
+
+	public type_name(): string {
+		return "Object";
+	}
+}
+
 export class GodotDebugData {
 	private breakpoint_id = 0;
 	private breakpoints: Map<string, GodotBreakpoint[]> = new Map();
@@ -32,8 +59,11 @@ export class GodotDebugData {
 	public scene_tree?: SceneTreeProvider;
 	public stack_count: number = 0;
 	public stack_files: string[] = [];
+	public mediator;
 
-	public constructor() {}
+	public constructor(mediator) {
+		this.mediator = mediator;
+	}
 
 	public get_all_breakpoints(): GodotBreakpoint[] {
 		let output: GodotBreakpoint[] = [];
@@ -59,7 +89,7 @@ export class GodotDebugData {
 				bps.splice(index, 1);
 				this.breakpoints.set(path_to, bps);
 				let file = `res://${path.relative(this.project_path, bp.file)}`;
-				Mediator.notify("remove_breakpoint", [
+				this.mediator.notify("remove_breakpoint", [
 					file.replace(/\\/g, "/"),
 					bp.line,
 				]);
@@ -84,7 +114,7 @@ export class GodotDebugData {
 
 		if (this.project_path) {
 			let out_file = `res://${path.relative(this.project_path, bp.file)}`;
-			Mediator.notify("set_breakpoint", [out_file.replace(/\\/g, "/"), line]);
+			this.mediator.notify("set_breakpoint", [out_file.replace(/\\/g, "/"), line]);
 		}
 	}
 }
