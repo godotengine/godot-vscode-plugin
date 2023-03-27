@@ -26,11 +26,9 @@ export class GodotDebugManager {
 
 	public notify(event: string, parameters: any[] = []) {
 		if (this.g3.factory.session) {
-			console.log('notifying g3');
 			this.g3.notify(event, parameters);
 		}
 		if (this.g4.factory.session) {
-			console.log('notifying g4');
 			this.g4.notify(event, parameters);
 		}
 	}
