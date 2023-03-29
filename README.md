@@ -76,8 +76,8 @@ The debugger is for GDScript projects. To debug C# projects, use [C# Tools for G
 To configure the GDScript debugger:
 
 1. Open the command palette:
-2. `>Debug: Open launch.json`
-3. Select the Debug Godot configuration.
+2. `>Debug: Add configuration...`
+3. Select the `GDScript Godot Debug`.
 4. Change any relevant settings.
 5. Press F5 to launch.
 
