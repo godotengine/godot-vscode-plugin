@@ -13,7 +13,7 @@ import { ServerController } from "./server_controller";
 const { Subject } = require("await-notify");
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
-import { get_configuration } from "../../utils";
+import { get_configuration } from "@utils";
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
