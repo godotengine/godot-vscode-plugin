@@ -8,7 +8,7 @@ import { Mediator } from "./mediator";
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { ServerController } from "./server_controller";
 import { ObjectId, RawObject } from "./variables/variants";
-const { Subject } = require("await-notify");
+import { Subject } from "await-notify";
 import fs = require("fs");
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {

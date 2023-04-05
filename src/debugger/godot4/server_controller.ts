@@ -7,7 +7,7 @@ import {
 	GodotDebugData,
 } from "../debug_runtime";
 import { window } from "vscode";
-const TERMINATE = require("terminate");
+import TERMINATE from "terminate";
 import net = require("net");
 import utils = require("../../utils");
 import cp = require("child_process");
