@@ -6,7 +6,7 @@ import {
 	Breakpoint,
 } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
-import { get_configuration } from "../../utils";
+import { get_configuration } from "@utils";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { Mediator } from "./mediator";
 import { SceneTreeProvider } from "../scene_tree_provider";
