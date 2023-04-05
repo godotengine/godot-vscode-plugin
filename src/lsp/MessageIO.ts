@@ -111,7 +111,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout: number;
 
-	public constructor(io: MessageIO, encoding: string = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
 		super();
 		this.io = io;
 		this.io.reader = this;
@@ -207,7 +207,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	private encoding: BufferEncoding;
 	private errorCount: number;
 
-	public constructor(io: MessageIO, encoding: string = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
 		super();
 		this.io = io;
 		this.io.writer = this;

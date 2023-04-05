@@ -4,8 +4,8 @@ import {
 	Thread,
 	Source,
 	Breakpoint,
-} from "vscode-debugadapter";
-import { DebugProtocol } from "vscode-debugprotocol";
+} from "@vscode/debugadapter";
+import { DebugProtocol } from "@vscode/debugprotocol";
 import { Mediator } from "./mediator";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { ObjectId, RawObject } from "./variables/variants";

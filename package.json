@@ -32,7 +32,7 @@
 	"main": "./out/extension.js",
 	"scripts": {
 		"compile": "tsc -p ./",
-		"lint": "tslint -p ./",
+		"lint": "eslint ./",
 		"watch": "tsc -watch -p ./",
 		"package": "vsce package",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -727,7 +727,7 @@
 		}
 	},
 	"devDependencies": {
-		"@types/marked": "^0.6.5",
+		"@types/marked": "^4.0.8",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "^18.15.0",
 		"@types/prismjs": "^1.16.8",
@@ -735,20 +735,28 @@
 		"@types/ws": "^8.2.2",
 		"@vscode/vsce": "^2.21.0",
 		"esbuild": "^0.15.2",
+		"@types/ws": "^8.5.4",
+		"@typescript-eslint/eslint-plugin": "^5.57.1",
+		"@typescript-eslint/eslint-plugin-tslint": "^5.57.1",
+		"@typescript-eslint/parser": "^5.57.1",
+		"@vscode/vsce": "^2.18.0",
+		"esbuild": "^0.17.15",
+		"eslint": "^8.37.0",
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0",
 		"tslint": "^5.20.1",
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
+		"@vscode/debugadapter": "^1.59.0",
+		"@vscode/debugprotocol": "^1.59.0",
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
 		"prismjs": "^1.17.1",
 		"terminate": "^2.5.0",
-		"vscode-debugadapter": "^1.38.0",
 		"vscode-languageclient": "^7.0.0",
-		"ws": "^8.4.2"
+		"ws": "^8.13.0"
 	}
 }
