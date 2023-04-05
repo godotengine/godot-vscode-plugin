@@ -9,7 +9,7 @@ import {
 import { window } from "vscode";
 const TERMINATE = require("terminate");
 import net = require("net");
-import utils = require("@utils");
+import utils = require("../../utils");
 import cp = require("child_process");
 import path = require("path");
 

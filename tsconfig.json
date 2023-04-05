@@ -10,11 +10,7 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false,
-		"allowJs": true,
-		"baseUrl": ".",
-		"paths": {
-			"@*": ["src/*"]
-		}
+		"allowJs": true
 	},
 	"exclude": [
 		"node_modules",
