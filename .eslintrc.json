@@ -26,6 +26,15 @@
 		"@typescript-eslint/no-empty-function": "off",
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-unused-vars": "off",
+		"@typescript-eslint/no-inferrable-types": "off",
+		"@typescript-eslint/ban-types": "warn",
+		"no-async-promise-executor": "warn",
+		"no-inner-declarations": "warn",
+		"no-prototype-builtins": "warn",
+		"no-constant-condition": "warn",
+		"prefer-const": "warn",
+		"no-useless-escape": "off",
+		"no-var": "off",
         "indent": [
             "off",
             "tab"

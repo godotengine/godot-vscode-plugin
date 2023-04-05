@@ -10,7 +10,7 @@ import { Mediator } from "./mediator";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { ObjectId, RawObject } from "./variables/variants";
 import { ServerController } from "./server_controller";
-const { Subject } = require("await-notify");
+import { Subject } from "await-notify";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { get_configuration } from "../../utils";

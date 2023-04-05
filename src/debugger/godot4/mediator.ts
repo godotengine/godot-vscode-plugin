@@ -25,7 +25,7 @@ export class Mediator {
 
 	public static notify(event: string, parameters: any[] = []) {
 		switch (event) {
-			case "output":
+			case "output": {
 				if (!this.first_output) {
 					this.first_output = true;
 					this.output.show(true);
@@ -44,6 +44,7 @@ export class Mediator {
 					this.output.appendLine(message_content);
 				});
 				break;
+			}
 
 			case "continue":
 				this.controller?.continue();
@@ -68,7 +69,7 @@ export class Mediator {
 				}
 				break;
 
-			case "inspected_object":
+			case "inspected_object": {
 				let inspected_variable = { name: "", value: parameters[1] };
 				this.build_sub_values(inspected_variable);
 				if (this.inspect_callbacks.has(Number(parameters[0]))) {
@@ -81,6 +82,7 @@ export class Mediator {
 					this.session?.set_inspection(parameters[0], inspected_variable);
 				}
 				break;
+			}
 
 			case "stack_dump":
 				this.controller?.trigger_breakpoint(parameters);
@@ -140,7 +142,7 @@ export class Mediator {
 				);
 				break;
 
-			case "debug_enter":
+			case "debug_enter": {
 				let reason: string = parameters[0];
 				if (reason !== "Breakpoint") {
 					this.controller?.set_exception(reason);
@@ -149,6 +151,7 @@ export class Mediator {
 				}
 				this.controller?.stack_dump();
 				break;
+			}
 
 			case "start":
 				this.first_output = false;

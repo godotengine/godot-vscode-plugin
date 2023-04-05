@@ -1,5 +1,5 @@
 import { SceneTreeProvider } from "./scene_tree_provider";
-const path = require("path");
+import path = require("path");
 
 export interface GodotBreakpoint {
 	file: string;

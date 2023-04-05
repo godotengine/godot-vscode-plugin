@@ -86,7 +86,7 @@ function get_class_list(modules) {
 }
 
 function discover_modules() {
-	const modules = []
+	const modules = [];
 
 	// a valid module is a subdir of modulesPath, and contains a subdir 'icons'
 	fs.readdirSync(modulesPath, {withFileTypes:true}).forEach(mod => {
@@ -106,7 +106,7 @@ function get_icons() {
 	const modules = discover_modules();
 	const classes = get_class_list(modules);
 
-	const searchPaths = [iconsPath]
+	const searchPaths = [iconsPath];
 	modules.forEach(mod => {
 		searchPaths.push(join(mod, 'icons'));
 	});

@@ -32,7 +32,7 @@
 	"main": "./out/extension.js",
 	"scripts": {
 		"compile": "tsc -p ./",
-		"lint": "eslint ./",
+		"lint": "eslint ./src",
 		"watch": "tsc -watch -p ./",
 		"package": "vsce package",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -388,16 +388,10 @@
 					},
 					"attach": {
 						"required": [
-							"project",
 							"port",
 							"address"
 						],
 						"properties": {
-							"project": {
-								"type": "string",
-								"description": "Absolute path to a directory with a project.godot file.",
-								"default": "${workspaceFolder}"
-							},
 							"port": {
 								"type": "number",
 								"description": "The port number for the Godot remote debugger to use.",
@@ -413,7 +407,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"name": "GDScript Godot",
+						"name": "GDScript: Launch Godot",
 						"type": "godot3",
 						"request": "launch",
 						"project": "${workspaceFolder}",
@@ -428,7 +422,7 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"name": "GDScript Godot",
+							"name": "GDScript: Launch Godot",
 							"type": "godot3",
 							"request": "launch",
 							"project": "${workspaceFolder}",
@@ -442,10 +436,9 @@
 						"label": "GDScript Godot Debug: Attach",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"name": "GDScript Godot",
+							"name": "GDScript: Attach to Godot",
 							"type": "godot3",
 							"request": "attach",
-							"project": "${workspaceFolder}",
 							"port": 6007,
 							"address": "127.0.0.1"
 						}
@@ -508,16 +501,10 @@
 					},
 					"attach": {
 						"required": [
-							"project",
 							"port",
 							"address"
 						],
 						"properties": {
-							"project": {
-								"type": "string",
-								"description": "Absolute path to a directory with a project.godot file.",
-								"default": "${workspaceFolder}"
-							},
 							"port": {
 								"type": "number",
 								"description": "The port number for the Godot remote debugger to use.",

@@ -138,7 +138,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 					: Array.isArray(value)
 					? value.map((va, i) => {
 							return { name: `${i}`, value: va };
-					  })
+					})
 					: value instanceof Map
 					? Array.from(value.keys()).map((va) => {
 							let name =
@@ -148,7 +148,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 							let map_value = value.get(va);
 
 							return { name: name, value: map_value };
-					  })
+					})
 					: [];
 			child_props = sub_variables?.map((va) => {
 				return this.parse_variable(va, object_id);
