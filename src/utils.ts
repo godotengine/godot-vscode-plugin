@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 
-const CONFIG_CONTAINER = "godot-tools";
+const CONFIG_CONTAINER = "godotTools";
 
 export function get_configuration(name: string, default_value: any = null) {
 	let config_value = vscode.workspace.getConfiguration(CONFIG_CONTAINER).get(name, null);
