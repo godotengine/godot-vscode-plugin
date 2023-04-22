@@ -301,8 +301,8 @@ export class GodotTools {
 		this.connection_status.text = `$(x) Disconnected`;
 		this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 
-		let host = get_configuration("lsp.ServerHost", "localhost");
-		let port = get_configuration("lsp.ServerPort", 6008);
+		let host = get_configuration("lsp.serverHost", "localhost");
+		let port = get_configuration("lsp.serverPort", 6008);
 		let message = `Couldn't connect to the GDScript language server at ${host}:${port}. Is the Godot editor running?`;
 		vscode.window.showErrorMessage(message, "Open Godot Editor", "Retry", "Ignore").then(item => {
 			if (item == "Retry") {
