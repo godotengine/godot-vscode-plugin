@@ -181,7 +181,7 @@
 				},
 				"godotTools.lsp.serverPort": {
 					"type": "number",
-					"default": 6008,
+					"default": 6005,
 					"description": "The server port of the GDScript language server"
 				},
 				"godotTools.editorPath": {

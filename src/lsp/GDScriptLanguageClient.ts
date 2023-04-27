@@ -79,7 +79,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
 		let host = get_configuration("lsp.serverHost", "127.0.0.1");
-		let port = get_configuration("lsp.serverPort", 6008);
+		let port = get_configuration("lsp.serverPort", 6005);
 		this.io.connect_to_language_server(host, port);
 	}
 
