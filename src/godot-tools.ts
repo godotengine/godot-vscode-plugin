@@ -230,8 +230,8 @@ export class GodotTools {
 	}
 
 	private check_client_status() {
-		let host = get_configuration("lsp.serverPort", "localhost");
-		let port = get_configuration("lsp.serverHost", 6008);
+		let host = get_configuration("lsp.serverHost", "localhost");
+		let port = get_configuration("lsp.serverPort", 6008);
 		switch (this.client.status) {
 			case ClientStatus.PENDING:
 				vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${host}:${port}`);
