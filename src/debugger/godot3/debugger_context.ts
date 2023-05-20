@@ -56,13 +56,11 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 				config.project = "${workspaceFolder}";
 				config.port = 6007;
 				config.address = "127.0.0.1";
-				config.launch_game_instance = true;
-				config.launch_scene = false;
 				config.additional_options = "";
 			}
 		}
 
-		if (!config.project) {
+		if (config.request === "launch" && !config.project) {
 			return window
 				.showInformationMessage(
 					"Cannot find a project.godot in active workspace."

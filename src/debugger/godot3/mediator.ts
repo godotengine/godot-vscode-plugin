@@ -14,6 +14,7 @@ export class Mediator {
 	private static session?: GodotDebugSession;
 	private static first_output = false;
 	private static output: OutputChannel = window.createOutputChannel("Godot");
+	private static mode = "";
 
 	private constructor() {}
 
@@ -143,16 +144,25 @@ export class Mediator {
 				break;
 			}
 
-			case "start":
+			case "launch":
+				this.mode = "launch";
 				this.first_output = false;
-				this.controller?.start(
+				this.controller?.launch(
 					parameters[0],
 					parameters[1],
 					parameters[2],
 					parameters[3],
 					parameters[4],
-					parameters[5],
-					parameters[6],
+					this.debug_data
+				);
+				break;
+
+			case "attach":
+				this.mode = "attach";
+				this.first_output = false;
+				this.controller?.attach(
+					parameters[0],
+					parameters[1],
 					this.debug_data
 				);
 				break;
@@ -161,14 +171,18 @@ export class Mediator {
 				break;
 
 			case "stop":
-				this.controller?.stop();
-				this.session?.sendEvent(new TerminatedEvent());
+				if (this.mode === "launch") {
+					this.controller?.stop();
+					this.session?.sendEvent(new TerminatedEvent());
+				}
 				break;
 
 			case "error":
-				this.controller?.set_exception(parameters[0]);
-				this.controller?.stop();
-				this.session?.sendEvent(new TerminatedEvent());
+				if (this.mode === "launch") {
+					this.controller?.set_exception(parameters[0]);
+					this.controller?.stop();
+					this.session?.sendEvent(new TerminatedEvent());
+				}
 				break;
 		}
 	}

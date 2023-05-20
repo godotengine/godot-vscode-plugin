@@ -7,6 +7,7 @@ import {
 	GodotDebugData,
 } from "../debug_runtime";
 import { window } from "vscode";
+import { kill } from "process";
 import TERMINATE from "terminate";
 import net = require("net");
 import utils = require("../../utils");
@@ -85,67 +86,53 @@ export class ServerController {
 		this.add_and_send(this.commands.make_stack_dump_command());
 	}
 
-	public start(
+	public launch(
 		project_path: string,
 		address: string,
 		port: number,
-		launch_instance: boolean,
-		launch_scene: boolean,
 		scene_file: string | undefined,
 		additional_options: string | undefined,
 		debug_data: GodotDebugData
 	) {
 		this.debug_data = debug_data;
 
-		if (launch_instance) {
-			let godot_path: string = utils.get_configuration("editorPath.godot3", "godot");
-			const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
-			const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
+		let godot_path: string = utils.get_configuration("editorPath.godot3", "godot");
+		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
+		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-			let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${protocol}://${address}:${port}`;
+		let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
 
-			if (force_visible_collision_shapes) {
-				executable_line += " --debug-collisions";
-			}
-			if (force_visible_nav_mesh) {
-				executable_line += " --debug-navigation";
-			}
-			if (launch_scene) {
-				let filename = "";
-				if (scene_file) {
-					filename = scene_file;
-				} else {
-					filename = window.activeTextEditor.document.fileName;
-				}
-				executable_line += ` "${filename}"`;
-			}
-			if(additional_options){
-				executable_line += " " + additional_options;
-			}
-			executable_line += this.breakpoint_string(
-				debug_data.get_all_breakpoints(),
-				project_path
-			);
-			let godot_exec = cp.exec(executable_line, (error) => {
-				if (!this.terminated) {
-					window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-				}
-			});
-			this.godot_pid = godot_exec.pid;
+		if (force_visible_collision_shapes) {
+			executable_line += " --debug-collisions";
 		}
+		if (force_visible_nav_mesh) {
+			executable_line += " --debug-navigation";
+		}
+		let filename = "";
+		if (scene_file) {
+			filename = scene_file;
+		} else {
+			filename = window.activeTextEditor.document.fileName;
+		}
+		executable_line += ` "${filename}"`;
+		
+		if(additional_options){
+			executable_line += " " + additional_options;
+		}
+		executable_line += this.breakpoint_string(
+			debug_data.get_all_breakpoints(),
+			project_path
+		);
+		let godot_exec = cp.exec(executable_line, (error) => {
+			if (!this.terminated) {
+				window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
+			}
+		});
+		this.godot_pid = godot_exec.pid;
+		
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
-
-			if (!launch_instance) {
-				let breakpoints = this.debug_data.get_all_breakpoints();
-				breakpoints.forEach((bp) => {
-					this.set_breakpoint(
-						this.breakpoint_path(project_path, bp.file),
-						bp.line
-					);
-				});
-			}
 
 			socket.on("data", (buffer) => {
 				let buffers = this.split_buffers(buffer);
@@ -178,6 +165,48 @@ export class ServerController {
 		this.server.listen(port, address);
 	}
 
+	public attach(
+		address: string,
+		port: number,
+		debug_data: GodotDebugData
+	) {
+		this.debug_data = debug_data;
+
+		this.server = net.createServer((socket) => {
+			this.socket = socket;
+
+			socket.on("data", (buffer) => {
+				let buffers = this.split_buffers(buffer);
+				while (buffers.length > 0) {
+					let sub_buffer = buffers.shift();
+					let data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					this.commands.parse_message(data);
+				}
+			});
+
+			socket.on("close", (had_error) => {
+				Mediator.notify("stop");
+			});
+
+			socket.on("end", () => {
+				Mediator.notify("stop");
+			});
+
+			socket.on("error", (error) => {
+				Mediator.notify("error", [error]);
+			});
+
+			socket.on("drain", () => {
+				socket.resume();
+				this.draining = false;
+				this.send_buffer();
+			});
+		});
+
+		this.server.listen(port, address);
+	}
+
+
 	public step() {
 		this.add_and_send(this.commands.make_step_command());
 	}
@@ -202,10 +231,12 @@ export class ServerController {
 		}
 	}
 
-	private terminate() {
+	public terminate() {
 		this.terminated = true;
-		TERMINATE(this.godot_pid);
-		this.godot_pid = undefined;
+		if (this.godot_pid) {
+			kill(this.godot_pid);
+			this.godot_pid = undefined;
+		}
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
