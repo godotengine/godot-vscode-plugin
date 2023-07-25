@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { Mediator } from "../../mediator";
+// import { Mediator } from "../../mediator";
 
 export class CommandStackFrameVars extends Command {
 	public trigger(parameters: any[]) {
@@ -26,6 +26,6 @@ export class CommandStackFrameVars extends Command {
 			globals = parameters.slice(offset, offset + global_count);
 		}
 
-		Mediator.notify("stack_frame_vars", [locals, members, globals]);
+		// Mediator.notify("stack_frame_vars", [locals, members, globals]);
 	}
 }

@@ -12,7 +12,7 @@ import { DebugProtocol } from "@vscode/debugprotocol";
 import { get_configuration } from "../../utils";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
-import { Mediator } from "./mediator";
+
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { ServerController } from "./server_controller";
 import { ObjectId, RawObject } from "./variables/variants";
@@ -377,7 +377,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.NextResponse,
 		args: DebugProtocol.NextArguments
 	) {
-		log.debug("nextRequest");
+		log.debug("nextRequest", this.exception);
 		if (!this.exception) {
 			this.controller?.next();
 			this.sendResponse(response);
@@ -403,7 +403,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
-		Mediator.notify("get_scopes", [args.frameId]);
+		// Mediator.notify("get_scopes", [args.frameId]);
 		await this.got_scope.wait(2000);
 
 		response.body = {
@@ -572,7 +572,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					!this.ongoing_inspections.find((va_id) => va_id === va.value.id) &&
 					!this.previous_inspections.find((va_id) => va_id === va.value.id)
 				) {
-					Mediator.notify("inspect_object", [va.value.id]);
+					// Mediator.notify("inspect_object", [va.value.id]);
 					this.ongoing_inspections.push(va.value.id);
 				}
 			}

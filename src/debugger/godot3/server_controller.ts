@@ -1,5 +1,4 @@
 import { CommandParser } from "./commands/command_parser";
-import { Mediator } from "./mediator";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
 import {
@@ -167,8 +166,6 @@ export class ServerController {
 		});
 		this.godot_pid = godot_exec.pid;
 
-		this.session?.sce
-
 		log.debug(`godot_pid: ${this.godot_pid}`);
 
 		this.server = net.createServer((socket) => {
@@ -197,7 +194,6 @@ export class ServerController {
 
 			socket.on("error", (error) => {
 				log.debug("socket error");
-				Mediator.notify("error", [error]);
 				// this.session?.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
@@ -232,14 +228,12 @@ export class ServerController {
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
-				// Mediator.notify("stop");
 				// this.session?.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
 			socket.on("end", () => {
 				log.debug("socket end");
-				// Mediator.notify("stop");
 				// this.session?.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
@@ -293,7 +287,6 @@ export class ServerController {
 		// log.debug("handle_command", command.command);
 		switch (command.command) {
 			case "debug_enter": {
-
 				log.debug(command.command, JSON.stringify(command.parameters));
 				const reason: string = command.parameters[1];
 				if (reason !== "Breakpoint") {
@@ -337,7 +330,6 @@ export class ServerController {
 				break;
 			}
 			case "stack_dump": {
-
 				log.debug(command.command, JSON.stringify(command.parameters));
 				const frames: GodotStackFrame[] = command.parameters.map((sf, i) => {
 					return {

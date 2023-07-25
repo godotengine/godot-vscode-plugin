@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { Mediator } from "../../mediator";
+// import { Mediator } from "../../mediator";
 import { GodotStackFrame } from "../../../debug_runtime";
 
 export class CommandStackDump extends Command {
@@ -12,6 +12,6 @@ export class CommandStackDump extends Command {
 				line: sf.get("line"),
 			};
 		});
-		Mediator.notify("stack_dump", frames);
+		// Mediator.notify("stack_dump", frames);
 	}
 }
