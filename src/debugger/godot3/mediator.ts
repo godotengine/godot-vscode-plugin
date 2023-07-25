@@ -4,6 +4,10 @@ import { GodotDebugSession } from "./debug_session";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 
+import { createLogger } from "../../logger";
+
+const log = createLogger("debugger.mediator");
+
 export class Mediator {
 	private static controller?: ServerController;
 	private static debug_data?: GodotDebugData;
@@ -19,6 +23,8 @@ export class Mediator {
 	private constructor() {}
 
 	public static notify(event: string, parameters: any[] = []) {
+		log.warn(event);
+
 		switch (event) {
 			case "output": {
 				if (!this.first_output) {
@@ -41,21 +47,21 @@ export class Mediator {
 				break;
 			}
 
-			case "continue":
-				this.controller?.continue();
-				break;
+			// case "continue":
+			// 	this.controller?.continue();
+			// 	break;
 
-			case "next":
-				this.controller?.next();
-				break;
+			// case "next":
+			// 	this.controller?.next();
+			// 	break;
 
-			case "step":
-				this.controller?.step();
-				break;
+			// case "step":
+			// 	this.controller?.step();
+			// 	break;
 
-			case "step_out":
-				this.controller?.step_out();
-				break;
+			// case "step_out":
+			// 	this.controller?.step_out();
+			// 	break;
 
 			case "inspect_object":
 				this.controller?.send_inspect_object_request(parameters[0]);
@@ -84,13 +90,13 @@ export class Mediator {
 				this.controller?.send_request_scene_tree_command();
 				break;
 
-			case "request_scene_tree":
-				this.controller?.send_request_scene_tree_command();
-				break;
+			// case "request_scene_tree":
+			// 	this.controller?.send_request_scene_tree_command();
+			// 	break;
 
-			case "scene_tree":
-				this.debug_data?.scene_tree?.fill_tree(parameters[0]);
-				break;
+			// case "scene_tree":
+			// 	this.debug_data?.scene_tree?.fill_tree(parameters[0]);
+			// 	break;
 
 			case "get_scopes":
 				this.controller?.send_scope_request(parameters[0]);
@@ -144,38 +150,38 @@ export class Mediator {
 				break;
 			}
 
-			case "launch":
-				this.mode = "launch";
-				this.first_output = false;
-				this.controller?.launch(
-					parameters[0],
-					parameters[1],
-					parameters[2],
-					parameters[3],
-					parameters[4],
-					this.debug_data
-				);
-				break;
+			// case "launch":
+			// 	this.mode = "launch";
+			// 	this.first_output = false;
+			// 	this.controller?.launch(
+			// 		parameters[0],
+			// 		parameters[1],
+			// 		parameters[2],
+			// 		parameters[3],
+			// 		parameters[4],
+			// 		this.debug_data
+			// 	);
+			// 	break;
 
-			case "attach":
-				this.mode = "attach";
-				this.first_output = false;
-				this.controller?.attach(
-					parameters[0],
-					parameters[1],
-					this.debug_data
-				);
-				break;
+			// case "attach":
+			// 	this.mode = "attach";
+			// 	this.first_output = false;
+			// 	this.controller?.attach(
+			// 		parameters[0],
+			// 		parameters[1],
+			// 		this.debug_data
+			// 	);
+			// 	break;
 
 			case "debug_exit":
 				break;
 
-			case "stop":
-				if (this.mode === "launch") {
-					this.controller?.stop();
-					this.session?.sendEvent(new TerminatedEvent());
-				}
-				break;
+			// case "stop":
+			// 	if (this.mode === "launch") {
+			// 		this.controller?.stop();
+			// 		this.session?.sendEvent(new TerminatedEvent());
+			// 	}
+			// 	break;
 
 			case "error":
 				if (this.mode === "launch") {

@@ -10,6 +10,7 @@ import {
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { get_configuration } from "../../utils";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { Mediator } from "./mediator";
 import { SceneTreeProvider } from "../scene_tree_provider";
@@ -19,7 +20,12 @@ import { Subject } from "await-notify";
 import fs = require("fs");
 import { debug } from "vscode";
 
-interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+import { createLogger } from "../../logger";
+
+const log = createLogger("debugger.session");
+
+
+export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
 	launch_game_instance: boolean;
 	launch_scene: boolean;
@@ -29,7 +35,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	additional_options: string;
 }
 
-interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 	address: string;
 	port: number;
 	project: string;
@@ -39,13 +45,18 @@ interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
-	private controller?: ServerController;
-	private debug_data = new GodotDebugData(Mediator);
+	public controller?: ServerController;
+	public debug_data = new GodotDebugData(this);
 	private exception = false;
 	private got_scope = new Subject();
 	private ongoing_inspections: bigint[] = [];
 	private previous_inspections: bigint[] = [];
 	private configuration_done = new Subject();
+	private mode: "launch" | "attach" | "" = "";
+	public inspect_callbacks: Map<
+		number,
+		(class_name: string, variable: GodotVariable) => void
+	> = new Map();
 
 	public constructor() {
 		super();
@@ -53,19 +64,18 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		Mediator.set_session(this);
-		this.controller = new ServerController();
-		Mediator.set_controller(this.controller);
-		Mediator.set_debug_data(this.debug_data);
+		this.controller = new ServerController(this);
 	}
 
 	public dispose() { }
 
 	public set_exception(exception: boolean) {
+		log.debug("set_exception");
 		this.exception = true;
 	}
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
+		log.debug("set_inspection");
 		let variables = this.all_scopes.filter(
 			(va) => va && va.value instanceof ObjectId && va.value.id === id
 		);
@@ -110,6 +120,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		members: GodotVariable[],
 		globals: GodotVariable[]
 	) {
+		log.debug("set_scopes");
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
@@ -154,15 +165,17 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ContinueResponse,
 		args: DebugProtocol.ContinueArguments
 	) {
+		log.debug("continueRequest");
 		if (!this.exception) {
 			response.body = { allThreadsContinued: true };
-			Mediator.notify("continue");
+			this.controller?.continue();
 			this.sendResponse(response);
 		}
 	}
 
 	// Fills the all_scopes variable
 	protected async getStackFrame(): Promise<void> {
+		log.debug("getStackFrame");
 		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 	}
 
@@ -270,7 +283,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.EvaluateArguments
 	) {
 		await this.getStackFrame();
-		
+
+		log.debug("evaluateRequest");
+
 		if (this.all_scopes) {
 			var variable = this.getVariable(args.expression, null, null, null);
 
@@ -332,17 +347,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: LaunchRequestArguments
 	) {
 		await this.configuration_done.wait(1000);
+		log.debug("launchRequest");
+
+		this.mode = "launch";
 
 		this.debug_data.project_path = args.project;
 		this.exception = false;
-		Mediator.notify("launch", [
-			args.project,
-			args.address,
-			args.port,
-			args.scene_file,
-			args.additional_options,
-			get_configuration("scene_file_config", "") || args.scene_file,
-		]);
+		this.controller?.launch(args, this.debug_data);
 
 		this.sendResponse(response);
 	}
@@ -350,16 +361,15 @@ export class GodotDebugSession extends LoggingDebugSession {
 	protected async attachRequest(
 		response: DebugProtocol.AttachResponse,
 		args: AttachRequestArguments
-	) {		
+	) {
 		await this.configuration_done.wait(1000);
-		
+		log.debug("attachRequest");
+
+		this.mode = "attach";
+
 		this.exception = false;
-		Mediator.notify("attach", [
-			args.address,
-			args.port,
-			get_configuration("sceneFileConfig", "") || args.scene_file,
-		]);
-		
+		this.controller?.attach(args, this.debug_data);
+
 		this.sendResponse(response);
 	}
 
@@ -367,8 +377,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.NextResponse,
 		args: DebugProtocol.NextArguments
 	) {
+		log.debug("nextRequest");
 		if (!this.exception) {
-			Mediator.notify("next");
+			this.controller?.next();
 			this.sendResponse(response);
 		}
 	}
@@ -377,8 +388,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.PauseResponse,
 		args: DebugProtocol.PauseArguments
 	) {
+		log.debug("pauseRequest");
 		if (!this.exception) {
-			Mediator.notify("break");
+			this.controller?.break();
 			this.sendResponse(response);
 		}
 	}
@@ -387,6 +399,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
+		log.debug("scopesRequest");
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
@@ -407,6 +420,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.SetBreakpointsResponse,
 		args: DebugProtocol.SetBreakpointsArguments
 	) {
+		log.debug("setBreakPointsRequest");
 		let path = (args.source.path as string).replace(/\\/g, "/");
 		let client_lines = args.lines || [];
 
@@ -451,6 +465,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StackTraceResponse,
 		args: DebugProtocol.StackTraceArguments
 	) {
+		log.debug("stackTraceRequest");
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -475,8 +490,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StepInResponse,
 		args: DebugProtocol.StepInArguments
 	) {
+		log.debug("stepInRequest");
 		if (!this.exception) {
-			Mediator.notify("step");
+			this.controller?.step();
 			this.sendResponse(response);
 		}
 	}
@@ -485,8 +501,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StepOutResponse,
 		args: DebugProtocol.StepOutArguments
 	) {
+		log.debug("stepOutRequest");
 		if (!this.exception) {
-			Mediator.notify("step_out");
+			this.controller?.step_out();
 			this.sendResponse(response);
 		}
 	}
@@ -495,11 +512,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.TerminateResponse,
 		args: DebugProtocol.TerminateArguments
 	) {
-		Mediator.notify("stop");
+		log.debug(`terminateRequest ${this.mode}`);
+		if (this.mode === "launch") {
+			this.controller?.stop();
+			this.sendEvent(new TerminatedEvent());
+		}
 		this.sendResponse(response);
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse) {
+		log.debug("threadsRequest");
 		response.body = { threads: [new Thread(0, "thread_1")] };
 		this.sendResponse(response);
 	}
@@ -508,6 +530,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
+		log.debug("variablesRequest");
 		let reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
@@ -542,6 +565,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
+		log.debug("add_to_inspections");
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
@@ -576,6 +600,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private parse_variable(va: GodotVariable, i?: number) {
+		log.debug("parse_variable");
 		let value = va.value;
 		let rendered_value = "";
 		let reference = 0;

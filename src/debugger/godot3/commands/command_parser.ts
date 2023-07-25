@@ -9,6 +9,10 @@ import { CommandMessageInspectObject } from "./commands/command_message_inspect_
 import { CommandDebugExit } from "./commands/command_debug_exit";
 import { VariantEncoder } from "../variables/variant_encoder";
 
+import { createLogger } from "../../../logger";
+
+const log = createLogger("debugger.cmd_parser");
+
 export class CommandParser {
 	private commands: Map<string, () => Command> = new Map([
 		[
@@ -115,6 +119,7 @@ export class CommandParser {
 	}
 
 	public parse_message(dataset: any[]) {
+		log.debug("parse_message", dataset);
 		while (dataset && dataset.length > 0) {
 			if (this.current_command) {
 				this.parameters.push(dataset.shift());

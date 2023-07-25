@@ -16,28 +16,71 @@ import { GodotDebugSession } from "./debug_session";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { Mediator } from "./mediator";
+import { createLogger } from "../../logger";
 
-export class Godot3Debugger {
+const log = createLogger("debugger.context");
+
+export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 	public provider: GodotConfigurationProvider;
-	public factory: GodotDebugAdapterFactory;
+	public session?: GodotDebugSession;
 
 	constructor(
-		context: ExtensionContext, 
-		scene_tree_provider: SceneTreeProvider,
+		context: ExtensionContext,
+		private scene_tree_provider: SceneTreeProvider,
 	) {
 		this.provider = new GodotConfigurationProvider();
-		this.factory = new GodotDebugAdapterFactory(scene_tree_provider);
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot3", this.provider),
-			debug.registerDebugAdapterDescriptorFactory("godot3", this.factory),
+			debug.registerDebugAdapterDescriptorFactory("godot3", this),
 		);
 
-		context.subscriptions.push(this.factory);
+		context.subscriptions.push(this);
+	}
+
+	public createDebugAdapterDescriptor(
+		session: DebugSession
+	): ProviderResult<DebugAdapterDescriptor> {
+		this.session = new GodotDebugSession();
+		this.session.set_scene_tree(this.scene_tree_provider);
+		return new DebugAdapterInlineImplementation(this.session);
+	}
+
+	public dispose() {
+		this.session.dispose();
+		this.session = undefined;
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		Mediator.notify(event, parameters);
+		log.info(event, JSON.stringify(parameters));
+
+		switch (event) {
+			case "request_scene_tree":
+				this.session?.controller.send_request_scene_tree_command();
+				break;
+			case "inspect_object":
+				this.session?.controller.send_inspect_object_request(parameters[0]);
+				if (parameters[1]) {
+					this.session?.inspect_callbacks.set(Number(parameters[0]), parameters[1]);
+				}
+				break;
+			case "continue":
+				this.session?.controller.continue();
+				break;
+			case "next":
+				this.session?.controller.next();
+				break;
+			case "step":
+				this.session?.controller.step();
+				break;
+			case "step_out":
+				this.session?.controller.step_out();
+				break;
+			default: {
+				Mediator.notify(event, parameters);
+				break;
+			}
+		}
 	}
 }
 
@@ -60,6 +103,15 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 			}
 		}
 
+		if (config.request === "launch") {
+			if (config.address == undefined) {
+				config.address = "127.0.0.1";
+			}
+			if (config.port == undefined) {
+				config.port = 6007;
+			}
+		}
+
 		if (config.request === "launch" && !config.project) {
 			return window
 				.showInformationMessage(
@@ -71,24 +123,5 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 		}
 
 		return config;
-	}
-}
-
-class GodotDebugAdapterFactory implements DebugAdapterDescriptorFactory {
-	public session: GodotDebugSession | undefined;
-
-	constructor(private scene_tree_provider: SceneTreeProvider) {}
-
-	public createDebugAdapterDescriptor(
-		session: DebugSession
-	): ProviderResult<DebugAdapterDescriptor> {
-		this.session = new GodotDebugSession();
-		this.session.set_scene_tree(this.scene_tree_provider);
-		return new DebugAdapterInlineImplementation(this.session);
-	}
-
-	public dispose() {
-		this.session.dispose();
-		this.session = undefined;
 	}
 }

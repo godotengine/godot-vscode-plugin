@@ -4,6 +4,9 @@ import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { Godot3Debugger } from "./godot3/debugger_context";
 import { Godot4Debugger } from "./godot4/debugger_context";
 
+import { createLogger } from "../logger";
+
+const log = createLogger("debugger");
 
 export class GodotDebugManager {
 	public inspectorProvider = new InspectorProvider();
@@ -25,7 +28,8 @@ export class GodotDebugManager {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		if (this.g3.factory.session) {
+		log.info(event);
+		if (this.g3.session) {
 			this.g3.notify(event, parameters);
 		}
 		if (this.g4.factory.session) {
