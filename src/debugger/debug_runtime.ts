@@ -1,5 +1,8 @@
 import { SceneTreeProvider } from "./scene_tree_provider";
 import path = require("path");
+import { createLogger } from "../logger";
+
+const log = createLogger("debugger.runtime");
 
 export interface GodotBreakpoint {
 	file: string;
@@ -59,10 +62,10 @@ export class GodotDebugData {
 	public scene_tree?: SceneTreeProvider;
 	public stack_count: number = 0;
 	public stack_files: string[] = [];
-	public mediator;
+	public session;
 
-	public constructor(mediator) {
-		this.mediator = mediator;
+	public constructor(session) {
+		this.session = session;
 	}
 
 	public get_all_breakpoints(): GodotBreakpoint[] {
@@ -78,6 +81,7 @@ export class GodotDebugData {
 	}
 
 	public remove_breakpoint(path_to: string, line: number) {
+		log.info("remove_breakpoint");
 		let bps = this.breakpoints.get(path_to);
 
 		if (bps) {
@@ -89,15 +93,16 @@ export class GodotDebugData {
 				bps.splice(index, 1);
 				this.breakpoints.set(path_to, bps);
 				let file = `res://${path.relative(this.project_path, bp.file)}`;
-				this.mediator.notify("remove_breakpoint", [
+				this.session?.controller.remove_breakpoint(
 					file.replace(/\\/g, "/"),
 					bp.line,
-				]);
+				);
 			}
 		}
 	}
 
 	public set_breakpoint(path_to: string, line: number) {
+		log.info("set_breakpoint");
 		let bp = {
 			file: path_to.replace(/\\/g, "/"),
 			line: line,
@@ -114,7 +119,7 @@ export class GodotDebugData {
 
 		if (this.project_path) {
 			let out_file = `res://${path.relative(this.project_path, bp.file)}`;
-			this.mediator.notify("set_breakpoint", [out_file.replace(/\\/g, "/"), line]);
+			this.session?.controller.set_breakpoint(out_file.replace(/\\/g, "/"), line);
 		}
 	}
 }

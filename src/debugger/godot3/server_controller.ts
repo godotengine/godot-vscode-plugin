@@ -1,20 +1,47 @@
 import { CommandParser } from "./commands/command_parser";
 import { Mediator } from "./mediator";
 import { VariantDecoder } from "./variables/variant_decoder";
+import { RawObject } from "./variables/variants";
 import {
 	GodotBreakpoint,
 	GodotStackFrame,
 	GodotDebugData,
+	GodotVariable,
 } from "../debug_runtime";
-import { window } from "vscode";
+import { GodotDebugSession } from "./debug_session";
+import { SceneNode } from "../scene_tree_provider";
+import { window, OutputChannel } from "vscode";
 import { kill } from "process";
-import TERMINATE from "terminate";
 import net = require("net");
+import { Command } from "./command";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import utils = require("../../utils");
 import cp = require("child_process");
 import path = require("path");
+import { createLogger } from "../../logger";
+import {
+	LaunchRequestArguments,
+	AttachRequestArguments
+} from "./debug_session";
+
+const log = createLogger("debugger.controller");
+
+function parse_next(params: any[], ofs: { offset: number }): SceneNode {
+	const child_count: number = params[ofs.offset++];
+	const name: string = params[ofs.offset++];
+	const class_name: string = params[ofs.offset++];
+	const id: number = params[ofs.offset++];
+
+	const children: SceneNode[] = [];
+	for (let i = 0; i < child_count; ++i) {
+		children.push(parse_next(params, ofs));
+	}
+
+	return new SceneNode(name, class_name, id, children);
+}
 
 export class ServerController {
+	public session?: GodotDebugSession;
 	private command_buffer: Buffer[] = [];
 	private commands = new CommandParser();
 	private debug_data: GodotDebugData;
@@ -26,6 +53,13 @@ export class ServerController {
 	private socket?: net.Socket;
 	private stepping_out = false;
 	private terminated = false;
+	private current_command: Command = undefined;
+	private output: OutputChannel = window.createOutputChannel("Godot");
+	private first_output: boolean = false;
+
+	public constructor(session: GodotDebugSession) {
+		this.session = session;
+	}
 
 	public break() {
 		this.add_and_send(this.commands.make_break_command());
@@ -40,6 +74,8 @@ export class ServerController {
 	}
 
 	public remove_breakpoint(path_to: string, line: number) {
+		log.info("remove_breakpoint");
+
 		this.debug_data.remove_breakpoint(path_to, line);
 		this.add_and_send(
 			this.commands.make_remove_breakpoint_command(path_to, line)
@@ -47,6 +83,7 @@ export class ServerController {
 	}
 
 	public send_inspect_object_request(object_id: bigint) {
+		log.debug("send_inspect_object_request", object_id);
 		this.add_and_send(this.commands.make_inspect_object_command(object_id));
 	}
 
@@ -59,6 +96,8 @@ export class ServerController {
 	}
 
 	public set_breakpoint(path_to: string, line: number) {
+
+		log.info("set_breakpoint");
 		this.add_and_send(
 			this.commands.make_send_breakpoint_command(path_to, line)
 		);
@@ -87,20 +126,17 @@ export class ServerController {
 	}
 
 	public launch(
-		project_path: string,
-		address: string,
-		port: number,
-		scene_file: string | undefined,
-		additional_options: string | undefined,
+		args: LaunchRequestArguments,
 		debug_data: GodotDebugData
 	) {
+		log.info("launch");
 		this.debug_data = debug_data;
 
-		let godot_path: string = utils.get_configuration("editorPath.godot3", "godot");
+		const godot_path: string = utils.get_configuration("editorPath.godot3", "godot");
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${address}:${port}`;
+		let executable_line = `"${godot_path}" --path "${args.project}" --remote-debug ${args.address}:${args.port}`;
 
 		if (force_visible_collision_shapes) {
 			executable_line += " --debug-collisions";
@@ -109,50 +145,61 @@ export class ServerController {
 			executable_line += " --debug-navigation";
 		}
 		let filename = "";
-		if (scene_file) {
-			filename = scene_file;
+		if (args.scene_file) {
+			filename = args.scene_file;
 		} else {
 			filename = window.activeTextEditor.document.fileName;
 		}
 		executable_line += ` "${filename}"`;
-		
-		if(additional_options){
-			executable_line += " " + additional_options;
+
+		if (args.additional_options) {
+			executable_line += " " + args.additional_options;
 		}
 		executable_line += this.breakpoint_string(
 			debug_data.get_all_breakpoints(),
-			project_path
+			args.project
 		);
-		let godot_exec = cp.exec(executable_line, (error) => {
+		log.debug(`executable_line: ${executable_line}`);
+		const godot_exec = cp.exec(executable_line, (error) => {
 			if (!this.terminated) {
 				window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
 			}
 		});
 		this.godot_pid = godot_exec.pid;
-		
+
+		this.session?.sce
+
+		log.debug(`godot_pid: ${this.godot_pid}`);
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
 			socket.on("data", (buffer) => {
-				let buffers = this.split_buffers(buffer);
+				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					let sub_buffer = buffers.shift();
-					let data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
-					this.commands.parse_message(data);
+					const sub_buffer = buffers.shift();
+					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					this.parse_message(data);
 				}
 			});
 
 			socket.on("close", (had_error) => {
-				Mediator.notify("stop");
+				log.debug("socket close");
+				this.session?.sendEvent(new TerminatedEvent());
+				this.stop();
 			});
 
 			socket.on("end", () => {
-				Mediator.notify("stop");
+				log.debug("socket end");
+				this.session?.sendEvent(new TerminatedEvent());
+				this.stop();
 			});
 
 			socket.on("error", (error) => {
+				log.debug("socket error");
 				Mediator.notify("error", [error]);
+				// this.session?.sendEvent(new TerminatedEvent());
+				// this.stop();
 			});
 
 			socket.on("drain", () => {
@@ -162,12 +209,11 @@ export class ServerController {
 			});
 		});
 
-		this.server.listen(port, address);
+		this.server.listen(args.port, args.address);
 	}
 
 	public attach(
-		address: string,
-		port: number,
+		args: AttachRequestArguments,
 		debug_data: GodotDebugData
 	) {
 		this.debug_data = debug_data;
@@ -176,24 +222,30 @@ export class ServerController {
 			this.socket = socket;
 
 			socket.on("data", (buffer) => {
-				let buffers = this.split_buffers(buffer);
+				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					let sub_buffer = buffers.shift();
-					let data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
-					this.commands.parse_message(data);
+					const sub_buffer = buffers.shift();
+					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					this.parse_message(data);
 				}
 			});
 
 			socket.on("close", (had_error) => {
-				Mediator.notify("stop");
+				log.debug("socket close");
+				// Mediator.notify("stop");
+				// this.session?.sendEvent(new TerminatedEvent());
+				// this.stop();
 			});
 
 			socket.on("end", () => {
-				Mediator.notify("stop");
+				log.debug("socket end");
+				// Mediator.notify("stop");
+				// this.session?.sendEvent(new TerminatedEvent());
+				// this.stop();
 			});
 
 			socket.on("error", (error) => {
-				Mediator.notify("error", [error]);
+				// Mediator.notify("error", [error]);
 			});
 
 			socket.on("drain", () => {
@@ -203,9 +255,150 @@ export class ServerController {
 			});
 		});
 
-		this.server.listen(port, address);
+		this.server.listen(args.port, args.address);
 	}
 
+
+	public parse_message(dataset: any[]) {
+		if (this.current_command == undefined) {
+			this.current_command = new Command();
+			this.current_command.command = dataset.shift();
+		}
+
+		while (dataset && dataset.length > 0) {
+			if (this.current_command.param_count === -1) {
+				this.current_command.param_count = dataset.shift();
+			} else {
+				this.current_command.parameters.push(dataset.shift());
+			}
+
+			if (this.current_command.param_count === this.current_command.parameters.length) {
+				this.current_command.complete = true;
+			}
+		}
+
+		if (this.current_command.complete) {
+			try {
+				this.handle_command(this.current_command);
+			} catch {
+
+			}
+
+			this.current_command = undefined;
+		}
+	}
+
+	public handle_command(command: Command) {
+		// log.debug("handle_command", command.command, JSON.stringify(command.parameters));
+		// log.debug("handle_command", command.command);
+		switch (command.command) {
+			case "debug_enter": {
+
+				log.debug(command.command, JSON.stringify(command.parameters));
+				const reason: string = command.parameters[1];
+				if (reason !== "Breakpoint") {
+					this.set_exception(reason);
+				} else {
+					this.set_exception("");
+				}
+				this.stack_dump();
+				break;
+			}
+			case "debug_exit":
+				break;
+			case "message:click_ctrl ":
+				// TODO: what is this?
+				break;
+			case "message:scene_tree": {
+				const tree = parse_next(command.parameters, { offset: 0 });
+				this.session?.debug_data?.scene_tree?.fill_tree(tree);
+				break;
+			}
+			case "message:inspect_object": {
+				log.debug(command.command, JSON.stringify(command.parameters));
+				const id = BigInt(command.parameters[0]);
+				const class_name: string = command.parameters[1];
+				const properties: any[] = command.parameters[2];
+
+				const raw_object = new RawObject(class_name);
+				properties.forEach((prop) => {
+					raw_object.set(prop[0], prop[5]);
+				});
+				const inspected_variable = { name: "", value: raw_object };
+				this.build_sub_values(inspected_variable);
+				if (this.session?.inspect_callbacks.has(Number(id))) {
+					this.session?.inspect_callbacks.get(Number(id))(
+						inspected_variable.name,
+						inspected_variable
+					);
+					this.session?.inspect_callbacks.delete(Number(id));
+				}
+				this.session?.set_inspection(id, inspected_variable);
+				break;
+			}
+			case "stack_dump": {
+
+				log.debug(command.command, JSON.stringify(command.parameters));
+				const frames: GodotStackFrame[] = command.parameters.map((sf, i) => {
+					return {
+						id: i,
+						file: sf.get("file"),
+						function: sf.get("function"),
+						line: sf.get("line"),
+					};
+				});
+				this.trigger_breakpoint(frames);
+				this.send_request_scene_tree_command();
+				break;
+			}
+			case "stack_frame_vars": {
+				let globals: any[] = [];
+				let locals: any[] = [];
+				let members: any[] = [];
+
+				let local_count = command.parameters[0] * 2;
+				let member_count = command.parameters[1 + local_count] * 2;
+				let global_count = command.parameters[2 + local_count + member_count] * 2;
+
+				if (local_count > 0) {
+					let offset = 1;
+					locals = command.parameters.slice(offset, offset + local_count);
+				}
+
+				if (member_count > 0) {
+					let offset = 2 + local_count;
+					members = command.parameters.slice(offset, offset + member_count);
+				}
+
+				if (global_count > 0) {
+					let offset = 3 + local_count + member_count;
+					globals = command.parameters.slice(offset, offset + global_count);
+				}
+				this.do_stack_frame_vars(locals, members, globals);
+				break;
+			}
+			case "output": {
+				if (!this.first_output) {
+					this.first_output = true;
+					this.output.show(true);
+					this.output.clear();
+					this.send_request_scene_tree_command();
+				}
+
+				const lines: string[] = command.parameters;
+				lines.forEach((line) => {
+					const message_content: string = line[0];
+					//const message_kind: number = line[1];
+
+					// OutputChannel doesn't give a way to distinguish between a
+					// regular string (message_kind == 0) and an error string (message_kind == 1).
+
+					this.output.appendLine(message_content);
+				});
+				break;
+			}
+		}
+	}
 
 	public step() {
 		this.add_and_send(this.commands.make_step_command());
@@ -217,6 +410,7 @@ export class ServerController {
 	}
 
 	public stop() {
+		log.debug("stop");
 		this.socket?.destroy();
 		this.server?.close((error) => {
 			if (error) {
@@ -232,6 +426,7 @@ export class ServerController {
 	}
 
 	public terminate() {
+		log.debug("terminate", this.godot_pid);
 		this.terminated = true;
 		if (this.godot_pid) {
 			kill(this.godot_pid);
@@ -241,27 +436,27 @@ export class ServerController {
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
 		let continue_stepping = false;
-		let stack_count = stack_frames.length;
+		const stack_count = stack_frames.length;
 
-		let file = stack_frames[0].file.replace(
+		const file = stack_frames[0].file.replace(
 			"res://",
 			`${this.debug_data.project_path}/`
 		);
-		let line = stack_frames[0].line;
+		const line = stack_frames[0].line;
 
 		if (this.stepping_out) {
-			let breakpoint = this.debug_data
+			const breakpoint = this.debug_data
 				.get_breakpoints(file)
 				.find((bp) => bp.line === line);
 			if (!breakpoint) {
 				if (this.debug_data.stack_count > 1) {
 					continue_stepping = this.debug_data.stack_count === stack_count;
 				} else {
-					let file_same =
+					const file_same =
 						stack_frames[0].file === this.debug_data.last_frame.file;
-					let func_same =
+					const func_same =
 						stack_frames[0].function === this.debug_data.last_frame.function;
-					let line_greater =
+					const line_greater =
 						stack_frames[0].line >= this.debug_data.last_frame.line;
 
 					continue_stepping = file_same && func_same && line_greater;
@@ -284,9 +479,12 @@ export class ServerController {
 		});
 
 		if (this.exception.length === 0) {
-			Mediator.notify("stopped_on_breakpoint", [stack_frames]);
+			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
 		} else {
-			Mediator.notify("stopped_on_exception", [stack_frames, this.exception]);
+			this.session?.set_exception(true);
+			this.session?.sendEvent(
+				new StoppedEvent("exception", 0, this.exception)
+			);
 		}
 	}
 
@@ -296,7 +494,7 @@ export class ServerController {
 	}
 
 	private breakpoint_path(project_path: string, file: string) {
-		let relative_path = path.relative(project_path, file).replace(/\\/g, "/");
+		const relative_path = path.relative(project_path, file).replace(/\\/g, "/");
 		if (relative_path.length !== 0) {
 			return `res://${relative_path}`;
 		}
@@ -332,14 +530,93 @@ export class ServerController {
 	private split_buffers(buffer: Buffer) {
 		let len = buffer.byteLength;
 		let offset = 0;
-		let buffers: Buffer[] = [];
+		const buffers: Buffer[] = [];
 		while (len > 0) {
-			let sub_len = buffer.readUInt32LE(offset) + 4;
+			const sub_len = buffer.readUInt32LE(offset) + 4;
 			buffers.push(buffer.slice(offset, offset + sub_len));
 			offset += sub_len;
 			len -= sub_len;
 		}
 
 		return buffers;
+	}
+
+	private build_sub_values(va: GodotVariable) {
+		let value = va.value;
+
+		let sub_values: GodotVariable[] = undefined;
+
+		if (value && Array.isArray(value)) {
+			sub_values = value.map((va, i) => {
+				return { name: `${i}`, value: va } as GodotVariable;
+			});
+		} else if (value instanceof Map) {
+			sub_values = Array.from(value.keys()).map((va) => {
+				if (typeof va["stringify_value"] === "function") {
+					return {
+						name: `${va.type_name()}${va.stringify_value()}`,
+						value: value.get(va),
+					} as GodotVariable;
+				} else {
+					return {
+						name: `${va}`,
+						value: value.get(va),
+					} as GodotVariable;
+				}
+			});
+		} else if (value && typeof value["sub_values"] === "function") {
+			sub_values = value.sub_values().map((sva) => {
+				return { name: sva.name, value: sva.value } as GodotVariable;
+			});
+		}
+
+		va.sub_values = sub_values;
+
+		sub_values?.forEach((sva) => this.build_sub_values(sva));
+	}
+
+	private do_stack_frame_vars(
+		locals: any[],
+		members: any[],
+		globals: any[]
+	) {
+		const locals_out: GodotVariable[] = [];
+		const members_out: GodotVariable[] = [];
+		const globals_out: GodotVariable[] = [];
+
+		for (
+			let i = 0;
+			i < locals.length + members.length + globals.length;
+			i += 2
+		) {
+			const name =
+				i < locals.length
+					? locals[i]
+					: i < members.length + locals.length
+						? members[i - locals.length]
+						: globals[i - locals.length - members.length];
+
+			const value =
+				i < locals.length
+					? locals[i + 1]
+					: i < members.length + locals.length
+						? members[i - locals.length + 1]
+						: globals[i - locals.length - members.length + 1];
+
+			const variable: GodotVariable = {
+				name: name,
+				value: value,
+			};
+
+			this.build_sub_values(variable);
+
+			i < locals.length
+				? locals_out.push(variable)
+				: i < members.length + locals.length
+					? members_out.push(variable)
+					: globals_out.push(variable);
+		}
+
+		this.session?.set_scopes(locals_out, members_out, globals_out);
 	}
 }
