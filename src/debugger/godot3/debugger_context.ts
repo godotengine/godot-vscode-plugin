@@ -15,7 +15,6 @@ import {
 import { GodotDebugSession } from "./debug_session";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
-import { Mediator } from "./mediator";
 import { createLogger } from "../../logger";
 
 const log = createLogger("debugger.context");
@@ -76,10 +75,6 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 			case "step_out":
 				this.session?.controller.step_out();
 				break;
-			default: {
-				Mediator.notify(event, parameters);
-				break;
-			}
 		}
 	}
 }
