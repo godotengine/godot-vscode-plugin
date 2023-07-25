@@ -275,7 +275,7 @@ export class ServerController {
 			try {
 				this.handle_command(this.current_command);
 			} catch {
-
+				//
 			}
 
 			this.current_command = undefined;
