@@ -51,9 +51,29 @@ export class Godot4Debugger implements DebugAdapterDescriptorFactory {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		log.info(event, JSON.stringify(parameters));
-
-		// Mediator.notify(event, parameters);
+		switch (event) {
+			case "request_scene_tree":
+				this.session?.controller.send_request_scene_tree_command();
+				break;
+			case "inspect_object":
+				this.session?.controller.send_inspect_object_request(parameters[0]);
+				if (parameters[1]) {
+					this.session?.inspect_callbacks.set(Number(parameters[0]), parameters[1]);
+				}
+				break;
+			case "continue":
+				this.session?.controller.continue();
+				break;
+			case "next":
+				this.session?.controller.next();
+				break;
+			case "step":
+				this.session?.controller.step();
+				break;
+			case "step_out":
+				this.session?.controller.step_out();
+				break;
+		}
 	}
 }
 

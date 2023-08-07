@@ -57,7 +57,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		this.controller = new ServerController();
+		this.controller = new ServerController(this);
 	}
 
 	public dispose() {}

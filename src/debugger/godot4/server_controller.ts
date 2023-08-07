@@ -30,6 +30,8 @@ function parse_next(params: any[], ofs: { offset: number }): SceneNode {
 	const name: string = params[ofs.offset++];
 	const class_name: string = params[ofs.offset++];
 	const id: number = params[ofs.offset++];
+	const unknown1: string = params[ofs.offset++];
+	const unknown2: number = params[ofs.offset++];
 
 	const children: SceneNode[] = [];
 	for (let i = 0; i < child_count; ++i) {
@@ -119,7 +121,7 @@ export class ServerController {
 		this.add_and_send(this.commands.make_stack_dump_command());
 	}
 
-public launch(
+	public launch(
 		args: LaunchRequestArguments,
 		debug_data: GodotDebugData
 	) {
@@ -130,7 +132,7 @@ public launch(
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let executable_line = `"${godot_path}" --path "${args.project}" --remote-debug tcp://${args.address}:${args.port}`;
+		let executable_line = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
 			executable_line += " --debug-collisions";
@@ -173,7 +175,7 @@ public launch(
 				while (buffers.length > 0) {
 					const sub_buffer = buffers.shift();
 					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
-					this.parse_message(data);
+					this.parse_message(data[0]);
 				}
 			});
 
@@ -249,38 +251,21 @@ public launch(
 		this.server.listen(args.port, args.address);
 	}
 
-	
 	public parse_message(dataset: any[]) {
-		if (this.current_command == undefined) {
-			this.current_command = new Command();
-			this.current_command.command = dataset.shift();
-		}
+		const command = new Command();
+		command.command = dataset[0];
+		command.parameters = dataset[1];
 
-		while (dataset && dataset.length > 0) {
-			if (this.current_command.param_count === -1) {
-				this.current_command.param_count = dataset.shift();
-			} else {
-				this.current_command.parameters.push(dataset.shift());
-			}
-
-			if (this.current_command.param_count === this.current_command.parameters.length) {
-				this.current_command.complete = true;
-			}
-		}
-
-		if (this.current_command.complete) {
-			try {
-				this.handle_command(this.current_command);
-			} catch {
-				//
-			}
-
-			this.current_command = undefined;
+		try {
+			this.handle_command(command);
+		} catch {
+			//
 		}
 	}
-		public handle_command(command: Command) {
+
+	public handle_command(command: Command) {
 		// log.debug("handle_command", command.command, JSON.stringify(command.parameters));
-		// log.debug("handle_command", command.command);
+
 		switch (command.command) {
 			case "debug_enter": {
 				log.debug(command.command, JSON.stringify(command.parameters));
@@ -298,13 +283,14 @@ public launch(
 			case "message:click_ctrl ":
 				// TODO: what is this?
 				break;
-			case "message:scene_tree": {
+			case "scene:scene_tree": {
+				log.debug("scene:scene_tree");
 				const tree = parse_next(command.parameters, { offset: 0 });
 				this.session?.debug_data?.scene_tree?.fill_tree(tree);
 				break;
 			}
-			case "message:inspect_object": {
-				log.debug(command.command, JSON.stringify(command.parameters));
+			case "scene:inspect_object": {
+				log.debug("scene:inspect_object");
 				const id = BigInt(command.parameters[0]);
 				const class_name: string = command.parameters[1];
 				const properties: any[] = command.parameters[2];
@@ -373,113 +359,11 @@ public launch(
 					this.send_request_scene_tree_command();
 				}
 
-				const lines: string[] = command.parameters;
-				lines.forEach((line) => {
-					const message_content: string = line[0];
-					//const message_kind: number = line[1];
-
-					// OutputChannel doesn't give a way to distinguish between a
-					// regular string (message_kind == 0) and an error string (message_kind == 1).
-
-					this.output.appendLine(message_content);
-				});
+				this.output.appendLine(command.parameters[0]);
 				break;
 			}
 		}
 	}
-	// public start(
-	// 	project_path: string,
-	// 	address: string,
-	// 	port: number,
-	// 	launch_instance: boolean,
-	// 	launch_scene: boolean,
-	// 	scene_file: string | undefined,
-	// 	additional_options: string | undefined,
-	// 	debug_data: GodotDebugData
-	// ) {
-	// 	this.debug_data = debug_data;
-
-	// 	if (launch_instance) {
-	// 		const godot_path: string = utils.get_configuration("editorPath.godot4", "godot");
-	// 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
-	// 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
-	// 		const protocol = utils.get_configuration("lsp.serverProtocol", "tcp");
-
-	// 		let executable_line = `"${godot_path}" --path "${project_path}" --remote-debug ${protocol}://${address}:${port}`;
-
-	// 		if (force_visible_collision_shapes) {
-	// 			executable_line += " --debug-collisions";
-	// 		}
-	// 		if (force_visible_nav_mesh) {
-	// 			executable_line += " --debug-navigation";
-	// 		}
-	// 		if (launch_scene) {
-	// 			let filename = "";
-	// 			if (scene_file) {
-	// 				filename = scene_file;
-	// 			} else {
-	// 				filename = window.activeTextEditor.document.fileName;
-	// 			}
-	// 			executable_line += ` "${filename}"`;
-	// 		}
-	// 		if(additional_options){
-	// 			executable_line += " " + additional_options;
-	// 		}
-	// 		executable_line += this.breakpoint_string(
-	// 			debug_data.get_all_breakpoints(),
-	// 			project_path
-	// 		);
-	// 		const godot_exec = cp.exec(executable_line, (error) => {
-	// 			if (!this.terminated) {
-	// 				window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-	// 			}
-	// 		});
-	// 		this.godot_pid = godot_exec.pid;
-	// 	}
-
-	// 	this.server = net.createServer((socket) => {
-	// 		this.socket = socket;
-
-	// 		if (!launch_instance) {
-	// 			const breakpoints = this.debug_data.get_all_breakpoints();
-	// 			breakpoints.forEach((bp) => {
-	// 				this.set_breakpoint(
-	// 					this.breakpoint_path(project_path, bp.file),
-	// 					bp.line
-	// 				);
-	// 			});
-	// 		}
-
-	// 		socket.on("data", (buffer) => {
-	// 			const buffers = this.split_buffers(buffer);
-	// 			while (buffers.length > 0) {
-	// 				const sub_buffer = buffers.shift();
-	// 				const data = this.decoder.get_dataset(sub_buffer, 0)[1];
-	// 				this.commands.parse_message(data[0], data[1]);
-	// 			}
-	// 		});
-
-	// 		socket.on("close", (had_error) => {
-	// 			Mediator.notify("stop");
-	// 		});
-
-	// 		socket.on("end", () => {
-	// 			Mediator.notify("stop");
-	// 		});
-
-	// 		socket.on("error", (error) => {
-	// 			Mediator.notify("error", [error]);
-	// 		});
-
-	// 		socket.on("drain", () => {
-	// 			socket.resume();
-	// 			this.draining = false;
-	// 			this.send_buffer();
-	// 		});
-	// 	});
-
-	// 	this.server.listen(port, address);
-	// }
 
 	public step() {
 		this.add_and_send(this.commands.make_step_command());

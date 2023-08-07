@@ -28,11 +28,11 @@ export class GodotDebugManager {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		log.info(event);
+		// log.info(event);
 		if (this.g3.session) {
 			this.g3.notify(event, parameters);
 		}
-		if (this.g4.factory.session) {
+		if (this.g4.session) {
 			this.g4.notify(event, parameters);
 		}
 	}
