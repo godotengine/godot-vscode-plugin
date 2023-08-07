@@ -369,6 +369,11 @@
 								"type": "string",
 								"description": "Absolute path to the Godot executable to be used for this debug profile.",
 								"default": ""
+							},
+							"additional_options": {
+								"type": "string",
+								"description": "Additional command line arguments.",
+								"default": ""
 							}
 						}
 					},
@@ -433,36 +438,22 @@
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
-						"required": [
-							"project",
-							"port",
-							"address"
-						],
+						"required": [],
 						"properties": {
 							"project": {
 								"type": "string",
 								"description": "Absolute path to a directory with a project.godot file.",
 								"default": "${workspaceFolder}"
 							},
-							"port": {
-								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
-								"default": 6007
-							},
 							"address": {
 								"type": "string",
 								"description": "The IP address for the Godot remote debugger to use.",
 								"default": "127.0.0.1"
 							},
-							"launch_game_instance": {
-								"type": "boolean",
-								"description": "Whether to launch an instance of the workspace's game, or wait for a debug session to connect.",
-								"default": true
-							},
-							"launch_scene": {
-								"type": "boolean",
-								"description": "Whether to launch an instance the currently opened TSCN file, or launch the game project. Only works with launch_game_instance being true.",
-								"default": false
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
 							},
 							"scene_file": {
 								"type": "string",
@@ -481,34 +472,29 @@
 						}
 					},
 					"attach": {
-						"required": [
-							"port",
-							"address"
-						],
+						"required": [],
 						"properties": {
-							"port": {
-								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
-								"default": 6007
-							},
 							"address": {
 								"type": "string",
 								"description": "The IP address for the Godot remote debugger to use.",
 								"default": "127.0.0.1"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
 							}
 						}
 					}
 				},
 				"initialConfigurations": [
 					{
-						"name": "GDScript Godot",
+						"name": "GDScript: Launch Godot",
 						"type": "godot4",
 						"request": "launch",
 						"project": "${workspaceFolder}",
-						"port": 6007,
 						"address": "127.0.0.1",
-						"launch_game_instance": true,
-						"launch_scene": false,
+						"port": 6007,
 						"additional_options": ""
 					}
 				],
@@ -523,9 +509,18 @@
 							"project": "${workspaceFolder}",
 							"port": 6007,
 							"address": "127.0.0.1",
-							"launch_game_instance": true,
-							"launch_scene": false,
 							"additional_options": ""
+						}
+					},
+					{
+						"label": "GDScript Godot Debug: Attach",
+						"description": "A new configuration for debugging a Godot project.",
+						"body": {
+							"name": "GDScript: Attach to Godot",
+							"type": "godot4",
+							"request": "attach",
+							"address": "127.0.0.1",
+							"port": 6007
 						}
 					}
 				]
