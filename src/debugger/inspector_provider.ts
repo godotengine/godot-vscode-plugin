@@ -62,10 +62,10 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		property: RemoteProperty,
 		new_parsed_value: any
 	) {
-		let idx = parents.length - 1;
-		let value = parents[idx].value;
+		const idx = parents.length - 1;
+		const value = parents[idx].value;
 		if (Array.isArray(value)) {
-			let idx = parseInt(property.label);
+			const idx = parseInt(property.label);
 			if (idx < value.length) {
 				value[idx] = new_parsed_value;
 			}
@@ -97,7 +97,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	}
 
 	private parse_variable(va: GodotVariable, object_id?: number) {
-		let value = va.value;
+		const value = va.value;
 		let rendered_value = "";
 
 		if (typeof value === "number") {
@@ -131,7 +131,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		let child_props: RemoteProperty[] = [];
 
 		if (value) {
-			let sub_variables =
+			const sub_variables =
 				typeof value["sub_values"] === "function" &&
 				value instanceof ObjectId === false
 					? value.sub_values()
@@ -141,11 +141,11 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 					})
 					: value instanceof Map
 					? Array.from(value.keys()).map((va) => {
-							let name =
+							const name =
 								typeof va["rendered_value"] === "function"
 									? va.rendered_value()
 									: `${va}`;
-							let map_value = value.get(va);
+							const map_value = value.get(va);
 
 							return { name: name, value: map_value };
 					})
@@ -155,7 +155,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 			});
 		}
 
-		let out_prop = new RemoteProperty(
+		const out_prop = new RemoteProperty(
 			va.name,
 			value,
 			object_id,

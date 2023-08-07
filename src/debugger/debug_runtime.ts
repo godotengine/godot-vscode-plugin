@@ -69,7 +69,7 @@ export class GodotDebugData {
 	}
 
 	public get_all_breakpoints(): GodotBreakpoint[] {
-		let output: GodotBreakpoint[] = [];
+		const output: GodotBreakpoint[] = [];
 		Array.from(this.breakpoints.values()).forEach((bp_array) => {
 			output.push(...bp_array);
 		});
@@ -82,17 +82,17 @@ export class GodotDebugData {
 
 	public remove_breakpoint(path_to: string, line: number) {
 		log.info("remove_breakpoint");
-		let bps = this.breakpoints.get(path_to);
+		const bps = this.breakpoints.get(path_to);
 
 		if (bps) {
-			let index = bps.findIndex((bp) => {
+			const index = bps.findIndex((bp) => {
 				return bp.line === line;
 			});
 			if (index !== -1) {
-				let bp = bps[index];
+				const bp = bps[index];
 				bps.splice(index, 1);
 				this.breakpoints.set(path_to, bps);
-				let file = `res://${path.relative(this.project_path, bp.file)}`;
+				const file = `res://${path.relative(this.project_path, bp.file)}`;
 				this.session?.controller.remove_breakpoint(
 					file.replace(/\\/g, "/"),
 					bp.line,
@@ -103,7 +103,7 @@ export class GodotDebugData {
 
 	public set_breakpoint(path_to: string, line: number) {
 		log.info("set_breakpoint");
-		let bp = {
+		const bp = {
 			file: path_to.replace(/\\/g, "/"),
 			line: line,
 			id: this.breakpoint_id++,
@@ -118,7 +118,7 @@ export class GodotDebugData {
 		bps.push(bp);
 
 		if (this.project_path) {
-			let out_file = `res://${path.relative(this.project_path, bp.file)}`;
+			const out_file = `res://${path.relative(this.project_path, bp.file)}`;
 			this.session?.controller.set_breakpoint(out_file.replace(/\\/g, "/"), line);
 		}
 	}

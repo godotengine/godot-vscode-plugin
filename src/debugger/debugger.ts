@@ -71,8 +71,8 @@ export class GodotDebugManager {
 
 	public refreshInspector() {
 		if (this.inspectorProvider.has_tree()) {
-			let name = this.inspectorProvider.get_top_name();
-			let id = this.inspectorProvider.get_top_id();
+			const name = this.inspectorProvider.get_top_name();
+			const id = this.inspectorProvider.get_top_id();
 			this.notify("inspect_object", [
 				id,
 				(class_name, properties) => {
@@ -83,9 +83,9 @@ export class GodotDebugManager {
 	}
 
 	public editValue(property: RemoteProperty) {
-		let previous_value = property.value;
-		let type = typeof previous_value;
-		let is_float = type === "number" && !Number.isInteger(previous_value);
+		const previous_value = property.value;
+		const type = typeof previous_value;
+		const is_float = type === "number" && !Number.isInteger(previous_value);
 		window
 			.showInputBox({ value: `${property.description}` })
 			.then((value) => {
@@ -120,12 +120,12 @@ export class GodotDebugManager {
 						}
 				}
 				if (property.changes_parent) {
-					let parents = [property.parent];
+					const parents = [property.parent];
 					let idx = 0;
 					while (parents[idx].changes_parent) {
 						parents.push(parents[idx++].parent);
 					}
-					let changed_value = this.inspectorProvider.get_changed_value(
+					const changed_value = this.inspectorProvider.get_changed_value(
 						parents,
 						property,
 						new_parsed_value

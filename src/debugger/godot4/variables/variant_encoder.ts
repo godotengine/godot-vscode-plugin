@@ -43,8 +43,8 @@ export class VariantEncoder {
 		}
 
 		if (!model) {
-			let size = this.size_variant(value);
-			let buffer = Buffer.alloc(size + 4);
+			const size = this.size_variant(value);
+			const buffer = Buffer.alloc(size + 4);
 			model = {
 				buffer: buffer,
 				offset: 0,
@@ -56,7 +56,7 @@ export class VariantEncoder {
 		switch (typeof value) {
 			case "number":
 				{
-					let is_integer = Number.isInteger(value);
+					const is_integer = Number.isInteger(value);
 					if (is_integer) {
 						this.encode_UInt32(GDScriptTypes.INT, model);
 						this.encode_UInt32(value, model);
@@ -152,7 +152,7 @@ export class VariantEncoder {
 	}
 
 	private encode_Array(arr: any[], model: BufferModel) {
-		let size = arr.length;
+		const size = arr.length;
 		this.encode_UInt32(size, model);
 		arr.forEach((e) => {
 			this.encode_variant(e, model);
@@ -177,11 +177,11 @@ export class VariantEncoder {
 	}
 
 	private encode_Dictionary(dict: Map<any, any>, model: BufferModel) {
-		let size = dict.size;
+		const size = dict.size;
 		this.encode_UInt32(size, model);
-		let keys = Array.from(dict.keys());
+		const keys = Array.from(dict.keys());
 		keys.forEach((key) => {
-			let value = dict.get(key);
+			const value = dict.get(key);
 			this.encode_variant(key, model);
 			this.encode_variant(value, model);
 		});
@@ -328,9 +328,9 @@ export class VariantEncoder {
 
 	private size_Dictionary(dict: Map<any, any>): number {
 		let size = this.size_UInt32();
-		let keys = Array.from(dict.keys());
+		const keys = Array.from(dict.keys());
 		keys.forEach((key) => {
-			let value = dict.get(key);
+			const value = dict.get(key);
 			size += this.size_variant(key);
 			size += this.size_variant(value);
 		});
