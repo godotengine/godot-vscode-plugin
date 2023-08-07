@@ -38,9 +38,8 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
-		let has_children = element.children.length > 0;
-		let tree_item: TreeItem | undefined;
-		tree_item = new TreeItem(
+		const has_children = element.children.length > 0;
+		const tree_item: TreeItem = new TreeItem(
 			element.label,
 			has_children
 				? element === this.tree
@@ -67,7 +66,7 @@ export class SceneNode extends TreeItem {
 		super(label, collapsibleState);
 
 		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
-		const iconName = class_name + '.svg';
+		const iconName = class_name + ".svg";
 
 		this.iconPath = {
 			light: path.join(iconDir, "light", iconName),

@@ -98,7 +98,7 @@ export class ServerController {
 		this.debug_data = debug_data;
 
 		if (launch_instance) {
-			let godot_path: string = utils.get_configuration("editorPath.godot4", "godot");
+			const godot_path: string = utils.get_configuration("editorPath.godot4", "godot");
 			const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 			const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 			const protocol = utils.get_configuration("lsp.serverProtocol", "tcp");
@@ -127,7 +127,7 @@ export class ServerController {
 				debug_data.get_all_breakpoints(),
 				project_path
 			);
-			let godot_exec = cp.exec(executable_line, (error) => {
+			const godot_exec = cp.exec(executable_line, (error) => {
 				if (!this.terminated) {
 					window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
 				}
@@ -139,7 +139,7 @@ export class ServerController {
 			this.socket = socket;
 
 			if (!launch_instance) {
-				let breakpoints = this.debug_data.get_all_breakpoints();
+				const breakpoints = this.debug_data.get_all_breakpoints();
 				breakpoints.forEach((bp) => {
 					this.set_breakpoint(
 						this.breakpoint_path(project_path, bp.file),
@@ -149,10 +149,10 @@ export class ServerController {
 			}
 
 			socket.on("data", (buffer) => {
-				let buffers = this.split_buffers(buffer);
+				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					let sub_buffer = buffers.shift();
-					let data = this.decoder.get_dataset(sub_buffer, 0)[1];
+					const sub_buffer = buffers.shift();
+					const data = this.decoder.get_dataset(sub_buffer, 0)[1];
 					this.commands.parse_message(data[0], data[1]);
 				}
 			});
@@ -211,32 +211,32 @@ export class ServerController {
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
 		let continue_stepping = false;
-		let stack_count = stack_frames.length;
+		const stack_count = stack_frames.length;
 		if (stack_count === 0) {
 			// Engine code is being executed, no user stack trace
 			Mediator.notify("stopped_on_breakpoint", [[]]);
 			return;
 		}
 
-		let file = stack_frames[0].file.replace(
+		const file = stack_frames[0].file.replace(
 			"res://",
 			`${this.debug_data.project_path}/`
 		);
-		let line = stack_frames[0].line;
+		const line = stack_frames[0].line;
 
 		if (this.stepping_out) {
-			let breakpoint = this.debug_data
+			const breakpoint = this.debug_data
 				.get_breakpoints(file)
 				.find((bp) => bp.line === line);
 			if (!breakpoint) {
 				if (this.debug_data.stack_count > 1) {
 					continue_stepping = this.debug_data.stack_count === stack_count;
 				} else {
-					let file_same =
+					const file_same =
 						stack_frames[0].file === this.debug_data.last_frame.file;
-					let func_same =
+					const func_same =
 						stack_frames[0].function === this.debug_data.last_frame.function;
-					let line_greater =
+					const line_greater =
 						stack_frames[0].line >= this.debug_data.last_frame.line;
 
 					continue_stepping = file_same && func_same && line_greater;
@@ -271,7 +271,7 @@ export class ServerController {
 	}
 
 	private breakpoint_path(project_path: string, file: string) {
-		let relative_path = path.relative(project_path, file).replace(/\\/g, "/");
+		const relative_path = path.relative(project_path, file).replace(/\\/g, "/");
 		if (relative_path.length !== 0) {
 			return `res://${relative_path}`;
 		}
@@ -307,9 +307,9 @@ export class ServerController {
 	private split_buffers(buffer: Buffer) {
 		let len = buffer.byteLength;
 		let offset = 0;
-		let buffers: Buffer[] = [];
+		const buffers: Buffer[] = [];
 		while (len > 0) {
-			let sub_len = buffer.readUInt32LE(offset) + 4;
+			const sub_len = buffer.readUInt32LE(offset) + 4;
 			buffers.push(buffer.slice(offset, offset + sub_len));
 			offset += sub_len;
 			len -= sub_len;

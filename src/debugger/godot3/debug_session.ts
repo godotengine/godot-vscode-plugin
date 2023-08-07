@@ -76,13 +76,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
 		log.debug("set_inspection");
-		let variables = this.all_scopes.filter(
+		const variables = this.all_scopes.filter(
 			(va) => va && va.value instanceof ObjectId && va.value.id === id
 		);
 
 		variables.forEach((va) => {
-			let index = this.all_scopes.findIndex((va_id) => va_id === va);
-			let old = this.all_scopes.splice(index, 1);
+			const index = this.all_scopes.findIndex((va_id) => va_id === va);
+			const old = this.all_scopes.splice(index, 1);
 			replacement.name = old[0].name;
 			replacement.scope_path = old[0].scope_path;
 			this.append_variable(replacement, index);
@@ -139,17 +139,17 @@ export class GodotDebugSession extends LoggingDebugSession {
 		];
 
 		locals.forEach((va) => {
-			va.scope_path = `@.local`;
+			va.scope_path = "@.local";
 			this.append_variable(va);
 		});
 
 		members.forEach((va) => {
-			va.scope_path = `@.member`;
+			va.scope_path = "@.member";
 			this.append_variable(va);
 		});
 
 		globals.forEach((va) => {
-			va.scope_path = `@.global`;
+			va.scope_path = "@.global";
 			this.append_variable(va);
 		});
 
@@ -206,7 +206,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		// Detect index/key
 		var key = (propertyName.match(/(?<=\[).*(?=\])/) || [null])[0];
 		if (key) {
-			key = key.replace(/['"]+/g, '');
+			key = key.replace(/['"]+/g, "");
 			propertyName = propertyName.split(/(?<=\[).*(?=\])/).join("").split("\[\]").join("");
 			if (path) path += ".";
 			path += propertyName;
@@ -421,12 +421,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.SetBreakpointsArguments
 	) {
 		log.debug("setBreakPointsRequest");
-		let path = (args.source.path as string).replace(/\\/g, "/");
-		let client_lines = args.lines || [];
+		const path = (args.source.path as string).replace(/\\/g, "/");
+		const client_lines = args.lines || [];
 
 		if (fs.existsSync(path)) {
 			let bps = this.debug_data.get_breakpoints(path);
-			let bp_lines = bps.map((bp) => bp.line);
+			const bp_lines = bps.map((bp) => bp.line);
 
 			bps.forEach((bp) => {
 				if (client_lines.indexOf(bp.line) === -1) {
@@ -435,7 +435,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			});
 			client_lines.forEach((l) => {
 				if (bp_lines.indexOf(l) === -1) {
-					let bp = args.breakpoints.find((bp_at_line) => (bp_at_line.line == l));
+					const bp = args.breakpoints.find((bp_at_line) => (bp_at_line.line == l));
 					if (!bp.condition) {
 						this.debug_data.set_breakpoint(path, l);
 					}
@@ -531,14 +531,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.VariablesArguments
 	) {
 		log.debug("variablesRequest");
-		let reference = this.all_scopes[args.variablesReference];
+		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
 		if (!reference.sub_values) {
 			variables = [];
 		} else {
 			variables = reference.sub_values.map((va) => {
-				let sva = this.all_scopes.find(
+				const sva = this.all_scopes.find(
 					(sva) =>
 						sva && sva.scope_path === va.scope_path && sva.name === va.name
 				);
@@ -585,7 +585,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		} else {
 			this.all_scopes.push(variable);
 		}
-		let base_path = `${variable.scope_path}.${variable.name}`;
+		const base_path = `${variable.scope_path}.${variable.name}`;
 		if (variable.sub_values) {
 			variable.sub_values.forEach((va, i) => {
 				va.scope_path = `${base_path}`;
@@ -601,7 +601,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	private parse_variable(va: GodotVariable, i?: number) {
 		log.debug("parse_variable");
-		let value = va.value;
+		const value = va.value;
 		let rendered_value = "";
 		let reference = 0;
 		let array_size = 0;
