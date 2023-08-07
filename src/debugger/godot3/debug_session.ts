@@ -24,7 +24,7 @@ import { createLogger } from "../../logger";
 
 const log = createLogger("debugger.session");
 
-
+// TODO: remove extra fields
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
 	launch_game_instance: boolean;
@@ -111,6 +111,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ConfigurationDoneResponse,
 		args: DebugProtocol.ConfigurationDoneArguments
 	) {
+		log.debug("configurationDoneRequest");
 		this.configuration_done.notify();
 		this.sendResponse(response);
 	}
@@ -403,6 +404,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
+		// TODO: implement me
 		// Mediator.notify("get_scopes", [args.frameId]);
 		await this.got_scope.wait(2000);
 
@@ -572,6 +574,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					!this.ongoing_inspections.find((va_id) => va_id === va.value.id) &&
 					!this.previous_inspections.find((va_id) => va_id === va.value.id)
 				) {
+					// TODO: implement me
 					// Mediator.notify("inspect_object", [va.value.id]);
 					this.ongoing_inspections.push(va.value.id);
 				}
@@ -580,6 +583,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
+		log.debug("append_variable");
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {
