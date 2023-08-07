@@ -143,13 +143,14 @@ export class ServerController {
 		if (force_visible_nav_mesh) {
 			executable_line += " --debug-navigation";
 		}
-		let filename = "";
-		if (args.scene_file) {
-			filename = args.scene_file;
-		} else {
-			filename = window.activeTextEditor.document.fileName;
-		}
-		executable_line += ` "${filename}"`;
+		// TODO: reimplement this
+		// let filename = "";
+		// if (args.scene_file) {
+		// 	filename = args.scene_file;
+		// } else {
+		// 	filename = window.activeTextEditor.document.fileName;
+		// }
+		// executable_line += ` "${filename}"`;
 
 		if (args.additional_options) {
 			executable_line += " " + args.additional_options;
