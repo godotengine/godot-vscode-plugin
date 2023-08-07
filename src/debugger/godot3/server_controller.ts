@@ -348,22 +348,22 @@ export class ServerController {
 				let locals: any[] = [];
 				let members: any[] = [];
 
-				let local_count = command.parameters[0] * 2;
-				let member_count = command.parameters[1 + local_count] * 2;
-				let global_count = command.parameters[2 + local_count + member_count] * 2;
+				const local_count = command.parameters[0] * 2;
+				const member_count = command.parameters[1 + local_count] * 2;
+				const global_count = command.parameters[2 + local_count + member_count] * 2;
 
 				if (local_count > 0) {
-					let offset = 1;
+					const offset = 1;
 					locals = command.parameters.slice(offset, offset + local_count);
 				}
 
 				if (member_count > 0) {
-					let offset = 2 + local_count;
+					const offset = 2 + local_count;
 					members = command.parameters.slice(offset, offset + member_count);
 				}
 
 				if (global_count > 0) {
-					let offset = 3 + local_count + member_count;
+					const offset = 3 + local_count + member_count;
 					globals = command.parameters.slice(offset, offset + global_count);
 				}
 				this.do_stack_frame_vars(locals, members, globals);
@@ -534,7 +534,7 @@ export class ServerController {
 	}
 
 	private build_sub_values(va: GodotVariable) {
-		let value = va.value;
+		const value = va.value;
 
 		let sub_values: GodotVariable[] = undefined;
 
