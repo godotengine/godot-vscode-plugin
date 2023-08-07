@@ -6,7 +6,6 @@ import {
 	Breakpoint,
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { Mediator } from "./mediator";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { ObjectId, RawObject } from "./variables/variants";
 import { ServerController } from "./server_controller";
@@ -14,8 +13,12 @@ import { Subject } from "await-notify";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { get_configuration } from "../../utils";
+import { createLogger } from "../../logger";
 
-interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+const log = createLogger("debugger.session");
+
+// TODO: remove extra fields
+export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
 	launch_game_instance: boolean;
 	launch_scene: boolean;
@@ -25,15 +28,28 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	additional_options: string;
 }
 
+export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+	address: string;
+	port: number;
+	project: string;
+	scene_file: string;
+	additional_options: string;
+}
+
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
-	private controller?: ServerController;
-	private debug_data = new GodotDebugData(Mediator);
+	public controller?: ServerController;
+	public debug_data = new GodotDebugData(this);
 	private exception = false;
 	private got_scope = new Subject();
 	private ongoing_inspections: bigint[] = [];
 	private previous_inspections: bigint[] = [];
 	private configuration_done = new Subject();
+	private mode: "launch" | "attach" | "" = "";
+	public inspect_callbacks: Map<
+		number,
+		(class_name: string, variable: GodotVariable) => void
+	> = new Map();
 
 	public constructor() {
 		super();
@@ -41,19 +57,18 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		Mediator.set_session(this);
 		this.controller = new ServerController();
-		Mediator.set_controller(this.controller);
-		Mediator.set_debug_data(this.debug_data);
 	}
 
 	public dispose() {}
 
 	public set_exception(exception: boolean) {
+		log.debug("set_exception");
 		this.exception = true;
 	}
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
+		log.debug("set_inspection");
 		const variables = this.all_scopes.filter(
 			(va) => va && va.value instanceof ObjectId && va.value.id === id
 		);
@@ -89,6 +104,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ConfigurationDoneResponse,
 		args: DebugProtocol.ConfigurationDoneArguments
 	) {
+		log.debug("configurationDoneRequest");
 		this.configuration_done.notify();
 		this.sendResponse(response);
 	}
@@ -98,6 +114,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		members: GodotVariable[],
 		globals: GodotVariable[]
 	) {
+		log.debug("set_scopes");
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
@@ -142,9 +159,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ContinueResponse,
 		args: DebugProtocol.ContinueArguments
 	) {
+		log.debug("continueRequest");
 		if (!this.exception) {
 			response.body = { allThreadsContinued: true };
-			Mediator.notify("continue");
+			this.controller?.continue();
 			this.sendResponse(response);
 		}
 	}
@@ -153,6 +171,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.EvaluateResponse,
 		args: DebugProtocol.EvaluateArguments
 	) {
+		log.debug("evaluateRequest");
+		
 		if (this.all_scopes) {
 			const expression = args.expression;
 			const matches = expression.match(/^[_a-zA-Z0-9]+?$/);
@@ -188,35 +208,23 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		response.body.supportsConfigurationDoneRequest = true;
 		response.body.supportsTerminateRequest = true;
-
 		response.body.supportsEvaluateForHovers = false;
-
 		response.body.supportsStepBack = false;
 		response.body.supportsGotoTargetsRequest = false;
-
 		response.body.supportsCancelRequest = false;
-
 		response.body.supportsCompletionsRequest = false;
-
 		response.body.supportsFunctionBreakpoints = false;
 		response.body.supportsDataBreakpoints = false;
 		response.body.supportsBreakpointLocationsRequest = false;
 		response.body.supportsConditionalBreakpoints = false;
 		response.body.supportsHitConditionalBreakpoints = false;
-
 		response.body.supportsLogPoints = false;
-
 		response.body.supportsModulesRequest = false;
-
 		response.body.supportsReadMemoryRequest = false;
-
 		response.body.supportsRestartFrame = false;
 		response.body.supportsRestartRequest = false;
-
 		response.body.supportsSetExpression = false;
-
 		response.body.supportsStepInTargetsRequest = false;
-
 		response.body.supportsTerminateThreadsRequest = false;
 
 		this.sendResponse(response);
@@ -228,18 +236,28 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: LaunchRequestArguments
 	) {
 		await this.configuration_done.wait(1000);
+		log.debug("launchRequest");
+
+		this.mode = "launch";
+
 		this.debug_data.project_path = args.project;
 		this.exception = false;
-		Mediator.notify("start", [
-			args.project,
-			args.address,
-			args.port,
-			args.launch_game_instance,
-			args.launch_scene,
-			args.scene_file,
-			args.additional_options,
-			get_configuration("sceneFileConfig", "") || args.scene_file,
-		]);
+		this.controller?.launch(args, this.debug_data);
+		
+		this.sendResponse(response);
+	}
+
+	protected async attachRequest(
+		response: DebugProtocol.AttachResponse,
+		args: AttachRequestArguments
+	) {
+		await this.configuration_done.wait(1000);
+		log.debug("attachRequest");
+
+		this.mode = "attach";
+
+		this.exception = false;
+		this.controller?.attach(args, this.debug_data);
 
 		this.sendResponse(response);
 	}
@@ -248,8 +266,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.NextResponse,
 		args: DebugProtocol.NextArguments
 	) {
+		log.debug("nextRequest", this.exception);
 		if (!this.exception) {
-			Mediator.notify("next");
+			this.controller?.next();
 			this.sendResponse(response);
 		}
 	}
@@ -258,8 +277,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.PauseResponse,
 		args: DebugProtocol.PauseArguments
 	) {
+		log.debug("pauseRequest");
 		if (!this.exception) {
-			Mediator.notify("break");
+			this.controller?.break();
 			this.sendResponse(response);
 		}
 	}
@@ -268,10 +288,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
+		log.debug("scopesRequest");
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
-		Mediator.notify("get_scopes", [args.frameId]);
+		// TODO: implement me
+		// Mediator.notify("get_scopes", [args.frameId]);
 		await this.got_scope.wait(2000);
 
 		response.body = {
@@ -288,6 +310,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.SetBreakpointsResponse,
 		args: DebugProtocol.SetBreakpointsArguments
 	) {
+		log.debug("setBreakPointsRequest");
 		const path = (args.source.path as string).replace(/\\/g, "/");
 		const client_lines = args.lines || [];
 
@@ -356,8 +379,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StepInResponse,
 		args: DebugProtocol.StepInArguments
 	) {
+		log.debug("stepInRequest");
 		if (!this.exception) {
-			Mediator.notify("step");
+			this.controller?.step();
 			this.sendResponse(response);
 		}
 	}
@@ -366,8 +390,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StepOutResponse,
 		args: DebugProtocol.StepOutArguments
 	) {
+		log.debug("stepOutRequest");
 		if (!this.exception) {
-			Mediator.notify("step_out");
+			this.controller?.step_out();
 			this.sendResponse(response);
 		}
 	}
@@ -376,11 +401,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.TerminateResponse,
 		args: DebugProtocol.TerminateArguments
 	) {
-		Mediator.notify("stop");
+		log.debug(`terminateRequest ${this.mode}`);
+		if (this.mode === "launch") {
+			this.controller?.stop();
+			this.sendEvent(new TerminatedEvent());
+		}
 		this.sendResponse(response);
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse) {
+		log.debug("threadsRequest");
 		response.body = { threads: [new Thread(0, "thread_1")] };
 		this.sendResponse(response);
 	}
@@ -431,13 +461,15 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
+		log.debug("add_to_inspections");
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
 					!this.ongoing_inspections.find((va_id) => va_id === va.value.id) &&
 					!this.previous_inspections.find((va_id) => va_id === va.value.id)
 				) {
-					Mediator.notify("inspect_object", [va.value.id]);
+					// TODO: implement me
+					// Mediator.notify("inspect_object", [va.value.id]);
 					this.ongoing_inspections.push(va.value.id);
 				}
 			}
@@ -445,6 +477,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
+		log.debug("append_variable");
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {
@@ -460,6 +493,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private parse_variable(va: GodotVariable, i?: number) {
+		log.debug("parse_variable");
 		const value = va.value;
 		let rendered_value = "";
 		let reference = 0;

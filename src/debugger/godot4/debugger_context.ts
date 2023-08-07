@@ -15,30 +15,45 @@ import {
 import { GodotDebugSession } from "./debug_session";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
-import { Mediator } from "./mediator";
+import { createLogger } from "../../logger";
 
-export class Godot4Debugger {
+const log = createLogger("debugger.context");
+
+export class Godot4Debugger implements DebugAdapterDescriptorFactory {
 	public provider: GodotConfigurationProvider;
-	public factory: GodotDebugAdapterFactory;
-	public mediator: Mediator = Mediator;
+	public session?: GodotDebugSession;
 
 	constructor(
 		context: ExtensionContext, 
-		scene_tree_provider: SceneTreeProvider,
+		private scene_tree_provider: SceneTreeProvider,
 	) {
 		this.provider = new GodotConfigurationProvider();
-		this.factory = new GodotDebugAdapterFactory(scene_tree_provider);
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot4", this.provider),
-			debug.registerDebugAdapterDescriptorFactory("godot4", this.factory),
+			debug.registerDebugAdapterDescriptorFactory("godot4", this),
 		);
 
-		context.subscriptions.push(this.factory);
+		context.subscriptions.push(this);
 	}
-	
+
+	public createDebugAdapterDescriptor(
+		session: DebugSession
+	): ProviderResult<DebugAdapterDescriptor> {
+		this.session = new GodotDebugSession();
+		this.session.set_scene_tree(this.scene_tree_provider);
+		return new DebugAdapterInlineImplementation(this.session);
+	}
+
+	public dispose() {
+		this.session.dispose();
+		this.session = undefined;
+	}
+
 	public notify(event: string, parameters: any[] = []) {
-		Mediator.notify(event, parameters);
+		log.info(event, JSON.stringify(parameters));
+
+		// Mediator.notify(event, parameters);
 	}
 }
 
@@ -57,13 +72,20 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 				config.project = "${workspaceFolder}";
 				config.port = 6007;
 				config.address = "127.0.0.1";
-				config.launch_game_instance = true;
-				config.launch_scene = false;
 				config.additional_options = "";
 			}
 		}
 
-		if (!config.project) {
+		if (config.request === "launch") {
+			if (config.address == undefined) {
+				config.address = "127.0.0.1";
+			}
+			if (config.port == undefined) {
+				config.port = 6007;
+			}
+		}
+
+		if (config.request === "launch" && !config.project) {
 			return window
 				.showInformationMessage(
 					"Cannot find a project.godot in active workspace."
@@ -72,26 +94,6 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 					return undefined;
 				});
 		}
-
 		return config;
-	}
-}
-
-class GodotDebugAdapterFactory implements DebugAdapterDescriptorFactory {
-	public session: GodotDebugSession | undefined;
-
-	constructor(private scene_tree_provider: SceneTreeProvider) {}
-
-	public createDebugAdapterDescriptor(
-		session: DebugSession
-	): ProviderResult<DebugAdapterDescriptor> {
-		this.session = new GodotDebugSession();
-		this.session.set_scene_tree(this.scene_tree_provider);
-		return new DebugAdapterInlineImplementation(this.session);
-	}
-
-	public dispose() {
-		this.session.dispose();
-		this.session = undefined;
 	}
 }
