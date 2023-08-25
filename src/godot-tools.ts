@@ -361,7 +361,7 @@ export class GodotTools {
 		});
 	}
 
-	private setup_start_automatically() {
+	private async setup_start_automatically() {
 		let quickPickOptions = [
 			"Editor (Godot 3 or 4)",
 			"GDScript Language Server (Godot 3) (headless)",
