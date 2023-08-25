@@ -50,6 +50,10 @@
 				"title": "Godot Tools: Open workspace with Godot editor"
 			},
 			{
+				"command": "godotTools.runLanguageServer",
+				"title": "Godot Tools: Run the Godot Language Server for this workspace"
+			},
+			{
 				"command": "godotTools.runProject",
 				"title": "Godot Tools: Run workspace as Godot project"
 			},
@@ -183,6 +187,24 @@
 					"type": "number",
 					"default": 6008,
 					"description": "The server port of the GDScript language server"
+				},
+				"godotTools.runAtStartup": {
+					"type": "string",
+					"enum": [
+						"none",
+						"lsp3",
+						"lsp4",
+						"editor"
+					],
+					"default": "none",
+					"description": "Run the editor or GDScript language server at startup.",
+					"enumDescriptions": [
+						"none: Default value. Start neither editor nor lsp at startup",
+						"lsp3: Start the Godot 3 GDScript language server at startup",
+						"lsp4: Start the Godot 4 GDScript language server at startup",
+						"editor: Start the Godot 3 or 4 editor at startup"
+					]
+
 				},
 				"godotTools.editorPath": {
 					"type": "string",

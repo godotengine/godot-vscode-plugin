@@ -10,6 +10,7 @@ const TOOL_NAME = "GodotTools";
 
 export class GodotTools {
 	private reconnection_attempts = 0;
+
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
 	private linkProvider: GDDocumentLinkProvider = null;
@@ -34,6 +35,12 @@ export class GodotTools {
 		vscode.commands.registerCommand("godotTools.openEditor", () => {
 			this.open_workspace_with_editor("-e").catch(err => vscode.window.showErrorMessage(err));
 		});
+		vscode.commands.registerCommand("godotTools.runLanguageServer4", () => {
+			this.open_workspace_with_editor("--headless --editor").catch(err => vscode.window.showErrorMessage(err));
+		});
+		vscode.commands.registerCommand("godotTools.runLanguageServer3", () => {
+			this.open_workspace_with_editor("--no-window --editor").catch(err => vscode.window.showErrorMessage(err));
+		});
 		vscode.commands.registerCommand("godotTools.runProject", () => {
 			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
 		});
@@ -55,12 +62,40 @@ export class GodotTools {
 		this.connection_status.command = "godotTools.checkStatus";
 		this.connection_status.show();
 
-		this.reconnection_attempts = 0;
-		this.client.connect_to_server();
+		this.connect_to_language_server()
 	}
 
 	public deactivate() {
 		this.client.stop();
+	}
+
+	private connect_to_language_server() {
+		let runAutomatically = get_configuration("runAtStartup", "none")
+		
+		switch (runAutomatically) {
+			case "none":
+				this.reconnection_attempts = 0;
+				this.client.connect_to_server();
+				break;
+			case "lsp4":
+				vscode.commands.executeCommand("godotTools.runLanguageServer4").then(() => {
+					this.reconnection_attempts = 0;
+					this.client.connect_to_server();
+				}, () => {})
+				break;
+			case "lsp3":
+				vscode.commands.executeCommand("godotTools.runLanguageServer3").then(() => {
+					this.reconnection_attempts = 0;
+					this.client.connect_to_server();
+				}, () => {})
+				break;
+			case "editor":
+				vscode.commands.executeCommand("godotTools.openEditor").then(() => {
+					this.reconnection_attempts = 0;
+					this.client.connect_to_server();
+				}, () => {})
+				break;
+		}
 	}
 
 	private open_workspace_with_editor(params = "") {
@@ -303,11 +338,10 @@ export class GodotTools {
 
 		let host = get_configuration("lsp.serverHost", "localhost");
 		let port = get_configuration("lsp.serverPort", 6008);
-		let message = `Couldn't connect to the GDScript language server at ${host}:${port}. Is the Godot editor running?`;
-		vscode.window.showErrorMessage(message, "Open Godot Editor", "Retry", "Ignore").then(item => {
+		let message = `Couldn't connect to the GDScript language server at ${host}:${port}. Is the Godot editor or language server running?`;
+		vscode.window.showErrorMessage(message, "Open Godot Editor", "Start Automatically", "Retry", "Ignore").then(item => {
 			if (item == "Retry") {
-				this.reconnection_attempts = 0;
-				this.client.connect_to_server();
+				this.connect_to_language_server()
 			} else if (item == "Open Godot Editor") {
 				this.client.status = ClientStatus.PENDING;
 				this.open_workspace_with_editor("-e").then(() => {
@@ -316,6 +350,33 @@ export class GodotTools {
 						this.client.connect_to_server();
 					}, 10 * 1000);
 				});
+			} else if (item == "Start Automatically") {
+				this.setup_start_automatically().then(() => {
+					setTimeout(() => {
+						this.reconnection_attempts = 0;
+						this.client.connect_to_server();
+					}, 10 * 1000);
+				})
+			}
+		});
+	}
+
+	private setup_start_automatically() {
+		let quickPickOptions = [
+			"Editor (Godot 3 or 4)",
+			"GDScript Language Server (Godot 3) (headless)",
+			"GDScript Language Server (Godot 4) (headless)",
+			"None (Reset setting)"
+		]
+		return vscode.window.showQuickPick(quickPickOptions).then(item => {
+			if (item == "Editor (Godot 3 or 4)") {
+				set_configuration("runAtStartup", "editor")
+			} else if (item == "GDScript Language Server (Godot 3) (headless)") {
+				set_configuration("runAtStartup", "lsp3")
+			} else if (item == "GDScript Language Server (Godot 4) (headless)") {
+				set_configuration("runAtStartup", "lsp4")
+			} else if (item == "None (Reset setting)") {
+				set_configuration("runAtStartup", "none")
 			}
 		});
 	}
