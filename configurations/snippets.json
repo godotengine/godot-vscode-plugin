@@ -148,6 +148,13 @@
     ]
   },
 
+  "match": {
+    "prefix": "match",
+    "body": [
+      "match ${1:expression}:\n\t${2:pattern}:\n\t\t${3}\n\t_:\n\t\t${0:default}"
+    ]
+  },
+
   "signal declaration": {
     "prefix": "signal",
 		"body": [
