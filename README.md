@@ -92,7 +92,7 @@ The debugger is for GDScript projects. To debug C# projects, use [C# Tools for G
 
 To configure the GDScript debugger:
 
-1. Open the command palette:
+1. Open the command palette (by pressing F1):
 2. `>View: Show Run and Debug`
 3. Click on "create a launch.json file"
 
