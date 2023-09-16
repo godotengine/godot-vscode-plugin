@@ -3,12 +3,6 @@
 A complete set of tools to code games with
 [Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
 
-> **Warning**
-> 
-> This plugin requires manual configuration to work with Godot 4!
-> See the [`gdscript_lsp_server_port` setting](#gdscript_lsp_server_port)
-> item under the Configuration section below.
-
 **IMPORTANT NOTE:** Versions 1.0.0 and later of this extension only support
 Godot 3.2 or later.
 
