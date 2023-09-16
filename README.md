@@ -153,9 +153,6 @@ When developing for the extension, you can open this project in Visual Studio Co
 ### Why does it fail to connect to the language server?
 
 - Godot 3.2 or later is required.
-- For Godot 4, the [`gdscript_lsp_server_port` setting](#gdscript_lsp_server_port)
-  must be changed to `6005` to match the Godot editor's new default
-  language server port number.
 - Make sure to open the project in the Godot editor first. If you opened
   the editor after opening VS Code, you can click the **Retry** button
   in the bottom-right corner in VS Code.
