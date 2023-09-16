@@ -76,10 +76,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.native_doc_manager = new NativeDocumentManager(this.io);
 	}
 
-	connect_to_server() {
+	connect_to_server(use_fallback: Boolean = false) {
 		this.status = ClientStatus.PENDING;
 		let host = get_configuration("lsp.serverHost", "127.0.0.1");
-		let port = get_configuration("lsp.serverPort", 6008);
+		let port = get_configuration("lsp.serverPort", 6005);
+		if(use_fallback) port = get_configuration("lsp.serverPortFallback", 6008);
 		this.io.connect_to_language_server(host, port);
 	}
 

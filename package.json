@@ -181,8 +181,13 @@
 				},
 				"godotTools.lsp.serverPort": {
 					"type": "number",
-					"default": 6008,
+					"default": 6005,
 					"description": "The server port of the GDScript language server"
+				},
+				"godotTools.lsp.serverPortFallback": {
+					"type": "number",
+					"default": 6008,
+					"description": "A fallback server port for the GDScript language server, for Godot 3 compatibility"
 				},
 				"godotTools.editorPath": {
 					"type": "string",
@@ -206,7 +211,7 @@
 				},
 				"godotTools.lsp.autoReconnect.attempts": {
 					"type": "number",
-					"default": 10,
+					"default": 20,
 					"description": "How many times the client will attempt to reconnect"
 				},
 				"godotTools.forceVisibleCollisionShapes": {

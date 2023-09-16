@@ -10,12 +10,17 @@ const TOOL_NAME = "GodotTools";
 
 export class GodotTools {
 	private reconnection_attempts = 0;
+	private use_fallback_port: Boolean = false;
 	private context: vscode.ExtensionContext;
 	private client: GDScriptLanguageClient = null;
 	private linkProvider: GDDocumentLinkProvider = null;
 	private scenePreviewManager: ScenePreviewProvider = null;
 
 	private connection_status: vscode.StatusBarItem = null;
+
+	private get port(){
+		return this.use_fallback_port ? get_configuration("lsp.serverPortFallback", 6008) : get_configuration("lsp.serverPort", 6005);
+	}
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
@@ -55,7 +60,7 @@ export class GodotTools {
 		this.connection_status.command = "godotTools.checkStatus";
 		this.connection_status.show();
 
-		this.reconnection_attempts = 0;
+		this.reset_connection_state();
 		this.client.connect_to_server();
 	}
 
@@ -231,10 +236,9 @@ export class GodotTools {
 
 	private check_client_status() {
 		let host = get_configuration("lsp.serverHost", "localhost");
-		let port = get_configuration("lsp.serverPort", 6008);
 		switch (this.client.status) {
 			case ClientStatus.PENDING:
-				vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${host}:${port}`);
+				vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${host}:${this.port}`);
 				break;
 			case ClientStatus.CONNECTED:
 				vscode.window.showInformationMessage("Connected to the GDScript language server.");
@@ -247,11 +251,10 @@ export class GodotTools {
 
 	private on_client_status_changed(status: ClientStatus) {
 		let host = get_configuration("lsp.serverHost", "localhost");
-		let port = get_configuration("lsp.serverPort", 6008);
 		switch (status) {
 			case ClientStatus.PENDING:
 				this.connection_status.text = `$(sync) Connecting`;
-				this.connection_status.tooltip = `Connecting to the GDScript language server at ${host}:${port}`;
+				this.connection_status.tooltip = `Connecting to the GDScript language server at ${host}:${this.port}`;
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
@@ -265,7 +268,7 @@ export class GodotTools {
 			case ClientStatus.DISCONNECTED:
 				if (this.retry) {
 					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
-					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
+					this.connection_status.tooltip = `Connecting to the GDScript language server at ${host}:${this.port}`;
 				} else {
 					set_context("godotTools.context.connectedToEditor", false);
 					this.connection_status.text = `$(x) Disconnected`;
@@ -286,33 +289,41 @@ export class GodotTools {
 		}
 	}
 
+	private reset_connection_state(){
+		this.use_fallback_port = false;
+		this.reconnection_attempts = 0;
+	}
+
 	private retry_connect_client() {
 		const auto_retry = get_configuration("lsp.autoReconnect.enabled", true);
-		const max_attempts = get_configuration("lsp.autoReconnect.attempts", 10);
-		if (auto_retry && this.reconnection_attempts <= max_attempts) {
+		const max_attempts = get_configuration("lsp.autoReconnect.attempts", 20);
+		if (auto_retry && this.reconnection_attempts < max_attempts) {
+			if(this.reconnection_attempts > (max_attempts / 2))
+				this.use_fallback_port = true
+			
 			this.reconnection_attempts++;
-			this.client.connect_to_server();
+			this.client.connect_to_server(this.use_fallback_port);
 			this.connection_status.text = `Connecting ` + this.reconnection_attempts;
 			this.retry = true;
 			return;
 		}
 
+		this.reset_connection_state();
 		this.retry = false;
 		this.connection_status.text = `$(x) Disconnected`;
 		this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 
 		let host = get_configuration("lsp.serverHost", "localhost");
-		let port = get_configuration("lsp.serverPort", 6008);
-		let message = `Couldn't connect to the GDScript language server at ${host}:${port}. Is the Godot editor running?`;
+		let port = get_configuration("lsp.serverPort", 6005);
+		let fallback_port = get_configuration("lsp.serverPortFallback", 6008);
+		let message = `Couldn't connect to the GDScript language server at ${host}:${port} or ${host}:${fallback_port}. Is the Godot editor running?`;
 		vscode.window.showErrorMessage(message, "Open Godot Editor", "Retry", "Ignore").then(item => {
 			if (item == "Retry") {
-				this.reconnection_attempts = 0;
 				this.client.connect_to_server();
 			} else if (item == "Open Godot Editor") {
 				this.client.status = ClientStatus.PENDING;
 				this.open_workspace_with_editor("-e").then(() => {
 					setTimeout(() => {
-						this.reconnection_attempts = 0;
 						this.client.connect_to_server();
 					}, 10 * 1000);
 				});

@@ -81,10 +81,9 @@ The absolute path to the Godot editor executable. _Under Mac OS, this is the exe
 
 The WebSocket server port of the GDScript language server.
 
-For Godot 3, the default value of `6008` should work out of the box.
+For Godot 4, the default value of `6005` should work out of the box.
 
-**For Godot 4, this value must be changed to `6005` for this extension to connect to the language server.**
-See [this tracking issue](https://github.com/godotengine/godot-vscode-plugin/issues/473) for more information.
+If connecting to this port fails, then it will fall back to port `6008` for compatibility with Godot 3.
 
 #### GDScript Debugger
 
