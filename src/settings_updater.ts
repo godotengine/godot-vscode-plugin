@@ -4,7 +4,7 @@ const OLD_SETTINGS_CONVERSIONS = [
 	["godot_tools.gdscript_lsp_server_protocol", "godotTools.lsp.serverProtocol"],
 	["godot_tools.gdscript_lsp_server_host", "godotTools.lsp.serverHost"],
 	["godot_tools.gdscript_lsp_server_port", "godotTools.lsp.serverPort"],
-	["godot_tools.editor_path", "godotTools.editorPath"],
+	["godot_tools.editor_path", "godotTools.editorPath.godot3"],
 	["godot_tools.scene_file_config", "godotTools.sceneFileConfig"],
 	["godot_tools.reconnect_automatically", "godotTools.lsp.autoReconnect.enabled"],
 	["godot_tools.reconnect_cooldown", "godotTools.lsp.autoReconnect.cooldown"],

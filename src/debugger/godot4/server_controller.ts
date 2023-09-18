@@ -134,7 +134,6 @@ export class ServerController {
 
 		const godot_path: string = utils.get_configuration("editorPath.godot4", "godot4");
 
-		log.debug(godot_path);
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
