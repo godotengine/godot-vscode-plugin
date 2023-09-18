@@ -24,26 +24,65 @@ export function set_context(name: string, value: any) {
 	vscode.commands.executeCommand("setContext", name, value);
 }
 
-export function find_project_file(start: string, depth:number=20) {
-    // This function appears to be fast enough, but if speed is ever an issue,
-    // memoizing the result should be straightforward
-    const folder = path.dirname(start);
-    if (start == folder) {
-        return null;
-    }
-    const project_file = path.join(folder, "project.godot");
+export async function get_godot_version() {
+	const project_dir = await get_project_dir();
 
-    if (fs.existsSync(project_file)) {
-        return project_file;
-    } else {
-        if (depth === 0) { 
-            return null;
-        }
-        return find_project_file(folder, depth - 1);
-    }
+	if (!project_dir) {
+		return '';
+	}
+
+	let godot_version = '3.x';
+	const project_file = vscode.Uri.file(path.join(project_dir, 'project.godot'));
+	const document = await vscode.workspace.openTextDocument(project_file);
+	const text = document.getText();
+
+	const match = text.match(/config\/features=PackedStringArray\((.*)\)/);
+	if (match) {
+		const line = match[0];
+		const version = line.match(/\"(4.[0-9]+)\"/);
+		if (version) {
+			godot_version = version[0];
+		}
+	}
+	return godot_version;
 }
 
-export async function find_file(file: string): Promise<vscode.Uri|null> {
+export async function get_project_dir() {
+	let project_dir = undefined;
+	let project_file = '';
+	if (vscode.workspace.workspaceFolders != undefined) {
+		const files = await vscode.workspace.findFiles("**/project.godot");
+		if (files) {
+			project_file = files[0].fsPath;
+			if (fs.existsSync(project_file) && fs.statSync(project_file).isFile()) {
+				project_dir = path.dirname(project_file);
+			}
+		}
+	}
+	return project_dir;
+}
+
+export function find_project_file(start: string, depth: number = 20) {
+	// TODO: rename this, it's actually more like "find_parent_project_file"
+	// This function appears to be fast enough, but if speed is ever an issue,
+	// memoizing the result should be straightforward
+	const folder = path.dirname(start);
+	if (start == folder) {
+		return null;
+	}
+	const project_file = path.join(folder, "project.godot");
+
+	if (fs.existsSync(project_file) && fs.statSync(project_file).isFile()) {
+		return project_file;
+	} else {
+		if (depth === 0) {
+			return null;
+		}
+		return find_project_file(folder, depth - 1);
+	}
+}
+
+export async function find_file(file: string): Promise<vscode.Uri | null> {
 	if (fs.existsSync(file)) {
 		return vscode.Uri.file(file);
 	} else {
@@ -56,7 +95,7 @@ export async function find_file(file: string): Promise<vscode.Uri|null> {
 	return null;
 }
 
-export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri|null> {
+export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
 	const files = await vscode.workspace.findFiles("**/project.godot");
 	if (!files) {
 		return null;
