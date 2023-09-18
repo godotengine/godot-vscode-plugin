@@ -114,7 +114,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		members: GodotVariable[],
 		globals: GodotVariable[]
 	) {
-		log.debug("set_scopes");
+		log.debug("set_scopes", JSON.stringify(locals), JSON.stringify(members), JSON.stringify(globals));
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
@@ -171,7 +171,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.EvaluateResponse,
 		args: DebugProtocol.EvaluateArguments
 	) {
-		log.debug("evaluateRequest");
+		log.debug("evaluateRequest", JSON.stringify(args));
 		
 		if (this.all_scopes) {
 			const expression = args.expression;
@@ -288,12 +288,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
-		log.debug("scopesRequest");
+		log.debug("scopesRequest", JSON.stringify(args));
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
-		// TODO: implement me
-		// Mediator.notify("get_scopes", [args.frameId]);
+		this.controller?.send_scope_request(args.frameId);
 		await this.got_scope.wait(2000);
 
 		response.body = {
@@ -419,7 +418,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
+		log.debug("variablesRequest", JSON.stringify(args));
 		if (!this.all_scopes) {
+			log.debug("no vars");
 			response.body = {
 				variables: []
 			};
@@ -430,9 +431,15 @@ export class GodotDebugSession extends LoggingDebugSession {
 		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
+		// log.debug(JSON.stringify(this.all_scopes));
+		// log.debug(JSON.stringify(reference));
+		// log.debug(reference.sub_values);
+
 		if (!reference.sub_values) {
+			log.debug("!reference.sub_values");
 			variables = [];
 		} else {
+			log.debug("reference.sub_values");
 			variables = reference.sub_values.map((va) => {
 				const sva = this.all_scopes.find(
 					(sva) =>
@@ -461,7 +468,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		log.debug("add_to_inspections");
+		log.debug("add_to_inspections", JSON.stringify(this.all_scopes));
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
@@ -477,7 +484,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
-		log.debug("append_variable");
+		log.debug("append_variable", JSON.stringify(variable));
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {
@@ -493,7 +500,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private parse_variable(va: GodotVariable, i?: number) {
-		log.debug("parse_variable");
+		log.debug("parse_variable", JSON.stringify(va), i);
 		const value = va.value;
 		let rendered_value = "";
 		let reference = 0;

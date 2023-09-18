@@ -149,7 +149,7 @@ export class Mediator {
 				} else {
 					this.controller?.set_exception("");
 				}
-				this.controller?.stack_dump();
+				this.controller?.request_stack_dump();
 				break;
 			}
 
