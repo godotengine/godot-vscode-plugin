@@ -74,10 +74,10 @@ export class ClientConnectionManager {
 
 			const godotVersion = await get_godot_version();
 
-			let editorPath = get_configuration("editorPath.godot3", "");
+			let editorPath = get_configuration("editorPath.godot3", "godot3");
 			let headlessFlag = "--no-window";
 			if (godotVersion.startsWith('4')) {
-				editorPath = get_configuration("editorPath.godot4", "");
+				editorPath = get_configuration("editorPath.godot4", "godot4");
 				headlessFlag = "--headless";
 			}
 
