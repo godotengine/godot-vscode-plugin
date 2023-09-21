@@ -197,10 +197,15 @@
 					"default": false,
 					"description": "Whether the plugin should start its own GDScript language server process"
 				},
-				"godotTools.editorPath": {
+				"godotTools.editorPath.godot3": {
 					"type": "string",
-					"default": "",
-					"description": "The absolute path to the Godot editor executable"
+					"default": "godot3",
+					"description": "The absolute path to the Godot 3 editor executable"
+				},
+				"godotTools.editorPath.godot4": {
+					"type": "string",
+					"default": "godot4",
+					"description": "The absolute path to the Godot 4 editor executable"
 				},
 				"godotTools.sceneFileConfig": {
 					"type": "string",
