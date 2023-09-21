@@ -41,7 +41,7 @@ export async function get_godot_version() {
 		const line = match[0];
 		const version = line.match(/\"(4.[0-9]+)\"/);
 		if (version) {
-			godot_version = version[0];
+			godot_version = version[1];
 		}
 	}
 	return godot_version;
