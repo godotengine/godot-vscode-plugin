@@ -1,23 +1,11 @@
 import * as vscode from "vscode";
 import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
-import { get_configuration, set_configuration, get_godot_version, get_project_dir, find_file, set_context, find_project_file } from "../utils";
+import { get_configuration, get_free_port, get_godot_version, get_project_dir, set_context } from "../utils";
 import { createLogger } from "../logger";
-import { createServer } from "net"
 
-async function get_free_port(): Promise<number> {
-	return new Promise(res => {
-		const srv = createServer();
-		srv.listen(0, () => {
-			const port = srv.address().port
-			srv.close((err) => res(port))
-		});
-	})
-}
 const log = createLogger("lsp.manager");
 
-
 const TOOL_NAME = "GodotTools";
-
 
 export class ClientConnectionManager {
 	private context: vscode.ExtensionContext;

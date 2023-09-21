@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { createServer } from "net"
+
 
 const CONFIG_CONTAINER = "godotTools";
 
@@ -102,4 +104,14 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 	}
 	const project_dir = files[0].fsPath.replace("project.godot", "");
 	return vscode.Uri.joinPath(vscode.Uri.file(project_dir), resPath.substring(6));
+}
+
+export async function get_free_port(): Promise<number> {
+	return new Promise(res => {
+		const srv = createServer();
+		srv.listen(0, () => {
+			const port = srv.address().port
+			srv.close((err) => res(port))
+		});
+	})
 }
