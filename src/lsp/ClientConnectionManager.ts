@@ -12,10 +12,8 @@ export class ClientConnectionManager {
 	public client: GDScriptLanguageClient = null;
 
 	private reconnection_attempts = 0;
-	private port: number = null;
 
 	private connection_status: vscode.StatusBarItem = null;
-
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
@@ -47,8 +45,9 @@ export class ClientConnectionManager {
 	}
 
 	private connect_to_language_server() {
-		const start = get_configuration("lsp.runAtStartup", false)
+		this.client.port = -1;
 
+		const start = get_configuration("lsp.runAtStartup", false)
 		if (start) {
 			this.start_language_server();
 		}
@@ -81,7 +80,7 @@ export class ClientConnectionManager {
 				headlessFlag = "--headless";
 			}
 
-			this.port = await get_free_port();
+			this.client.port = await get_free_port();
 
 			// TODO: find a better way to manage child processes
 			// This way works, but it creates a terminal that the user might
@@ -91,7 +90,7 @@ export class ClientConnectionManager {
 
 			this.stop_language_server();
 
-			const command = `${editorPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.port}`;
+			const command = `${editorPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
 			const terminal = vscode.window.createTerminal(`${TOOL_NAME}LSP`);
 			terminal.sendText(command, true);
 		});

@@ -24,6 +24,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private _initialize_request: Message = null;
 	private message_handler: MessageHandler = null;
 	private native_doc_manager: NativeDocumentManager = null;
+	
+	public port: number = -1;
 
 	public get started() : boolean { return this._started; }
 	public get status() : ClientStatus { return this._status; }
@@ -78,8 +80,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		let host = get_configuration("lsp.serverHost", "127.0.0.1");
+		const host = get_configuration("lsp.serverHost", "127.0.0.1");
 		let port = get_configuration("lsp.serverPort", 6008);
+		if (this.port !== -1) {
+			port = this.port;
+		}
 		this.io.connect_to_language_server(host, port);
 	}
 
