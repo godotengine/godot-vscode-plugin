@@ -22,8 +22,10 @@ export function is_debug_mode(): boolean {
 	return process.env.VSCODE_DEBUG_MODE === "true";
 }
 
+const CONTEXT_PREFIX = `${CONFIG_CONTAINER}.context.`;
+
 export function set_context(name: string, value: any) {
-	vscode.commands.executeCommand("setContext", name, value);
+	vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);
 }
 
 export async function get_godot_version() {

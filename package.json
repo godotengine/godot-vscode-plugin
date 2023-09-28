@@ -564,7 +564,7 @@
 			"editor/context": [
 				{
 					"command": "godotTools.openTypeDocumentation",
-					"when": "godotTools.context.connectedToEditor",
+					"when": "godotTools.context.connectedToLSP",
 					"group": "navigation@9"
 				},
 				{

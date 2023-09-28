@@ -35,7 +35,7 @@ export class ClientConnectionManager {
 		});
 		vscode.commands.registerCommand("godotTools.checkStatus", this.check_client_status.bind(this));
 
-		set_context("godotTools.context.connectedToEditor", false);
+		set_context("connectedToLSP", false);
 
 		this.connection_status.text = "$(sync) Initializing";
 		this.connection_status.command = "godotTools.checkStatus";
@@ -122,7 +122,7 @@ export class ClientConnectionManager {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
-				set_context("godotTools.context.connectedToEditor", true);
+				set_context("connectedToLSP", true);
 				this.connection_status.text = `$(check) Connected`;
 				this.connection_status.tooltip = `Connected to the GDScript language server.`;
 				if (!this.client.started) {
@@ -134,7 +134,7 @@ export class ClientConnectionManager {
 					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
 					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				} else {
-					set_context("godotTools.context.connectedToEditor", false);
+					set_context("connectedToLSP", false);
 					this.connection_status.text = `$(x) Disconnected`;
 					this.connection_status.tooltip = `Disconnected from the GDScript language server.`;
 				}
