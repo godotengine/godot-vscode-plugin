@@ -2,9 +2,12 @@ import { EventEmitter } from "events";
 import * as vscode from 'vscode';
 import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
 import logger from "../logger";
+import { createLogger } from "../logger";
 import { get_configuration, is_debug_mode } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
+
+const log = createLogger("lsp.client");
 
 export enum ClientStatus {
 	PENDING,
@@ -85,6 +88,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (this.port !== -1) {
 			port = this.port;
 		}
+		log.debug(`attempting to connect to LSP at port ${port}`)
 		this.io.connect_to_language_server(host, port);
 	}
 
