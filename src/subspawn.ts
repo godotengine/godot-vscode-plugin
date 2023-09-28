@@ -1,6 +1,6 @@
 /* 
 Copied from https://github.com/craigwardman/subspawn
-Copyright (c) 2022 Craig Wardman
+Original library copyright (c) 2022 Craig Wardman
 
 I had to vendor this library to fix the API in a couple places.
 */
@@ -12,7 +12,7 @@ interface dictionaryOfStringChildProcessArray {
 }
 const children: dictionaryOfStringChildProcessArray = {};
 
-export const killSubProcesses = function (owner: string) {
+export function killSubProcesses(owner: string) {
 	if (!(owner in children)) {
 		return;
 	}
@@ -39,7 +39,7 @@ process.on('SIGINT', gracefulExitHandler)
 process.on('SIGTERM', gracefulExitHandler)
 process.on('SIGQUIT', gracefulExitHandler)
 
-const spawnSubProcess = (owner: string, command: string, options?: SpawnOptions) => {
+function spawnSubProcess(owner: string, command: string, options?: SpawnOptions) {
 	const childProcess = spawn(command, options);
 
 	children[owner] = children[owner] || [];
@@ -48,7 +48,7 @@ const spawnSubProcess = (owner: string, command: string, options?: SpawnOptions)
 	return childProcess;
 };
 
-const spawnSubProcessOnWindows = (owner: string, command: string, options?: SpawnOptions) => {
+function spawnSubProcessOnWindows(owner: string, command: string, options?: SpawnOptions) {
 	const childProcess = spawn(command, options);
 
 	children[owner] = children[owner] || [];
@@ -57,7 +57,7 @@ const spawnSubProcessOnWindows = (owner: string, command: string, options?: Spaw
 	return childProcess;
 };
 
-export const subProcess = (owner: string, command: string, options?: SpawnOptions) => {
+export function subProcess(owner: string, command: string, options?: SpawnOptions) {
 	if (process.platform === 'win32') {
 		return spawnSubProcessOnWindows(owner, command, options);
 	} else {
@@ -65,6 +65,6 @@ export const subProcess = (owner: string, command: string, options?: SpawnOption
 	}
 };
 
-export const subProcessSync = (command: string, options?: ExecSyncOptions) => {
+export function subProcessSync(command: string, options?: ExecSyncOptions) {
 	return execSync(command, options);
 };
