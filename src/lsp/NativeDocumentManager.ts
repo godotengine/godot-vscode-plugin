@@ -85,7 +85,7 @@ export default class NativeDocumentManager extends EventEmitter {
 
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
 		let json_data = "";
-		if (get_configuration("lsp.serverProtocol", "tcp") == "ws") {
+		if (get_configuration("lsp.serverProtocol") == "ws") {
 			json_data = JSON.stringify({
 				id: -1,
 				jsonrpc: "2.0",
@@ -129,7 +129,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	 * configuration and previously opened native symbols.
 	 */
 	private get_new_native_symbol_column(): vscode.ViewColumn {
-		const config_placement = get_configuration("nativeSymbolPlacement", "beside");
+		const config_placement = get_configuration("nativeSymbolPlacement");
 
 		if (config_placement == "active") {
 			return vscode.ViewColumn.Active;

@@ -189,7 +189,8 @@ export class GodotTools {
 				resolve();
 			};
 
-			let editorPath = get_configuration("editorPath", "");
+			// TODO: This config doesn't exist anymore
+			let editorPath = get_configuration("editorPath");
 			if (!fs.existsSync(editorPath) || !fs.statSync(editorPath).isFile()) {
 				vscode.window.showOpenDialog({
 					openLabel: "Run",

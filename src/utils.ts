@@ -3,26 +3,26 @@ import * as path from "path";
 import * as fs from "fs";
 import { createServer } from "net"
 
+const CONFIG_PREFIX = "godotTools";
+const config = vscode.workspace.getConfiguration(CONFIG_PREFIX);
 
-const CONFIG_CONTAINER = "godotTools";
-
-export function get_configuration(name: string, default_value: any = null) {
-	let config_value = vscode.workspace.getConfiguration(CONFIG_CONTAINER).get(name, null);
-	if (config_value === null) {
+export function get_configuration(name: string, default_value?: any) {
+	let config_value = config.get(name, null);
+	if (default_value && config_value === null) {
 		return default_value;
 	}
 	return config_value;
 }
 
 export function set_configuration(name: string, value: any) {
-	return vscode.workspace.getConfiguration(CONFIG_CONTAINER).update(name, value);
+	return config.update(name, value);
 }
 
 export function is_debug_mode(): boolean {
 	return process.env.VSCODE_DEBUG_MODE === "true";
 }
 
-const CONTEXT_PREFIX = `${CONFIG_CONTAINER}.context.`;
+const CONTEXT_PREFIX = `${CONFIG_PREFIX}.context.`;
 
 export function set_context(name: string, value: any) {
 	vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);

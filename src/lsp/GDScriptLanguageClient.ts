@@ -15,7 +15,7 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
 	private _started : boolean = false;
@@ -80,8 +80,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		const host = get_configuration("lsp.serverHost", "127.0.0.1");
-		let port = get_configuration("lsp.serverPort", 6008);
+		const host = get_configuration("lsp.serverHost");
+		let port = get_configuration("lsp.serverPort");
 		if (this.port !== -1) {
 			port = this.port;
 		}
