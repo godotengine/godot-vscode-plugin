@@ -13,7 +13,9 @@ interface dictionaryOfStringChildProcessArray {
 const children: dictionaryOfStringChildProcessArray = {};
 
 export const killSubProcesses = function (owner: string) {
-	console.log(`killing ${owner} child processes (${children[owner].length})`);
+	if (!(owner in children)) {
+		return;
+	}
 
 	children[owner].forEach((c) => {
 		try {
@@ -30,7 +32,6 @@ export const killSubProcesses = function (owner: string) {
 
 process.on('exit', () => Object.keys(children).forEach((owner) => killSubProcesses(owner)));
 function gracefulExitHandler() {
-	console.log('Handling termination signal to gracefully exit process')
 	process.exit()
 }
 
