@@ -49,18 +49,18 @@ export class GodotTools {
 	private open_workspace_with_editor(params = "") {
 		return new Promise<void>(async (resolve, reject) => {
 			let valid = false;
-            let project_dir = '';
-            let project_file = '';
-            
-            if (vscode.workspace.workspaceFolders != undefined) {
-                const files = await vscode.workspace.findFiles("**/project.godot");
-                if (files) {
-                    project_file = files[0].fsPath;
-                    project_dir = path.dirname(project_file);
-                    let cfg = project_file;
-                    valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
-                }
-            }
+			let project_dir = '';
+			let project_file = '';
+
+			if (vscode.workspace.workspaceFolders != undefined) {
+				const files = await vscode.workspace.findFiles("**/project.godot");
+				if (files) {
+					project_file = files[0].fsPath;
+					project_dir = path.dirname(project_file);
+					let cfg = project_file;
+					valid = (fs.existsSync(cfg) && fs.statSync(cfg).isFile());
+				}
+			}
 			if (valid) {
 				this.run_editor(`--path "${project_dir}" ${params}`).then(() => resolve()).catch(err => {
 					reject(err);
@@ -76,11 +76,11 @@ export class GodotTools {
 			uri = vscode.window.activeTextEditor.document.uri;
 		}
 
-        const project_dir = path.dirname(find_project_file(uri.fsPath));
-        if (project_dir === null) {
-            return
-        }
-        
+		const project_dir = path.dirname(find_project_file(uri.fsPath));
+		if (project_dir === null) {
+			return
+		}
+
 		let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));
 		relative_path = relative_path.split(path.sep).join(path.posix.sep);
 		relative_path = "res://" + relative_path;
