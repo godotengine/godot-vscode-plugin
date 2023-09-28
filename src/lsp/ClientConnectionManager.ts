@@ -69,6 +69,8 @@ export class ClientConnectionManager {
 	}
 
 	private start_language_server() {
+		this.stop_language_server();
+		
 		return new Promise<void>(async (resolve, reject) => {
 			log.debug('start_language_server');
 			const projectDir = await get_project_dir();
@@ -88,7 +90,6 @@ export class ClientConnectionManager {
 
 			this.client.port = await get_free_port();
 
-			this.stop_language_server();
 
 			const command = `${editorPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
 
