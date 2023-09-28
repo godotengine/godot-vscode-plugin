@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
 import { get_configuration, get_free_port, get_godot_version, get_project_dir, set_context } from "../utils";
 import { createLogger } from "../logger";
+import { ChildProcess } from "child_process";
+import { subProcess, killSubProcesses } from '../subspawn';
 
 const log = createLogger("lsp.manager");
 
@@ -14,6 +16,7 @@ export class ClientConnectionManager {
 	private reconnection_attempts = 0;
 
 	private connection_status: vscode.StatusBarItem = null;
+	private lspProcess: ChildProcess = null
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
@@ -29,6 +32,9 @@ export class ClientConnectionManager {
 
 		vscode.commands.registerCommand("godotTools.startLanguageServer", () => {
 			this.start_language_server().catch(err => vscode.window.showErrorMessage(err));
+
+			this.reconnection_attempts = 0;
+			this.client.connect_to_server();
 		});
 		vscode.commands.registerCommand("godotTools.stopLanguageServer", () => {
 			this.stop_language_server();
@@ -57,14 +63,14 @@ export class ClientConnectionManager {
 	}
 
 	private stop_language_server() {
-		const existingTerminal = vscode.window.terminals.find(t => t.name === `${TOOL_NAME}LSP`);
-		if (existingTerminal) {
-			existingTerminal.dispose();
-		}
+		log.debug('stop_language_server');
+
+		killSubProcesses('LSP');
 	}
 
 	private start_language_server() {
 		return new Promise<void>(async (resolve, reject) => {
+			log.debug('start_language_server');
 			const projectDir = await get_project_dir();
 
 			if (!projectDir) {
@@ -82,17 +88,33 @@ export class ClientConnectionManager {
 
 			this.client.port = await get_free_port();
 
-			// TODO: find a better way to manage child processes
-			// This way works, but it creates a terminal that the user might
-			// accidentally close, and start a confusing cycle.
-			// I also want to be able to monitor the child process for errors
-			// or exits, and restart it as appropriate.
-
 			this.stop_language_server();
 
 			const command = `${editorPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
-			const terminal = vscode.window.createTerminal(`${TOOL_NAME}LSP`);
-			terminal.sendText(command, true);
+
+			log.debug(`starting headless LSP on port ${this.client.port}`);
+
+			this.lspProcess = subProcess("LSP", command, { shell: true });
+
+			const lspStdout = createLogger("lsp.stdout");
+			this.lspProcess.stdout.on('data', (data) => {
+				const out = data.toString().trim();
+				if (out) {
+					lspStdout.debug(out);
+				}
+			});
+
+			// const lspStderr = createLogger("lsp.stderr");
+			// this.lspProcess.stderr.on('data', (data) => {
+			// 	const out = data.toString().trim();
+			// 	if (out) {
+			// 		lspStderr.debug(out);
+			// 	}
+			// });
+
+			this.lspProcess.on('close', (code) => {
+				log.debug(`LSP process exited with code ${code}`);
+			});
 		});
 	}
 
