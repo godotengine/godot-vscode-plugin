@@ -24,8 +24,6 @@ export class ClientConnectionManager {
 		this.client = new GDScriptLanguageClient(p_context);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 
-		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("lsp.autoReconnect.cooldown"));
@@ -43,7 +41,8 @@ export class ClientConnectionManager {
 
 		set_context("connectedToLSP", false);
 
-		this.connection_status.text = "$(sync) Initializing";
+		this.connection_status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+		this.connection_status.text = "$(sync~spin) Initializing";
 		this.connection_status.command = "godotTools.checkStatus";
 		this.connection_status.show();
 
@@ -70,7 +69,7 @@ export class ClientConnectionManager {
 
 	private start_language_server() {
 		this.stop_language_server();
-		
+
 		return new Promise<void>(async (resolve, reject) => {
 			log.debug('start_language_server');
 			const projectDir = await get_project_dir();
@@ -140,7 +139,7 @@ export class ClientConnectionManager {
 		let port = get_configuration("lsp.serverPort");
 		switch (status) {
 			case ClientStatus.PENDING:
-				this.connection_status.text = `$(sync) Connecting`;
+				this.connection_status.text = `$(sync~spin) Connecting`;
 				this.connection_status.tooltip = `Connecting to the GDScript language server at ${host}:${port}`;
 				break;
 			case ClientStatus.CONNECTED:
@@ -154,7 +153,7 @@ export class ClientConnectionManager {
 				break;
 			case ClientStatus.DISCONNECTED:
 				if (this.retry) {
-					this.connection_status.text = `$(sync) Connecting ` + this.reconnection_attempts;
+					this.connection_status.text = `$(sync~spin) Connecting ` + this.reconnection_attempts;
 					this.connection_status.tooltip = `Connecting to the GDScript language server...`;
 				} else {
 					set_context("connectedToLSP", false);
