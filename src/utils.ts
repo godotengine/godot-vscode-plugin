@@ -112,8 +112,8 @@ export async function get_free_port(): Promise<number> {
 	return new Promise(res => {
 		const srv = createServer();
 		srv.listen(0, () => {
-			const port = srv.address().port
-			srv.close((err) => res(port))
+			const port = srv.address().port;
+			srv.close((err) => res(port));
 		});
 	})
 }
