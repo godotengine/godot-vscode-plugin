@@ -30,7 +30,10 @@ export function killSubProcesses(owner: string) {
 	});
 };
 
-process.on('exit', () => Object.keys(children).forEach((owner) => killSubProcesses(owner)));
+process.on('exit', () => {
+	Object.keys(children).forEach((owner) => killSubProcesses(owner));
+});
+
 function gracefulExitHandler() {
 	process.exit()
 }
@@ -39,32 +42,11 @@ process.on('SIGINT', gracefulExitHandler)
 process.on('SIGTERM', gracefulExitHandler)
 process.on('SIGQUIT', gracefulExitHandler)
 
-function spawnSubProcess(owner: string, command: string, options?: SpawnOptions) {
-	const childProcess = spawn(command, options);
-
-	children[owner] = children[owner] || [];
-	children[owner].push(childProcess);
-
-	return childProcess;
-};
-
-function spawnSubProcessOnWindows(owner: string, command: string, options?: SpawnOptions) {
-	const childProcess = spawn(command, options);
-
-	children[owner] = children[owner] || [];
-	children[owner].push(childProcess);
-
-	return childProcess;
-};
-
 export function subProcess(owner: string, command: string, options?: SpawnOptions) {
-	if (process.platform === 'win32') {
-		return spawnSubProcessOnWindows(owner, command, options);
-	} else {
-		return spawnSubProcess(owner, command, options);
-	}
-};
+	const childProcess = spawn(command, options);
 
-export function subProcessSync(command: string, options?: ExecSyncOptions) {
-	return execSync(command, options);
+	children[owner] = children[owner] || [];
+	children[owner].push(childProcess);
+
+	return childProcess;
 };
