@@ -5,7 +5,7 @@ import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
 import * as Prism from "../deps/prism/prism";
 import * as marked from "marked";
-import { get_configuration } from "../utils";
+import { get_configuration } from "@utils";
 import {
 	Methods,
 	NativeSymbolInspectParams,
@@ -13,6 +13,7 @@ import {
 	GodotNativeClassInfo,
 	GodotCapabilities,
 } from "./gdscript.capabilities";
+
 marked.setOptions({
 	highlight: function (code, lang) {
 		return Prism.highlight(code, GDScriptGrammar, lang);

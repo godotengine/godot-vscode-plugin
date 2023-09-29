@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
 import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
-import logger from "../logger";
-import { createLogger } from "../logger";
-import { get_configuration, is_debug_mode } from "../utils";
+import logger from "@logger";
+import { createLogger } from "@logger";
+import { get_configuration, is_debug_mode } from "@utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
 

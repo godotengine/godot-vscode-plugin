@@ -2,10 +2,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { GDDocumentLinkProvider } from "./document_link_provider";
-import GDScriptLanguageClient, { ClientStatus } from "./lsp/GDScriptLanguageClient";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import { get_configuration, set_configuration, get_godot_version, get_project_dir, find_file, set_context, find_project_file } from "./utils";
+import { get_configuration, set_configuration, find_file, find_project_file } from "@utils";
 
 const TOOL_NAME = "GodotTools";
 

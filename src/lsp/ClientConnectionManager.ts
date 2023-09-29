@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
-import { get_configuration, get_free_port, get_godot_version, get_project_dir, set_context } from "../utils";
-import { createLogger } from "../logger";
+import { get_configuration, get_free_port, get_godot_version, get_project_dir, set_context } from "@utils";
+import { createLogger } from "@logger";
 import { ChildProcess } from "child_process";
-import { subProcess, killSubProcesses } from '../subspawn';
+import { subProcess, killSubProcesses } from '@utils/subspawn';
 
 const log = createLogger("lsp.manager");
 

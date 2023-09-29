@@ -1,4 +1,4 @@
-import { is_debug_mode } from "./utils";
+import { is_debug_mode } from "@utils";
 
 
 export class Logger {
