@@ -88,7 +88,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (this.port !== -1) {
 			port = this.port;
 		}
-		log.debug(`attempting to connect to LSP at port ${port}`)
+		log.debug(`attempting to connect to LSP at port ${port}`);
 		this.io.connect_to_language_server(host, port);
 	}
 

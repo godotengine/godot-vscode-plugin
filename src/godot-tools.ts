@@ -77,7 +77,7 @@ export class GodotTools {
 
 		const project_dir = path.dirname(find_project_file(uri.fsPath));
 		if (project_dir === null) {
-			return
+			return;
 		}
 
 		let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));

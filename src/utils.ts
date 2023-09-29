@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { AddressInfo, createServer } from "net"
+import { AddressInfo, createServer } from "net";
 
 const CONFIG_PREFIX = "godotTools";
 const config = vscode.workspace.getConfiguration(CONFIG_PREFIX);
@@ -115,5 +115,5 @@ export async function get_free_port(): Promise<number> {
 			const port = (srv.address() as AddressInfo).port;
 			srv.close((err) => res(port));
 		});
-	})
+	});
 }

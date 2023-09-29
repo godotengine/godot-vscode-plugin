@@ -16,7 +16,7 @@ export class ClientConnectionManager {
 	private reconnection_attempts = 0;
 
 	private connection_status: vscode.StatusBarItem = null;
-	private lspProcess: ChildProcess = null
+	private lspProcess: ChildProcess = null;
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
@@ -46,7 +46,7 @@ export class ClientConnectionManager {
 		this.connection_status.command = "godotTools.checkStatus";
 		this.connection_status.show();
 
-		this.connect_to_language_server()
+		this.connect_to_language_server();
 	}
 
 	private connect_to_language_server() {
@@ -195,7 +195,7 @@ export class ClientConnectionManager {
 		let message = `Couldn't connect to the GDScript language server at ${host}:${port}. Is the Godot editor or language server running?`;
 		vscode.window.showErrorMessage(message, "Open Godot Editor", "Retry", "Ignore").then(item => {
 			if (item == "Retry") {
-				this.connect_to_language_server()
+				this.connect_to_language_server();
 			} else if (item == "Open Godot Editor") {
 				this.client.status = ClientStatus.PENDING;
 				// this.open_workspace_with_editor("-e").then(() => {

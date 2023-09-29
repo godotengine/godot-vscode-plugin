@@ -7,10 +7,10 @@ I had to vendor this library to fix the API in a couple places.
 
 import { ChildProcess, execSync, spawn, SpawnOptions } from 'child_process';
 
-interface dictionaryOfStringChildProcessArray {
+interface DictionaryOfStringChildProcessArray {
 	[key: string]: ChildProcess[];
 }
-const children: dictionaryOfStringChildProcessArray = {};
+const children: DictionaryOfStringChildProcessArray = {};
 
 export function killSubProcesses(owner: string) {
 	if (!(owner in children)) {
@@ -28,19 +28,19 @@ export function killSubProcesses(owner: string) {
 			}
 		} catch { }
 	});
-};
+}
 
 process.on('exit', () => {
 	Object.keys(children).forEach((owner) => killSubProcesses(owner));
 });
 
 function gracefulExitHandler() {
-	process.exit()
+	process.exit();
 }
 
-process.on('SIGINT', gracefulExitHandler)
-process.on('SIGTERM', gracefulExitHandler)
-process.on('SIGQUIT', gracefulExitHandler)
+process.on('SIGINT', gracefulExitHandler);
+process.on('SIGTERM', gracefulExitHandler);
+process.on('SIGQUIT', gracefulExitHandler);
 
 export function subProcess(owner: string, command: string, options?: SpawnOptions) {
 	const childProcess = spawn(command, options);
@@ -49,4 +49,4 @@ export function subProcess(owner: string, command: string, options?: SpawnOption
 	children[owner].push(childProcess);
 
 	return childProcess;
-};
+}
