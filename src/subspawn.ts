@@ -5,7 +5,7 @@ Original library copyright (c) 2022 Craig Wardman
 I had to vendor this library to fix the API in a couple places.
 */
 
-import { ChildProcess, execSync, spawn, ExecSyncOptions, SpawnOptions } from 'child_process';
+import { ChildProcess, execSync, spawn, SpawnOptions } from 'child_process';
 
 interface dictionaryOfStringChildProcessArray {
 	[key: string]: ChildProcess[];
