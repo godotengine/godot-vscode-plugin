@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"target": "es6",
+		"target": "es2020",
 		"outDir": "out",
 		"lib": [
 			"es2020",
@@ -10,7 +10,19 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false,
-		"allowJs": true
+		"allowJs": true,
+		"baseUrl": ".",
+		"paths": {
+			"@utils": [
+				"./src/utils"
+			],
+			"@utils/*": [
+				"./src/utils/*"
+			],
+			"@logger": [
+				"./src/logger"
+			]
+		}
 	},
 	"exclude": [
 		"node_modules",
