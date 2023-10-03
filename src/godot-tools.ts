@@ -4,7 +4,13 @@ import * as vscode from "vscode";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import { get_configuration, set_configuration, find_file, find_project_file } from "@utils";
+import {
+	get_configuration,
+	set_configuration,
+	find_file,
+	find_project_file,
+	register_command
+} from "@utils";
 
 const TOOL_NAME = "GodotTools";
 
@@ -23,20 +29,20 @@ export class GodotTools {
 	}
 
 	public activate() {
-		vscode.commands.registerCommand("godotTools.openEditor", () => {
+		register_command("openEditor", () => {
 			this.open_workspace_with_editor("-e").catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godotTools.runProject", () => {
+		register_command("runProject", () => {
 			this.open_workspace_with_editor().catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godotTools.runProjectDebug", () => {
+		register_command("runProjectDebug", () => {
 			this.open_workspace_with_editor("--debug-collisions --debug-navigation").catch(err => vscode.window.showErrorMessage(err));
 		});
-		vscode.commands.registerCommand("godotTools.setSceneFile", this.set_scene_file.bind(this));
-		vscode.commands.registerCommand("godotTools.copyResourcePathContext", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godotTools.copyResourcePath", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godotTools.openTypeDocumentation", this.open_type_documentation.bind(this));
-		vscode.commands.registerCommand("godotTools.switchSceneScript", this.switch_scene_script.bind(this));
+		register_command("setSceneFile", this.set_scene_file.bind(this));
+		register_command("copyResourcePathContext", this.copy_resource_path.bind(this));
+		register_command("copyResourcePath", this.copy_resource_path.bind(this));
+		register_command("openTypeDocumentation", this.open_type_documentation.bind(this));
+		register_command("switchSceneScript", this.switch_scene_script.bind(this));
 
 		this.scenePreviewManager = new ScenePreviewProvider();
 	}

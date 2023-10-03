@@ -1,13 +1,18 @@
 import * as vscode from "vscode";
 import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
-import { get_configuration, get_free_port, get_godot_version, get_project_dir, set_context } from "@utils";
+import {
+	get_configuration,
+	get_free_port,
+	get_godot_version,
+	get_project_dir,
+	set_context,
+	register_command,
+} from "@utils";
 import { createLogger } from "@logger";
 import { ChildProcess } from "child_process";
 import { subProcess, killSubProcesses } from '@utils/subspawn';
 
 const log = createLogger("lsp.manager");
-
-const TOOL_NAME = "GodotTools";
 
 export class ClientConnectionManager {
 	private context: vscode.ExtensionContext;
@@ -28,16 +33,16 @@ export class ClientConnectionManager {
 			this.retry_callback();
 		}, get_configuration("lsp.autoReconnect.cooldown"));
 
-		vscode.commands.registerCommand("godotTools.startLanguageServer", () => {
+		register_command("startLanguageServer", () => {
 			this.start_language_server().catch(err => vscode.window.showErrorMessage(err));
 
 			this.reconnection_attempts = 0;
 			this.client.connect_to_server();
 		});
-		vscode.commands.registerCommand("godotTools.stopLanguageServer", () => {
+		register_command("stopLanguageServer", () => {
 			this.stop_language_server();
 		});
-		vscode.commands.registerCommand("godotTools.checkStatus", this.check_client_status.bind(this));
+		register_command("checkStatus", this.check_client_status.bind(this));
 
 		set_context("connectedToLSP", false);
 
@@ -207,9 +212,4 @@ export class ClientConnectionManager {
 			}
 		});
 	}
-
-
-
-
-
 }

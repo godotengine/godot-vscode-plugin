@@ -10,7 +10,13 @@ import {
 import path = require("path");
 import fs = require("fs");
 import * as vscode from "vscode";
-import { get_configuration, find_file, set_context, convert_resource_path_to_uri } from "@utils";
+import {
+	get_configuration,
+	find_file,
+	set_context,
+	convert_resource_path_to_uri,
+	register_command,
+} from "@utils";
 import { createLogger } from "@logger";
 
 const log = createLogger("scene preview");
@@ -82,15 +88,15 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.tree.onDidChangeSelection(this.tree_selection_changed);
 
-		vscode.commands.registerCommand("godotTools.scenePreview.pin", this.pin_preview.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.unpin", this.unpin_preview.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.copyNodePath", this.copy_node_path.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.copyResourcePath", this.copy_resource_path.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.openScene", this.open_scene.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.openScript", this.open_script.bind(this));
-		vscode.commands.registerCommand("godotTools.scenePreview.goToDefinition", this.go_to_definition.bind(this));
+		register_command("scenePreview.pin", this.pin_preview.bind(this));
+		register_command("scenePreview.unpin", this.unpin_preview.bind(this));
+		register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this));
+		register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this));
+		register_command("scenePreview.openScene", this.open_scene.bind(this));
+		register_command("scenePreview.openScript", this.open_script.bind(this));
+		register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this));
 
-		vscode.commands.registerCommand("godotTools.scenePreview.refresh", () =>
+		register_command("scenePreview.refresh", () =>
 			this.refresh()
 		);
 

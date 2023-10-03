@@ -3,8 +3,9 @@ import * as path from "path";
 import * as fs from "fs";
 import { AddressInfo, createServer } from "net";
 
-const CONFIG_PREFIX = "godotTools";
-const config = vscode.workspace.getConfiguration(CONFIG_PREFIX);
+const EXTENSION_PREFIX = "godotTools";
+
+const config = vscode.workspace.getConfiguration(EXTENSION_PREFIX);
 
 export function get_configuration(name: string, default_value?: any) {
 	let config_value = config.get(name, null);
@@ -22,10 +23,14 @@ export function is_debug_mode(): boolean {
 	return process.env.VSCODE_DEBUG_MODE === "true";
 }
 
-const CONTEXT_PREFIX = `${CONFIG_PREFIX}.context.`;
+const CONTEXT_PREFIX = `${EXTENSION_PREFIX}.context.`;
 
 export function set_context(name: string, value: any) {
 	vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);
+}
+
+export function register_command(command: string, callback: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
+	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
 }
 
 export async function get_godot_version() {
