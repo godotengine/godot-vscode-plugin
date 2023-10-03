@@ -192,6 +192,11 @@
 					"default": 6008,
 					"description": "The server port of the GDScript language server"
 				},
+				"godotTools.lsp.headless": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to launch the LSP as a headless child process"
+				},
 				"godotTools.lsp.runAtStartup": {
 					"type": "boolean",
 					"default": false,

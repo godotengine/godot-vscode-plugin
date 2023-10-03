@@ -33,7 +33,7 @@ export function register_command(command: string, callback: (...args: any[]) => 
 	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
 }
 
-export async function get_godot_version() {
+export async function get_project_version() {
 	const project_dir = await get_project_dir();
 
 	if (!project_dir) {
