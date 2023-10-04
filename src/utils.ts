@@ -37,7 +37,7 @@ export async function get_project_version() {
 	const project_dir = await get_project_dir();
 
 	if (!project_dir) {
-		return '';
+		return undefined;
 	}
 
 	let godot_version = '3.x';

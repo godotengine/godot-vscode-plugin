@@ -8,6 +8,7 @@ import {
 	set_context,
 	register_command,
 } from "@utils";
+import * as fs from "fs";
 import { createLogger } from "@logger";
 import { execSync } from "child_process";
 import { subProcess, killSubProcesses } from '@utils/subspawn';
@@ -61,37 +62,35 @@ export class ClientConnectionManager {
 		this.connect_to_language_server();
 	}
 
-	private async detect_headless_lsp_capability() {
-		const projectVersion = await get_project_version();
-		let godotPath = '';
-		if (projectVersion.startsWith('4')) {
-			godotPath = get_configuration("editorPath.godot4");
-		} else {
-			godotPath = get_configuration("editorPath.godot3");
-		}
-		const exeVersion = execSync(`${godotPath} --version`).toString().trim();
-		if (exeVersion.startsWith('4')) {
-			const match = exeVersion.match(/4.([0-9]+)/);
-			if (match && match[1] >= '2') {
-				return true;
-			}
-		} else {
-			const match = exeVersion.match(/3.([0-9]+)/);
-			if (match && match[1] >= '6') {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	private async connect_to_language_server() {
 		this.client.port = -1;
 
-		const start = get_configuration("lsp.headless");
-		if (start) {
-			if (await this.detect_headless_lsp_capability()) {
-				await this.start_language_server();
+		if (get_configuration("lsp.headless")) {
+			const projectVersion = await get_project_version();
+			if (!projectVersion) {
+				vscode.window.showErrorMessage("workspace isn't a godot project");
+				return;
 			}
+			let godotPath = get_configuration("editorPath.godot3");
+			let pattern = /3.([0-9]+)/;
+			let minimumVersion = '6';
+			if (projectVersion.startsWith('4')) {
+				godotPath = get_configuration("editorPath.godot4");
+				pattern = /4.([0-9]+)/;
+				minimumVersion = '2';
+			}
+
+			if (!fs.existsSync(godotPath)) {
+				vscode.window.showErrorMessage("godotPath isn't a valid file");
+				return;
+			}
+			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
+			const match = exeVersion.match(pattern);
+			if (match && match[1] < minimumVersion) {
+				vscode.window.showErrorMessage("godot exe is too old");
+				return;
+			}
+			this.start_language_server();
 		}
 
 		this.reconnection_attempts = 0;
