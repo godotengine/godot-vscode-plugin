@@ -79,11 +79,11 @@ export class ClientConnectionManager {
 				pattern = /4.([0-9]+)/;
 				minimumVersion = '2';
 			}
-
-			if (!fs.existsSync(godotPath)) {
-				vscode.window.showErrorMessage("godotPath isn't a valid file");
-				return;
-			}
+			// TODO: this doesn't work on windows
+			// if (!fs.existsSync(godotPath)) {
+			// 	vscode.window.showErrorMessage("godotPath isn't a valid file");
+			// 	return;
+			// }
 			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
 			const match = exeVersion.match(pattern);
 			if (match && match[1] < minimumVersion) {
