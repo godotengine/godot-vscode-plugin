@@ -228,9 +228,6 @@ export class ClientConnectionManager {
 				this.retry = false;
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
-				if (!this.client.started) {
-					this.context.subscriptions.push(this.client.start());
-				}
 				break;
 			case ClientStatus.DISCONNECTED:
 				set_context("connectedToLSP", false);

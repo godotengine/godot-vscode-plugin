@@ -92,7 +92,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect_to_language_server(host, port);
 	}
 
-	start(): vscode.Disposable {
+	start(): Promise<void> {
 		this._started = true;
 		return super.start();
 	}
