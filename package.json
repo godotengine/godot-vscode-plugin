@@ -603,7 +603,7 @@
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",
 		"vscode-debugadapter": "^1.38.0",
-		"vscode-languageclient": "^9.0.1",
+		"vscode-languageclient": "^7.0.0",
 		"ws": "^8.4.2"
 	}
 }

@@ -92,7 +92,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect_to_language_server(host, port);
 	}
 
-	start(): Promise<void> {
+	start() {
 		this._started = true;
 		return super.start();
 	}
@@ -137,8 +137,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.status = ClientStatus.DISCONNECTED;
 	}
 }
-
-
 
 class MessageHandler extends EventEmitter {
 
