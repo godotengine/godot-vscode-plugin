@@ -1,7 +1,6 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
 import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
-import logger from "@logger";
 import { createLogger } from "@logger";
 import { get_configuration, is_debug_mode } from "@utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
@@ -98,18 +97,14 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: Message) {
-		if (is_debug_mode()) {
-			logger.log("[client]", JSON.stringify(message));
-		}
+		log.debug("tx: " + JSON.stringify(message));
 		if ((message as RequestMessage).method == "initialize") {
 			this._initialize_request = message;
 		}
 	}
 
 	private on_message(message: Message) {
-		if (is_debug_mode()) {
-			logger.log("[server]", JSON.stringify(message));
-		}
+		log.debug("rx: " + JSON.stringify(message));
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
