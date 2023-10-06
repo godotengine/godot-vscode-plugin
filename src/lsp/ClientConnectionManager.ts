@@ -84,6 +84,7 @@ export class ClientConnectionManager {
 			// 	vscode.window.showErrorMessage("godotPath isn't a valid file");
 			// 	return;
 			// }
+			// TODO: catch error from execSync
 			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
 			const match = exeVersion.match(pattern);
 			if (match && match[1] < minimumVersion) {
