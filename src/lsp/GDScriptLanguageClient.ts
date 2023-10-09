@@ -1,8 +1,8 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
-import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
+import { LanguageClient, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
 import { createLogger } from "@logger";
-import { get_configuration, is_debug_mode } from "@utils";
+import { get_configuration, set_context } from "@utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
 
@@ -20,18 +20,20 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
-	private _started : boolean = false;
-	private _status : ClientStatus;
-	private _status_changed_callbacks: ((v : ClientStatus)=>void)[] = [];
+	private _started: boolean = false;
+	private _status: ClientStatus;
+	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
 	private message_handler: MessageHandler = null;
 	private native_doc_manager: NativeDocumentManager = null;
-	
-	public port: number = -1;
 
-	public get started() : boolean { return this._started; }
-	public get status() : ClientStatus { return this._status; }
-	public set status(v : ClientStatus) {
+	public port: number = -1;
+	public sentMessages = new Map();
+	// public last
+
+	public get started(): boolean { return this._started; }
+	public get status(): ClientStatus { return this._status; }
+	public set status(v: ClientStatus) {
 		if (this._status != v) {
 			this._status = v;
 			for (const callback of this._status_changed_callbacks) {
@@ -40,7 +42,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-	public watch_status(callback: (v : ClientStatus)=>void) {
+	public watch_status(callback: (v: ClientStatus) => void) {
 		if (this._status_changed_callbacks.indexOf(callback) == -1) {
 			this._status_changed_callbacks.push(callback);
 		}
@@ -55,7 +57,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			`GDScriptLanguageClient`,
 			() => {
 				return new Promise((resolve, reject) => {
-					resolve({reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io)});
+					resolve({ reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io) });
 				});
 			},
 			{
@@ -96,26 +98,59 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		return super.start();
 	}
 
-	private on_send_message(message: Message) {
-		log.debug("tx: " + JSON.stringify(message));
-		if ((message as RequestMessage).method == "initialize") {
+	private on_send_message(message: RequestMessage) {
+		// log.debug("tx: " + JSON.stringify(message));
+
+		this.sentMessages.set(message.id, message.method);
+
+		if (message.method == "initialize") {
 			this._initialize_request = message;
 		}
 	}
 
-	private on_message(message: Message) {
-		log.debug("rx: " + JSON.stringify(message));
+	private on_message(message: ResponseMessage) {
+		const msgString = JSON.stringify(message);
+		// log.debug("rx: " + msgString);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
 		// This should be forward-compatible, meaning that it will work
 		// with the current broken version, AND the fixed future version.
-		const match = JSON.stringify(message).match(/"target":"file:\/\/[^\/][^"]*"/);
+		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
 		if (match) {
 			for (let i = 0; i < message["result"].length; i++) {
 				const x = message["result"][i]["target"];
 				message["result"][i]["target"] = x.replace('file://', 'file:///');
 			}
+		}
+
+		const method = this.sentMessages.get(message.id);
+		if (method === "textDocument/hover") {
+			// log.debug("rx: " + msgString);
+			const body: string = message.result.contents.value;
+			let decl = body.split('\n')[0].trim();
+			log.debug(decl);
+
+			// const match = decl.match(/:/)
+			// strip off the value
+			if (decl.includes("=")) {
+				decl = decl.split("=")[0];
+			}
+			if (decl.includes(":")) {
+				const parts = decl.split(":");
+				if (parts.length === 2) {
+					decl = parts[1].trim();
+
+				}
+			}
+			if (decl.includes("<Native>")) {
+				decl = decl.split(" ")[2];
+			}
+
+			const type = decl;
+			log.debug(type);
+			// set_context("", true);
+
 		}
 
 		this.message_handler.on_message(message);
@@ -142,8 +177,8 @@ class MessageHandler extends EventEmitter {
 		this.io = io;
 	}
 
-	changeWorkspace(params: {path: string}) {
-		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item=>{
+	changeWorkspace(params: { path: string }) {
+		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
 			if (item == "Reload") {
 				let folderUrl = vscode.Uri.file(params.path);
 				vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
