@@ -128,6 +128,16 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const method = this.sentMessages.get(message.id);
 		if (method === "textDocument/hover") {
 			this.handle_hover_response(message);
+
+			// this is a dirty hack to fix language server sending us prerendered
+			// markdown but not correctly stripping leading #'s, leading to 
+			// docstrings being displayed as titles
+			let value = message.result.contents.value;
+			const _match = value.match(/\n[#]+/);
+			if (_match) {
+				value = value.replace(_match[0], '\n');
+				message.result.contents.value = value;
+			}
 		}
 
 		this.message_handler.on_message(message);
