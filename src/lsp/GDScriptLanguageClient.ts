@@ -100,7 +100,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: RequestMessage) {
-		// log.debug("tx: " + JSON.stringify(message));
+		log.debug("tx: " + JSON.stringify(message));
 
 		this.sentMessages.set(message.id, message.method);
 
@@ -111,7 +111,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private on_message(message: ResponseMessage) {
 		const msgString = JSON.stringify(message);
-		// log.debug("rx: " + msgString);
+		log.debug("rx: " + msgString);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
