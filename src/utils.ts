@@ -26,14 +26,23 @@ export function is_debug_mode(): boolean {
 const CONTEXT_PREFIX = `${EXTENSION_PREFIX}.context.`;
 
 export function set_context(name: string, value: any) {
-	vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);
+	return vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);
 }
 
 export function register_command(command: string, callback: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
 	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
 }
 
-export async function get_project_version() {
+export function get_word_under_cursor(): string {
+	const activeEditor = vscode.window.activeTextEditor;
+	const document = activeEditor.document;
+	const curPos = activeEditor.selection.active;
+	const wordRange = document.getWordRangeAtPosition(curPos);
+	const symbolName = document.getText(wordRange);
+	return symbolName;
+}
+
+export async function get_project_version(): Promise<string | undefined> {
 	const project_dir = await get_project_dir();
 
 	if (!project_dir) {
