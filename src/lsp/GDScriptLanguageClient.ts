@@ -133,7 +133,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			// markdown but not correctly stripping leading #'s, leading to 
 			// docstrings being displayed as titles
 			let value: string = message.result.contents.value;
-			message.result.contents.value = value.replace(/[#]+/g, '');
+			message.result.contents.value = value.replace(/\n[#]+/g, '\n');
 		}
 
 		this.message_handler.on_message(message);
