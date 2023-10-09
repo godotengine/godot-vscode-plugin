@@ -29,7 +29,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	public port: number = -1;
 	public sentMessages = new Map();
-	// public last
+	public lastSymbolHovered: string = "";
 
 	public get started(): boolean { return this._started; }
 	public get status(): ClientStatus { return this._status; }
@@ -48,8 +48,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-	public open_documentation(symbolName: string) {
-		this.native_doc_manager.request_documentation(symbolName);
+	public open_documentation() {
+		const symbol = this.lastSymbolHovered;
+		this.native_doc_manager.request_documentation(symbol);
 	}
 
 	constructor(context: vscode.ExtensionContext) {
@@ -119,41 +120,47 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
 		if (match) {
 			for (let i = 0; i < message["result"].length; i++) {
-				const x = message["result"][i]["target"];
+				const x: string = message["result"][i]["target"];
 				message["result"][i]["target"] = x.replace('file://', 'file:///');
 			}
 		}
 
 		const method = this.sentMessages.get(message.id);
 		if (method === "textDocument/hover") {
-			// log.debug("rx: " + msgString);
-			const body: string = message.result.contents.value;
-			let decl = body.split('\n')[0].trim();
-			log.debug(decl);
-
-			// const match = decl.match(/:/)
-			// strip off the value
-			if (decl.includes("=")) {
-				decl = decl.split("=")[0];
-			}
-			if (decl.includes(":")) {
-				const parts = decl.split(":");
-				if (parts.length === 2) {
-					decl = parts[1].trim();
-
-				}
-			}
-			if (decl.includes("<Native>")) {
-				decl = decl.split(" ")[2];
-			}
-
-			const type = decl;
-			log.debug(type);
-			// set_context("", true);
-
+			this.handle_hover_response(message);
 		}
 
 		this.message_handler.on_message(message);
+	}
+
+	private handle_hover_response(message: ResponseMessage) {
+		this.lastSymbolHovered = "";
+		set_context("typeFound", false);
+
+		let decl: string = message.result.contents.value;
+		decl = decl.split('\n')[0].trim();
+
+		// strip off the value
+		if (decl.includes("=")) {
+			decl = decl.split("=")[0];
+		}
+		if (decl.includes(":")) {
+			const parts = decl.split(":");
+			if (parts.length === 2) {
+				decl = parts[1].trim();
+
+			}
+		}
+		if (decl.includes("<Native>")) {
+			decl = decl.split(" ")[2];
+		}
+
+		if (decl.includes(" ")) {
+			return;
+		}
+
+		this.lastSymbolHovered = decl;
+		set_context("typeFound", true);
 	}
 
 	private on_connected() {

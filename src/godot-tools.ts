@@ -93,15 +93,8 @@ export class GodotTools {
 		vscode.env.clipboard.writeText(relative_path);
 	}
 
-	private open_type_documentation(uri: vscode.Uri) {
-		// get word under cursor
-		const activeEditor = vscode.window.activeTextEditor;
-		const document = activeEditor.document;
-		const curPos = activeEditor.selection.active;
-		const wordRange = document.getWordRangeAtPosition(curPos);
-		const symbolName = document.getText(wordRange);
-
-		this.lspClientManager.client.open_documentation(symbolName);
+	private open_type_documentation() {
+		this.lspClientManager.client.open_documentation();
 	}
 
 	private async switch_scene_script() {
