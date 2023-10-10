@@ -194,11 +194,6 @@
 					"default": false,
 					"description": "Whether to launch the LSP as a headless child process"
 				},
-				"godotTools.lsp.runAtStartup": {
-					"type": "boolean",
-					"default": false,
-					"description": "Whether the plugin should start its own GDScript language server process"
-				},
 				"godotTools.editorPath.godot3": {
 					"type": "string",
 					"default": "godot3",
