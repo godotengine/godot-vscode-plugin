@@ -66,32 +66,7 @@ export class ClientConnectionManager {
 		this.client.port = -1;
 
 		if (get_configuration("lsp.headless")) {
-			const projectVersion = await get_project_version();
-			if (!projectVersion) {
-				vscode.window.showErrorMessage("workspace isn't a godot project");
-				return;
-			}
-			let godotPath = get_configuration("editorPath.godot3");
-			let pattern = /3.([0-9]+)/;
-			let minimumVersion = '6';
-			if (projectVersion.startsWith('4')) {
-				godotPath = get_configuration("editorPath.godot4");
-				pattern = /4.([0-9]+)/;
-				minimumVersion = '2';
-			}
-			// TODO: this doesn't work on windows
-			// if (!fs.existsSync(godotPath)) {
-			// 	vscode.window.showErrorMessage("godotPath isn't a valid file");
-			// 	return;
-			// }
-			// TODO: catch error from execSync
-			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
-			const match = exeVersion.match(pattern);
-			if (match && match[1] < minimumVersion) {
-				vscode.window.showErrorMessage("godot exe is too old");
-				return;
-			}
-			this.start_language_server();
+			await this.start_language_server();
 		}
 
 		this.reconnection_attempts = 0;
@@ -108,22 +83,33 @@ export class ClientConnectionManager {
 		const projectDir = await get_project_dir();
 
 		if (!projectDir) {
-			log.debug("Current workspace is not a Godot project");
+			vscode.window.showErrorMessage("Current workspace is not a Godot project");
 			return
 		}
 
 		const projectVersion = await get_project_version();
 
-		let editorPath = get_configuration("editorPath.godot3");
+		let godotPath = get_configuration("editorPath.godot3");
+		let pattern = /3.([0-9]+)/;
+		let minimumVersion = '6';
 		let headlessFlag = "--no-window";
 		if (projectVersion.startsWith('4')) {
-			editorPath = get_configuration("editorPath.godot4");
+			godotPath = get_configuration("editorPath.godot4");
+			pattern = /4.([0-9]+)/;
+			minimumVersion = '2';
 			headlessFlag = "--headless";
+		}
+
+		const exeVersion = execSync(`${godotPath} --version`).toString().trim();
+		const match = exeVersion.match(pattern);
+		if (match && match[1] < minimumVersion) {
+			vscode.window.showErrorMessage("godot exe is too old");
+			return;
 		}
 
 		this.client.port = await get_free_port();
 
-		const command = `${editorPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
+		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
 
 		log.debug(`starting headless LSP on port ${this.client.port}`);
 
