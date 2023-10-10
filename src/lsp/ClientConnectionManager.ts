@@ -8,7 +8,6 @@ import {
 	set_context,
 	register_command,
 } from "@utils";
-import * as fs from "fs";
 import { createLogger } from "@logger";
 import { execSync } from "child_process";
 import { subProcess, killSubProcesses } from '@utils/subspawn';
