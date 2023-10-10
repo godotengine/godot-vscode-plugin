@@ -119,7 +119,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		// with the current broken version, AND the fixed future version.
 		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
 		if (match) {
-			for (let i = 0; i < message["result"].length; i++) {
+			const count = (message["result"] as Array<object>).length;
+			for (let i = 0; i < count; i++) {
 				const x: string = message["result"][i]["target"];
 				message["result"][i]["target"] = x.replace('file://', 'file:///');
 			}
