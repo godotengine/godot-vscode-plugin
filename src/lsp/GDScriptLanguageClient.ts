@@ -90,7 +90,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (this.port !== -1) {
 			port = this.port;
 		}
-		log.debug(`attempting to connect to LSP at port ${port}`);
+		log.info(`attempting to connect to LSP at port ${port}`);
 		this.io.connect_to_language_server(host, port);
 	}
 
@@ -183,7 +183,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 }
 
 class MessageHandler extends EventEmitter {
-
 	private io: MessageIO = null;
 
 	constructor(io: MessageIO) {
@@ -201,7 +200,6 @@ class MessageHandler extends EventEmitter {
 	}
 
 	on_message(message: any) {
-
 		// FIXME: Hot fix VSCode 1.42 hover position
 		if (message && message.result && message.result.range && message.result.contents) {
 			message.result.range = undefined;

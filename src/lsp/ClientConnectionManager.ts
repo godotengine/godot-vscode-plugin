@@ -112,10 +112,9 @@ export class ClientConnectionManager {
 
 		this.client.port = await get_free_port();
 
+		log.info(`starting headless LSP on port ${this.client.port}`);
+
 		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
-
-		log.debug(`starting headless LSP on port ${this.client.port}`);
-
 		const lspProcess = subProcess("LSP", command, { shell: true });
 
 		const lspStdout = createLogger("lsp.stdout");
@@ -135,7 +134,7 @@ export class ClientConnectionManager {
 		// });
 
 		lspProcess.on('close', (code) => {
-			log.debug(`LSP process exited with code ${code}`);
+			log.info(`LSP process exited with code ${code}`);
 		});
 	}
 
