@@ -7,10 +7,10 @@ import {
 	get_project_dir,
 	set_context,
 	register_command,
-} from "@utils";
-import { createLogger } from "@logger";
+} from "../utils";
+import { createLogger } from "../logger";
 import { execSync } from "child_process";
-import { subProcess, killSubProcesses } from '@utils/subspawn';
+import { subProcess, killSubProcesses } from '../utils/subspawn';
 
 const log = createLogger("lsp.manager");
 

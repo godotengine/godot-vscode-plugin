@@ -572,11 +572,6 @@
 			]
 		}
 	},
-	"_moduleAliases":{
-		"@utils": "./out/utils",
-		"@utils/*": "./out/utils/*",
-		"@logger": "./out/logger"
-	},
 	"devDependencies": {
 		"@types/marked": "^0.6.5",
 		"@types/mocha": "^9.1.0",
@@ -594,7 +589,6 @@
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
 		"marked": "^4.0.11",
-		"module-alias": "^2.2.3",
 		"net": "^1.0.2",
 		"terminate": "^2.5.0",
 		"vscode-debugadapter": "^1.38.0",

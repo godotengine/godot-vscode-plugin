@@ -10,7 +10,7 @@ import {
 	find_file,
 	find_project_file,
 	register_command
-} from "@utils";
+} from "./utils";
 
 const TOOL_NAME = "GodotTools";
 

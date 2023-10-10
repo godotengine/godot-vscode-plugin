@@ -10,19 +10,7 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false,
-		"allowJs": true,
-		"baseUrl": ".",
-		"paths": {
-			"@utils": [
-				"./src/utils"
-			],
-			"@utils/*": [
-				"./src/utils/*"
-			],
-			"@logger": [
-				"./src/logger"
-			]
-		}
+		"allowJs": true
 	},
 	"exclude": [
 		"node_modules",

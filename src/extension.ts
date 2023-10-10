@@ -1,4 +1,3 @@
-require('module-alias/register');
 import { ExtensionContext } from "vscode";
 import { GodotTools } from "./godot-tools";
 import { shouldUpdateSettings, updateOldStyleSettings, updateStoredVersion } from "./settings_updater";

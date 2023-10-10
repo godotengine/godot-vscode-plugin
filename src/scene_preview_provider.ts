@@ -16,8 +16,8 @@ import {
 	set_context,
 	convert_resource_path_to_uri,
 	register_command,
-} from "@utils";
-import { createLogger } from "@logger";
+} from "./utils";
+import { createLogger } from "./logger";
 
 const log = createLogger("scene preview");
 

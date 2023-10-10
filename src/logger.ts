@@ -1,5 +1,3 @@
-import { is_debug_mode } from "@utils";
-
 
 export class Logger {
 	protected buffer: string = "";
@@ -84,7 +82,6 @@ export class Logger2 {
 	}
 
 	info(...messages) {
-		// if (is_debug_mode()) { }
 		this.level = "INFO";
 		this.log(messages);
 	}
