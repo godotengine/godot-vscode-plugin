@@ -99,11 +99,15 @@ export class ClientConnectionManager {
 			headlessFlag = "--headless";
 		}
 
-		const exeVersion = execSync(`${godotPath} --version`).toString().trim();
-		const match = exeVersion.match(pattern);
-		if (match && match[1] < minimumVersion) {
-			vscode.window.showErrorMessage("godot exe is too old");
-			return;
+		try {
+			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
+			const match = exeVersion.match(pattern);
+			if (match && match[1] < minimumVersion) {
+				vscode.window.showErrorMessage("godot exe is too old");
+				return;
+			}
+		} catch (e) {
+			vscode.window.showErrorMessage("godot exe is not valid");
 		}
 
 		this.client.port = await get_free_port();
