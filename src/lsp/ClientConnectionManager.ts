@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as fs from "fs";
 import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
 import {
 	get_configuration,
@@ -7,6 +8,7 @@ import {
 	get_project_dir,
 	set_context,
 	register_command,
+	set_configuration,
 } from "../utils";
 import { createLogger } from "../logger";
 import { execSync } from "child_process";
@@ -83,38 +85,72 @@ export class ClientConnectionManager {
 
 		if (!projectDir) {
 			vscode.window.showErrorMessage("Current workspace is not a Godot project");
-			return
+			return;
 		}
 
 		const projectVersion = await get_project_version();
 
-		let godotPath = get_configuration("editorPath.godot3");
-		let pattern = /3.([0-9]+)/;
 		let minimumVersion = '6';
-		let headlessFlag = "--no-window";
+		let targetVersion = '3.6';
 		if (projectVersion.startsWith('4')) {
-			godotPath = get_configuration("editorPath.godot4");
-			pattern = /4.([0-9]+)/;
 			minimumVersion = '2';
-			headlessFlag = "--headless";
+			targetVersion = '4.2';
 		}
+		const settingName = `editorPath.godot${projectVersion[0]}`;
+		const godotPath = get_configuration(settingName);
 
 		try {
-			const exeVersion = execSync(`${godotPath} --version`).toString().trim();
-			const match = exeVersion.match(pattern);
-			if (match && match[1] < minimumVersion) {
-				vscode.window.showErrorMessage("godot exe is too old");
+			const output = execSync(`${godotPath} --version`).toString().trim();
+			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?\w+.\w+.[0-9a-f]{9}/;
+			const match = output.match(pattern);
+			if (!match) {
+				const message = `Cannot launch headless LSP: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+				vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+					if (item == "Select Godot executable") {
+						this.select_godot_executable(settingName);
+					}
+				});
+				return;
+			}
+
+			if (match[1] !== projectVersion[0]) {
+				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
+				vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+					if (item == "Select Godot executable") {
+						this.select_godot_executable(settingName);
+					}
+				});
+				return;
+			}
+
+			if (match[2] < minimumVersion) {
+				const message = `Cannot launch headless LSP: Headless LSP mode is only available on version ${targetVersion} or newer, but the specified Godot executable is version ${match[0]}.`;
+				vscode.window.showErrorMessage(message, "Select Godot executable", "Disable Headless LSP", "Ignore").then(item => {
+					if (item == "Select Godot executable") {
+						this.select_godot_executable(settingName);
+					} else if (item == "Disable Headless LSP") {
+						set_configuration("lsp.headless", false);
+						this.prompt_for_reload();
+					}
+				});
 				return;
 			}
 		} catch (e) {
-			vscode.window.showErrorMessage("godot exe is not valid");
+			const message = `Cannot launch headless LSP: ${settingName} of ${godotPath} is not a valid Godot executable`;
+			vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+				if (item == "Select Godot executable") {
+					this.select_godot_executable(settingName);
+				}
+			});
+			return;
 		}
 
 		this.client.port = await get_free_port();
 
 		log.info(`starting headless LSP on port ${this.client.port}`);
 
-		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlag} --lsp-port ${this.client.port}`;
+		const headlessFlags = "--headless --no-window";
+		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
 		const lspProcess = subProcess("LSP", command, { shell: true });
 
 		const lspStdout = createLogger("lsp.stdout");
@@ -138,13 +174,36 @@ export class ClientConnectionManager {
 		});
 	}
 
+	private async select_godot_executable(settingName: string) {
+		vscode.window.showOpenDialog({
+			openLabel: "Select Godot executable",
+			filters: process.platform === "win32" ? { "Godot Editor Binary": ["exe", "EXE"] } : undefined
+		}).then(async (uris: vscode.Uri[]) => {
+			if (!uris) {
+				return;
+			}
+			const path = uris[0].fsPath;
+			set_configuration(settingName, path);
+			this.prompt_for_reload();
+		});
+	}
+
+	private async prompt_for_reload() {
+		const message = `Reload VSCode to apply settings`;
+		vscode.window.showErrorMessage(message, "Reload").then(item => {
+			if (item == "Reload") {
+				vscode.commands.executeCommand("workbench.action.reloadWindow");
+			}
+		});
+	}
+
 	private get_lsp_connection_string() {
 		let host = get_configuration("lsp.serverHost");
 		let port = get_configuration("lsp.serverPort");
 		if (this.client.port !== -1) {
 			port = this.client.port;
 		}
-		return `${host}:${port}`
+		return `${host}:${port}`;
 	}
 
 	private on_status_item_click() {
