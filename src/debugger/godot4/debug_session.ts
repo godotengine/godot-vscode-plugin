@@ -6,6 +6,7 @@ import {
 	Breakpoint,
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { ObjectId, RawObject } from "./variables/variants";
 import { ServerController } from "./server_controller";
