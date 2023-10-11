@@ -10,7 +10,7 @@ import {
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { SceneNode } from "../scene_tree_provider";
-import { window, OutputChannel } from "vscode";
+import { debug, window } from "vscode";
 import TERMINATE from "terminate";
 import net = require("net");
 import { Command } from "./command";
@@ -55,8 +55,7 @@ export class ServerController {
 	private socket?: net.Socket;
 	private stepping_out = false;
 	private terminated = false;
-	private output: OutputChannel = window.createOutputChannel("Godot");
-	private first_output: boolean = false;
+	private did_first_output: boolean = false;
 	private partial_stack_vars = {
 		locals: [] as GodotVariable[],
 		members: [] as GodotVariable[],
@@ -266,7 +265,8 @@ export class ServerController {
 	public parse_message(dataset: any[]) {
 		const command = new Command();
 		command.command = dataset[0];
-		command.parameters = dataset[1];
+		command.param_count = dataset[1];
+		command.parameters = dataset[2];
 		return command;
 	}
 
@@ -360,14 +360,12 @@ export class ServerController {
 				break;
 			}
 			case "output": {
-				if (!this.first_output) {
-					this.first_output = true;
-					this.output.show(true);
-					this.output.clear();
+				if (!this.did_first_output) {
+					this.did_first_output = true;
 					this.send_request_scene_tree_command();
 				}
 
-				this.output.appendLine(command.parameters[0]);
+				debug.activeDebugConsole.appendLine(command.parameters[0]);
 				break;
 			}
 		}
