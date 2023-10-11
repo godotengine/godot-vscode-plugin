@@ -10,12 +10,12 @@ const CRLF: string = '\r\n';
 
 export default class MessageBuffer {
 
-	private encoding: string;
+	private encoding: BufferEncoding;
 	private index: number;
 	private buffer: Buffer;
 
 	constructor(encoding: string = 'utf8') {
-		this.encoding = encoding;
+		this.encoding = encoding as BufferEncoding;
 		this.index = 0;
 		this.buffer = Buffer.allocUnsafe(DefaultSize);
 	}

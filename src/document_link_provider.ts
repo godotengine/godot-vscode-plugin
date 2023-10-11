@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Uri, Position, Range, TextDocument } from "vscode";
+import { Uri, Position, Range } from "vscode";
 import { convert_resource_path_to_uri } from "./utils";
 
 export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {

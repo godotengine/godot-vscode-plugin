@@ -5,7 +5,7 @@ import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
 import * as Prism from "../deps/prism/prism";
 import * as marked from "marked";
-import { get_configuration } from "../utils";
+import { get_configuration, register_command } from "../utils";
 import {
 	Methods,
 	NativeSymbolInspectParams,
@@ -13,6 +13,7 @@ import {
 	GodotNativeClassInfo,
 	GodotCapabilities,
 } from "./gdscript.capabilities";
+
 marked.setOptions({
 	highlight: function (code, lang) {
 		return Prism.highlight(code, GDScriptGrammar, lang);
@@ -52,10 +53,7 @@ export default class NativeDocumentManager extends EventEmitter {
 			}
 		});
 
-		vscode.commands.registerCommand(
-			"godotTools.listNativeClasses",
-			this.list_native_classes.bind(this)
-		);
+		register_command("listNativeClasses", this.list_native_classes.bind(this));
 	}
 
 	public request_documentation(symbolName: string) {
@@ -85,7 +83,7 @@ export default class NativeDocumentManager extends EventEmitter {
 
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
 		let json_data = "";
-		if (get_configuration("lsp.serverProtocol", "tcp") == "ws") {
+		if (get_configuration("lsp.serverProtocol") == "ws") {
 			json_data = JSON.stringify({
 				id: -1,
 				jsonrpc: "2.0",
@@ -129,7 +127,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	 * configuration and previously opened native symbols.
 	 */
 	private get_new_native_symbol_column(): vscode.ViewColumn {
-		const config_placement = get_configuration("nativeSymbolPlacement", "beside");
+		const config_placement = get_configuration("nativeSymbolPlacement");
 
 		if (config_placement == "active") {
 			return vscode.ViewColumn.Active;
@@ -297,8 +295,7 @@ export default class NativeDocumentManager extends EventEmitter {
 						);
 						const title = element(
 							"p",
-							`${
-								with_class ? `signal ${with_class ? `${classlink}.` : ""}` : ""
+							`${with_class ? `signal ${with_class ? `${classlink}.` : ""}` : ""
 							}${s.name}( ${args} )`
 						);
 						const doc = element(
@@ -439,9 +436,8 @@ function element<K extends keyof HTMLElementTagNameMap>(
 			props_str += ` ${key}="${props[key]}"`;
 		}
 	}
-	return `${indent || ""}<${tag} ${props_str}>${content}</${tag}>${
-		new_line ? "\n" : ""
-	}`;
+	return `${indent || ""}<${tag} ${props_str}>${content}</${tag}>${new_line ? "\n" : ""
+		}`;
 }
 function make_link(classname: string, symbol: string) {
 	if (!symbol || symbol == classname) {

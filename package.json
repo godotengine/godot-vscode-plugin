@@ -15,7 +15,7 @@
 	"author": "The Godot Engine community",
 	"publisher": "geequlim",
 	"engines": {
-		"vscode": "^1.68.0"
+		"vscode": "^1.80.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -26,9 +26,6 @@
 	],
 	"activationEvents": [
 		"workspaceContains:project.godot",
-		"onLanguage:gdscript",
-		"onLanguage:gdshader",
-		"onLanguage:gdresource",
 		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
@@ -48,6 +45,14 @@
 			{
 				"command": "godotTools.openEditor",
 				"title": "Godot Tools: Open workspace with Godot editor"
+			},
+			{
+				"command": "godotTools.startLanguageServer",
+				"title": "Godot Tools: Start the GDScript Language Server for this workspace"
+			},
+			{
+				"command": "godotTools.stopLanguageServer",
+				"title": "Godot Tools: Stop the GDScript Language Server for this workspace"
 			},
 			{
 				"command": "godotTools.runProject",
@@ -184,10 +189,20 @@
 					"default": 6008,
 					"description": "The server port of the GDScript language server"
 				},
-				"godotTools.editorPath": {
+				"godotTools.lsp.headless": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to launch the LSP as a headless child process"
+				},
+				"godotTools.editorPath.godot3": {
 					"type": "string",
-					"default": "",
-					"description": "The absolute path to the Godot editor executable"
+					"default": "godot3",
+					"description": "The absolute path to the Godot 3 editor executable"
+				},
+				"godotTools.editorPath.godot4": {
+					"type": "string",
+					"default": "godot4",
+					"description": "The absolute path to the Godot 4 editor executable"
 				},
 				"godotTools.sceneFileConfig": {
 					"type": "string",
@@ -546,7 +561,7 @@
 			"editor/context": [
 				{
 					"command": "godotTools.openTypeDocumentation",
-					"when": "godotTools.context.connectedToEditor",
+					"when": "godotTools.context.connectedToLSP && godotTools.context.typeFound",
 					"group": "navigation@9"
 				},
 				{
@@ -560,15 +575,15 @@
 	"devDependencies": {
 		"@types/marked": "^0.6.5",
 		"@types/mocha": "^9.1.0",
-		"@types/node": "^10.12.21",
+		"@types/node": "^18.15.0",
 		"@types/prismjs": "^1.16.8",
-		"@types/vscode": "^1.68.0",
+		"@types/vscode": "^1.80.0",
 		"@types/ws": "^8.2.2",
+		"@vscode/vsce": "^2.21.0",
 		"esbuild": "^0.15.2",
 		"ts-node": "^10.9.1",
 		"tslint": "^5.20.1",
-		"typescript": "^3.5.1",
-		"vsce": "^2.10.0"
+		"typescript": "^5.2.2"
 	},
 	"dependencies": {
 		"await-notify": "^1.0.1",

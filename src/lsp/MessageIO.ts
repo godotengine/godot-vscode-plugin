@@ -108,7 +108,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	private buffer: MessageBuffer;
 	private nextMessageLength: number;
 	private messageToken: number;
-	private partialMessageTimer: NodeJS.Timer | undefined;
+	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout: number;
 
 	public constructor(io: MessageIO, encoding: string = 'utf8') {
@@ -204,14 +204,14 @@ const CRLF = '\r\n';
 export class MessageIOWriter extends AbstractMessageWriter implements MessageWriter {
 
 	private io: MessageIO;
-	private encoding: string;
+	private encoding: BufferEncoding;
 	private errorCount: number;
 
 	public constructor(io: MessageIO, encoding: string = 'utf8') {
 		super();
 		this.io = io;
 		this.io.writer = this;
-		this.encoding = encoding;
+		this.encoding = encoding as BufferEncoding;
 		this.errorCount = 0;
 		this.io.on('error', (error: any) => this.fireError(error));
 		this.io.on('close', () => this.fireClose());

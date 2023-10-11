@@ -1,10 +1,12 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
-import { LanguageClient, RequestMessage } from "vscode-languageclient/node";
-import logger from "../logger";
-import { get_configuration, is_debug_mode } from "../utils";
+import { LanguageClient, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
+import { createLogger } from "../logger";
+import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import NativeDocumentManager from './NativeDocumentManager';
+
+const log = createLogger("lsp.client");
 
 export enum ClientStatus {
 	PENDING,
@@ -15,19 +17,23 @@ const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 
-	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol", "tcp") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
-	private _started : boolean = false;
-	private _status : ClientStatus;
-	private _status_changed_callbacks: ((v : ClientStatus)=>void)[] = [];
+	private _started: boolean = false;
+	private _status: ClientStatus;
+	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
 	private message_handler: MessageHandler = null;
 	private native_doc_manager: NativeDocumentManager = null;
 
-	public get started() : boolean { return this._started; }
-	public get status() : ClientStatus { return this._status; }
-	public set status(v : ClientStatus) {
+	public port: number = -1;
+	public sentMessages = new Map();
+	public lastSymbolHovered: string = "";
+
+	public get started(): boolean { return this._started; }
+	public get status(): ClientStatus { return this._status; }
+	public set status(v: ClientStatus) {
 		if (this._status != v) {
 			this._status = v;
 			for (const callback of this._status_changed_callbacks) {
@@ -36,14 +42,15 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-	public watch_status(callback: (v : ClientStatus)=>void) {
+	public watch_status(callback: (v: ClientStatus) => void) {
 		if (this._status_changed_callbacks.indexOf(callback) == -1) {
 			this._status_changed_callbacks.push(callback);
 		}
 	}
 
-	public open_documentation(symbolName: string) {
-		this.native_doc_manager.request_documentation(symbolName);
+	public open_documentation() {
+		const symbol = this.lastSymbolHovered;
+		this.native_doc_manager.request_documentation(symbol);
 	}
 
 	constructor(context: vscode.ExtensionContext) {
@@ -51,7 +58,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			`GDScriptLanguageClient`,
 			() => {
 				return new Promise((resolve, reject) => {
-					resolve({reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io)});
+					resolve({ reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io) });
 				});
 			},
 			{
@@ -78,43 +85,89 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	connect_to_server() {
 		this.status = ClientStatus.PENDING;
-		let host = get_configuration("lsp.serverHost", "127.0.0.1");
-		let port = get_configuration("lsp.serverPort", 6008);
+		const host = get_configuration("lsp.serverHost");
+		let port = get_configuration("lsp.serverPort");
+		if (this.port !== -1) {
+			port = this.port;
+		}
+		log.info(`attempting to connect to LSP at port ${port}`);
 		this.io.connect_to_language_server(host, port);
 	}
 
-	start(): vscode.Disposable {
+	start() {
 		this._started = true;
 		return super.start();
 	}
 
-	private on_send_message(message: Message) {
-		if (is_debug_mode()) {
-			logger.log("[client]", JSON.stringify(message));
-		}
-		if ((message as RequestMessage).method == "initialize") {
+	private on_send_message(message: RequestMessage) {
+		log.debug("tx: " + JSON.stringify(message));
+
+		this.sentMessages.set(message.id, message.method);
+
+		if (message.method == "initialize") {
 			this._initialize_request = message;
 		}
 	}
 
-	private on_message(message: Message) {
-		if (is_debug_mode()) {
-			logger.log("[server]", JSON.stringify(message));
-		}
+	private on_message(message: ResponseMessage) {
+		const msgString = JSON.stringify(message);
+		log.debug("rx: " + msgString);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
 		// This should be forward-compatible, meaning that it will work
 		// with the current broken version, AND the fixed future version.
-		const match = JSON.stringify(message).match(/"target":"file:\/\/[^\/][^"]*"/);
+		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
 		if (match) {
-			for (let i = 0; i < message["result"].length; i++) {
-				const x = message["result"][i]["target"];
+			const count = (message["result"] as Array<object>).length;
+			for (let i = 0; i < count; i++) {
+				const x: string = message["result"][i]["target"];
 				message["result"][i]["target"] = x.replace('file://', 'file:///');
 			}
 		}
 
+		const method = this.sentMessages.get(message.id);
+		if (method === "textDocument/hover") {
+			this.handle_hover_response(message);
+
+			// this is a dirty hack to fix language server sending us prerendered
+			// markdown but not correctly stripping leading #'s, leading to 
+			// docstrings being displayed as titles
+			const value: string = message.result["contents"].value;
+			message.result["contents"].value = value.replace(/\n[#]+/g, '\n');
+		}
+
 		this.message_handler.on_message(message);
+	}
+
+	private handle_hover_response(message: ResponseMessage) {
+		this.lastSymbolHovered = "";
+		set_context("typeFound", false);
+
+		let decl: string = message.result["contents"].value;
+		decl = decl.split('\n')[0].trim();
+
+		// strip off the value
+		if (decl.includes("=")) {
+			decl = decl.split("=")[0];
+		}
+		if (decl.includes(":")) {
+			const parts = decl.split(":");
+			if (parts.length === 2) {
+				decl = parts[1].trim();
+
+			}
+		}
+		if (decl.includes("<Native>")) {
+			decl = decl.split(" ")[2];
+		}
+
+		if (decl.includes(" ")) {
+			return;
+		}
+
+		this.lastSymbolHovered = decl;
+		set_context("typeFound", true);
 	}
 
 	private on_connected() {
@@ -129,10 +182,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 }
 
-
-
 class MessageHandler extends EventEmitter {
-
 	private io: MessageIO = null;
 
 	constructor(io: MessageIO) {
@@ -140,8 +190,8 @@ class MessageHandler extends EventEmitter {
 		this.io = io;
 	}
 
-	changeWorkspace(params: {path: string}) {
-		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item=>{
+	changeWorkspace(params: { path: string }) {
+		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
 			if (item == "Reload") {
 				let folderUrl = vscode.Uri.file(params.path);
 				vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
@@ -150,7 +200,6 @@ class MessageHandler extends EventEmitter {
 	}
 
 	on_message(message: any) {
-
 		// FIXME: Hot fix VSCode 1.42 hover position
 		if (message && message.result && message.result.range && message.result.contents) {
 			message.result.range = undefined;
