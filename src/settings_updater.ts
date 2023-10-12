@@ -11,7 +11,7 @@ const OLD_SETTINGS_CONVERSIONS = [
 	["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
 	["godot_tools.force_visible_collision_shapes", "godotTools.forceVisibleCollisionShapes"],
 	["godot_tools.force_visible_nav_mesh", "godotTools.forceVisibleNavMesh"],
-	["godot_tools.native_symbol_placement", "godotTooPtabls.nativeSymbolPlacement"],
+	["godot_tools.native_symbol_placement", "godotTools.nativeSymbolPlacement"],
 	["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
 ];
 
