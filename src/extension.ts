@@ -1,8 +1,8 @@
-import { shouldUpdateSettings, updateOldStyleSettings, updateStoredVersion } from "./settings_updater";
 import debuggerContext = require("./debugger/debugger_context");
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { attemptSettingsUpdate } from "./settings_updater";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
@@ -21,10 +21,7 @@ let linkProvider: GDDocumentLinkProvider = null;
 let scenePreviewManager: ScenePreviewProvider = null;
 
 export function activate(context: vscode.ExtensionContext) {
-	if (shouldUpdateSettings(context)) {
-		updateOldStyleSettings();
-	}
-	updateStoredVersion(context);
+	attemptSettingsUpdate(context);
 
 	lspClientManager = new ClientConnectionManager(context);
 	linkProvider = new GDDocumentLinkProvider(context);

@@ -55,7 +55,14 @@ export function updateStoredVersion(context: vscode.ExtensionContext) {
  * in `context.globalState`, meaning it was either just installed,
  *  or updated from a version <1.4.0. Otherwise, returns `false`.
  */
-export function shouldUpdateSettings(context: vscode.ExtensionContext) : boolean {
+export function shouldUpdateSettings(context: vscode.ExtensionContext): boolean {
 	const localVersion: string | undefined = context.globalState.get("previousVersion");
 	return localVersion === undefined;
+}
+
+export function attemptSettingsUpdate(context: vscode.ExtensionContext) {
+	if (shouldUpdateSettings(context)) {
+		updateOldStyleSettings();
+	}
+	updateStoredVersion(context);
 }
