@@ -9,6 +9,15 @@ class_name TestClass2
 @export var z : String
 @export_node_path(Resource) var resource_name
 
+var raw_string_a = r"test"
+var raw_string_b = r'test'
+var raw_string_c = r"""test"""
+
+var nodepath_a = &"test"
+var nodepath_b = &'test'
+var stringname_a = ^"test"
+var stringname_b = ^'test'
+
 var array_a: Array[int] = [1, 2, 3]
 var array_b: Array[String] = ['1', '2', '3']
 
