@@ -44,7 +44,6 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("openTypeDocumentation", open_type_documentation),
 		register_command("switchSceneScript", switch_scene_script),
 	)
-
 }
 
 export function deactivate(): Thenable<void> {
