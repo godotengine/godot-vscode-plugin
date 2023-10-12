@@ -1,4 +1,3 @@
-import { ExtensionContext } from "vscode";
 import { shouldUpdateSettings, updateOldStyleSettings, updateStoredVersion } from "./settings_updater";
 import debuggerContext = require("./debugger/debugger_context");
 import * as fs from "fs";
@@ -21,7 +20,7 @@ let lspClientManager: ClientConnectionManager = null;
 let linkProvider: GDDocumentLinkProvider = null;
 let scenePreviewManager: ScenePreviewProvider = null;
 
-export function activate(context: ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	if (shouldUpdateSettings(context)) {
 		updateOldStyleSettings();
 	}
