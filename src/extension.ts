@@ -1,8 +1,8 @@
-import debuggerContext = require("./debugger/debugger_context");
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate } from "./settings_updater";
+import { register_debugger } from "./debugger/debugger_context";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
@@ -26,7 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
 	lspClientManager = new ClientConnectionManager(context);
 	linkProvider = new GDDocumentLinkProvider(context);
 	scenePreviewManager = new ScenePreviewProvider();
-	debuggerContext.register_debugger(context);
+
+	register_debugger(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", () => {
