@@ -68,7 +68,7 @@
 			},
 			{
 				"command": "godotTools.openTypeDocumentation",
-				"title": "Godot Tools: Open Type Documentation"
+				"title": "Godot Tools: Open Documentation"
 			},
 			{
 				"command": "godotTools.debugger.inspectNode",
