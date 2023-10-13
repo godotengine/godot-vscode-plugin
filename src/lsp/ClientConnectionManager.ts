@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import GDScriptLanguageClient, { ClientStatus } from "./GDScriptLanguageClient";
+import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 import {
 	get_configuration,
 	get_free_port,
@@ -32,6 +32,7 @@ export class ClientConnectionManager {
 
 	private reconnection_attempts = 0;
 
+	private target: TargetLSP = TargetLSP.EDITOR;
 	private status: ManagerStatus = ManagerStatus.INITIALIZING;
 	private statusWidget: vscode.StatusBarItem = null;
 
@@ -46,9 +47,11 @@ export class ClientConnectionManager {
 		}, get_configuration("lsp.autoReconnect.cooldown"));
 
 		register_command("startLanguageServer", () => {
+			// TODO: this might leave the manager in a wierd state
 			this.start_language_server();
 			this.reconnection_attempts = 0;
-			this.client.connect_to_server();
+			this.target = TargetLSP.HEADLESS;
+			this.client.connect_to_server(this.target);
 		});
 		register_command("stopLanguageServer", this.stop_language_server.bind(this));
 		register_command("checkStatus", this.on_status_item_click.bind(this));
@@ -65,13 +68,16 @@ export class ClientConnectionManager {
 
 	private async connect_to_language_server() {
 		this.client.port = -1;
+		this.target = TargetLSP.EDITOR;
 
+		// TODO: why does changing lsp.headless require reloading vscode?
 		if (get_configuration("lsp.headless")) {
+			this.target = TargetLSP.HEADLESS;
 			await this.start_language_server();
 		}
 
 		this.reconnection_attempts = 0;
-		this.client.connect_to_server();
+		this.client.connect_to_server(this.target);
 	}
 
 	private stop_language_server() {
@@ -311,7 +317,7 @@ export class ClientConnectionManager {
 		const max_attempts = get_configuration("lsp.autoReconnect.attempts");
 		if (auto_retry && this.reconnection_attempts <= max_attempts - 1) {
 			this.reconnection_attempts++;
-			this.client.connect_to_server();
+			this.client.connect_to_server(this.target);
 			this.retry = true;
 			return;
 		}
