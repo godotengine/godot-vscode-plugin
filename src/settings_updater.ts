@@ -11,7 +11,7 @@ const OLD_SETTINGS_CONVERSIONS = [
 	["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
 	["godot_tools.force_visible_collision_shapes", "godotTools.forceVisibleCollisionShapes"],
 	["godot_tools.force_visible_nav_mesh", "godotTools.forceVisibleNavMesh"],
-	["godot_tools.native_symbol_placement", "godotTooPtabls.nativeSymbolPlacement"],
+	["godot_tools.native_symbol_placement", "godotTools.nativeSymbolPlacement"],
 	["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
 ];
 
@@ -55,7 +55,14 @@ export function updateStoredVersion(context: vscode.ExtensionContext) {
  * in `context.globalState`, meaning it was either just installed,
  *  or updated from a version <1.4.0. Otherwise, returns `false`.
  */
-export function shouldUpdateSettings(context: vscode.ExtensionContext) : boolean {
+export function shouldUpdateSettings(context: vscode.ExtensionContext): boolean {
 	const localVersion: string | undefined = context.globalState.get("previousVersion");
 	return localVersion === undefined;
+}
+
+export function attemptSettingsUpdate(context: vscode.ExtensionContext) {
+	if (shouldUpdateSettings(context)) {
+		updateOldStyleSettings();
+	}
+	updateStoredVersion(context);
 }

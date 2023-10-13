@@ -3,7 +3,7 @@ import * as ls from "vscode-languageclient";
 import { EventEmitter } from "events";
 import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
-import * as Prism from "../deps/prism/prism";
+import * as Prism from "prismjs";
 import * as marked from "marked";
 import { get_configuration, register_command } from "../utils";
 import {
