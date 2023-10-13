@@ -56,12 +56,22 @@ export default class NativeDocumentManager extends EventEmitter {
 		register_command("listNativeClasses", this.list_native_classes.bind(this));
 	}
 
-	public request_documentation(symbolName: string) {
-		if (symbolName in this.native_classes) {
+	public request_documentation(symbol: string) {
+		if (symbol in this.native_classes) {
 			this.inspect_native_symbol({
-				native_class: symbolName,
-				symbol_name: symbolName,
+				native_class: symbol,
+				symbol_name: symbol,
 			});
+			return;
+		}
+
+		if (symbol.includes(".")) {
+			const parts = symbol.split(".");
+			this.inspect_native_symbol({
+				native_class: parts[0],
+				symbol_name: parts[1],
+			});
+			return;
 		}
 	}
 
