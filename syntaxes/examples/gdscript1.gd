@@ -12,6 +12,16 @@ var var_f:bool=true
 var var_g : string = 'foo'
 var var_h : string = "foo"
 
+var integer = 12_345_678  # Equal to 12345678.
+var floating = 3.141_592_7  # Equal to 3.1415927.
+var hex_a = 0x10101
+var hex_b = 0x8080_0000_ffff  # Equal to 0x80800000ffff.
+var binary_a = 0b10101
+var binary_b = 0b11_00_11_00  # Equal to 0b11001100.
+
+var sci_float_a = 58.1e-10
+var sci_float_b = 58.1e-10
+
 const const_a = 0
 const const_b = true
 const const_c := true
@@ -126,6 +136,9 @@ func one_line_fn() -> void: return
 
 # ------------------------------------------------------------------------------
 
+var stringname_nodepath_a = @"test"
+var stringname_nodepath_b = @'test'
+
 var q = "double quotes"
 var r = 'single quotes'
 var s = """
@@ -158,13 +171,13 @@ onready var node_h = get_node("../Sibling")
 if has_node('Child') and get_node('Child').has_node('GrandChild'):
 	pass
 
-#! NOTE: scene unique nodes can only appear inside quoted nodepaths, not
-#! naked ones using the $ operator
-
-onready var bad_unique_nodepath_a = $%Unique
-onready var bad_unique_nodepath_b = $Child/%Unique
-onready var bad_unique_nodepath_c = $Child/GrandChild/%Unique
-onready var bad_unique_nodepath_c = $Child/%Unique/ChildOfUnique
+onready var unique_node_a = $%Unique
+onready var unique_node_b = $Child/%Unique
+onready var unique_node_c = $Child/GrandChild/%Unique
+onready var unique_node_d = $Child/%Unique/ChildOfUnique
+onready var unique_node_e = %Unique
+onready var unique_node_f = %Unique/Child
+onready var unique_node_g = %Unique/%UniqueChild
 
 onready var node_i = $"%Unique"
 onready var node_ii = get_node("%Unique")
