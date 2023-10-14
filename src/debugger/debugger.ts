@@ -18,13 +18,17 @@ export class GodotDebugManager {
 		window.registerTreeDataProvider("inspect-node", this.inspectorProvider);
 		window.registerTreeDataProvider("active-scene-tree", this.sceneTreeProvider);
 
-		commands.registerCommand("godotTools.debugger.inspectNode", this.inspectNode.bind(this));
-		commands.registerCommand("godotTools.debugger.refreshSceneTree", this.refreshSceneTree.bind(this));
-		commands.registerCommand("godotTools.debugger.refreshInspector", this.refreshInspector.bind(this));
-		commands.registerCommand("godotTools.debugger.editValue", this.editValue.bind(this));
-
 		this.g3 = new Godot3Debugger(context, this.sceneTreeProvider);
 		this.g4 = new Godot4Debugger(context, this.sceneTreeProvider);
+
+		context.subscriptions.push(
+			this.g3,
+			this.g4,
+			commands.registerCommand("godotTools.debugger.inspectNode", this.inspectNode.bind(this)),
+			commands.registerCommand("godotTools.debugger.refreshSceneTree", this.refreshSceneTree.bind(this)),
+			commands.registerCommand("godotTools.debugger.refreshInspector", this.refreshInspector.bind(this)),
+			commands.registerCommand("godotTools.debugger.editValue", this.editValue.bind(this)),
+		);
 	}
 
 	public notify(event: string, parameters: any[] = []) {

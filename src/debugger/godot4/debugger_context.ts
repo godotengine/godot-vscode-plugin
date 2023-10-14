@@ -32,9 +32,8 @@ export class Godot4Debugger implements DebugAdapterDescriptorFactory {
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot4", this.provider),
 			debug.registerDebugAdapterDescriptorFactory("godot4", this),
+			this
 		);
-
-		context.subscriptions.push(this);
 	}
 
 	public createDebugAdapterDescriptor(
