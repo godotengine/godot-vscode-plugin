@@ -54,10 +54,10 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 
 		switch (event) {
 			case "request_scene_tree":
-				this.session?.controller.send_request_scene_tree_command();
+				this.session?.controller.request_scene_tree();
 				break;
 			case "inspect_object":
-				this.session?.controller.send_inspect_object_request(parameters[0]);
+				this.session?.controller.request_inspect_object(parameters[0]);
 				if (parameters[1]) {
 					this.session?.inspect_callbacks.set(Number(parameters[0]), parameters[1]);
 				}

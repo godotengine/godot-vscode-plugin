@@ -1,4 +1,4 @@
-import { CommandParser } from "./commands/command_parser";
+import { VariantEncoder } from "./variables/variant_encoder";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
 import {
@@ -42,8 +42,8 @@ function parse_next(params: any[], ofs: { offset: number }): SceneNode {
 export class ServerController {
 	public session?: GodotDebugSession;
 	private command_buffer: Buffer[] = [];
-	private commands = new CommandParser();
 	private debug_data: GodotDebugData;
+	private encoder = new VariantEncoder();
 	private decoder = new VariantDecoder();
 	private draining = false;
 	private exception = "";
@@ -60,45 +60,36 @@ export class ServerController {
 	}
 
 	public break() {
-		this.add_and_send(this.commands.make_break_command());
+		this.send_command("break");
 	}
 
 	public continue() {
-		this.add_and_send(this.commands.make_continue_command());
+		this.send_command("continue");
 	}
 
 	public next() {
-		this.add_and_send(this.commands.make_next_command());
+		this.send_command("next");
 	}
 
 	public remove_breakpoint(path_to: string, line: number) {
-		log.info("remove_breakpoint");
-
 		this.debug_data.remove_breakpoint(path_to, line);
-		this.add_and_send(
-			this.commands.make_remove_breakpoint_command(path_to, line)
-		);
+		this.send_command("breakpoint", [path_to, line, false]);
 	}
 
-	public send_inspect_object_request(object_id: bigint) {
-		log.debug("send_inspect_object_request", object_id);
-		this.add_and_send(this.commands.make_inspect_object_command(object_id));
+	public request_inspect_object(object_id: bigint) {
+		this.send_command("inspect_object", [object_id]);
 	}
 
-	public send_request_scene_tree_command() {
-		this.add_and_send(this.commands.make_request_scene_tree_command());
+	public request_scene_tree() {
+		this.send_command("request_scene_tree");
 	}
 
-	public send_scope_request(frame_id: number) {
-		this.add_and_send(this.commands.make_stack_frame_vars_command(frame_id));
+	public request_stack_frame_vars(frame_id: number) {
+		this.send_command("get_stack_frame_vars", [frame_id]);
 	}
 
 	public set_breakpoint(path_to: string, line: number) {
-
-		log.info("set_breakpoint");
-		this.add_and_send(
-			this.commands.make_send_breakpoint_command(path_to, line)
-		);
+		this.send_command("breakpoint", [path_to, line, true]);
 	}
 
 	public set_exception(exception: string) {
@@ -110,17 +101,15 @@ export class ServerController {
 		label: string,
 		new_parsed_value: any
 	) {
-		this.add_and_send(
-			this.commands.make_set_object_value_command(
-				BigInt(object_id),
-				label,
-				new_parsed_value
-			)
-		);
+		this.send_command("set_object_property", [
+			object_id,
+			label,
+			new_parsed_value,
+		]);
 	}
 
-	public stack_dump() {
-		this.add_and_send(this.commands.make_stack_dump_command());
+	public request_stack_dump() {
+		this.send_command("get_stack_dump");
 	}
 
 	public launch(
@@ -272,6 +261,7 @@ export class ServerController {
 		}
 
 		if (this.current_command.complete) {
+			log.debug("rx: " + this.current_command.command + JSON.stringify(this.current_command.parameters));
 			try {
 				this.handle_command(this.current_command);
 			} catch {
@@ -283,18 +273,15 @@ export class ServerController {
 	}
 
 	public handle_command(command: Command) {
-		// log.debug("handle_command", command.command, JSON.stringify(command.parameters));
-		// log.debug("handle_command", command.command);
 		switch (command.command) {
 			case "debug_enter": {
-				log.debug(command.command, JSON.stringify(command.parameters));
 				const reason: string = command.parameters[1];
 				if (reason !== "Breakpoint") {
 					this.set_exception(reason);
 				} else {
 					this.set_exception("");
 				}
-				this.stack_dump();
+				this.request_stack_dump();
 				break;
 			}
 			case "debug_exit":
@@ -308,7 +295,6 @@ export class ServerController {
 				break;
 			}
 			case "message:inspect_object": {
-				log.debug(command.command, JSON.stringify(command.parameters));
 				const id = BigInt(command.parameters[0]);
 				const class_name: string = command.parameters[1];
 				const properties: any[] = command.parameters[2];
@@ -330,7 +316,6 @@ export class ServerController {
 				break;
 			}
 			case "stack_dump": {
-				log.debug(command.command, JSON.stringify(command.parameters));
 				const frames: GodotStackFrame[] = command.parameters.map((sf, i) => {
 					return {
 						id: i,
@@ -340,7 +325,7 @@ export class ServerController {
 					};
 				});
 				this.trigger_breakpoint(frames);
-				this.send_request_scene_tree_command();
+				this.request_scene_tree();
 				break;
 			}
 			case "stack_frame_vars": {
@@ -372,7 +357,7 @@ export class ServerController {
 			case "output": {
 				if (!this.did_first_output) {
 					this.did_first_output = true;
-					this.send_request_scene_tree_command();
+					this.request_scene_tree();
 				}
 
 				const lines: string[] = command.parameters;
@@ -391,12 +376,12 @@ export class ServerController {
 	}
 
 	public step() {
-		this.add_and_send(this.commands.make_step_command());
+		this.send_command("step");
 	}
 
 	public step_out() {
 		this.stepping_out = true;
-		this.add_and_send(this.commands.make_next_command());
+		this.send_command("next");
 	}
 
 	public stop() {
@@ -478,11 +463,6 @@ export class ServerController {
 		}
 	}
 
-	private add_and_send(buffer: Buffer) {
-		this.command_buffer.push(buffer);
-		this.send_buffer();
-	}
-
 	private breakpoint_path(project_path: string, file: string) {
 		const relative_path = path.relative(project_path, file).replace(/\\/g, "/");
 		if (relative_path.length !== 0) {
@@ -507,13 +487,33 @@ export class ServerController {
 		return output;
 	}
 
+	private add_and_send(buffer: Buffer) {
+		this.command_buffer.push(buffer);
+		this.send_buffer();
+	}
+
+	private send_command(command: string, parameters?: any[]) {
+		const command_array: any[] = [command];
+		if (parameters) {
+			parameters.forEach((param) => {
+				command_array.push(param);
+			});
+		}
+		log.debug(`tx:${JSON.stringify(command_array)}`);
+		const buffer = this.encoder.encode_variant(command_array);
+		this.command_buffer.push(buffer);
+		this.send_buffer();
+	}
+
 	private send_buffer() {
 		if (!this.socket) {
 			return;
 		}
 
+		// log.debug(`tx: "${this.command_buffer.toString()}"`);
 		while (!this.draining && this.command_buffer.length > 0) {
-			this.draining = !this.socket.write(this.command_buffer.shift());
+			const command = this.command_buffer.shift();
+			this.draining = !this.socket.write(command);
 		}
 	}
 
