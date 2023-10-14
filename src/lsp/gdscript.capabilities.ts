@@ -3,6 +3,7 @@ import { DocumentSymbol, Range, SymbolKind } from "vscode-languageclient";
 
 export const enum Methods {
 	GDSCRIPT_CAPABILITIES = 'gdscript/capabilities',
+	GDSCRIPT_ADD_FUNC = 'gdscript/add_func',
 	SHOW_NATIVE_SYMBOL = 'gdscript/show_native_symbol',
 	INSPECT_NATIVE_SYMBOL = 'textDocument/nativeSymbol'
 }
@@ -33,4 +34,10 @@ export interface GodotNativeClassInfo {
 
 export interface GodotCapabilities {
 	native_classes: GodotNativeClassInfo[];
+}
+
+export class AddFuncParams {
+	uri: string;
+	func: string;
+	args?: string[];
 }

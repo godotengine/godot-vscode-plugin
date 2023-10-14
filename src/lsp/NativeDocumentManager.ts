@@ -12,6 +12,7 @@ import {
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
 	GodotCapabilities,
+	AddFuncParams,
 } from "./gdscript.capabilities";
 
 marked.setOptions({
@@ -32,24 +33,30 @@ export default class NativeDocumentManager extends EventEmitter {
 		super();
 		this.io = io;
 		io.on("message", (message: NotificationMessage) => {
-			if (message.method == Methods.SHOW_NATIVE_SYMBOL) {
-				this.show_native_symbol(message.params as GodotNativeSymbol);
-			} else if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
-				for (const gdclass of (message.params as GodotCapabilities)
-					.native_classes) {
-					this.native_classes[gdclass.name] = gdclass;
-				}
-				for (const gdclass of (message.params as GodotCapabilities)
-					.native_classes) {
-					if (gdclass.inherits) {
-						const extended_classes =
-							this.native_classes[gdclass.inherits].extended_classes || [];
-						extended_classes.push(gdclass.name);
-						this.native_classes[
-							gdclass.inherits
-						].extended_classes = extended_classes;
+			switch (message.method) {
+				case Methods.GDSCRIPT_ADD_FUNC:
+					this.add_func(message.params as AddFuncParams);
+					break;
+				case Methods.SHOW_NATIVE_SYMBOL:
+					this.show_native_symbol(message.params as GodotNativeSymbol);
+					break;
+				case Methods.GDSCRIPT_CAPABILITIES:
+					for (const gdclass of (message.params as GodotCapabilities)
+						.native_classes) {
+						this.native_classes[gdclass.name] = gdclass;
 					}
-				}
+					for (const gdclass of (message.params as GodotCapabilities)
+						.native_classes) {
+						if (gdclass.inherits) {
+							const extended_classes =
+								this.native_classes[gdclass.inherits].extended_classes || [];
+							extended_classes.push(gdclass.name);
+							this.native_classes[
+								gdclass.inherits
+							].extended_classes = extended_classes;
+						}
+					}
+					break;
 			}
 		});
 
@@ -103,6 +110,45 @@ export default class NativeDocumentManager extends EventEmitter {
 
 	private send_header(data_length: number) {
 		this.io.send_message(`Content-Length: ${data_length}\r\n\r\n`);
+	}
+
+	private add_func(params: AddFuncParams) {
+		const uri = vscode.Uri.parse(params.uri);
+		vscode.workspace.openTextDocument(uri).then((document) => {
+			vscode.window.showTextDocument(document).then((editor) => {
+				editor.edit(editBuilder => {
+					let code = "func " + params.func + "(";
+					for (let i = 0; i < params.args.length; i++) {
+						code += params.args[i];
+						if (i != params.args.length - 1) {
+							code += ", ";
+						}
+					}
+					code += ")";
+
+					let funIndex = -1;
+					for (let i = 0; i < document.lineCount; i++) {
+						const line = document.lineAt(i);
+						if (document.lineAt(i).text.includes(code)) {
+							funIndex = i;
+							editor.selection = new vscode.Selection(new vscode.Position(i, 0), new vscode.Position(i, 0));
+							return;
+						}
+					}
+
+					if (funIndex == -1) {
+						if (!document.lineAt(document.lineCount - 1).isEmptyOrWhitespace) {
+							code = "\n" + code;
+						}
+						code = "\n" + code;
+						code += ":\n\tpass # Replace with function body.\n";
+						editBuilder.insert(new vscode.Position(document.lineCount, 0), code);
+						editor.selection = new vscode.Selection(new vscode.Position(document.lineCount, 0), new vscode.Position(document.lineCount, 0));
+					}
+
+				});
+			});
+		});
 	}
 
 	private show_native_symbol(symbol: GodotNativeSymbol) {
