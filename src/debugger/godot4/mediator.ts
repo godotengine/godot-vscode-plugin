@@ -30,7 +30,7 @@ export class Mediator {
 					this.first_output = true;
 					this.output.show(true);
 					this.output.clear();
-					this.controller?.send_request_scene_tree_command();
+					this.controller?.request_scene_tree();
 				}
 
 				let lines: string[] = parameters;
@@ -63,7 +63,7 @@ export class Mediator {
 				break;
 
 			case "inspect_object":
-				this.controller?.send_inspect_object_request(parameters[0]);
+				this.controller?.request_inspect_object(parameters[0]);
 				if (parameters[1]) {
 					this.inspect_callbacks.set(parameters[0], parameters[1]);
 				}
@@ -86,11 +86,11 @@ export class Mediator {
 
 			case "stack_dump":
 				this.controller?.trigger_breakpoint(parameters);
-				this.controller?.send_request_scene_tree_command();
+				this.controller?.request_scene_tree();
 				break;
 
 			case "request_scene_tree":
-				this.controller?.send_request_scene_tree_command();
+				this.controller?.request_scene_tree();
 				break;
 
 			case "scene_tree":
@@ -98,7 +98,7 @@ export class Mediator {
 				break;
 
 			case "get_scopes":
-				this.controller?.send_scope_request(parameters[0]);
+				this.controller?.request_stack_frame_vars(parameters[0]);
 				break;
 
 			case "stack_frame_vars":
