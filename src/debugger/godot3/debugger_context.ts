@@ -32,9 +32,8 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot3", this.provider),
 			debug.registerDebugAdapterDescriptorFactory("godot3", this),
+			this
 		);
-
-		context.subscriptions.push(this);
 	}
 
 	public createDebugAdapterDescriptor(
