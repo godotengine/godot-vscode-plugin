@@ -162,12 +162,12 @@ export class ClientConnectionManager {
 		});
 
 		// const lspStderr = createLogger("lsp.stderr");
-		// lspProcess.stderr.on('data', (data) => {
-		// 	const out = data.toString().trim();
-		// 	if (out) {
-		// 		lspStderr.debug(out);
-		// 	}
-		// });
+		lspProcess.stderr.on('data', (data) => {
+			// const out = data.toString().trim();
+			// if (out) {
+			// 	lspStderr.debug(out);
+			// }
+		});
 
 		lspProcess.on('close', (code) => {
 			log.info(`LSP process exited with code ${code}`);
