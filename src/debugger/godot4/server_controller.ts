@@ -10,12 +10,11 @@ import {
 import { GodotDebugSession } from "./debug_session";
 import { SceneNode } from "../scene_tree_provider";
 import { debug, window } from "vscode";
-import TERMINATE from "terminate";
 import net = require("net");
 import { Command } from "./command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import utils = require("../../utils");
-import cp = require("child_process");
+import { subProcess, killSubProcesses } from '../../utils/subspawn';
 import path = require("path");
 import { createLogger } from "../../logger";
 import {
@@ -49,12 +48,10 @@ export class ServerController {
 	private encoder = new VariantEncoder();
 	private draining = false;
 	private exception = "";
-	private godot_pid: number;
 	private threadId: number;
 	private server?: net.Server;
 	private socket?: net.Socket;
 	private stepping_out = false;
-	private terminated = false;
 	private did_first_output: boolean = false;
 	private partial_stack_vars = {
 		locals: [] as GodotVariable[],
@@ -161,14 +158,13 @@ export class ServerController {
 		);
 
 		log.debug(`executable_line: ${executable_line}`);
-		const godot_exec = cp.exec(executable_line, (error) => {
-			if (!this.terminated) {
-				window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-			}
-		});
-		this.godot_pid = godot_exec.pid;
-
-		log.debug(`godot_pid: ${this.godot_pid}`);
+		const debugProcess = subProcess("debug", executable_line, { shell: true });
+		
+		// const godot_exec = cp.exec(executable_line, (error) => {
+		// 	if (!this.terminated) {
+		// 		window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
+		// 	}
+		// });
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
@@ -378,15 +374,7 @@ export class ServerController {
 			this.server = undefined;
 		});
 
-		if (this.godot_pid) {
-			this.terminate();
-		}
-	}
-
-	private terminate() {
-		this.terminated = true;
-		TERMINATE(this.godot_pid);
-		this.godot_pid = undefined;
+		killSubProcesses("debug");
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
