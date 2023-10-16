@@ -117,6 +117,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		members: GodotVariable[],
 		globals: GodotVariable[]
 	) {
+		log.debug("set_scopes");
 		// log.debug("set_scopes", JSON.stringify(locals), JSON.stringify(members), JSON.stringify(globals));
 		this.all_scopes = [
 			undefined,
@@ -176,7 +177,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected getVariable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number, error: string } {
-
 		var result: { variable: GodotVariable, index: number, object_id: number, error: string } = { variable: null, index: null, object_id: null, error: null };
 
 		if (!root) {
@@ -203,7 +203,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		// Detect index/key
 		var key = (propertyName.match(/(?<=\[).*(?=\])/) || [null])[0];
 		if (key) {
-			key = key.replace(/['"]+/g, '');
+			key = key.replace(/['"]+/g, "");
 			propertyName = propertyName.split(/(?<=\[).*(?=\])/).join("").split("\[\]").join("");
 			if (path) path += ".";
 			path += propertyName;
@@ -394,7 +394,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
-		log.debug("scopesRequest", JSON.stringify(args));
+		log.debug("scopesRequest" + JSON.stringify(args));
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
@@ -460,6 +460,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StackTraceResponse,
 		args: DebugProtocol.StackTraceArguments
 	) {
+		log.debug("stackTraceRequest" + JSON.stringify(args));
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -524,7 +525,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
-		log.debug("variablesRequest", JSON.stringify(args));
+		log.debug("variablesRequest" + JSON.stringify(args));
 		if (!this.all_scopes) {
 			// log.debug("no vars");
 			response.body = {

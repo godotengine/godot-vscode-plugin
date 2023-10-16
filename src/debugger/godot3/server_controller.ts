@@ -116,11 +116,11 @@ export class ServerController {
 		log.info("launch");
 		this.debug_data = debug_data;
 
-		const godot_path: string = utils.get_configuration("editorPath.godot3", "godot");
+		const godot_path: string = utils.get_configuration("editorPath.godot3", "godot3");
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let command = `"${godot_path}" --path "${args.project}" -d --remote-debug ${args.address}:${args.port}`;
+		let command = `"${godot_path}" --path "${args.project}" --remote-debug "${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
 			command += " --debug-collisions";
@@ -189,6 +189,7 @@ export class ServerController {
 			});
 
 			socket.on("drain", () => {
+				log.debug("socket drain");
 				socket.resume();
 				this.draining = false;
 				this.send_buffer();
@@ -233,6 +234,7 @@ export class ServerController {
 			});
 
 			socket.on("drain", () => {
+				log.debug("socket drain");
 				socket.resume();
 				this.draining = false;
 				this.send_buffer();
@@ -241,7 +243,6 @@ export class ServerController {
 
 		this.server.listen(args.port, args.address);
 	}
-
 
 	public parse_message(dataset: any[]) {
 		if (this.current_command == undefined) {
@@ -361,15 +362,8 @@ export class ServerController {
 					// this.request_scene_tree();
 				}
 
-				const lines: string[] = command.parameters;
-				lines.forEach((line) => {
-					const message_content: string = line[0];
-					//const message_kind: number = line[1];
-
-					// OutputChannel doesn't give a way to distinguish between a
-					// regular string (message_kind == 0) and an error string (message_kind == 1).
-
-					debug.activeDebugConsole.appendLine(message_content);
+				command.parameters.forEach((line) => {
+					debug.activeDebugConsole.appendLine(line[0]);
 				});
 				break;
 			}
@@ -403,6 +397,12 @@ export class ServerController {
 
 		let continue_stepping = false;
 		const stack_count = stack_frames.length;
+		if (stack_count === 0) {
+			// Engine code is being executed, no user stack trace
+			this.debug_data.last_frames = [];
+			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
+			return;
+		}
 
 		const file = stack_frames[0].file.replace(
 			"res://",

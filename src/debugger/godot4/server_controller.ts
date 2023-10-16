@@ -1,5 +1,5 @@
-import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
+import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
 import {
 	GodotBreakpoint,
@@ -44,8 +44,8 @@ export class ServerController {
 	public session?: GodotDebugSession;
 	private command_buffer: Buffer[] = [];
 	private debug_data: GodotDebugData;
-	private decoder = new VariantDecoder();
 	private encoder = new VariantEncoder();
+	private decoder = new VariantDecoder();
 	private draining = false;
 	private exception = "";
 	private threadId: number;
@@ -125,11 +125,10 @@ export class ServerController {
 		this.debug_data = debug_data;
 
 		const godot_path: string = utils.get_configuration("editorPath.godot4", "godot4");
-
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let command = `"${godot_path}" -d --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
+		let command = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
 			command += " --debug-collisions";
@@ -385,9 +384,6 @@ export class ServerController {
 		const stack_count = stack_frames.length;
 		if (stack_count === 0) {
 			// Engine code is being executed, no user stack trace
-			// TODO: implement me
-			// Mediator.notify("stopped_on_breakpoint", [[]]);
-			log.debug("stopped: breakpoint 1");
 			this.debug_data.last_frames = [];
 			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
 			return;
@@ -435,11 +431,9 @@ export class ServerController {
 		});
 
 		if (this.exception.length === 0) {
-			log.debug("stopped: breakpoint 2");
 			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
 		} else {
 			this.session?.set_exception(true);
-			log.debug("stopped: exception");
 			this.session?.sendEvent(
 				new StoppedEvent("exception", 0, this.exception)
 			);
@@ -485,7 +479,6 @@ export class ServerController {
 
 		while (!this.draining && this.command_buffer.length > 0) {
 			const command = this.command_buffer.shift();
-			// log.debug(`tx: "${command.toString()}"`);
 			this.draining = !this.socket.write(command);
 		}
 	}
