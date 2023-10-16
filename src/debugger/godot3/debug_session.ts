@@ -400,12 +400,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
-		log.debug("scopesRequest");
+		log.debug("scopesRequest" + JSON.stringify(args));
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
-		// TODO: implement me
-		// Mediator.notify("get_scopes", [args.frameId]);
+		this.controller?.request_stack_frame_vars(args.frameId);
 		await this.got_scope.wait(2000);
 
 		response.body = {
@@ -467,7 +466,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StackTraceResponse,
 		args: DebugProtocol.StackTraceArguments
 	) {
-		log.debug("stackTraceRequest");
+		log.debug("stackTraceRequest" + JSON.stringify(args));
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -532,13 +531,28 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
-		log.debug("variablesRequest");
+		log.debug("variablesRequest" + JSON.stringify(args));
+		if (!this.all_scopes) {
+			log.debug("no vars");
+			response.body = {
+				variables: []
+			};
+			this.sendResponse(response);
+			return;
+		}
+
 		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
+		log.debug(JSON.stringify(this.all_scopes));
+		log.debug(JSON.stringify(reference));
+		log.debug(reference.sub_values);
+
 		if (!reference.sub_values) {
+			log.debug("!reference.sub_values");
 			variables = [];
 		} else {
+			log.debug("reference.sub_values");
 			variables = reference.sub_values.map((va) => {
 				const sva = this.all_scopes.find(
 					(sva) =>
@@ -567,7 +581,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		log.debug("add_to_inspections");
+		log.debug("add_to_inspections", JSON.stringify(this.all_scopes));
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (

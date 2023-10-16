@@ -85,7 +85,7 @@ export class ServerController {
 	}
 
 	public request_inspect_object(object_id: bigint) {
-		this.send_command("inspect_object", [object_id]);
+		this.send_command("scene:inspect_object", [object_id]);
 	}
 
 	public request_scene_tree() {
@@ -132,7 +132,7 @@ export class ServerController {
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let command = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
+		let command = `"${godot_path}" -d --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
 			command += " --debug-collisions";
@@ -159,6 +159,10 @@ export class ServerController {
 
 		log.debug(`executable_line: ${command}`);
 		const debugProcess = subProcess("debug", command, { shell: true });
+
+		debugProcess.stdout.on("data", (data) => { });
+		debugProcess.stderr.on("data", (data) => { });
+		debugProcess.on("close", (code) => { });
 
 		// const godot_exec = cp.exec(executable_line, (error) => {
 		// 	if (!this.terminated) {
@@ -378,7 +382,7 @@ export class ServerController {
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
-		log.debug("trigger_breakpoint");
+		log.debug("trigger_breakpoint" + JSON.stringify(stack_frames));
 
 		let continue_stepping = false;
 		const stack_count = stack_frames.length;

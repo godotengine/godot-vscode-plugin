@@ -574,7 +574,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		// log.debug("add_to_inspections", JSON.stringify(this.all_scopes));
+		log.debug("add_to_inspections", JSON.stringify(this.all_scopes));
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (

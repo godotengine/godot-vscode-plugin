@@ -120,7 +120,7 @@ export class ServerController {
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let command = `"${godot_path}" --path "${args.project}" --remote-debug ${args.address}:${args.port}`;
+		let command = `"${godot_path}" --path "${args.project}" -d --remote-debug ${args.address}:${args.port}`;
 
 		if (force_visible_collision_shapes) {
 			command += " --debug-collisions";
@@ -146,7 +146,11 @@ export class ServerController {
 		);
 
 		log.debug(`executable_line: ${command}`);
-		subProcess("debug", command, { shell: true });
+		const debugProcess = subProcess("debug", command, { shell: true });
+
+		debugProcess.stdout.on("data", (data) => { });
+		debugProcess.stderr.on("data", (data) => { });
+		debugProcess.on("close", (code) => { });
 
 		// const godot_exec = cp.exec(executable_line, (error) => {
 		// 	if (!this.terminated) {
@@ -354,7 +358,7 @@ export class ServerController {
 			case "output": {
 				if (!this.did_first_output) {
 					this.did_first_output = true;
-					this.request_scene_tree();
+					// this.request_scene_tree();
 				}
 
 				const lines: string[] = command.parameters;
@@ -395,6 +399,8 @@ export class ServerController {
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
+		log.debug("trigger_breakpoint" + JSON.stringify(stack_frames));
+
 		let continue_stepping = false;
 		const stack_count = stack_frames.length;
 
@@ -426,6 +432,7 @@ export class ServerController {
 
 		this.debug_data.stack_count = stack_count;
 		this.debug_data.last_frame = stack_frames[0];
+		this.debug_data.last_frames = stack_frames;
 
 		if (continue_stepping) {
 			this.next();
@@ -472,11 +479,6 @@ export class ServerController {
 		return output;
 	}
 
-	private add_and_send(buffer: Buffer) {
-		this.command_buffer.push(buffer);
-		this.send_buffer();
-	}
-
 	private send_command(command: string, parameters?: any[]) {
 		const command_array: any[] = [command];
 		if (parameters) {
@@ -495,7 +497,6 @@ export class ServerController {
 			return;
 		}
 
-		// log.debug(`tx: "${this.command_buffer.toString()}"`);
 		while (!this.draining && this.command_buffer.length > 0) {
 			const command = this.command_buffer.shift();
 			this.draining = !this.socket.write(command);
