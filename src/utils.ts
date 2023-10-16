@@ -42,15 +42,18 @@ export function get_word_under_cursor(): string {
 	return symbolName;
 }
 
+export let projectVersion = undefined;
+
 export async function get_project_version(): Promise<string | undefined> {
 	const project_dir = await get_project_dir();
 
 	if (!project_dir) {
+		projectVersion = undefined;
 		return undefined;
 	}
 
-	let godot_version = '3.x';
-	const project_file = vscode.Uri.file(path.join(project_dir, 'project.godot'));
+	let godotVersion = "3.x";
+	const project_file = vscode.Uri.file(path.join(project_dir, "project.godot"));
 	const document = await vscode.workspace.openTextDocument(project_file);
 	const text = document.getText();
 
@@ -59,10 +62,12 @@ export async function get_project_version(): Promise<string | undefined> {
 		const line = match[0];
 		const version = line.match(/\"(4.[0-9]+)\"/);
 		if (version) {
-			godot_version = version[1];
+			godotVersion = version[1];
 		}
 	}
-	return godot_version;
+	
+	projectVersion = godotVersion;
+	return godotVersion;
 }
 
 export async function get_project_dir() {
