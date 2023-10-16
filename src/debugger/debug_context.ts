@@ -12,16 +12,18 @@ import {
 	ProviderResult,
 	window,
 } from "vscode";
-import { GodotDebugSession } from "./debug_session";
+import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
+import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
 import fs = require("fs");
-import { SceneTreeProvider } from "../scene_tree_provider";
-import { createLogger } from "../../logger";
+import { projectVersion } from "../utils";
+import { SceneTreeProvider } from "./scene_tree_provider";
+import { createLogger } from "../logger";
 
 const log = createLogger("debugger.context");
 
-export class Godot3Debugger implements DebugAdapterDescriptorFactory {
+export class GodotDebugger implements DebugAdapterDescriptorFactory {
 	public provider: GodotConfigurationProvider;
-	public session?: GodotDebugSession;
+	public session?;
 
 	constructor(
 		context: ExtensionContext,
@@ -30,8 +32,8 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 		this.provider = new GodotConfigurationProvider();
 
 		context.subscriptions.push(
-			debug.registerDebugConfigurationProvider("godot3", this.provider),
-			debug.registerDebugAdapterDescriptorFactory("godot3", this),
+			debug.registerDebugConfigurationProvider("godot", this.provider),
+			debug.registerDebugAdapterDescriptorFactory("godot", this),
 			this
 		);
 	}
@@ -39,7 +41,12 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 	public createDebugAdapterDescriptor(
 		session: DebugSession
 	): ProviderResult<DebugAdapterDescriptor> {
-		this.session = new GodotDebugSession();
+		if (projectVersion.startsWith("4")) {
+			this.session = new Godot4DebugSession();
+		} else {
+			this.session = new Godot3DebugSession();
+		}
+
 		this.session.set_scene_tree(this.scene_tree_provider);
 		return new DebugAdapterInlineImplementation(this.session);
 	}
@@ -85,7 +92,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 		if (!config.type && !config.request && !config.name) {
 			const editor = window.activeTextEditor;
 			if (editor && fs.existsSync(`${folder.uri.fsPath}/project.godot`)) {
-				config.type = "godot3";
+				config.type = "godot";
 				config.name = "Debug Godot";
 				config.request = "launch";
 				config.project = "${workspaceFolder}";

@@ -327,104 +327,9 @@
 		],
 		"debuggers": [
 			{
-				"type": "godot3",
-				"label": "GDScript Godot 3 Debug",
-				"program": "./out/debugger/godot3/debug_adapter.js",
-				"runtime": "node",
-				"configurationAttributes": {
-					"launch": {
-						"required": [],
-						"properties": {
-							"project": {
-								"type": "string",
-								"description": "Absolute path to a directory with a project.godot file.",
-								"default": "${workspaceFolder}"
-							},
-							"address": {
-								"type": "string",
-								"description": "The IP address for the Godot remote debugger to use.",
-								"default": "127.0.0.1"
-							},
-							"port": {
-								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
-								"default": 6007
-							},
-							"scene_file": {
-								"type": "string",
-								"description": "Relative path from the godot.project file to a TSCN file. If defined, will launch the specified file instead of starting the game normally.",
-								"default": ""
-							},
-							"editor_path": {
-								"type": "string",
-								"description": "Absolute path to the Godot executable to be used for this debug profile.",
-								"default": ""
-							},
-							"additional_options": {
-								"type": "string",
-								"description": "Additional command line arguments.",
-								"default": ""
-							}
-						}
-					},
-					"attach": {
-						"required": [],
-						"properties": {
-							"address": {
-								"type": "string",
-								"description": "The IP address for the Godot remote debugger to use.",
-								"default": "127.0.0.1"
-							},
-							"port": {
-								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
-								"default": 6007
-							}
-						}
-					}
-				},
-				"initialConfigurations": [
-					{
-						"name": "GDScript: Launch Godot",
-						"type": "godot3",
-						"request": "launch",
-						"project": "${workspaceFolder}",
-						"address": "127.0.0.1",
-						"port": 6007,
-						"additional_options": ""
-					}
-				],
-				"configurationSnippets": [
-					{
-						"label": "GDScript Godot Debug: Launch",
-						"description": "A new configuration for debugging a Godot project.",
-						"body": {
-							"name": "GDScript: Launch Godot",
-							"type": "godot3",
-							"request": "launch",
-							"project": "${workspaceFolder}",
-							"address": "127.0.0.1",
-							"port": 6007,
-							"additional_options": ""
-						}
-					},
-					{
-						"label": "GDScript Godot Debug: Attach",
-						"description": "A new configuration for debugging a Godot project.",
-						"body": {
-							"name": "GDScript: Attach to Godot",
-							"type": "godot3",
-							"request": "attach",
-							"address": "127.0.0.1",
-							"port": 6007
-						}
-					}
-				]
-			},
-			{
-				"type": "godot4",
-				"label": "GDScript Godot 4 Debug",
-				"program": "./out/debugger/godot4/debug_adapter.js",
+				"type": "godot",
+				"label": "GDScript Godot Debug",
+				"program": "./out/debugger/debug_adapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
@@ -480,11 +385,9 @@
 				"initialConfigurations": [
 					{
 						"name": "GDScript: Launch Godot",
-						"type": "godot4",
+						"type": "godot",
 						"request": "launch",
 						"project": "${workspaceFolder}",
-						"address": "127.0.0.1",
-						"port": 6007,
 						"additional_options": ""
 					}
 				],
@@ -494,11 +397,9 @@
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
 							"name": "GDScript Godot",
-							"type": "godot4",
+							"type": "godot",
 							"request": "launch",
 							"project": "${workspaceFolder}",
-							"port": 6007,
-							"address": "127.0.0.1",
 							"additional_options": ""
 						}
 					},
@@ -507,7 +408,7 @@
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
 							"name": "GDScript: Attach to Godot",
-							"type": "godot4",
+							"type": "godot",
 							"request": "attach",
 							"address": "127.0.0.1",
 							"port": 6007
