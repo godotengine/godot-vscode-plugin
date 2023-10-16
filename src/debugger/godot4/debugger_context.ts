@@ -24,7 +24,7 @@ export class Godot4Debugger implements DebugAdapterDescriptorFactory {
 	public session?: GodotDebugSession;
 
 	constructor(
-		context: ExtensionContext, 
+		context: ExtensionContext,
 		private scene_tree_provider: SceneTreeProvider,
 	) {
 		this.provider = new GodotConfigurationProvider();

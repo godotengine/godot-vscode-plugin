@@ -8,14 +8,13 @@ import {
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
-import { SceneTreeProvider } from "../scene_tree_provider";
-import { ServerController } from "./server_controller";
 import { ObjectId, RawObject } from "./variables/variants";
+import { ServerController } from "./server_controller";
 import { Subject } from "await-notify";
 import fs = require("fs");
-import { debug } from "vscode";
-
+import { SceneTreeProvider } from "../scene_tree_provider";
 import { createLogger } from "../../logger";
+import { debug } from "vscode";
 
 const log = createLogger("debugger.session");
 
@@ -62,7 +61,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.controller = new ServerController(this);
 	}
 
-	public dispose() { }
+	public dispose() {
+		this.controller.stop();
+	}
 
 	public set_exception(exception: boolean) {
 		log.debug("set_exception");
@@ -117,6 +118,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		globals: GodotVariable[]
 	) {
 		log.debug("set_scopes");
+		// log.debug("set_scopes", JSON.stringify(locals), JSON.stringify(members), JSON.stringify(globals));
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
@@ -171,7 +173,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	// Fills the all_scopes variable
 	protected async getStackFrame(): Promise<void> {
-		log.debug("getStackFrame");
 		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 	}
 
@@ -279,8 +280,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.EvaluateArguments
 	) {
 		await this.getStackFrame();
-
-		log.debug("evaluateRequest");
 
 		if (this.all_scopes) {
 			var variable = this.getVariable(args.expression, null, null, null);
@@ -528,7 +527,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	) {
 		log.debug("variablesRequest" + JSON.stringify(args));
 		if (!this.all_scopes) {
-			log.debug("no vars");
+			// log.debug("no vars");
 			response.body = {
 				variables: []
 			};
@@ -539,15 +538,15 @@ export class GodotDebugSession extends LoggingDebugSession {
 		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
-		log.debug(JSON.stringify(this.all_scopes));
-		log.debug(JSON.stringify(reference));
-		log.debug(reference.sub_values);
+		// log.debug(JSON.stringify(this.all_scopes));
+		// log.debug(JSON.stringify(reference));
+		// log.debug(reference.sub_values);
 
 		if (!reference.sub_values) {
-			log.debug("!reference.sub_values");
+			// log.debug("!reference.sub_values");
 			variables = [];
 		} else {
-			log.debug("reference.sub_values");
+			// log.debug("reference.sub_values");
 			variables = reference.sub_values.map((va) => {
 				const sva = this.all_scopes.find(
 					(sva) =>
@@ -559,8 +558,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 						this.all_scopes.findIndex(
 							(va_idx) =>
 								va_idx &&
-								va_idx.scope_path ===
-								`${reference.scope_path}.${reference.name}` &&
+								va_idx.scope_path === `${reference.scope_path}.${reference.name}` &&
 								va_idx.name === va.name
 						)
 					);
@@ -592,7 +590,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
-		log.debug("append_variable");
+		// log.debug("append_variable", JSON.stringify(variable));
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {
@@ -613,7 +611,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private parse_variable(va: GodotVariable, i?: number) {
-		log.debug("parse_variable");
+		// log.debug("parse_variable", JSON.stringify(va), i);
 		const value = va.value;
 		let rendered_value = "";
 		let reference = 0;

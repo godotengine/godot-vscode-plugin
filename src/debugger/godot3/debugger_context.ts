@@ -50,8 +50,6 @@ export class Godot3Debugger implements DebugAdapterDescriptorFactory {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		log.info(event, JSON.stringify(parameters));
-
 		switch (event) {
 			case "request_scene_tree":
 				this.session?.controller.request_scene_tree();
@@ -115,7 +113,6 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 					return undefined;
 				});
 		}
-
 		return config;
 	}
 }
