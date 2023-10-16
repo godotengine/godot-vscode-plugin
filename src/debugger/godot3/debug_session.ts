@@ -4,15 +4,10 @@ import {
 	Thread,
 	Source,
 	Breakpoint,
-	StackFrame,
-	Scope,
-	Variable,
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { get_configuration } from "../../utils";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { GodotDebugData, GodotVariable } from "../debug_runtime";
-
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { ServerController } from "./server_controller";
 import { ObjectId, RawObject } from "./variables/variants";

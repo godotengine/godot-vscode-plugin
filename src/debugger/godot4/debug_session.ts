@@ -13,7 +13,6 @@ import { ServerController } from "./server_controller";
 import { Subject } from "await-notify";
 import fs = require("fs");
 import { SceneTreeProvider } from "../scene_tree_provider";
-import { get_configuration } from "../../utils";
 import { createLogger } from "../../logger";
 import { debug } from "vscode";
 
