@@ -4,6 +4,5 @@ export class Command {
 	public param_count: number = -1;
 	public parameters: any[] = [];
 	public complete: boolean = false;
-
-	// public abstract trigger(parameters: any[]): void;
+	public threadId: number = 0;
 }
