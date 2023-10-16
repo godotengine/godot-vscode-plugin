@@ -11,7 +11,7 @@ import { GodotDebugSession } from "./debug_session";
 import { SceneNode } from "../scene_tree_provider";
 import { debug, window } from "vscode";
 import net = require("net");
-import { Command } from "./command";
+import { Command } from "../command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import utils = require("../../utils");
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
