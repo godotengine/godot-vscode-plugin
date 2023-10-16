@@ -329,7 +329,6 @@
 			{
 				"type": "godot",
 				"label": "GDScript Godot Debug",
-				"program": "./out/debugger/debug_adapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
