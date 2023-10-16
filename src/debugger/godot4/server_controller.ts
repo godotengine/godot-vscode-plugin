@@ -281,7 +281,7 @@ export class ServerController {
 			}
 			case "debug_exit":
 				break;
-			case "message:click_ctrl ":
+			case "message:click_ctrl":
 				// TODO: what is this?
 				break;
 			case "performance:profile_frame":
