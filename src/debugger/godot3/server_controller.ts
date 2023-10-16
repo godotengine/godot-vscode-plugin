@@ -10,12 +10,11 @@ import {
 import { GodotDebugSession } from "./debug_session";
 import { SceneNode } from "../scene_tree_provider";
 import { debug, window } from "vscode";
-import { kill } from "process";
 import net = require("net");
 import { Command } from "./command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import utils = require("../../utils");
-import cp = require("child_process");
+import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import path = require("path");
 import { createLogger } from "../../logger";
 import {
@@ -47,11 +46,9 @@ export class ServerController {
 	private decoder = new VariantDecoder();
 	private draining = false;
 	private exception = "";
-	private godot_pid: number;
 	private server?: net.Server;
 	private socket?: net.Socket;
 	private stepping_out = false;
-	private terminated = false;
 	private current_command: Command = undefined;
 	private did_first_output: boolean = false;
 
@@ -123,13 +120,13 @@ export class ServerController {
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let executable_line = `"${godot_path}" --path "${args.project}" --remote-debug ${args.address}:${args.port}`;
+		let command = `"${godot_path}" --path "${args.project}" --remote-debug ${args.address}:${args.port}`;
 
 		if (force_visible_collision_shapes) {
-			executable_line += " --debug-collisions";
+			command += " --debug-collisions";
 		}
 		if (force_visible_nav_mesh) {
-			executable_line += " --debug-navigation";
+			command += " --debug-navigation";
 		}
 		// TODO: reimplement this
 		// let filename = "";
@@ -141,21 +138,21 @@ export class ServerController {
 		// executable_line += ` "${filename}"`;
 
 		if (args.additional_options) {
-			executable_line += " " + args.additional_options;
+			command += " " + args.additional_options;
 		}
-		executable_line += this.breakpoint_string(
+		command += this.breakpoint_string(
 			debug_data.get_all_breakpoints(),
 			args.project
 		);
-		log.debug(`executable_line: ${executable_line}`);
-		const godot_exec = cp.exec(executable_line, (error) => {
-			if (!this.terminated) {
-				window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-			}
-		});
-		this.godot_pid = godot_exec.pid;
 
-		log.debug(`godot_pid: ${this.godot_pid}`);
+		log.debug(`executable_line: ${command}`);
+		subProcess("debug", command, { shell: true });
+
+		// const godot_exec = cp.exec(executable_line, (error) => {
+		// 	if (!this.terminated) {
+		// 		window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
+		// 	}
+		// });
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
@@ -385,7 +382,6 @@ export class ServerController {
 	}
 
 	public stop() {
-		log.debug("stop");
 		this.socket?.destroy();
 		this.server?.close((error) => {
 			if (error) {
@@ -395,18 +391,7 @@ export class ServerController {
 			this.server = undefined;
 		});
 
-		if (this.godot_pid) {
-			this.terminate();
-		}
-	}
-
-	public terminate() {
-		log.debug("terminate", this.godot_pid);
-		this.terminated = true;
-		if (this.godot_pid) {
-			kill(this.godot_pid);
-			this.godot_pid = undefined;
-		}
+		killSubProcesses("debug");
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {

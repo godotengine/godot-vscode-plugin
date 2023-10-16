@@ -14,7 +14,7 @@ import net = require("net");
 import { Command } from "./command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import utils = require("../../utils");
-import { subProcess, killSubProcesses } from '../../utils/subspawn';
+import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import path = require("path");
 import { createLogger } from "../../logger";
 import {
@@ -132,13 +132,13 @@ export class ServerController {
 		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
 
-		let executable_line = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
+		let command = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
-			executable_line += " --debug-collisions";
+			command += " --debug-collisions";
 		}
 		if (force_visible_nav_mesh) {
-			executable_line += " --debug-navigation";
+			command += " --debug-navigation";
 		}
 		// TODO: reimplement this
 		// let filename = "";
@@ -150,16 +150,16 @@ export class ServerController {
 		// executable_line += ` "${filename}"`;
 
 		if (args.additional_options) {
-			executable_line += " " + args.additional_options;
+			command += " " + args.additional_options;
 		}
-		executable_line += this.breakpoint_string(
+		command += this.breakpoint_string(
 			debug_data.get_all_breakpoints(),
 			args.project
 		);
 
-		log.debug(`executable_line: ${executable_line}`);
-		const debugProcess = subProcess("debug", executable_line, { shell: true });
-		
+		log.debug(`executable_line: ${command}`);
+		const debugProcess = subProcess("debug", command, { shell: true });
+
 		// const godot_exec = cp.exec(executable_line, (error) => {
 		// 	if (!this.terminated) {
 		// 		window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
