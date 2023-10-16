@@ -65,17 +65,14 @@ export class ServerController {
 	}
 
 	public break() {
-		log.info("break");
 		this.send_command("break");
 	}
 
 	public continue() {
-		log.info("continue");
 		this.send_command("continue");
 	}
 
 	public next() {
-		log.info("next");
 		this.send_command("next");
 	}
 
