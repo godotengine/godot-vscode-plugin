@@ -1,8 +1,7 @@
 import { ExtensionContext, window, commands } from "vscode";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
-import { Godot3Debugger } from "./godot3/debugger_context";
-import { Godot4Debugger } from "./godot4/debugger_context";
+import { GodotDebugger } from "./debug_context";
 
 import { createLogger } from "../logger";
 
@@ -11,19 +10,16 @@ const log = createLogger("debugger");
 export class GodotDebugManager {
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
-	public g3: Godot3Debugger;
-	public g4: Godot4Debugger;
+	public debugger: GodotDebugger;
 
 	constructor(context: ExtensionContext) {
 		window.registerTreeDataProvider("inspect-node", this.inspectorProvider);
 		window.registerTreeDataProvider("active-scene-tree", this.sceneTreeProvider);
 
-		this.g3 = new Godot3Debugger(context, this.sceneTreeProvider);
-		this.g4 = new Godot4Debugger(context, this.sceneTreeProvider);
+		this.debugger = new GodotDebugger(context, this.sceneTreeProvider);
 
 		context.subscriptions.push(
-			this.g3,
-			this.g4,
+			this.debugger,
 			commands.registerCommand("godotTools.debugger.inspectNode", this.inspectNode.bind(this)),
 			commands.registerCommand("godotTools.debugger.refreshSceneTree", this.refreshSceneTree.bind(this)),
 			commands.registerCommand("godotTools.debugger.refreshInspector", this.refreshInspector.bind(this)),
@@ -32,12 +28,8 @@ export class GodotDebugManager {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		// log.info(event);
-		if (this.g3.session) {
-			this.g3.notify(event, parameters);
-		}
-		if (this.g4.session) {
-			this.g4.notify(event, parameters);
+		if (this.debugger.session) {
+			this.debugger.notify(event, parameters);
 		}
 	}
 
