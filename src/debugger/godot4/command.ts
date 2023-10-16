@@ -5,6 +5,4 @@ export class Command {
 	public parameters: any[] = [];
 	public complete: boolean = false;
 	public threadId: number = 0;
-
-	// public abstract trigger(parameters: any[]): void;
 }
