@@ -26,7 +26,9 @@ export function killSubProcesses(owner: string) {
 					process.kill(-c.pid);
 				}
 			}
-		} catch { }
+		} catch { 
+			console.log(`couldn't kill task ${owner}`);
+		}
 	});
 }
 
