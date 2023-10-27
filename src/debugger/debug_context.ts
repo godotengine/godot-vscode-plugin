@@ -102,12 +102,19 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 			}
 		}
 
+		if (!config.request) {
+			config.request = "launch";
+		}
+
 		if (config.request === "launch") {
-			if (config.address == undefined) {
+			if (!config.address) {
 				config.address = "127.0.0.1";
 			}
-			if (config.port == undefined) {
-				config.port = 6007;
+			if (!config.port) {
+				config.port = 6006;
+			}
+			if (!config.project) {
+				config.project = "${workspaceFolder}";
 			}
 		}
 
