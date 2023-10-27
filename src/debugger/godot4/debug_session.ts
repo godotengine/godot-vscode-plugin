@@ -581,8 +581,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 					!this.ongoing_inspections.find((va_id) => va_id === va.value.id) &&
 					!this.previous_inspections.find((va_id) => va_id === va.value.id)
 				) {
-					// TODO: implement me
-					// Mediator.notify("inspect_object", [va.value.id]);
+					this.controller?.request_inspect_object(va.value.id);
 					this.ongoing_inspections.push(va.value.id);
 				}
 			}
