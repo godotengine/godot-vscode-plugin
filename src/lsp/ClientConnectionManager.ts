@@ -30,11 +30,13 @@ export class ClientConnectionManager {
 	private context: vscode.ExtensionContext;
 	public client: GDScriptLanguageClient = null;
 
-	private reconnection_attempts = 0;
+	private reconnectionAttempts = 0;
 
 	private target: TargetLSP = TargetLSP.EDITOR;
 	private status: ManagerStatus = ManagerStatus.INITIALIZING;
 	private statusWidget: vscode.StatusBarItem = null;
+
+	private connectedVersion: string = "";
 
 	constructor(p_context: vscode.ExtensionContext) {
 		this.context = p_context;
@@ -49,7 +51,7 @@ export class ClientConnectionManager {
 		register_command("startLanguageServer", () => {
 			// TODO: this might leave the manager in a wierd state
 			this.start_language_server();
-			this.reconnection_attempts = 0;
+			this.reconnectionAttempts = 0;
 			this.target = TargetLSP.HEADLESS;
 			this.client.connect_to_server(this.target);
 		});
@@ -69,6 +71,7 @@ export class ClientConnectionManager {
 	private async connect_to_language_server() {
 		this.client.port = -1;
 		this.target = TargetLSP.EDITOR;
+		this.connectedVersion = undefined;
 
 		// TODO: why does changing lsp.headless require reloading vscode?
 		if (get_configuration("lsp.headless")) {
@@ -76,7 +79,7 @@ export class ClientConnectionManager {
 			await this.start_language_server();
 		}
 
-		this.reconnection_attempts = 0;
+		this.reconnectionAttempts = 0;
 		this.client.connect_to_server(this.target);
 	}
 
@@ -118,7 +121,7 @@ export class ClientConnectionManager {
 				});
 				return;
 			}
-
+			this.connectedVersion = output;
 			if (match[1] !== projectVersion[0]) {
 				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
 				vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
@@ -213,7 +216,7 @@ export class ClientConnectionManager {
 	}
 
 	private on_status_item_click() {
-		const lsp_target = this.get_lsp_connection_string();
+		const lspTarget = this.get_lsp_connection_string();
 		// TODO: fill these out with the ACTIONS a user could perform in each state
 		switch (this.status) {
 			case ManagerStatus.INITIALIZING:
@@ -225,9 +228,19 @@ export class ClientConnectionManager {
 			case ManagerStatus.PENDING:
 				// vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${lsp_target}`);
 				break;
-			case ManagerStatus.CONNECTED:
-				// vscode.window.showInformationMessage("Connected to the GDScript language server.");
+			case ManagerStatus.CONNECTED: {
+				const message = `Connected to the GDScript language server at ${lspTarget}.`;
+				vscode.window.showInformationMessage(
+					message,
+					"Restart LSP",
+					"Ok"
+				).then(item => {
+					if (item === "Restart LSP") {
+						this.connect_to_language_server();
+					}
+				});
 				break;
+			}
 			case ManagerStatus.DISCONNECTED:
 				this.retry_connect_client();
 				break;
@@ -237,39 +250,47 @@ export class ClientConnectionManager {
 	}
 
 	private update_status_widget() {
-		const lsp_target = this.get_lsp_connection_string();
+		const lspTarget = this.get_lsp_connection_string();
+		const maxAttempts = get_configuration("lsp.autoReconnect.attempts")
+		let text = "";
+		let tooltip = "";
 		switch (this.status) {
 			case ManagerStatus.INITIALIZING:
-				// this.statusWidget.text = `INITIALIZING`;
-				this.statusWidget.text = `$(sync~spin) Initializing`;
-				this.statusWidget.tooltip = `Initializing extension...`;
+				text = `$(sync~spin) Initializing`;
+				tooltip = `Initializing extension...`;
 				break;
 			case ManagerStatus.INITIALIZING_LSP:
-				// this.statusWidget.text = `INITIALIZING_LSP ` + this.reconnection_attempts;
-				this.statusWidget.text = `$(sync~spin) Initializing LSP`;
-				this.statusWidget.tooltip = `Connecting to headless GDScript language server at ${lsp_target}`;
+				text = `$(sync~spin) Initializing LSP ${this.reconnectionAttempts}/${maxAttempts}`;
+				tooltip = `Connecting to headless GDScript language server.\n${lspTarget}`;
+				if (this.connectedVersion) {
+					tooltip += `\n${this.connectedVersion}`;
+				}
 				break;
 			case ManagerStatus.PENDING:
-				// this.statusWidget.text = `PENDING`;
-				this.statusWidget.text = `$(sync~spin) Connecting`;
-				this.statusWidget.tooltip = `Connecting to the GDScript language server at ${lsp_target}`;
+				text = `$(sync~spin) Connecting`;
+				tooltip = `Connecting to the GDScript language server at ${lspTarget}`;
 				break;
 			case ManagerStatus.CONNECTED:
-				// this.statusWidget.text = `CONNECTED`;
-				this.statusWidget.text = `$(check) Connected`;
-				this.statusWidget.tooltip = `Connected to the GDScript language server.`;
+				text = `$(check) Connected`;
+				tooltip = `Connected to the GDScript language server.\n${lspTarget}`;
+				if (this.connectedVersion) {
+					tooltip += `\n${this.connectedVersion}`;
+				}
 				break;
 			case ManagerStatus.DISCONNECTED:
-				// this.statusWidget.text = `DISCONNECTED`;
-				this.statusWidget.text = `$(x) Disconnected`;
-				this.statusWidget.tooltip = `Disconnected from the GDScript language server.`;
+				text = `$(x) Disconnected`;
+				tooltip = `Disconnected from the GDScript language server.`;
 				break;
 			case ManagerStatus.RETRYING:
-				// this.statusWidget.text = `RETRYING ` + this.reconnection_attempts;
-				this.statusWidget.text = `$(sync~spin) Connecting ` + this.reconnection_attempts;
-				this.statusWidget.tooltip = `Connecting to the GDScript language server at ${lsp_target}`;
+				text = `$(sync~spin) Connecting ${this.reconnectionAttempts}/${maxAttempts}`;
+				tooltip = `Connecting to the GDScript language server.\n${lspTarget}`;
+				if (this.connectedVersion) {
+					tooltip += `\n${this.connectedVersion}`;
+				}
 				break;
 		}
+		this.statusWidget.text = text;
+		this.statusWidget.tooltip = tooltip;
 	}
 
 	private on_client_status_changed(status: ClientStatus) {
@@ -315,8 +336,8 @@ export class ClientConnectionManager {
 	private retry_connect_client() {
 		const auto_retry = get_configuration("lsp.autoReconnect.enabled");
 		const max_attempts = get_configuration("lsp.autoReconnect.attempts");
-		if (auto_retry && this.reconnection_attempts <= max_attempts - 1) {
-			this.reconnection_attempts++;
+		if (auto_retry && this.reconnectionAttempts <= max_attempts - 1) {
+			this.reconnectionAttempts++;
 			this.client.connect_to_server(this.target);
 			this.retry = true;
 			return;
