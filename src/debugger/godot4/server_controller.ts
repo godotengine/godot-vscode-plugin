@@ -177,11 +177,7 @@ export class ServerController {
 					log.debug("rx:" + JSON.stringify(data[0]));
 					const command = this.parse_message(data[0]);
 
-					// try {
 					this.handle_command(command);
-					// } catch {
-					// 	//
-					// }
 				}
 			});
 
