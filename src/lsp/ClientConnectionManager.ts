@@ -73,7 +73,6 @@ export class ClientConnectionManager {
 		this.target = TargetLSP.EDITOR;
 		this.connectedVersion = undefined;
 
-		// TODO: why does changing lsp.headless require reloading vscode?
 		if (get_configuration("lsp.headless")) {
 			this.target = TargetLSP.HEADLESS;
 			await this.start_language_server();
