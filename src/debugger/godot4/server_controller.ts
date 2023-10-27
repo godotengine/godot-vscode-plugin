@@ -8,7 +8,7 @@ import {
 	GodotVariable,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { SceneNode } from "../scene_tree_provider";
+import { parse_next_scene_node } from "./helpers";
 import { debug, window } from "vscode";
 import net = require("net");
 import { Command } from "../command";
@@ -23,22 +23,6 @@ import {
 } from "./debug_session";
 
 const log = createLogger("debugger.controller");
-
-function parse_next(params: any[], ofs: { offset: number }): SceneNode {
-	const child_count: number = params[ofs.offset++];
-	const name: string = params[ofs.offset++];
-	const class_name: string = params[ofs.offset++];
-	const id: number = params[ofs.offset++];
-	const unknown1: string = params[ofs.offset++];
-	const unknown2: number = params[ofs.offset++];
-
-	const children: SceneNode[] = [];
-	for (let i = 0; i < child_count; ++i) {
-		children.push(parse_next(params, ofs));
-	}
-
-	return new SceneNode(name, class_name, id, children);
-}
 
 export class ServerController {
 	public session?: GodotDebugSession;
@@ -287,8 +271,8 @@ export class ServerController {
 				this.threadId = command.threadId;
 				break;
 			case "scene:request_scene_tree": {
-				const tree = parse_next(command.parameters, { offset: 0 });
-				this.session?.debug_data?.scene_tree?.fill_tree(tree);
+				const tree = parse_next_scene_node(command.parameters);
+				this.session?.scene_tree.fill_tree(tree);
 				break;
 			}
 			case "scene:inspect_object": {
