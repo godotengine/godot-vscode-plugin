@@ -4,7 +4,7 @@ import { LanguageClient, RequestMessage, ResponseMessage, integer } from "vscode
 import { createLogger } from "../logger";
 import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
-import NativeDocumentManager from './NativeDocumentManager';
+import { NativeDocumentManager } from './NativeDocumentManager';
 
 const log = createLogger("lsp.client");
 
@@ -22,7 +22,6 @@ export enum TargetLSP {
 const CUSTOM_MESSAGE = "gdscrip_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
-
 	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
