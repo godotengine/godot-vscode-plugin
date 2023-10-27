@@ -6,6 +6,7 @@ import { register_debugger } from "./debugger/debugger_context";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
+import { FormattingProvider } from "./formatter/formatter";
 import {
 	get_configuration,
 	set_configuration,
@@ -19,6 +20,7 @@ const TOOL_NAME = "GodotTools";
 let lspClientManager: ClientConnectionManager = null;
 let linkProvider: GDDocumentLinkProvider = null;
 let scenePreviewManager: ScenePreviewProvider = null;
+let formattingProvider: FormattingProvider = null;
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
@@ -26,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 	lspClientManager = new ClientConnectionManager(context);
 	linkProvider = new GDDocumentLinkProvider(context);
 	scenePreviewManager = new ScenePreviewProvider();
+	formattingProvider = new FormattingProvider(context);
 
 	register_debugger(context);
 

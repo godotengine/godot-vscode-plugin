@@ -234,6 +234,23 @@
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
 				},
+				"godotTools.formatter": {
+					"enum": [
+						"builtin",
+						"gdformat"
+					],
+					"enumDescriptions": [
+						"GodotTools' builtin formatter",
+						"gdformat from godot-gdscript-toolkit, or a compatible formatter"
+					],
+					"default": "gdformat",
+					"description": "Which formatting tool to use"
+				},
+				"godotTools.gdformatPath": {
+					"type": "string",
+					"default": "gdformat",
+					"description": "Path to the gdformat executable"
+				},
 				"godotTools.nativeSymbolPlacement": {
 					"enum": [
 						"active",
