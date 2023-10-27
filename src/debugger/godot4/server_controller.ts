@@ -321,6 +321,7 @@ export class ServerController {
 				this.partial_stack_vars.locals = [];
 				this.partial_stack_vars.members = [];
 				this.partial_stack_vars.globals = [];
+				this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
 				break;
 			}
 			case "output": {
