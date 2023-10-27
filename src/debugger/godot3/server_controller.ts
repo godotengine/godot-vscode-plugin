@@ -250,11 +250,7 @@ export class ServerController {
 
 		if (this.current_command.complete) {
 			log.debug("rx: " + this.current_command.command + JSON.stringify(this.current_command.parameters));
-			try {
-				this.handle_command(this.current_command);
-			} catch {
-				//
-			}
+			this.handle_command(this.current_command);
 
 			this.current_command = undefined;
 		}
