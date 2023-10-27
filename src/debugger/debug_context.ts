@@ -102,6 +102,8 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 			}
 		}
 
+		// request is actually a required field according to vscode
+		// however, setting it here lets us catch a possible user misconfiguration
 		if (!config.request) {
 			config.request = "launch";
 		}
