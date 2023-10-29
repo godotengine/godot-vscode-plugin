@@ -232,7 +232,7 @@ export class ServerController {
 	}
 
 	public parse_message(dataset: any[]) {
-		if (this.current_command == undefined) {
+		if (!this.current_command || this.current_command.complete) {
 			this.current_command = new Command();
 			this.current_command.command = dataset.shift();
 		}
@@ -250,10 +250,8 @@ export class ServerController {
 		}
 
 		if (this.current_command.complete) {
-			log.debug("rx: ", this.current_command.command, this.current_command.parameters);
+			log.debug("rx:", [this.current_command.command, ...this.current_command.parameters]);
 			this.handle_command(this.current_command);
-
-			this.current_command = undefined;
 		}
 	}
 
