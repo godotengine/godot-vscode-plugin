@@ -390,11 +390,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.ScopesArguments
 	) {
 		log.debug("scopesRequest", args);
-		while (this.ongoing_inspections.length > 0) {
-			await this.got_scope.wait(100);
-		}
 		this.controller.request_stack_frame_vars(args.frameId);
-		await this.got_scope.wait(2000);
+		await this.got_scope.wait(500);
 
 		response.body = {
 			scopes: [
