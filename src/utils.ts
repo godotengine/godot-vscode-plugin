@@ -5,10 +5,8 @@ import { AddressInfo, createServer } from "net";
 
 const EXTENSION_PREFIX = "godotTools";
 
-const config = vscode.workspace.getConfiguration(EXTENSION_PREFIX);
-
 export function get_configuration(name: string, default_value?: any) {
-	let config_value = config.get(name, null);
+	let config_value = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);
 	if (default_value && config_value === null) {
 		return default_value;
 	}
@@ -16,7 +14,7 @@ export function get_configuration(name: string, default_value?: any) {
 }
 
 export function set_configuration(name: string, value: any) {
-	return config.update(name, value);
+	return vscode.workspace.getConfiguration(EXTENSION_PREFIX).update(name, value);
 }
 
 export function is_debug_mode(): boolean {

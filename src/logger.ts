@@ -44,64 +44,89 @@ export class Logger {
 	}
 }
 
-export class Logger2 {
-	protected tag: string = "";
-	protected level: string = "";
-	protected time: boolean = false;
+export enum LOG_LEVEL {
+	SILENT,
+	ERROR,
+	WARNING,
+	INFO,
+	DEBUG,
+}
 
-	constructor(tag: string) {
-		this.tag = tag;
+const LOG_LEVEL_NAMES = [
+	"SILENT",
+	"ERROR",
+	"WARN ",
+	"INFO ",
+	"DEBUG",
+]
+
+const RESET = "\u001b[0m"
+
+const LOG_COLORS = [
+	RESET, // SILENT, normal
+	"\u001b[1;31m", // ERROR, red
+	"\u001b[1;33m", // WARNING, yellow
+	"\u001b[1;36m", // INFO, cyan
+	"\u001b[1;32m", // DEBUG, green
+]
+
+export class Logger2 {
+	private show_tag: boolean = true;
+	private show_time: boolean;
+	private show_label: boolean;
+	private show_level: boolean = false;
+
+	constructor(
+		private tag: string,
+		private level: LOG_LEVEL = LOG_LEVEL.DEBUG,
+		{ time = false, label = false }: { time?: boolean, label?: boolean } = {},
+	) {
+		this.show_time = time;
+		this.show_label = label;
 	}
 
-	log(...messages) {
-		let line = "[godotTools]";
-		if (this.time) {
-			line += `[${new Date().toISOString()}]`;
+	private log(level: LOG_LEVEL, ...messages) {
+		let prefix = "";
+		if (this.show_label) {
+			prefix += "[godotTools]";
 		}
-		if (this.level) {
-			line += `[${this.level}]`;
-			this.level = "";
+		if (this.show_time) {
+			prefix += `[${new Date().toISOString()}]`;
 		}
-		if (this.tag) {
-			line += `[${this.tag}]`;
+		if (this.show_level) {
+			prefix += "[" + LOG_COLORS[level] + LOG_LEVEL_NAMES[level] + RESET + "]";
 		}
-		if (line) {
-			line += " ";
-		}
-
-		for (let index = 0; index < messages.length; index++) {
-			line += messages[index];
-			if (index < messages.length) {
-				line += " ";
-			} else {
-				line += "\n";
-			}
+		if (this.show_tag) {
+			prefix += "[" + LOG_COLORS[level] + this.tag + RESET + "]";
 		}
 
-		console.log(line);
+		console.log(prefix, ...messages);
 	}
 
 	info(...messages) {
-		this.level = "INFO";
-		this.log(messages);
+		if (LOG_LEVEL.INFO <= this.level) {
+			this.log(LOG_LEVEL.INFO, ...messages);
+		}
 	}
 	debug(...messages) {
-		this.level = "DEBUG";
-		this.log(messages);
+		if (LOG_LEVEL.DEBUG <= this.level) {
+			this.log(LOG_LEVEL.DEBUG, ...messages);
+		}
 	}
 	warn(...messages) {
-		this.level = "WARNING";
-		this.log(messages);
+		if (LOG_LEVEL.WARNING <= this.level) {
+			this.log(LOG_LEVEL.WARNING, ...messages);
+		}
 	}
 	error(...messages) {
-		this.level = "ERROR";
-		this.log(messages);
+		if (LOG_LEVEL.ERROR <= this.level) {
+			this.log(LOG_LEVEL.ERROR, ...messages);
+		}
 	}
 }
 
-
-export function createLogger(tag) {
-	return new Logger2(tag);
+export function createLogger(tag, level: LOG_LEVEL = LOG_LEVEL.DEBUG) {
+	return new Logger2(tag, level);
 }
 
 const logger = new Logger("godot-tools", true);

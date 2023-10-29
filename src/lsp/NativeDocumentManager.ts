@@ -24,7 +24,7 @@ const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
 
-export default class NativeDocumentManager extends EventEmitter {
+export class NativeDocumentManager extends EventEmitter {
 	private io: MessageIO = null;
 	private native_classes: { [key: string]: GodotNativeClassInfo } = {};
 
