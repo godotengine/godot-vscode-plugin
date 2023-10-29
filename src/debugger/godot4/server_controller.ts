@@ -220,7 +220,7 @@ export class ServerController {
 			});
 
 			socket.on("error", (error) => {
-				// Mediator.notify("error", [error]);
+				log.error("socket error", error);
 			});
 
 			socket.on("drain", () => {

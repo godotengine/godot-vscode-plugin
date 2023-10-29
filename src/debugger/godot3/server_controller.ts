@@ -217,7 +217,7 @@ export class ServerController {
 			});
 
 			socket.on("error", (error) => {
-				// Mediator.notify("error", [error]);
+				log.error("socket error", error);
 			});
 
 			socket.on("drain", () => {
@@ -537,6 +537,8 @@ export class ServerController {
 		members: any[],
 		globals: any[]
 	) {
+		console.log("do_stack_frame_vars", locals, members, globals);
+
 		const locals_out: GodotVariable[] = [];
 		const members_out: GodotVariable[] = [];
 		const globals_out: GodotVariable[] = [];
