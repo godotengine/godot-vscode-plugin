@@ -58,9 +58,9 @@ const LOG_LEVEL_NAMES = [
 	"WARN ",
 	"INFO ",
 	"DEBUG",
-]
+];
 
-const RESET = "\u001b[0m"
+const RESET = "\u001b[0m";
 
 const LOG_COLORS = [
 	RESET, // SILENT, normal
@@ -68,7 +68,7 @@ const LOG_COLORS = [
 	"\u001b[1;33m", // WARNING, yellow
 	"\u001b[1;36m", // INFO, cyan
 	"\u001b[1;32m", // DEBUG, green
-]
+];
 
 export class Logger2 {
 	private show_tag: boolean = true;

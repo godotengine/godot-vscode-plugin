@@ -250,7 +250,7 @@ export class ClientConnectionManager {
 
 	private update_status_widget() {
 		const lspTarget = this.get_lsp_connection_string();
-		const maxAttempts = get_configuration("lsp.autoReconnect.attempts")
+		const maxAttempts = get_configuration("lsp.autoReconnect.attempts");
 		let text = "";
 		let tooltip = "";
 		switch (this.status) {
