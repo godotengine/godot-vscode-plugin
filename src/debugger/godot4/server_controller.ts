@@ -543,9 +543,8 @@ export class ServerController {
 		this.partial_stack_vars[type_name].push(variable);
 		this.partial_stack_vars.remaining--;
 
-		this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
-
-		// if (this.partial_stack_vars.remaining === 0) {
-		// }
+		if (this.partial_stack_vars.remaining === 0) {
+			this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
+		}
 	}
 }

@@ -172,8 +172,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		members: GodotVariable[],
 		globals: GodotVariable[]
 	) {
-		log.debug("set_scopes");
-		// log.debug("set_scopes", locals, members, globals);
+		log.debug("set_scopes", locals, members, globals);
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
