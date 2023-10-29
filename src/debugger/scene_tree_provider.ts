@@ -18,7 +18,7 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	public readonly onDidChangeTreeData: Event<SceneNode> | undefined = this
 		._on_did_change_tree_data.event;
 
-	constructor() {}
+	constructor() { }
 
 	public fill_tree(tree: SceneNode) {
 		this.tree = tree;
@@ -50,6 +50,16 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 
 		tree_item.description = element.class_name;
 		tree_item.iconPath = element.iconPath;
+		if (element.scene_file_path) {
+			let tooltip = "";
+			tooltip += `${element.label}`;
+			tooltip += `\n${element.class_name}`;
+			tooltip += `\n${element.object_id}`;
+			if (element.scene_file_path) {
+				tooltip += `\n${element.scene_file_path}`;
+			}
+			tree_item.tooltip = tooltip;
+		}
 
 		return tree_item;
 	}
@@ -61,9 +71,10 @@ export class SceneNode extends TreeItem {
 		public class_name: string,
 		public object_id: number,
 		public children: SceneNode[],
-		public collapsibleState?: TreeItemCollapsibleState
+		public scene_file_path?: string,
+		public view_flags?: number,
 	) {
-		super(label, collapsibleState);
+		super(label);
 
 		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
 		const iconName = class_name + ".svg";
