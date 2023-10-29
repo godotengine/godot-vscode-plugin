@@ -7,7 +7,7 @@ import {
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { GodotDebugData, GodotVariable } from "../debug_runtime";
+import { GodotDebugData, GodotVariable, GodotStackVars } from "../debug_runtime";
 import { ObjectId } from "./variables/variants";
 import { parse_variable, is_variable_built_in_type } from "./helpers";
 import { ServerController } from "./server_controller";
@@ -47,7 +47,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	private configuration_done: Subject = new Subject();
 	private mode: "launch" | "attach" | "" = "";
 	public inspect_callbacks: Map<
-		number,
+		bigint,
 		(class_name: string, variable: GodotVariable) => void
 	> = new Map();
 
@@ -130,7 +130,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
-		log.debug("set_inspection");
+		// log.debug("set_inspection");
 		const variables = this.all_scopes.filter(
 			(va) => va && va.value instanceof ObjectId && va.value.id === id
 		);
@@ -167,40 +167,41 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	public set_scopes(
-		locals: GodotVariable[],
-		members: GodotVariable[],
-		globals: GodotVariable[]
-	) {
-		log.debug("set_scopes", locals, members, globals);
+	public set_scopes(stackVars: GodotStackVars) {
+		log.debug("set_scopes", stackVars);
 		this.all_scopes = [
 			undefined,
-			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
+			{
+				name: "local",
+				value: undefined,
+				sub_values: stackVars.locals,
+				scope_path: "@"
+			},
 			{
 				name: "member",
 				value: undefined,
-				sub_values: members,
+				sub_values: stackVars.members,
 				scope_path: "@",
 			},
 			{
 				name: "global",
 				value: undefined,
-				sub_values: globals,
+				sub_values: stackVars.globals,
 				scope_path: "@",
 			},
 		];
 
-		locals.forEach((va) => {
+		stackVars.locals.forEach((va) => {
 			va.scope_path = "@.local";
 			this.append_variable(va);
 		});
 
-		members.forEach((va) => {
+		stackVars.members.forEach((va) => {
 			va.scope_path = "@.member";
 			this.append_variable(va);
 		});
 
-		globals.forEach((va) => {
+		stackVars.globals.forEach((va) => {
 			va.scope_path = "@.global";
 			this.append_variable(va);
 		});
@@ -265,7 +266,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 			path += propertyName;
 			propertyName = key;
 		}
-
 
 		function sanitizeName(name: string) {
 			return name.split("Members/").join("").split("Locals/").join("");
@@ -569,12 +569,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		log.debug("add_to_inspections", this.all_scopes);
+		// log.debug("add_to_inspections", this.all_scopes);
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
-					!this.ongoing_inspections.find((va_id) => va_id === va.value.id) &&
-					!this.previous_inspections.find((va_id) => va_id === va.value.id)
+					!this.ongoing_inspections.includes(va.value.id) &&
+					!this.previous_inspections.includes(va.value.id)
 				) {
 					this.controller.request_inspect_object(va.value.id);
 					this.ongoing_inspections.push(va.value.id);
@@ -584,7 +584,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
-		log.debug("append_variable", variable);
+		// log.debug("append_variable", variable);
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {
@@ -593,7 +593,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		const base_path = `${variable.scope_path}.${variable.name}`;
 		if (variable.sub_values) {
 			variable.sub_values.forEach((va, i) => {
-				va.scope_path = `${base_path}`;
+				va.scope_path = base_path;
 				this.append_variable(va, index ? index + i + 1 : undefined);
 			});
 		}

@@ -6,6 +6,7 @@ import {
 	GodotStackFrame,
 	GodotDebugData,
 	GodotVariable,
+	GodotStackVars,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node } from "./helpers";
@@ -25,7 +26,6 @@ import {
 const log = createLogger("debugger.controller");
 
 export class ServerController {
-	public session?: GodotDebugSession;
 	private command_buffer: Buffer[] = [];
 	private debug_data: GodotDebugData;
 	private encoder = new VariantEncoder();
@@ -37,16 +37,11 @@ export class ServerController {
 	private socket?: net.Socket;
 	private stepping_out = false;
 	private did_first_output: boolean = false;
-	private partial_stack_vars = {
-		locals: [] as GodotVariable[],
-		members: [] as GodotVariable[],
-		globals: [] as GodotVariable[],
-		remaining: 0,
-	};
+	private partialStackVars = new GodotStackVars();
 
-	public constructor(session: GodotDebugSession) {
-		this.session = session;
-	}
+	public constructor(
+		public session: GodotDebugSession
+	) { }
 
 	public break() {
 		this.send_command("break");
@@ -167,19 +162,19 @@ export class ServerController {
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
-				this.session?.sendEvent(new TerminatedEvent());
+				this.session.sendEvent(new TerminatedEvent());
 				this.stop();
 			});
 
 			socket.on("end", () => {
 				log.debug("socket end");
-				this.session?.sendEvent(new TerminatedEvent());
+				this.session.sendEvent(new TerminatedEvent());
 				this.stop();
 			});
 
 			socket.on("error", (error) => {
 				log.debug("socket error");
-				// this.session?.sendEvent(new TerminatedEvent());
+				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
@@ -214,13 +209,13 @@ export class ServerController {
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
-				// this.session?.sendEvent(new TerminatedEvent());
+				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
 			socket.on("end", () => {
 				log.debug("socket end");
-				// this.session?.sendEvent(new TerminatedEvent());
+				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
@@ -270,9 +265,9 @@ export class ServerController {
 			case "set_pid":
 				this.threadId = command.threadId;
 				break;
-			case "scene:request_scene_tree": {
+			case "scene:scene_tree": {
 				const tree = parse_next_scene_node(command.parameters);
-				this.session?.scene_tree.fill_tree(tree);
+				this.session.scene_tree.fill_tree(tree);
 				break;
 			}
 			case "scene:inspect_object": {
@@ -286,14 +281,14 @@ export class ServerController {
 				});
 				const inspected_variable = { name: "", value: raw_object };
 				this.build_sub_values(inspected_variable);
-				if (this.session?.inspect_callbacks.has(Number(id))) {
-					this.session?.inspect_callbacks.get(Number(id))(
+				if (this.session.inspect_callbacks.has(BigInt(id))) {
+					this.session.inspect_callbacks.get(BigInt(id))(
 						inspected_variable.name,
 						inspected_variable
 					);
-					this.session?.inspect_callbacks.delete(Number(id));
+					this.session.inspect_callbacks.delete(BigInt(id));
 				}
-				this.session?.set_inspection(id, inspected_variable);
+				this.session.set_inspection(id, inspected_variable);
 				break;
 			}
 			case "stack_dump": {
@@ -312,16 +307,18 @@ export class ServerController {
 				this.request_scene_tree();
 				break;
 			}
-			case "stack_frame_var": {
-				this.do_stack_frame_var(command.parameters[0], command.parameters[1], command.parameters[2]);
+			case "stack_frame_vars": {
+				this.partialStackVars.reset(command.parameters[0]);
+				this.session.set_scopes(this.partialStackVars);
 				break;
 			}
-			case "stack_frame_vars": {
-				this.partial_stack_vars.remaining = command.parameters[0];
-				this.partial_stack_vars.locals = [];
-				this.partial_stack_vars.members = [];
-				this.partial_stack_vars.globals = [];
-				this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
+			case "stack_frame_var": {
+				this.do_stack_frame_var(
+					command.parameters[0],
+					command.parameters[1],
+					command.parameters[2],
+					command.parameters[3],
+				);
 				break;
 			}
 			case "output": {
@@ -366,7 +363,7 @@ export class ServerController {
 		if (stack_count === 0) {
 			// Engine code is being executed, no user stack trace
 			this.debug_data.last_frames = [];
-			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
+			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 			return;
 		}
 
@@ -412,10 +409,10 @@ export class ServerController {
 		});
 
 		if (this.exception.length === 0) {
-			this.session?.sendEvent(new StoppedEvent("breakpoint", 0));
+			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 		} else {
-			this.session?.set_exception(true);
-			this.session?.sendEvent(
+			this.session.set_exception(true);
+			this.session.sendEvent(
 				new StoppedEvent("exception", 0, this.exception)
 			);
 		}
@@ -514,37 +511,25 @@ export class ServerController {
 
 	private do_stack_frame_var(
 		name: string,
-		type: number, /** 0 = locals, 1 = members, 2 = globals */
-		value: any
+		scope: 0 | 1 | 2, // 0 = locals, 1 = members, 2 = globals
+		type: bigint,
+		value: any,
 	) {
-		// log.debug("do_stack_frame_var", this.partial_stack_vars.remaining);
-		if (this.partial_stack_vars.remaining === 0) {
+		log.debug("do_stack_frame_var", name, scope, value);
+
+		if (this.partialStackVars.remaining === 0) {
 			throw new Error("More stack frame variables were sent than expected.");
 		}
 
-		const variable: GodotVariable = {
-			name,
-			value,
-		};
+		const variable: GodotVariable = { name, value, type};
 		this.build_sub_values(variable);
 
-		let type_name;
-		switch (type) {
-			case 0:
-				type_name = "locals";
-				break;
-			case 1:
-				type_name = "members";
-				break;
-			case 2:
-				type_name = "globals";
-				break;
-		}
-		this.partial_stack_vars[type_name].push(variable);
-		this.partial_stack_vars.remaining--;
+		const scopeName = ["locals", "members", "globals"][scope];
+		this.partialStackVars[scopeName].push(variable);
+		this.partialStackVars.remaining--;
 
-		if (this.partial_stack_vars.remaining === 0) {
-			this.session?.set_scopes(this.partial_stack_vars.locals, this.partial_stack_vars.members, this.partial_stack_vars.globals);
+		if (this.partialStackVars.remaining === 0) {
+			this.session.set_scopes(this.partialStackVars);
 		}
 	}
 }

@@ -17,11 +17,30 @@ export interface GodotStackFrame {
 	line: number;
 }
 
+export class GodotStackVars {
+	public remaining = 0;
+
+	constructor(
+		public locals: GodotVariable[] = [],
+		public members: GodotVariable[] = [],
+		public globals: GodotVariable[] = [],
+	) { }
+
+	public reset(count: number = 0) {
+		this.locals = [];
+		this.members = [];
+		this.globals = [];
+		this.remaining = count;
+	}
+}
+
 export interface GodotVariable {
 	name: string;
 	scope_path?: string;
 	sub_values?: GodotVariable[];
 	value: any;
+	type?: bigint;
+	id?: bigint;
 }
 
 export interface GDObject {
@@ -37,7 +56,7 @@ export class RawObject extends Map<any, any> {
 }
 
 export class ObjectId implements GDObject {
-	constructor(public id: bigint) {}
+	constructor(public id: bigint) { }
 
 	public stringify_value(): string {
 		return `<${this.id}>`;

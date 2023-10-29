@@ -6,6 +6,7 @@ import {
 	GodotStackFrame,
 	GodotDebugData,
 	GodotVariable,
+	GodotStackVars,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node } from "./helpers";
@@ -289,12 +290,12 @@ export class ServerController {
 				});
 				const inspected_variable = { name: "", value: raw_object };
 				this.build_sub_values(inspected_variable);
-				if (this.session?.inspect_callbacks.has(Number(id))) {
-					this.session?.inspect_callbacks.get(Number(id))(
+				if (this.session?.inspect_callbacks.has(BigInt(id))) {
+					this.session?.inspect_callbacks.get(BigInt(id))(
 						inspected_variable.name,
 						inspected_variable
 					);
-					this.session?.inspect_callbacks.delete(Number(id));
+					this.session?.inspect_callbacks.delete(BigInt(id));
 				}
 				this.session?.set_inspection(id, inspected_variable);
 				break;
@@ -575,6 +576,6 @@ export class ServerController {
 					: globals_out.push(variable);
 		}
 
-		this.session?.set_scopes(locals_out, members_out, globals_out);
+		this.session?.set_scopes(new GodotStackVars(locals_out, members_out, globals_out));
 	}
 }

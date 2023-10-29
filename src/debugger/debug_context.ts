@@ -23,7 +23,7 @@ const log = createLogger("debugger.context");
 
 export class GodotDebugger implements DebugAdapterDescriptorFactory {
 	public provider: GodotConfigurationProvider;
-	public session?;
+	public session?: Godot3DebugSession | Godot4DebugSession;
 
 	constructor(
 		context: ExtensionContext,
@@ -57,6 +57,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
+		log.debug(event, parameters);
+
 		switch (event) {
 			case "request_scene_tree":
 				this.session?.controller.request_scene_tree();
@@ -64,7 +66,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory {
 			case "inspect_object":
 				this.session?.controller.request_inspect_object(parameters[0]);
 				if (parameters[1]) {
-					this.session?.inspect_callbacks.set(Number(parameters[0]), parameters[1]);
+					this.session?.inspect_callbacks.set(parameters[0], parameters[1]);
 				}
 				break;
 			case "continue":
