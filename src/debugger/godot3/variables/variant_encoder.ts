@@ -217,11 +217,8 @@ export class VariantEncoder {
 	}
 
 	private encode_UInt64(value: bigint, model: BufferModel) {
-		const hi = Number(value >> BigInt(32));
-		const lo = Number(value);
-
-		this.encode_UInt32(lo, model);
-		this.encode_UInt32(hi, model);
+		model.buffer.writeBigUInt64LE(value, model.offset);
+		model.offset += 8;
 	}
 
 	private encode_Vector2(value: Vector2, model: BufferModel) {
