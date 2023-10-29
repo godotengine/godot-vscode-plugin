@@ -57,8 +57,6 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory {
 	}
 
 	public notify(event: string, parameters: any[] = []) {
-		log.debug(event, parameters);
-
 		switch (event) {
 			case "request_scene_tree":
 				this.session?.controller.request_scene_tree();
