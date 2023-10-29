@@ -61,7 +61,7 @@ export class VariantDecoder {
 					return this.decode_Rect2d(model);
 				} else {
 					return this.decode_Rect2f(model);
-			}
+				}
 			case GDScriptTypes.RECT2I:
 				return this.decode_Rect2i(model);
 			case GDScriptTypes.VECTOR3:
@@ -272,24 +272,36 @@ export class VariantDecoder {
 	}
 
 	private decode_Int32(model: BufferModel) {
-		const u = model.buffer.readInt32LE(model.offset);
+		const result = model.buffer.readInt32LE(model.offset);
 
 		model.len -= 4;
 		model.offset += 4;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt32(model: BufferModel) {
+		const result = model.buffer.readUInt32LE(model.offset);
+		model.len -= 4;
+		model.offset += 4;
+
+		return result;
 	}
 
 	private decode_Int64(model: BufferModel) {
-		const hi = model.buffer.readInt32LE(model.offset);
-		const lo = model.buffer.readInt32LE(model.offset + 4);
-
-		const u: bigint = BigInt((hi << 32) | lo);
-
+		const result = model.buffer.readBigInt64LE(model.offset);
 		model.len -= 8;
 		model.offset += 8;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt64(model: BufferModel) {
+		const result = model.buffer.readBigUInt64LE(model.offset);
+		model.len -= 8;
+		model.offset += 8;
+
+		return result;
 	}
 
 	private decode_NodePath(model: BufferModel) {
@@ -561,36 +573,6 @@ export class VariantDecoder {
 			this.decode_Vector2d(model),
 			this.decode_Vector2d(model)
 		);
-	}
-
-	private decode_UInt32(model: BufferModel) {
-		const u = model.buffer.readUInt32LE(model.offset);
-		model.len -= 4;
-		model.offset += 4;
-
-		return u;
-	}
-
-	private decode_UInt64(model: BufferModel) {
-		const first = model.buffer[model.offset];
-		const last = model.buffer[model.offset + 7];
-		const val =
-			model.buffer[model.offset + 4] +
-			model.buffer[model.offset + 5] * 2 ** 8 +
-			model.buffer[model.offset + 6] * 2 ** 16 +
-			(last << 24); // Overflow
-		const result = (
-			(BigInt(val) << BigInt(32)) +
-			BigInt(
-				first +
-					model.buffer[model.offset + 1] * 2 ** 8 +
-					model.buffer[model.offset + 2] * 2 ** 16 +
-					model.buffer[model.offset + 3] * 2 ** 24,
-			)
-		);
-		model.len -= 8;
-		model.offset += 8;
-		return result;
 	}
 
 	private decode_Vector2f(model: BufferModel) {

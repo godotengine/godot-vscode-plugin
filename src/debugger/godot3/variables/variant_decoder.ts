@@ -169,24 +169,36 @@ export class VariantDecoder {
 	}
 
 	private decode_Int32(model: BufferModel) {
-		const u = model.buffer.readInt32LE(model.offset);
+		const result = model.buffer.readInt32LE(model.offset);
 
 		model.len -= 4;
 		model.offset += 4;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt32(model: BufferModel) {
+		const result = model.buffer.readUInt32LE(model.offset);
+		model.len -= 4;
+		model.offset += 4;
+
+		return result;
 	}
 
 	private decode_Int64(model: BufferModel) {
-		const hi = model.buffer.readInt32LE(model.offset);
-		const lo = model.buffer.readInt32LE(model.offset + 4);
-
-		const u: bigint = BigInt((hi << 32) | lo);
-
+		const result = model.buffer.readBigInt64LE(model.offset);
 		model.len -= 8;
 		model.offset += 8;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt64(model: BufferModel) {
+		const result = model.buffer.readBigUInt64LE(model.offset);
+		model.len -= 8;
+		model.offset += 8;
+
+		return result;
 	}
 
 	private decode_NodePath(model: BufferModel) {
@@ -354,25 +366,6 @@ export class VariantDecoder {
 			this.decode_Vector2(model),
 			this.decode_Vector2(model)
 		);
-	}
-
-	private decode_UInt32(model: BufferModel) {
-		const u = model.buffer.readUInt32LE(model.offset);
-		model.len -= 4;
-		model.offset += 4;
-
-		return u;
-	}
-
-	private decode_UInt64(model: BufferModel) {
-		const hi = model.buffer.readUInt32LE(model.offset);
-		const lo = model.buffer.readUInt32LE(model.offset + 4);
-
-		const u = BigInt((hi << 32) | lo);
-		model.len -= 8;
-		model.offset += 8;
-
-		return u;
 	}
 
 	private decode_Vector2(model: BufferModel) {
