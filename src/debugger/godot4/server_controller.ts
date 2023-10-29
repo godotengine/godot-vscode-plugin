@@ -137,7 +137,7 @@ export class ServerController {
 			args.project
 		);
 
-		log.debug(`executable_line: ${command}`);
+		log.debug("executable_line:", command);
 		const debugProcess = subProcess("debug", command, { shell: true });
 
 		debugProcess.stdout.on("data", (data) => { });
@@ -158,7 +158,7 @@ export class ServerController {
 				while (buffers.length > 0) {
 					const sub_buffer = buffers.shift();
 					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
-					log.debug("rx:" + JSON.stringify(data[0]));
+					log.debug("rx:", data[0]);
 					const command = this.parse_message(data[0]);
 
 					this.handle_command(command);
@@ -359,7 +359,7 @@ export class ServerController {
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
-		log.debug("trigger_breakpoint" + JSON.stringify(stack_frames));
+		log.debug("trigger_breakpoint", stack_frames);
 
 		let continue_stepping = false;
 		const stack_count = stack_frames.length;
@@ -447,7 +447,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const command_array: any[] = [command, this.threadId, parameters ?? []];
-		log.debug(`tx:${JSON.stringify(command_array)}`);
+		log.debug("tx:", command_array);
 		const buffer = this.encoder.encode_variant(command_array);
 		this.command_buffer.push(buffer);
 		this.send_buffer();

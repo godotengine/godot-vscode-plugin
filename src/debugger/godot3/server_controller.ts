@@ -131,7 +131,7 @@ export class ServerController {
 			args.project
 		);
 
-		log.debug(`executable_line: ${command}`);
+		log.debug("executable_line:", command);
 		const debugProcess = subProcess("debug", command, { shell: true });
 
 		debugProcess.stdout.on("data", (data) => { });
@@ -249,7 +249,7 @@ export class ServerController {
 		}
 
 		if (this.current_command.complete) {
-			log.debug("rx: " + this.current_command.command + JSON.stringify(this.current_command.parameters));
+			log.debug("rx: ", this.current_command.command, this.current_command.parameters);
 			this.handle_command(this.current_command);
 
 			this.current_command = undefined;
@@ -375,7 +375,7 @@ export class ServerController {
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
-		log.debug("trigger_breakpoint" + JSON.stringify(stack_frames));
+		log.debug("trigger_breakpoint", stack_frames);
 
 		let continue_stepping = false;
 		const stack_count = stack_frames.length;
@@ -468,7 +468,7 @@ export class ServerController {
 				command_array.push(param);
 			});
 		}
-		log.debug(`tx:${JSON.stringify(command_array)}`);
+		log.debug("tx:", command_array);
 		const buffer = this.encoder.encode_variant(command_array);
 		this.command_buffer.push(buffer);
 		this.send_buffer();

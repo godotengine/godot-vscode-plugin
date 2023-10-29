@@ -173,7 +173,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		globals: GodotVariable[]
 	) {
 		log.debug("set_scopes");
-		// log.debug("set_scopes", JSON.stringify(locals), JSON.stringify(members), JSON.stringify(globals));
+		// log.debug("set_scopes", locals, members, globals);
 		this.all_scopes = [
 			undefined,
 			{ name: "local", value: undefined, sub_values: locals, scope_path: "@" },
@@ -390,7 +390,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ScopesResponse,
 		args: DebugProtocol.ScopesArguments
 	) {
-		log.debug("scopesRequest" + JSON.stringify(args));
+		log.debug("scopesRequest", args);
 		while (this.ongoing_inspections.length > 0) {
 			await this.got_scope.wait(100);
 		}
@@ -456,7 +456,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.StackTraceResponse,
 		args: DebugProtocol.StackTraceArguments
 	) {
-		log.debug("stackTraceRequest" + JSON.stringify(args));
+		log.debug("stackTraceRequest", args);
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -503,7 +503,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.TerminateResponse,
 		args: DebugProtocol.TerminateArguments
 	) {
-		log.debug(`terminateRequest ${this.mode}`);
+		log.debug("terminateRequest", this.mode);
 		if (this.mode === "launch") {
 			this.controller.stop();
 			this.sendEvent(new TerminatedEvent());
@@ -521,7 +521,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments
 	) {
-		log.debug("variablesRequest" + JSON.stringify(args));
+		log.debug("variablesRequest", args);
 		if (!this.all_scopes) {
 			// log.debug("no vars");
 			response.body = {
@@ -534,8 +534,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
-		// log.debug(JSON.stringify(this.all_scopes));
-		// log.debug(JSON.stringify(reference));
+		// log.debug(this.all_scopes);
+		// log.debug(reference);
 		// log.debug(reference.sub_values);
 
 		if (!reference.sub_values) {
@@ -570,7 +570,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		log.debug("add_to_inspections", JSON.stringify(this.all_scopes));
+		log.debug("add_to_inspections", this.all_scopes);
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
@@ -585,7 +585,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private append_variable(variable: GodotVariable, index?: number) {
-		log.debug("append_variable", JSON.stringify(variable));
+		log.debug("append_variable", variable);
 		if (index) {
 			this.all_scopes.splice(index, 0, variable);
 		} else {

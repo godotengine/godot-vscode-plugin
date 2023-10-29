@@ -21,7 +21,7 @@ export function is_variable_built_in_type(va: GodotVariable) {
 }
 
 export function parse_variable(va: GodotVariable, i?: number) {
-	// log.debug("parse_variable", JSON.stringify(va), i);
+	// log.debug("parse_variable", va, i);
 	const value = va.value;
 	let rendered_value = "";
 	let reference = 0;
