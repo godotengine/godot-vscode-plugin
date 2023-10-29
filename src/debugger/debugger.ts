@@ -27,54 +27,42 @@ export class GodotDebugManager {
 		);
 	}
 
-	public notify(event: string, parameters: any[] = []) {
-		if (this.debugger.session) {
-			this.debugger.notify(event, parameters);
-		}
-	}
-
 	public inspectNode(element: SceneNode | RemoteProperty) {
-		if (element instanceof SceneNode) {
-			this.notify("inspect_object", [
-				element.object_id,
-				(class_name, variable) => {
-					this.inspectorProvider.fill_tree(
-						element.label,
-						class_name,
-						element.object_id,
-						variable
-					);
-				},
-			]);
-		} else if (element instanceof RemoteProperty) {
-			this.notify("inspect_object", [
-				element.object_id,
-				(class_name, properties) => {
-					this.inspectorProvider.fill_tree(
-						element.label,
-						class_name,
-						element.object_id,
-						properties
-					);
-				},
-			]);
-		}
+		this.debugger.session?.controller.request_inspect_object(BigInt(element.object_id));
+		this.debugger.session?.inspect_callbacks.set(
+			BigInt(element.object_id),
+			(class_name, variable) => {
+				this.inspectorProvider.fill_tree(
+					element.label,
+					class_name,
+					element.object_id,
+					variable
+				);
+			},
+		);
 	}
 
 	public refreshSceneTree() {
-		this.notify("request_scene_tree", []);
+		this.debugger.session?.controller.request_scene_tree();
 	}
 
 	public refreshInspector() {
 		if (this.inspectorProvider.has_tree()) {
 			const name = this.inspectorProvider.get_top_name();
 			const id = this.inspectorProvider.get_top_id();
-			this.notify("inspect_object", [
-				id,
-				(class_name, properties) => {
-					this.inspectorProvider.fill_tree(name, class_name, id, properties);
+
+			this.debugger.session?.controller.request_inspect_object(BigInt(id));
+			this.debugger.session?.inspect_callbacks.set(
+				BigInt(id),
+				(class_name, variable) => {
+					this.inspectorProvider.fill_tree(
+						name,
+						class_name,
+						id,
+						variable
+					);
 				},
-			]);
+			);
 		}
 	}
 
@@ -126,30 +114,34 @@ export class GodotDebugManager {
 						property,
 						new_parsed_value
 					);
-					this.notify("changed_value", [
-						property.object_id,
+					this.debugger.session?.controller.set_object_property(
+						BigInt(property.object_id),
 						parents[idx].label,
 						changed_value,
-					]);
+					);
 				} else {
-					this.notify("changed_value", [
-						property.object_id,
+					this.debugger.session?.controller.set_object_property(
+						BigInt(property.object_id),
 						property.label,
 						new_parsed_value,
-					]);
+					);
 				}
 
-				this.notify("inspect_object", [
-					this.inspectorProvider.get_top_id(),
-					(class_name, properties) => {
+				const name = this.inspectorProvider.get_top_name();
+				const id = this.inspectorProvider.get_top_id();
+
+				this.debugger.session?.controller.request_inspect_object(BigInt(id));
+				this.debugger.session?.inspect_callbacks.set(
+					BigInt(id),
+					(class_name, variable) => {
 						this.inspectorProvider.fill_tree(
-							this.inspectorProvider.get_top_name(),
+							name,
 							class_name,
-							this.inspectorProvider.get_top_id(),
-							properties
+							id,
+							variable
 						);
 					},
-				]);
+				);
 			});
 	}
 }

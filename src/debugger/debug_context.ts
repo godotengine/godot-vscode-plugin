@@ -55,32 +55,6 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory {
 		this.session.dispose();
 		this.session = undefined;
 	}
-
-	public notify(event: string, parameters: any[] = []) {
-		switch (event) {
-			case "request_scene_tree":
-				this.session?.controller.request_scene_tree();
-				break;
-			case "inspect_object":
-				this.session?.controller.request_inspect_object(parameters[0]);
-				if (parameters[1]) {
-					this.session?.inspect_callbacks.set(parameters[0], parameters[1]);
-				}
-				break;
-			case "continue":
-				this.session?.controller.continue();
-				break;
-			case "next":
-				this.session?.controller.next();
-				break;
-			case "step":
-				this.session?.controller.step();
-				break;
-			case "step_out":
-				this.session?.controller.step_out();
-				break;
-		}
-	}
 }
 
 class GodotConfigurationProvider implements DebugConfigurationProvider {
