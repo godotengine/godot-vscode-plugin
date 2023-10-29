@@ -225,7 +225,7 @@ export class ClientConnectionManager {
 				// vscode.window.showInformationMessage("Initializing LSP");
 				break;
 			case ManagerStatus.PENDING:
-				// vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${lsp_target}`);
+				// vscode.window.showInformationMessage(`Connecting to the GDScript language server at ${lspTarget}`);
 				break;
 			case ManagerStatus.CONNECTED: {
 				const message = `Connected to the GDScript language server at ${lspTarget}.`;
@@ -333,9 +333,9 @@ export class ClientConnectionManager {
 	}
 
 	private retry_connect_client() {
-		const auto_retry = get_configuration("lsp.autoReconnect.enabled");
-		const max_attempts = get_configuration("lsp.autoReconnect.attempts");
-		if (auto_retry && this.reconnectionAttempts <= max_attempts - 1) {
+		const autoRetry = get_configuration("lsp.autoReconnect.enabled");
+		const maxAttempts = get_configuration("lsp.autoReconnect.attempts");
+		if (autoRetry && this.reconnectionAttempts <= maxAttempts - 1) {
 			this.reconnectionAttempts++;
 			this.client.connect_to_server(this.target);
 			this.retry = true;
@@ -346,8 +346,8 @@ export class ClientConnectionManager {
 		this.status = ManagerStatus.DISCONNECTED;
 		this.update_status_widget();
 
-		const lsp_target = this.get_lsp_connection_string();
-		let message = `Couldn't connect to the GDScript language server at ${lsp_target}. Is the Godot editor or language server running?`;
+		const lspTarget = this.get_lsp_connection_string();
+		let message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
 		vscode.window.showErrorMessage(message, "Retry", "Ignore").then(item => {
 			if (item == "Retry") {
 				this.connect_to_language_server();
