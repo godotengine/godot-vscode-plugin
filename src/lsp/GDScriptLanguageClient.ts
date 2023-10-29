@@ -1,10 +1,10 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
-import { LanguageClient, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
+import { LanguageClient, RequestMessage, ResponseMessage, integer } from "vscode-languageclient/node";
 import { createLogger } from "../logger";
 import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
-import NativeDocumentManager from './NativeDocumentManager';
+import { NativeDocumentManager } from './NativeDocumentManager';
 
 const log = createLogger("lsp.client");
 
@@ -13,10 +13,15 @@ export enum ClientStatus {
 	DISCONNECTED,
 	CONNECTED,
 }
+
+export enum TargetLSP {
+	HEADLESS,
+	EDITOR,
+}
+
 const CUSTOM_MESSAGE = "gdscript_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
-
 	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private context: vscode.ExtensionContext;
@@ -27,7 +32,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private message_handler: MessageHandler = null;
 	private native_doc_manager: NativeDocumentManager = null;
 
+	public target: TargetLSP = TargetLSP.EDITOR;
+
 	public port: number = -1;
+	public lastPortTried: number = -1;
 	public sentMessages = new Map();
 	public lastSymbolHovered: string = "";
 
@@ -83,14 +91,26 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.native_doc_manager = new NativeDocumentManager(this.io);
 	}
 
-	connect_to_server() {
+	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
+		this.target = target;
 		this.status = ClientStatus.PENDING;
-		const host = get_configuration("lsp.serverHost");
+
 		let port = get_configuration("lsp.serverPort");
 		if (this.port !== -1) {
 			port = this.port;
 		}
-		log.info(`attempting to connect to LSP at port ${port}`);
+
+		if (this.target == TargetLSP.EDITOR) {
+			if (port === 6005 || port === 6008) {
+				port = 6005;
+			}
+		}
+
+		this.lastPortTried = port;
+
+		const host = get_configuration("lsp.serverHost");
+		log.info(`attempting to connect to LSP at ${host}:${port}`);
+
 		this.io.connect_to_language_server(host, port);
 	}
 
@@ -100,7 +120,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: RequestMessage) {
-		log.debug("tx: " + JSON.stringify(message));
+		log.debug("tx:", message);
 
 		this.sentMessages.set(message.id, message.method);
 
@@ -111,7 +131,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private on_message(message: ResponseMessage) {
 		const msgString = JSON.stringify(message);
-		log.debug("rx: " + msgString);
+		log.debug("rx:", message);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
@@ -178,6 +198,21 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_disconnected() {
+		if (this.target == TargetLSP.EDITOR) {
+			const host = get_configuration("lsp.serverHost");
+			let port = get_configuration("lsp.serverPort");
+
+			if (port === 6005 || port === 6008) {
+				if (this.lastPortTried === 6005) {
+					port = 6008;
+					log.info(`attempting to connect to LSP at ${host}:${port}`);
+
+					this.lastPortTried = port;
+					this.io.connect_to_language_server(host, port);
+					return;
+				}
+			}
+		}
 		this.status = ClientStatus.DISCONNECTED;
 	}
 }
