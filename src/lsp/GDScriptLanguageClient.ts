@@ -1,12 +1,12 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
 import { LanguageClient, RequestMessage, ResponseMessage, integer } from "vscode-languageclient/node";
-import { createLogger } from "../logger";
+import { createLogger, LOG_LEVEL } from "../logger";
 import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from './NativeDocumentManager';
 
-const log = createLogger("lsp.client");
+const log = createLogger("lsp.client", LOG_LEVEL.SILENT);
 
 export enum ClientStatus {
 	PENDING,
