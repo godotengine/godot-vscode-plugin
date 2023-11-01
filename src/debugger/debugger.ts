@@ -13,8 +13,8 @@ export class GodotDebugManager {
 	public debugger: GodotDebugger;
 
 	constructor(context: ExtensionContext) {
-		window.registerTreeDataProvider("inspect-node", this.inspectorProvider);
-		window.registerTreeDataProvider("active-scene-tree", this.sceneTreeProvider);
+		window.registerTreeDataProvider("inspectNode", this.inspectorProvider);
+		window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider);
 
 		this.debugger = new GodotDebugger(context, this.sceneTreeProvider);
 

@@ -433,11 +433,11 @@
 		"views": {
 			"debug": [
 				{
-					"id": "active-scene-tree",
+					"id": "activeSceneTree",
 					"name": "Active Scene Tree"
 				},
 				{
-					"id": "inspect-node",
+					"id": "inspectNode",
 					"name": "Inspector"
 				}
 			],
@@ -490,12 +490,12 @@
 			"view/title": [
 				{
 					"command": "godotTools.debugger.refreshSceneTree",
-					"when": "view == active-scene-tree",
+					"when": "view == activeSceneTree",
 					"group": "navigation"
 				},
 				{
 					"command": "godotTools.debugger.refreshInspector",
-					"when": "view == inspect-node",
+					"when": "view == inspectNode",
 					"group": "navigation"
 				},
 				{
@@ -512,17 +512,17 @@
 			"view/item/context": [
 				{
 					"command": "godotTools.debugger.inspectNode",
-					"when": "view == active-scene-tree",
+					"when": "view == activeSceneTree",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.debugger.inspectNode",
-					"when": "view == inspect-node && viewItem == remote_object",
+					"when": "view == inspectNode && viewItem == remote_object",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.debugger.editValue",
-					"when": "view == inspect-node && viewItem == editable_value",
+					"when": "view == inspectNode && viewItem == editable_value",
 					"group": "inline"
 				},
 				{
