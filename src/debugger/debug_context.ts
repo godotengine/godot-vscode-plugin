@@ -63,18 +63,20 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 		config: DebugConfiguration,
 		token?: CancellationToken
 	): ProviderResult<DebugConfiguration> {
-		if (!config.type && !config.request && !config.name) {
-			const editor = window.activeTextEditor;
-			if (editor && fs.existsSync(`${folder.uri.fsPath}/project.godot`)) {
-				config.type = "godot";
-				config.name = "Debug Godot";
-				config.request = "launch";
-				config.project = "${workspaceFolder}";
-				config.port = 6007;
-				config.address = "127.0.0.1";
-				config.additional_options = "";
-			}
-		}
+		// TODO: rewrite this
+		// if (!config.type && !config.request && !config.name) {
+		// 	const editor = window.activeTextEditor;
+		// 	// TODO: this check is wrong
+		// 	if (editor && fs.existsSync(`${folder.uri.fsPath}/project.godot`)) {
+		// 		config.type = "godot";
+		// 		config.name = "Debug Godot";
+		// 		config.request = "launch";
+		// 		config.project = "${workspaceFolder}";
+		// 		config.port = 6007;
+		// 		config.address = "127.0.0.1";
+		// 		config.additional_options = "";
+		// 	}
+		// }
 
 		// request is actually a required field according to vscode
 		// however, setting it here lets us catch a possible user misconfiguration
