@@ -164,8 +164,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.lastSymbolHovered = "";
 		set_context("typeFound", false);
 
-		let decl: string = message.result["contents"].value;
-		decl = decl.split('\n')[0].trim();
+		let decl: string = message?.result["contents"]?.value;
+		if (!decl) {
+			return;
+		}
+		decl = decl.split("\n")[0].trim();
 
 		// strip off the value
 		if (decl.includes("=")) {
