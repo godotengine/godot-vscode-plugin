@@ -94,15 +94,16 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 			}
 		}
 
-		if (config.request === "launch" && !config.project) {
-			return window
-				.showInformationMessage(
-					"Cannot find a project.godot in active workspace."
-				)
-				.then(() => {
-					return undefined;
-				});
-		}
+		// TODO: rewrite this
+		// if (config.request === "launch" && !config.project) {
+		// 	return window
+		// 		.showInformationMessage(
+		// 			"Cannot find a project.godot in active workspace."
+		// 		)
+		// 		.then(() => {
+		// 			return undefined;
+		// 		});
+		// }
 		return config;
 	}
 }
