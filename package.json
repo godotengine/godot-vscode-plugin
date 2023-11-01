@@ -448,6 +448,20 @@
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "activeSceneTree",
+				"contents": "Scene Tree data has not been requested"
+			},
+			{
+				"view": "inspectNode",
+				"contents": "Node has not been inspected"
+			},
+			{
+				"view": "scenePreview",
+				"contents": "Open a Scene to see a preview of its structure"
+			}
+		],
 		"menus": {
 			"commandPalette": [
 				{
