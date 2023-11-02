@@ -13,13 +13,12 @@ export class GodotDebugManager {
 	public debugger: GodotDebugger;
 
 	constructor(context: ExtensionContext) {
-		window.registerTreeDataProvider("inspectNode", this.inspectorProvider);
-		window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider);
-
 		this.debugger = new GodotDebugger(context, this.sceneTreeProvider);
 
 		context.subscriptions.push(
 			this.debugger,
+			window.registerTreeDataProvider("inspectNode", this.inspectorProvider),
+			window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider),
 			commands.registerCommand("godotTools.debugger.inspectNode", this.inspectNode.bind(this)),
 			commands.registerCommand("godotTools.debugger.refreshSceneTree", this.refreshSceneTree.bind(this)),
 			commands.registerCommand("godotTools.debugger.refreshInspector", this.refreshInspector.bind(this)),
