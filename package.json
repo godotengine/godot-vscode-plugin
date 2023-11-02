@@ -43,34 +43,42 @@
 	"contributes": {
 		"commands": [
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.openEditor",
-				"title": "Godot Tools: Open workspace with Godot editor"
+				"title": "Open workspace with Godot editor"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.startLanguageServer",
-				"title": "Godot Tools: Start the GDScript Language Server for this workspace"
+				"title": "Start the GDScript Language Server for this workspace"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.stopLanguageServer",
-				"title": "Godot Tools: Stop the GDScript Language Server for this workspace"
+				"title": "Stop the GDScript Language Server for this workspace"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.runProject",
-				"title": "Godot Tools: Run workspace as Godot project"
+				"title": "Run workspace as Godot project"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.runProjectDebug",
-				"title": "Godot Tools: Run workspace as Godot project with visible collision shapes and navigation meshes"
+				"title": "Run workspace as Godot project with visible collision shapes and navigation meshes"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.listNativeClasses",
-				"title": "Godot Tools: List native classes of godot"
+				"title": "List native classes of godot"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.openTypeDocumentation",
-				"title": "Godot Tools: Open Type Documentation"
+				"title": "Open Type Documentation"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.debugger.inspectNode",
 				"title": "Inspect Remote Node",
 				"icon": {
@@ -79,6 +87,7 @@
 				}
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.debugger.refreshSceneTree",
 				"title": "Refresh",
 				"icon": {
@@ -87,6 +96,7 @@
 				}
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.debugger.refreshInspector",
 				"title": "Refresh",
 				"icon": {
@@ -95,6 +105,7 @@
 				}
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.debugger.editValue",
 				"title": "Edit value",
 				"icon": {
@@ -103,54 +114,66 @@
 				}
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.refresh",
-				"title": "Godot Tools: Refresh Scene Preview"
+				"title": "Refresh Scene Preview"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.pin",
 				"title": "Pin Scene Preview",
 				"icon": "resources/pin_off.svg"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.unpin",
 				"title": "Unpin Scene Preview",
 				"icon": "resources/pin_on.svg"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.goToDefinition",
 				"title": "Go to Definition"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.copyNodePath",
 				"title": "Copy Node Path"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.copyResourcePath",
 				"title": "Copy Resource Path"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.openScene",
 				"title": "Open Scene"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.openScript",
 				"title": "Open Script"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.switchSceneScript",
-				"title": "Godot Tools: Switch Scene/Script"
+				"title": "Switch Scene/Script"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.setSceneFile",
 				"title": "Set as Scene File"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePathContext",
 				"title": "Copy Resource Path"
 			},
 			{
+				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePath",
-				"title": "Godot Tools: Copy Resource Path"
+				"title": "Copy Resource Path"
 			}
 		],
 		"keybindings": [
@@ -496,7 +519,27 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.copyResourcePath",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.copyResourcePathContext",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.editValue",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.inspectNode",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.refreshSceneTree",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.refreshInspector",
 					"when": "false"
 				}
 			],
