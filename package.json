@@ -26,8 +26,7 @@
 	],
 	"activationEvents": [
 		"workspaceContains:project.godot",
-		"onDebugResolve:godot3",
-		"onDebugResolve:godot4"
+		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
 	"scripts": {
