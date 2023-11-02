@@ -298,6 +298,17 @@
 				"configuration": "./configurations/gdscript-configuration.json"
 			},
 			{
+				"id": "gdscene",
+				"aliases": [
+					"GDScene",
+					"gdscene"
+				],
+				"extensions": [
+					"tscn"
+				],
+				"configuration": "./configurations/gdresource-configuration.json"
+			},
+			{
 				"id": "gdresource",
 				"aliases": [
 					"GDResource",
@@ -306,7 +317,6 @@
 				"extensions": [
 					"godot",
 					"tres",
-					"tscn",
 					"import",
 					"gdns",
 					"gdnlib"
