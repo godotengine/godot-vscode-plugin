@@ -618,11 +618,15 @@
 			"explorer/context": [
 				{
 					"command": "godotTools.setSceneFile",
-					"group": "2_workspace"
+					"group": "2_workspace",
+					"when": "resourceLangId == gdscene"
 				},
 				{
 					"command": "godotTools.copyResourcePathContext",
-					"group": "6_copypath"
+					"group": "6_copypath",
+					"when": "resourceLangId == gdscript || resourceLangId == gdscene || resourceLangId == gdresource || resourceLangId == gdshader"
+				}
+			],
 				}
 			],
 			"editor/title/context": [
