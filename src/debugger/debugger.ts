@@ -1,4 +1,4 @@
-import { ExtensionContext, window, commands } from "vscode";
+import { ExtensionContext, window, commands, Uri, debug, workspace } from "vscode";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { GodotDebugger } from "./debug_context";
@@ -23,7 +23,15 @@ export class GodotDebugManager {
 			commands.registerCommand("godotTools.debugger.refreshSceneTree", this.refreshSceneTree.bind(this)),
 			commands.registerCommand("godotTools.debugger.refreshInspector", this.refreshInspector.bind(this)),
 			commands.registerCommand("godotTools.debugger.editValue", this.editValue.bind(this)),
+			commands.registerCommand("godotTools.debugCurrentFile", this.debugCurrentFile.bind(this)),
 		);
+	}
+
+	public debugCurrentFile(uri: Uri) {
+		log.debug("debugCurrentFile", uri);
+		const configs = workspace.getConfiguration("launch", workspace.workspaceFolders[0].uri).get("configurations");
+		// log.debug(configs);
+		debug.startDebugging(workspace.workspaceFolders[0], configs[0]);
 	}
 
 	public inspectNode(element: SceneNode | RemoteProperty) {
