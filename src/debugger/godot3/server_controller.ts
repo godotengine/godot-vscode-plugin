@@ -11,7 +11,6 @@ import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node } from "./helpers";
 import { debug, window } from "vscode";
 import net = require("net");
-import { Command } from "../command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
@@ -23,6 +22,14 @@ import {
 } from "./debug_session";
 
 const log = createLogger("debugger.controller");
+
+class Command {
+	public command: string = "";
+	public param_count: number = -1;
+	public parameters: any[] = [];
+	public complete: boolean = false;
+	public threadId: number = 0;
+}
 
 export class ServerController {
 	public session?: GodotDebugSession;
