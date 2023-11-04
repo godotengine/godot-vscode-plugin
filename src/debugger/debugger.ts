@@ -16,7 +16,6 @@ export class GodotDebugManager {
 		this.debugger = new GodotDebugger(context, this.sceneTreeProvider);
 
 		context.subscriptions.push(
-			this.debugger,
 			window.registerTreeDataProvider("inspectNode", this.inspectorProvider),
 			window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider),
 			commands.registerCommand("godotTools.debugger.inspectNode", this.inspectNode.bind(this)),
