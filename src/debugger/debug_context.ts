@@ -10,54 +10,40 @@ import {
 	DebugSession,
 	CancellationToken,
 	ProviderResult,
-	window,
 } from "vscode";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import fs = require("fs");
 import { projectVersion } from "../utils";
 import { SceneTreeProvider } from "./scene_tree_provider";
 import { createLogger } from "../logger";
 
 const log = createLogger("debugger.context");
 
-export class GodotDebugger implements DebugAdapterDescriptorFactory {
-	public provider: GodotConfigurationProvider;
+export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
 	public session?: Godot3DebugSession | Godot4DebugSession;
 
 	constructor(
-		context: ExtensionContext,
-		private scene_tree_provider: SceneTreeProvider,
+		private context: ExtensionContext,
+		private sceneTreeProvider: SceneTreeProvider,
 	) {
-		this.provider = new GodotConfigurationProvider();
-
 		context.subscriptions.push(
-			debug.registerDebugConfigurationProvider("godot", this.provider),
+			debug.registerDebugConfigurationProvider("godot", this),
 			debug.registerDebugAdapterDescriptorFactory("godot", this),
-			this
 		);
 	}
 
-	public createDebugAdapterDescriptor(
-		session: DebugSession
-	): ProviderResult<DebugAdapterDescriptor> {
+	public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
 		if (projectVersion.startsWith("4")) {
 			this.session = new Godot4DebugSession();
 		} else {
 			this.session = new Godot3DebugSession();
 		}
+		this.context.subscriptions.push(this.session);
 
-		this.session.scene_tree = this.scene_tree_provider;
+		this.session.scene_tree = this.sceneTreeProvider;
 		return new DebugAdapterInlineImplementation(this.session);
 	}
 
-	public dispose() {
-		this.session.dispose();
-		this.session = undefined;
-	}
-}
-
-class GodotConfigurationProvider implements DebugConfigurationProvider {
 	public resolveDebugConfiguration(
 		folder: WorkspaceFolder | undefined,
 		config: DebugConfiguration,
