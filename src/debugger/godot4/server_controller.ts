@@ -159,11 +159,10 @@ export class ServerController {
 			socket.on("data", (buffer) => {
 				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					const sub_buffer = buffers.shift();
-					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					const subBuffer = buffers.shift();
+					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
 					log.debug("rx:", data[0]);
 					const command = this.parse_message(data[0]);
-
 					this.handle_command(command);
 				}
 			});
@@ -210,9 +209,11 @@ export class ServerController {
 			socket.on("data", (buffer) => {
 				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					const sub_buffer = buffers.shift();
-					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
-					this.parse_message(data);
+					const subBuffer = buffers.shift();
+					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
+					log.debug("rx:", data[0]);
+					const command = this.parse_message(data[0]);
+					this.handle_command(command);
 				}
 			});
 
@@ -288,16 +289,16 @@ export class ServerController {
 				properties.forEach((prop) => {
 					rawObject.set(prop[0], prop[5]);
 				});
-				const inspected_variable = { name: "", value: rawObject };
-				this.build_sub_values(inspected_variable);
+				const inspectedVariable = { name: "", value: rawObject };
+				this.build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
 					this.session.inspect_callbacks.get(BigInt(id))(
-						inspected_variable.name,
-						inspected_variable
+						inspectedVariable.name,
+						inspectedVariable
 					);
 					this.session.inspect_callbacks.delete(BigInt(id));
 				}
-				this.session.set_inspection(id, inspected_variable);
+				this.session.set_inspection(id, inspectedVariable);
 				break;
 			}
 			case "stack_dump": {

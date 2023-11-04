@@ -34,7 +34,6 @@ class Command {
 }
 
 export class ServerController {
-	public session?: GodotDebugSession;
 	private commandBuffer: Buffer[] = [];
 	private encoder = new VariantEncoder();
 	private decoder = new VariantDecoder();
@@ -46,9 +45,9 @@ export class ServerController {
 	private currentCommand: Command = undefined;
 	private didFirstOutput: boolean = false;
 
-	public constructor(session: GodotDebugSession) {
-		this.session = session;
-	}
+	public constructor(
+		public session: GodotDebugSession
+	) { }
 
 	public break() {
 		this.send_command("break");
@@ -112,7 +111,6 @@ export class ServerController {
 		this.send_command("get_stack_dump");
 	}
 
-
 	public start_game(args: LaunchRequestArguments) {
 		const godotPath: string = get_configuration("editorPath.godot3", "godot3");
 		const force_visible_collision_shapes = get_configuration("forceVisibleCollisionShapes", false);
@@ -149,12 +147,6 @@ export class ServerController {
 		debugProcess.stdout.on("data", (data) => { });
 		debugProcess.stderr.on("data", (data) => { });
 		debugProcess.on("close", (code) => { });
-
-		// const godot_exec = cp.exec(command, (error) => {
-		// 	if (!this.terminated) {
-		// 		window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-		// 	}
-		// });
 	}
 
 	public async launch(args: LaunchRequestArguments) {
@@ -166,8 +158,8 @@ export class ServerController {
 			socket.on("data", (buffer) => {
 				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					const sub_buffer = buffers.shift();
-					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					const subBuffer = buffers.shift();
+					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
 					this.parse_message(data);
 				}
 			});
@@ -214,8 +206,8 @@ export class ServerController {
 			socket.on("data", (buffer) => {
 				const buffers = this.split_buffers(buffer);
 				while (buffers.length > 0) {
-					const sub_buffer = buffers.shift();
-					const data = this.decoder.get_dataset(sub_buffer, 0).slice(1);
+					const subBuffer = buffers.shift();
+					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
 					this.parse_message(data);
 				}
 			});
@@ -385,14 +377,14 @@ export class ServerController {
 				if (this.session.debug_data.stack_count > 1) {
 					continueStepping = this.session.debug_data.stack_count === stackCount;
 				} else {
-					const file_same =
+					const fileSame =
 						stackFrames[0].file === this.session.debug_data.last_frame.file;
-					const func_same =
+					const funcSame =
 						stackFrames[0].function === this.session.debug_data.last_frame.function;
-					const line_greater =
+					const lineGreater =
 						stackFrames[0].line >= this.session.debug_data.last_frame.line;
 
-					continueStepping = file_same && func_same && line_greater;
+					continueStepping = fileSame && funcSame && lineGreater;
 				}
 			}
 		}
@@ -423,12 +415,7 @@ export class ServerController {
 	}
 
 	private send_command(command: string, parameters?: any[]) {
-		const commandArray: any[] = [command];
-		if (parameters) {
-			parameters.forEach((param) => {
-				commandArray.push(param);
-			});
-		}
+		const commandArray: any[] = [command, parameters ?? []];
 		log.debug("tx:", commandArray);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
@@ -451,10 +438,10 @@ export class ServerController {
 		let offset = 0;
 		const buffers: Buffer[] = [];
 		while (len > 0) {
-			const sub_len = buffer.readUInt32LE(offset) + 4;
-			buffers.push(buffer.slice(offset, offset + sub_len));
-			offset += sub_len;
-			len -= sub_len;
+			const subLength = buffer.readUInt32LE(offset) + 4;
+			buffers.push(buffer.slice(offset, offset + subLength));
+			offset += subLength;
+			len -= subLength;
 		}
 
 		return buffers;
