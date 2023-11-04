@@ -1,6 +1,3 @@
-export { VariantEncoder } from "./variant_encoder";
-export { VariantDecoder } from "./variant_decoder";
-
 import { GodotVariable } from "../../debug_runtime";
 
 export enum GDScriptTypes {
@@ -65,7 +62,7 @@ export class Vector3 implements GDObject {
 		public x: number = 0.0,
 		public y: number = 0.0,
 		public z: number = 0.0
-	) { }
+	) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.x)}, ${clean_number(this.y)}, ${clean_number(
@@ -87,7 +84,7 @@ export class Vector3 implements GDObject {
 }
 
 export class Vector2 implements GDObject {
-	constructor(public x: number = 0.0, public y: number = 0.0) { }
+	constructor(public x: number = 0.0, public y: number = 0.0) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.x)}, ${clean_number(this.y)})`;
@@ -106,7 +103,7 @@ export class Vector2 implements GDObject {
 }
 
 export class Basis implements GDObject {
-	constructor(public x: Vector3, public y: Vector3, public z: Vector3) { }
+	constructor(public x: Vector3, public y: Vector3, public z: Vector3) {}
 
 	public stringify_value(): string {
 		return `(${this.x.stringify_value()}, ${this.y.stringify_value()}, ${this.z.stringify_value()})`;
@@ -126,7 +123,7 @@ export class Basis implements GDObject {
 }
 
 export class AABB implements GDObject {
-	constructor(public position: Vector3, public size: Vector3) { }
+	constructor(public position: Vector3, public size: Vector3) {}
 
 	public stringify_value(): string {
 		return `(${this.position.stringify_value()}, ${this.size.stringify_value()})`;
@@ -150,7 +147,7 @@ export class Color implements GDObject {
 		public g: number,
 		public b: number,
 		public a: number = 1.0
-	) { }
+	) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.r)}, ${clean_number(this.g)}, ${clean_number(
@@ -177,7 +174,7 @@ export class NodePath implements GDObject {
 		public names: string[],
 		public sub_names: string[],
 		public absolute: boolean
-	) { }
+	) {}
 
 	public stringify_value(): string {
 		return `(/${this.names.join("/")}${
@@ -205,7 +202,7 @@ export class RawObject extends Map<any, any> {
 }
 
 export class ObjectId implements GDObject {
-	constructor(public id: bigint) { }
+	constructor(public id: bigint) {}
 
 	public stringify_value(): string {
 		return `<${this.id}>`;
@@ -226,7 +223,7 @@ export class Plane implements GDObject {
 		public y: number,
 		public z: number,
 		public d: number
-	) { }
+	) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.x)}, ${clean_number(this.y)}, ${clean_number(
@@ -254,7 +251,7 @@ export class Quat implements GDObject {
 		public y: number,
 		public z: number,
 		public w: number
-	) { }
+	) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.x)}, ${clean_number(this.y)}, ${clean_number(
@@ -277,7 +274,7 @@ export class Quat implements GDObject {
 }
 
 export class Rect2 implements GDObject {
-	constructor(public position: Vector2, public size: Vector2) { }
+	constructor(public position: Vector2, public size: Vector2) {}
 
 	public stringify_value(): string {
 		return `(${this.position.stringify_value()} - ${this.size.stringify_value()})`;
@@ -296,7 +293,7 @@ export class Rect2 implements GDObject {
 }
 
 export class Transform implements GDObject {
-	constructor(public basis: Basis, public origin: Vector3) { }
+	constructor(public basis: Basis, public origin: Vector3) {}
 
 	public stringify_value(): string {
 		return `(${this.basis.stringify_value()} - ${this.origin.stringify_value()})`;
@@ -315,7 +312,7 @@ export class Transform implements GDObject {
 }
 
 export class Transform2D implements GDObject {
-	constructor(public origin: Vector2, public x: Vector2, public y: Vector2) { }
+	constructor(public origin: Vector2, public x: Vector2, public y: Vector2) {}
 
 	public stringify_value(): string {
 		return `(${this.origin.stringify_value()} - (${this.x.stringify_value()}, ${this.y.stringify_value()})`;

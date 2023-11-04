@@ -1,8 +1,6 @@
-import {
-	VariantEncoder,
-	VariantDecoder,
-	RawObject
-} from "./variables/variants";
+import { VariantEncoder } from "./variables/variant_encoder";
+import { VariantDecoder } from "./variables/variant_decoder";
+import { RawObject } from "./variables/variants";
 import {
 	GodotStackFrame,
 	GodotVariable,
