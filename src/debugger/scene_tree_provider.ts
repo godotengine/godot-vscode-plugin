@@ -7,7 +7,6 @@ import {
 	TreeItemCollapsibleState,
 } from "vscode";
 import path = require("path");
-import fs = require("fs");
 
 export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	private _on_did_change_tree_data: EventEmitter<
