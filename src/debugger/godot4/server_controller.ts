@@ -16,7 +16,6 @@ import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
-import path = require("path");
 import { createLogger } from "../../logger";
 import {
 	LaunchRequestArguments,
