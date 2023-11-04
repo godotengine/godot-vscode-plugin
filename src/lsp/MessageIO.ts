@@ -86,6 +86,7 @@ export class TCPMessageIO extends MessageIO {
 			socket.on('data', this.on_message.bind(this));
 			socket.on('end', this.on_disconnected.bind(this));
 			socket.on('close', this.on_disconnected.bind(this));
+			socket.on('error', this.on_error.bind(this));
 		});
 	}
 
@@ -97,6 +98,10 @@ export class TCPMessageIO extends MessageIO {
 	protected on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');
+	}
+
+	protected on_error(error) {
+		// TODO: handle errors?
 	}
 }
 
