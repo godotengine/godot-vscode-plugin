@@ -159,7 +159,7 @@ export class ClientConnectionManager {
 
 		const headlessFlags = "--headless --no-window";
 		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
-		const lspProcess = subProcess("LSP", command, { shell: true });
+		const lspProcess = subProcess("LSP", command, { shell: true, detached: true });
 
 		const lspStdout = createLogger("lsp.stdout");
 		lspProcess.stdout.on('data', (data) => {
