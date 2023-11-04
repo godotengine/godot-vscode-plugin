@@ -6,6 +6,9 @@ I had to vendor this library to fix the API in a couple places.
 */
 
 import { ChildProcess, execSync, spawn, SpawnOptions } from "child_process";
+import { createLogger } from "../logger";
+
+const log = createLogger("subspawn");
 
 interface DictionaryOfStringChildProcessArray {
 	[key: string]: ChildProcess[];
@@ -27,7 +30,7 @@ export function killSubProcesses(owner: string) {
 				}
 			}
 		} catch {
-			console.log(`couldn't kill task ${owner}`);
+			log.error(`couldn't kill task ${owner}`);
 		}
 	});
 
