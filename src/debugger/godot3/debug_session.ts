@@ -205,7 +205,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	) {
 		log.debug("scopesRequest", args);
 		this.controller.request_stack_frame_vars(args.frameId);
-		await this.got_scope.wait(1000);
+		await this.got_scope.wait(2000);
 
 		response.body = {
 			scopes: [
@@ -416,7 +416,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.append_variable(va);
 		});
 
-		// this.add_to_inspections();
+		this.add_to_inspections();
 
 		if (this.ongoing_inspections.length === 0) {
 			this.previous_inspections = [];
@@ -454,7 +454,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		// log.debug("add_to_inspections", this.all_scopes);
+		log.debug("add_to_inspections");
 		this.all_scopes.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
