@@ -272,14 +272,14 @@ export class ServerController {
 			}
 			case "scene:inspect_object": {
 				const id = BigInt(command.parameters[0]);
-				const class_name: string = command.parameters[1];
+				const className: string = command.parameters[1];
 				const properties: any[] = command.parameters[2];
 
-				const raw_object = new RawObject(class_name);
+				const rawObject = new RawObject(className);
 				properties.forEach((prop) => {
-					raw_object.set(prop[0], prop[5]);
+					rawObject.set(prop[0], prop[5]);
 				});
-				const inspected_variable = { name: "", value: raw_object };
+				const inspected_variable = { name: "", value: rawObject };
 				this.build_sub_values(inspected_variable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
 					this.session.inspect_callbacks.get(BigInt(id))(
