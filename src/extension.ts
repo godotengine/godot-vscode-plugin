@@ -5,7 +5,7 @@ import { attemptSettingsUpdate } from "./settings_updater";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import { GodotDebugManager } from "./debugger/debugger";
+import { GodotDebugManager } from "./debugger/debug_manager";
 import {
 	get_configuration,
 	set_configuration,
