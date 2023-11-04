@@ -55,6 +55,15 @@ export class ServerController {
 		this.send_command("next");
 	}
 
+	public step() {
+		this.send_command("step");
+	}
+
+	public step_out() {
+		this.stepping_out = true;
+		this.send_command("next");
+	}
+
 	public remove_breakpoint(path_to: string, line: number) {
 		this.debug_data.remove_breakpoint(path_to, line);
 		this.send_command("breakpoint", [path_to, line, false]);
@@ -349,15 +358,6 @@ export class ServerController {
 				break;
 			}
 		}
-	}
-
-	public step() {
-		this.send_command("step");
-	}
-
-	public step_out() {
-		this.stepping_out = true;
-		this.send_command("next");
 	}
 
 	public stop() {
