@@ -4,10 +4,10 @@ import {
 	RawObject
 } from "./variables/variants";
 import {
-	GodotBreakpoint,
 	GodotStackFrame,
 	GodotVariable,
 	GodotStackVars,
+	get_breakpoint_string,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node } from "./helpers";
@@ -137,7 +137,7 @@ export class ServerController {
 		if (args.additional_options) {
 			command += " " + args.additional_options;
 		}
-		command += this.breakpoint_string(
+		command += get_breakpoint_string(
 			this.session.debug_data.get_all_breakpoints(),
 			args.project
 		);
@@ -417,27 +417,6 @@ export class ServerController {
 				new StoppedEvent("exception", 0, this.exception)
 			);
 		}
-	}
-
-	private breakpoint_path(projectPath: string, file: string) {
-		const relativePath = path.relative(projectPath, file).replace(/\\/g, "/");
-		if (relativePath.length !== 0) {
-			return `res://${relativePath}`;
-		}
-		return undefined;
-	}
-
-	private breakpoint_string(breakpoints: GodotBreakpoint[], projectPath: string) {
-		let output = "";
-		if (breakpoints.length > 0) {
-			output += " --breakpoints ";
-			breakpoints.forEach((bp, i) => {
-				output += `${this.breakpoint_path(projectPath, bp.file)}:${bp.line}${i < breakpoints.length - 1 ? "," : ""
-					}`;
-			});
-		}
-
-		return output;
 	}
 
 	private send_command(command: string, parameters?: any[]) {

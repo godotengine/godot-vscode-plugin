@@ -10,6 +10,29 @@ export interface GodotBreakpoint {
 	line: number;
 }
 
+export function get_breakpoint_path(projectPath: string, file: string) {
+	const relativePath = path.relative(projectPath, file).replace(/\\/g, "/");
+	if (relativePath.length !== 0) {
+		return `res://${relativePath}`;
+	}
+	return undefined;
+}
+
+export function get_breakpoint_string(breakpoints: GodotBreakpoint[], projectPath: string) {
+	let output = "";
+	if (breakpoints.length > 0) {
+		output += " --breakpoints ";
+		breakpoints.forEach((bp, i) => {
+			output += `${get_breakpoint_path(projectPath, bp.file)}:${bp.line}`;
+			if (i < breakpoints.length - 1) {
+				output += ",";
+			}
+		});
+	}
+
+	return output;
+}
+
 export interface GodotStackFrame {
 	file: string;
 	function: string;
