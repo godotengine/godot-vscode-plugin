@@ -413,8 +413,8 @@ export class ServerController {
 		}
 	}
 
-	private send_command(command: string, parameters?: any[]) {
-		const commandArray: any[] = [command, parameters ?? []];
+	private send_command(command: string, parameters: any[] = []) {
+		const commandArray: any[] = [command, ...parameters];
 		log.debug("tx:", commandArray);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
@@ -479,7 +479,7 @@ export class ServerController {
 
 		subValues?.forEach((sva) => this.build_sub_values(sva));
 	}
-	
+
 	private do_stack_frame_vars(parameters: any[]) {
 		log.debug("do_stack_frame_vars", parameters);
 
