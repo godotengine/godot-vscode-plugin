@@ -104,7 +104,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.debug_data.project_path = args.project;
 		this.exception = false;
-		this.controller.launch(args, this.debug_data);
+		await this.controller.launch(args);
 
 		this.sendResponse(response);
 	}
@@ -119,7 +119,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.mode = "attach";
 
 		this.exception = false;
-		this.controller.attach(args, this.debug_data);
+		await this.controller.attach(args);
 
 		this.sendResponse(response);
 	}

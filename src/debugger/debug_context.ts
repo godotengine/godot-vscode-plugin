@@ -89,7 +89,7 @@ class GodotConfigurationProvider implements DebugConfigurationProvider {
 				config.address = "127.0.0.1";
 			}
 			if (!config.port) {
-				config.port = 6006;
+				config.port = -1;
 			}
 			if (!config.project) {
 				config.project = "${workspaceFolder}";

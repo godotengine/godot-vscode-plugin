@@ -4,7 +4,6 @@ import { RawObject } from "./variables/variants";
 import {
 	GodotBreakpoint,
 	GodotStackFrame,
-	GodotDebugData,
 	GodotVariable,
 	GodotStackVars,
 } from "../debug_runtime";
@@ -14,7 +13,7 @@ import { debug, window } from "vscode";
 import net = require("net");
 import { Command } from "../command";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import utils = require("../../utils");
+import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import path = require("path");
 import { createLogger } from "../../logger";
@@ -27,7 +26,6 @@ const log = createLogger("debugger.controller");
 
 export class ServerController {
 	private command_buffer: Buffer[] = [];
-	private debug_data: GodotDebugData;
 	private encoder = new VariantEncoder();
 	private decoder = new VariantDecoder();
 	private draining = false;
@@ -65,7 +63,7 @@ export class ServerController {
 	}
 
 	public remove_breakpoint(path_to: string, line: number) {
-		this.debug_data.remove_breakpoint(path_to, line);
+		this.session.debug_data.remove_breakpoint(path_to, line);
 		this.send_command("breakpoint", [path_to, line, false]);
 	}
 
@@ -105,16 +103,10 @@ export class ServerController {
 		this.send_command("get_stack_dump");
 	}
 
-	public launch(
-		args: LaunchRequestArguments,
-		debug_data: GodotDebugData
-	) {
-		log.info("launch");
-		this.debug_data = debug_data;
-
-		const godot_path: string = utils.get_configuration("editorPath.godot4", "godot4");
-		const force_visible_collision_shapes = utils.get_configuration("forceVisibleCollisionShapes", false);
-		const force_visible_nav_mesh = utils.get_configuration("forceVisibleNavMesh", false);
+	public start_game(args: LaunchRequestArguments) {
+		const godot_path: string = get_configuration("editorPath.godot4", "godot4");
+		const force_visible_collision_shapes = get_configuration("forceVisibleCollisionShapes", false);
+		const force_visible_nav_mesh = get_configuration("forceVisibleNavMesh", false);
 
 		let command = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
@@ -131,28 +123,26 @@ export class ServerController {
 		// } else {
 		// 	filename = window.activeTextEditor.document.fileName;
 		// }
-		// executable_line += ` "${filename}"`;
+		// command += ` "${filename}"`;
 
 		if (args.additional_options) {
 			command += " " + args.additional_options;
 		}
 		command += this.breakpoint_string(
-			debug_data.get_all_breakpoints(),
+			this.session.debug_data.get_all_breakpoints(),
 			args.project
 		);
 
-		log.debug("executable_line:", command);
+		log.debug("command:", command);
 		const debugProcess = subProcess("debug", command, { shell: true });
 
 		debugProcess.stdout.on("data", (data) => { });
 		debugProcess.stderr.on("data", (data) => { });
 		debugProcess.on("close", (code) => { });
+	}
 
-		// const godot_exec = cp.exec(executable_line, (error) => {
-		// 	if (!this.terminated) {
-		// 		window.showErrorMessage(`Failed to launch Godot instance: ${error}`);
-		// 	}
-		// });
+	public async launch(args: LaunchRequestArguments) {
+		log.info("launch");
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
@@ -195,15 +185,16 @@ export class ServerController {
 			});
 		});
 
+		if (args.port === -1) {
+			args.port = await get_free_port();
+		}
+
 		this.server.listen(args.port, args.address);
+
+		this.start_game(args);
 	}
 
-	public attach(
-		args: AttachRequestArguments,
-		debug_data: GodotDebugData
-	) {
-		this.debug_data = debug_data;
-
+	public async attach(args: AttachRequestArguments) {
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
@@ -343,16 +334,17 @@ export class ServerController {
 	}
 
 	public stop() {
+		log.debug("stop");
+		killSubProcesses("debug");
+
 		this.socket?.destroy();
 		this.server?.close((error) => {
 			if (error) {
-				console.log(error);
+				log.error(error);
 			}
 			this.server.unref();
 			this.server = undefined;
 		});
-
-		killSubProcesses("debug");
 	}
 
 	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
@@ -362,40 +354,40 @@ export class ServerController {
 		const stack_count = stack_frames.length;
 		if (stack_count === 0) {
 			// Engine code is being executed, no user stack trace
-			this.debug_data.last_frames = [];
+			this.session.debug_data.last_frames = [];
 			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 			return;
 		}
 
 		const file = stack_frames[0].file.replace(
 			"res://",
-			`${this.debug_data.project_path}/`
+			`${this.session.debug_data.project_path}/`
 		);
 		const line = stack_frames[0].line;
 
 		if (this.stepping_out) {
-			const breakpoint = this.debug_data
+			const breakpoint = this.session.debug_data
 				.get_breakpoints(file)
 				.find((bp) => bp.line === line);
 			if (!breakpoint) {
-				if (this.debug_data.stack_count > 1) {
-					continue_stepping = this.debug_data.stack_count === stack_count;
+				if (this.session.debug_data.stack_count > 1) {
+					continue_stepping = this.session.debug_data.stack_count === stack_count;
 				} else {
 					const file_same =
-						stack_frames[0].file === this.debug_data.last_frame.file;
+						stack_frames[0].file === this.session.debug_data.last_frame.file;
 					const func_same =
-						stack_frames[0].function === this.debug_data.last_frame.function;
+						stack_frames[0].function === this.session.debug_data.last_frame.function;
 					const line_greater =
-						stack_frames[0].line >= this.debug_data.last_frame.line;
+						stack_frames[0].line >= this.session.debug_data.last_frame.line;
 
 					continue_stepping = file_same && func_same && line_greater;
 				}
 			}
 		}
 
-		this.debug_data.stack_count = stack_count;
-		this.debug_data.last_frame = stack_frames[0];
-		this.debug_data.last_frames = stack_frames;
+		this.session.debug_data.stack_count = stack_count;
+		this.session.debug_data.last_frame = stack_frames[0];
+		this.session.debug_data.last_frames = stack_frames;
 
 		if (continue_stepping) {
 			this.next();
@@ -404,7 +396,7 @@ export class ServerController {
 
 		this.stepping_out = false;
 
-		this.debug_data.stack_files = stack_frames.map((sf) => {
+		this.session.debug_data.stack_files = stack_frames.map((sf) => {
 			return sf.file;
 		});
 
@@ -521,7 +513,7 @@ export class ServerController {
 			throw new Error("More stack frame variables were sent than expected.");
 		}
 
-		const variable: GodotVariable = { name, value, type};
+		const variable: GodotVariable = { name, value, type };
 		this.build_sub_values(variable);
 
 		const scopeName = ["locals", "members", "globals"][scope];
