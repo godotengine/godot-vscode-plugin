@@ -328,29 +328,7 @@ export class ServerController {
 				break;
 			}
 			case "stack_frame_vars": {
-				let globals: any[] = [];
-				let locals: any[] = [];
-				let members: any[] = [];
-
-				const localCount = command.parameters[0] * 2;
-				const memberCount = command.parameters[1 + localCount] * 2;
-				const globalCount = command.parameters[2 + localCount + memberCount] * 2;
-
-				if (localCount > 0) {
-					const offset = 1;
-					locals = command.parameters.slice(offset, offset + localCount);
-				}
-
-				if (memberCount > 0) {
-					const offset = 2 + localCount;
-					members = command.parameters.slice(offset, offset + memberCount);
-				}
-
-				if (globalCount > 0) {
-					const offset = 3 + localCount + memberCount;
-					globals = command.parameters.slice(offset, offset + globalCount);
-				}
-				this.do_stack_frame_vars(locals, members, globals);
+				this.do_stack_frame_vars(command.parameters);
 				break;
 			}
 			case "output": {
@@ -539,47 +517,31 @@ export class ServerController {
 
 		subValues?.forEach((sva) => this.build_sub_values(sva));
 	}
+	
+	private do_stack_frame_vars(parameters: any[]) {
+		log.debug("do_stack_frame_vars", parameters);
 
-	private do_stack_frame_vars(locals: any[], members: any[], globals: any[]) {
-		log.debug("do_stack_frame_vars", locals, members, globals);
+		const stackVars = new GodotStackVars();
 
-		const localsOut: GodotVariable[] = [];
-		const membersOut: GodotVariable[] = [];
-		const globalsOut: GodotVariable[] = [];
+		let localsRemaining = parameters[0];
+		let membersRemaining = parameters[1 + (localsRemaining * 2)];
+		let globalsRemaining = parameters[2 + ((localsRemaining + membersRemaining) * 2)];
 
-		for (
-			let i = 0;
-			i < locals.length + members.length + globals.length;
-			i += 2
-		) {
-			const name =
-				i < locals.length
-					? locals[i]
-					: i < members.length + locals.length
-						? members[i - locals.length]
-						: globals[i - locals.length - members.length];
-
-			const value =
-				i < locals.length
-					? locals[i + 1]
-					: i < members.length + locals.length
-						? members[i - locals.length + 1]
-						: globals[i - locals.length - members.length + 1];
-
-			const variable: GodotVariable = {
-				name: name,
-				value: value,
-			};
-
-			this.build_sub_values(variable);
-
-			i < locals.length
-				? localsOut.push(variable)
-				: i < members.length + locals.length
-					? membersOut.push(variable)
-					: globalsOut.push(variable);
+		let i = 1;
+		while (localsRemaining--) {
+			stackVars.locals.push({ name: parameters[i++], value: parameters[i++] });
+		}
+		i++;
+		while (membersRemaining--) {
+			stackVars.members.push({ name: parameters[i++], value: parameters[i++] });
+		}
+		i++;
+		while (globalsRemaining--) {
+			stackVars.globals.push({ name: parameters[i++], value: parameters[i++] });
 		}
 
-		this.session.set_scopes(new GodotStackVars(localsOut, membersOut, globalsOut));
+		stackVars.forEach(item => this.build_sub_values(item));
+
+		this.session.set_scopes(stackVars);
 	}
 }

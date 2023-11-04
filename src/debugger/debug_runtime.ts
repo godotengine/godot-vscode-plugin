@@ -32,6 +32,12 @@ export class GodotStackVars {
 		this.globals = [];
 		this.remaining = count;
 	}
+
+	public forEach(callbackfn: (value: GodotVariable, index: number, array: GodotVariable[]) => void, thisArg?: any) {
+		this.locals.forEach(callbackfn);
+		this.members.forEach(callbackfn);
+		this.globals.forEach(callbackfn);
+	}
 }
 
 export interface GodotVariable {
