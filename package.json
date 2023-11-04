@@ -177,7 +177,7 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.debugCurrentFile",
+				"command": "godotTools.debugger.debugCurrentFile",
 				"title": "Run File",
 				"icon": "$(play)"
 			}
@@ -635,7 +635,7 @@
 			],
 			"editor/title/run": [
 				{
-					"command": "godotTools.debugCurrentFile",
+					"command": "godotTools.debugger.debugCurrentFile",
 					"group": "navigation",
 					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace"
 				}
