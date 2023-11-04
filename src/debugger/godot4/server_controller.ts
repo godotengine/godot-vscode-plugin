@@ -27,14 +27,14 @@ const log = createLogger("debugger.controller");
 
 class Command {
 	public command: string = "";
-	public param_count: number = -1;
+	public paramCount: number = -1;
 	public parameters: any[] = [];
 	public complete: boolean = false;
 	public threadId: number = 0;
 }
 
 export class ServerController {
-	private command_buffer: Buffer[] = [];
+	private commandBuffer: Buffer[] = [];
 	private encoder = new VariantEncoder();
 	private decoder = new VariantDecoder();
 	private draining = false;
@@ -42,8 +42,8 @@ export class ServerController {
 	private threadId: number;
 	private server?: net.Server;
 	private socket?: net.Socket;
-	private stepping_out = false;
-	private did_first_output: boolean = false;
+	private steppingOut = false;
+	private didFirstOutput: boolean = false;
 	private partialStackVars = new GodotStackVars();
 
 	public constructor(
@@ -67,7 +67,7 @@ export class ServerController {
 	}
 
 	public step_out() {
-		this.stepping_out = true;
+		this.steppingOut = true;
 		this.send_command("next");
 	}
 
@@ -97,14 +97,14 @@ export class ServerController {
 	}
 
 	public set_object_property(
-		object_id: bigint,
+		objectId: bigint,
 		label: string,
-		new_parsed_value: any
+		newParsedValue: any
 	) {
 		this.send_command("scene:set_object_property", [
-			object_id,
+			objectId,
 			label,
-			new_parsed_value,
+			newParsedValue,
 		]);
 	}
 
@@ -113,11 +113,11 @@ export class ServerController {
 	}
 
 	public start_game(args: LaunchRequestArguments) {
-		const godot_path: string = get_configuration("editorPath.godot4", "godot4");
+		const godotPath: string = get_configuration("editorPath.godot4", "godot4");
 		const force_visible_collision_shapes = get_configuration("forceVisibleCollisionShapes", false);
 		const force_visible_nav_mesh = get_configuration("forceVisibleNavMesh", false);
 
-		let command = `"${godot_path}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
+		let command = `"${godotPath}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (force_visible_collision_shapes) {
 			command += " --debug-collisions";
@@ -331,8 +331,8 @@ export class ServerController {
 				break;
 			}
 			case "output": {
-				if (!this.did_first_output) {
-					this.did_first_output = true;
+				if (!this.didFirstOutput) {
+					this.didFirstOutput = true;
 					this.request_scene_tree();
 				}
 
@@ -356,56 +356,56 @@ export class ServerController {
 		});
 	}
 
-	public trigger_breakpoint(stack_frames: GodotStackFrame[]) {
-		log.debug("trigger_breakpoint", stack_frames);
+	public trigger_breakpoint(stackFrames: GodotStackFrame[]) {
+		log.debug("trigger_breakpoint", stackFrames);
 
-		let continue_stepping = false;
-		const stack_count = stack_frames.length;
-		if (stack_count === 0) {
+		let continueStepping = false;
+		const stackCount = stackFrames.length;
+		if (stackCount === 0) {
 			// Engine code is being executed, no user stack trace
 			this.session.debug_data.last_frames = [];
 			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 			return;
 		}
 
-		const file = stack_frames[0].file.replace(
+		const file = stackFrames[0].file.replace(
 			"res://",
 			`${this.session.debug_data.project_path}/`
 		);
-		const line = stack_frames[0].line;
+		const line = stackFrames[0].line;
 
-		if (this.stepping_out) {
+		if (this.steppingOut) {
 			const breakpoint = this.session.debug_data
 				.get_breakpoints(file)
 				.find((bp) => bp.line === line);
 			if (!breakpoint) {
 				if (this.session.debug_data.stack_count > 1) {
-					continue_stepping = this.session.debug_data.stack_count === stack_count;
+					continueStepping = this.session.debug_data.stack_count === stackCount;
 				} else {
-					const file_same =
-						stack_frames[0].file === this.session.debug_data.last_frame.file;
-					const func_same =
-						stack_frames[0].function === this.session.debug_data.last_frame.function;
-					const line_greater =
-						stack_frames[0].line >= this.session.debug_data.last_frame.line;
+					const fileSame =
+						stackFrames[0].file === this.session.debug_data.last_frame.file;
+					const funcSame =
+						stackFrames[0].function === this.session.debug_data.last_frame.function;
+					const lineGreater =
+						stackFrames[0].line >= this.session.debug_data.last_frame.line;
 
-					continue_stepping = file_same && func_same && line_greater;
+					continueStepping = fileSame && funcSame && lineGreater;
 				}
 			}
 		}
 
-		this.session.debug_data.stack_count = stack_count;
-		this.session.debug_data.last_frame = stack_frames[0];
-		this.session.debug_data.last_frames = stack_frames;
+		this.session.debug_data.stack_count = stackCount;
+		this.session.debug_data.last_frame = stackFrames[0];
+		this.session.debug_data.last_frames = stackFrames;
 
-		if (continue_stepping) {
+		if (continueStepping) {
 			this.next();
 			return;
 		}
 
-		this.stepping_out = false;
+		this.steppingOut = false;
 
-		this.session.debug_data.stack_files = stack_frames.map((sf) => {
+		this.session.debug_data.stack_files = stackFrames.map((sf) => {
 			return sf.file;
 		});
 
@@ -419,23 +419,20 @@ export class ServerController {
 		}
 	}
 
-	private breakpoint_path(project_path: string, file: string) {
-		const relative_path = path.relative(project_path, file).replace(/\\/g, "/");
-		if (relative_path.length !== 0) {
-			return `res://${relative_path}`;
+	private breakpoint_path(projectPath: string, file: string) {
+		const relativePath = path.relative(projectPath, file).replace(/\\/g, "/");
+		if (relativePath.length !== 0) {
+			return `res://${relativePath}`;
 		}
 		return undefined;
 	}
 
-	private breakpoint_string(
-		breakpoints: GodotBreakpoint[],
-		project_path: string
-	) {
+	private breakpoint_string(breakpoints: GodotBreakpoint[], projectPath: string) {
 		let output = "";
 		if (breakpoints.length > 0) {
 			output += " --breakpoints ";
 			breakpoints.forEach((bp, i) => {
-				output += `${this.breakpoint_path(project_path, bp.file)}:${bp.line}${i < breakpoints.length - 1 ? "," : ""
+				output += `${this.breakpoint_path(projectPath, bp.file)}:${bp.line}${i < breakpoints.length - 1 ? "," : ""
 					}`;
 			});
 		}
@@ -444,10 +441,10 @@ export class ServerController {
 	}
 
 	private send_command(command: string, parameters?: any[]) {
-		const command_array: any[] = [command, this.threadId, parameters ?? []];
-		log.debug("tx:", command_array);
-		const buffer = this.encoder.encode_variant(command_array);
-		this.command_buffer.push(buffer);
+		const commandArray: any[] = [command, this.threadId, parameters ?? []];
+		log.debug("tx:", commandArray);
+		const buffer = this.encoder.encode_variant(commandArray);
+		this.commandBuffer.push(buffer);
 		this.send_buffer();
 	}
 
@@ -456,8 +453,8 @@ export class ServerController {
 			return;
 		}
 
-		while (!this.draining && this.command_buffer.length > 0) {
-			const command = this.command_buffer.shift();
+		while (!this.draining && this.commandBuffer.length > 0) {
+			const command = this.commandBuffer.shift();
 			this.draining = !this.socket.write(command);
 		}
 	}
@@ -467,10 +464,10 @@ export class ServerController {
 		let offset = 0;
 		const buffers: Buffer[] = [];
 		while (len > 0) {
-			const sub_len = buffer.readUInt32LE(offset) + 4;
-			buffers.push(buffer.slice(offset, offset + sub_len));
-			offset += sub_len;
-			len -= sub_len;
+			const subLength = buffer.readUInt32LE(offset) + 4;
+			buffers.push(buffer.slice(offset, offset + subLength));
+			offset += subLength;
+			len -= subLength;
 		}
 
 		return buffers;
@@ -479,14 +476,14 @@ export class ServerController {
 	private build_sub_values(va: GodotVariable) {
 		const value = va.value;
 
-		let sub_values: GodotVariable[] = undefined;
+		let subValues: GodotVariable[] = undefined;
 
 		if (value && Array.isArray(value)) {
-			sub_values = value.map((va, i) => {
+			subValues = value.map((va, i) => {
 				return { name: `${i}`, value: va } as GodotVariable;
 			});
 		} else if (value instanceof Map) {
-			sub_values = Array.from(value.keys()).map((va) => {
+			subValues = Array.from(value.keys()).map((va) => {
 				if (typeof va["stringify_value"] === "function") {
 					return {
 						name: `${va.type_name()}${va.stringify_value()}`,
@@ -500,14 +497,14 @@ export class ServerController {
 				}
 			});
 		} else if (value && typeof value["sub_values"] === "function") {
-			sub_values = value.sub_values().map((sva) => {
+			subValues = value.sub_values().map((sva) => {
 				return { name: sva.name, value: sva.value } as GodotVariable;
 			});
 		}
 
-		va.sub_values = sub_values;
+		va.sub_values = subValues;
 
-		sub_values?.forEach((sva) => this.build_sub_values(sva));
+		subValues?.forEach((sva) => this.build_sub_values(sva));
 	}
 
 	private do_stack_frame_var(
