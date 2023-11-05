@@ -20,6 +20,20 @@ export function parse_next_scene_node(params: any[], ofs: { offset: number } = {
 	return new SceneNode(name, class_name, id, children, scene_file_path, view_flags);
 }
 
+export function split_buffers(buffer: Buffer) {
+	let len = buffer.byteLength;
+	let offset = 0;
+	const buffers: Buffer[] = [];
+	while (len > 0) {
+		const subLength = buffer.readUInt32LE(offset) + 4;
+		buffers.push(buffer.subarray(offset, offset + subLength));
+		offset += subLength;
+		len -= subLength;
+	}
+
+	return buffers;
+}
+
 export function is_variable_built_in_type(va: GodotVariable) {
 	var type = typeof va.value;
 	return ["number", "bigint", "boolean", "string"].some(x => x == type);

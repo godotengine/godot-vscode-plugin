@@ -8,7 +8,7 @@ import {
 	get_breakpoint_string,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { parse_next_scene_node } from "./helpers";
+import { parse_next_scene_node, split_buffers } from "./helpers";
 import { debug, window } from "vscode";
 import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
@@ -155,7 +155,7 @@ export class ServerController {
 			this.stash = undefined;
 		}
 
-		const buffers = this.split_buffers(buffer);
+		const buffers = split_buffers(buffer);
 		while (buffers.length > 0) {
 			const chunk = buffers.shift();
 			const data = this.decoder.get_dataset(chunk)?.slice(1);
@@ -440,20 +440,6 @@ export class ServerController {
 			const command = this.commandBuffer.shift();
 			this.draining = !this.socket.write(command);
 		}
-	}
-
-	private split_buffers(buffer: Buffer) {
-		let len = buffer.byteLength;
-		let offset = 0;
-		const buffers: Buffer[] = [];
-		while (len > 0) {
-			const subLength = buffer.readUInt32LE(offset) + 4;
-			buffers.push(buffer.slice(offset, offset + subLength));
-			offset += subLength;
-			len -= subLength;
-		}
-
-		return buffers;
 	}
 
 	private build_sub_values(va: GodotVariable) {
