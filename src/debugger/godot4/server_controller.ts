@@ -147,22 +147,37 @@ export class ServerController {
 		debugProcess.on("close", (code) => { });
 	}
 
+	private stash: Buffer;
+
+	private on_data(buffer: Buffer) {
+		if (this.stash) {
+			buffer = Buffer.concat([this.stash, buffer]);
+			this.stash = undefined;
+		}
+
+		const buffers = this.split_buffers(buffer);
+		while (buffers.length > 0) {
+			const chunk = buffers.shift();
+			const data = this.decoder.get_dataset(chunk)?.slice(1);
+			if (data === undefined) {
+				this.stash = Buffer.alloc(chunk.length);
+				chunk.copy(this.stash);
+				return;
+			}
+
+			log.debug("rx:", data[0]);
+			const command = this.parse_message(data[0]);
+			this.handle_command(command);
+		}
+	}
+
 	public async launch(args: LaunchRequestArguments) {
 		log.info("launch");
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
-			socket.on("data", (buffer) => {
-				const buffers = this.split_buffers(buffer);
-				while (buffers.length > 0) {
-					const subBuffer = buffers.shift();
-					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
-					log.debug("rx:", data[0]);
-					const command = this.parse_message(data[0]);
-					this.handle_command(command);
-				}
-			});
+			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
@@ -203,16 +218,7 @@ export class ServerController {
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
-			socket.on("data", (buffer) => {
-				const buffers = this.split_buffers(buffer);
-				while (buffers.length > 0) {
-					const subBuffer = buffers.shift();
-					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
-					log.debug("rx:", data[0]);
-					const command = this.parse_message(data[0]);
-					this.handle_command(command);
-				}
-			});
+			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");

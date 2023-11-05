@@ -175,11 +175,14 @@ export class VariantDecoder {
 		}
 	}
 
-	public get_dataset(buffer: Buffer, offset: number) {
-		const len = buffer.readUInt32LE(offset);
+	public get_dataset(buffer: Buffer) {
+		const len = buffer.readUInt32LE(0);
+		if (buffer.length != len + 4) {
+			return undefined;
+		}
 		const model: BufferModel = {
 			buffer: buffer,
-			offset: offset + 4,
+			offset: 4, // data starts after the initial length
 			len: len,
 		};
 
