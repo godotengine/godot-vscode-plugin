@@ -185,13 +185,13 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.pinFile",
-				"title": "Pin File",
+				"title": "Pin Scene File",
 				"icon": "resources/pin_off.svg"
 			},
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.unpinFile",
-				"title": "Unpin File",
+				"title": "Unpin Scene File",
 				"icon": "resources/pin_on.svg"
 			}
 		],
