@@ -580,12 +580,12 @@
 				},
 				{
 					"command": "godotTools.scenePreview.pin",
-					"when": "view == scenePreview && !godotTools.context.scenePreviewPinned",
+					"when": "view == scenePreview && !godotTools.context.scenePreview.pinned",
 					"group": "navigation"
 				},
 				{
 					"command": "godotTools.scenePreview.unpin",
-					"when": "view == scenePreview && godotTools.context.scenePreviewPinned",
+					"when": "view == scenePreview && godotTools.context.scenePreview.pinned",
 					"group": "navigation"
 				}
 			],
