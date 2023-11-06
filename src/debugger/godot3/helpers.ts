@@ -49,11 +49,7 @@ export function parse_variable(va: GodotVariable, i?: number) {
 			array_type = "indexed";
 			reference = i ? i : 0;
 		} else if (value instanceof Map) {
-			if (value instanceof RawObject) {
-				rendered_value = `${value.class_name}`;
-			} else {
-				rendered_value = `Dictionary[${value.size}]`;
-			}
+			rendered_value = value["class_name"] ?? `Dictionary[${value.size}]`;
 			array_size = value.size;
 			array_type = "named";
 			reference = i ? i : 0;
