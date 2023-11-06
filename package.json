@@ -162,11 +162,6 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.setSceneFile",
-				"title": "Set as Scene File"
-			},
-			{
-				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePathContext",
 				"title": "Copy Resource Path"
 			},
@@ -636,44 +631,59 @@
 			],
 			"explorer/context": [
 				{
-					"command": "godotTools.setSceneFile",
+					"command": "godotTools.debugger.pinFile",
 					"group": "2_workspace",
-					"when": "resourceLangId == gdscene"
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "2_workspace",
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
 				},
 				{
 					"command": "godotTools.copyResourcePathContext",
 					"group": "6_copypath",
-					"when": "resourceLangId == gdscript || resourceLangId == gdscene || resourceLangId == gdresource || resourceLangId == gdshader"
+					"when": "resourceLangId in godotTools.context.godotFiles"
 				}
 			],
 			"editor/title/run": [
 				{
 					"command": "godotTools.debugger.debugCurrentFile",
 					"group": "navigation@10",
-					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace"
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace"
 				},
 				{
 					"command": "godotTools.debugger.debugPinnedFile",
 					"group": "navigation@10",
-					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace"
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace"
 				}
 			],
 			"editor/title": [
 				{
 					"command": "godotTools.debugger.pinFile",
 					"group": "navigation@11",
-					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace && !(resourcePath in godotTools.context.pinnedScene)"
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace && !(resourcePath in godotTools.context.pinnedScene)"
 				},
 				{
 					"command": "godotTools.debugger.unpinFile",
 					"group": "navigation@11",
-					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace && (resourcePath in godotTools.context.pinnedScene)"
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace && (resourcePath in godotTools.context.pinnedScene)"
 				}
 			],
 			"editor/title/context": [
 				{
 					"command": "godotTools.copyResourcePathContext",
 					"group": "1_godot"
+				},
+				{
+					"command": "godotTools.debugger.pinFile",
+					"group": "1_godot",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "1_godot",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
 				}
 			],
 			"editor/context": [
@@ -684,7 +694,7 @@
 				},
 				{
 					"command": "godotTools.switchSceneScript",
-					"when": "editorLangId == 'gdscript' || editorLangId == 'gdresource'",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles",
 					"group": "custom1@1"
 				}
 			]

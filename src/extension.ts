@@ -12,7 +12,8 @@ import {
 	find_file,
 	find_project_file,
 	register_command,
-	get_project_version
+	get_project_version,
+	set_context
 } from "./utils";
 
 const TOOL_NAME = "GodotTools";
@@ -45,6 +46,9 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("openTypeDocumentation", open_type_documentation),
 		register_command("switchSceneScript", switch_scene_script),
 	);
+
+	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader",]);
+	set_context("sceneLikeFiles", ["gdscript", "gdscene"]);
 
 	get_project_version();
 }
