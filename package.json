@@ -678,12 +678,12 @@
 				{
 					"command": "godotTools.debugger.pinFile",
 					"group": "1_godot",
-					"when": "editorLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
 				},
 				{
 					"command": "godotTools.debugger.unpinFile",
 					"group": "1_godot",
-					"when": "editorLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
 				}
 			],
 			"editor/context": [
