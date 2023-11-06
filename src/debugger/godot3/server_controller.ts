@@ -8,7 +8,7 @@ import {
 	get_breakpoint_string,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { build_sub_values, parse_next_scene_node } from "./helpers";
+import { build_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
 import { debug, window } from "vscode";
 import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
@@ -146,20 +146,34 @@ export class ServerController {
 		debugProcess.on("close", (code) => { });
 	}
 
+	private stash: Buffer;
+
+	private on_data(buffer: Buffer) {
+		if (this.stash) {
+			buffer = Buffer.concat([this.stash, buffer]);
+			this.stash = undefined;
+		}
+
+		const buffers = split_buffers(buffer);
+		while (buffers.length > 0) {
+			const chunk = buffers.shift();
+			const data = this.decoder.get_dataset(chunk)?.slice(1);
+			if (data === undefined) {
+				this.stash = Buffer.alloc(chunk.length);
+				chunk.copy(this.stash);
+				return;
+			}
+			this.parse_message(data);
+		}
+	}
+
 	public async launch(args: LaunchRequestArguments) {
 		log.info("launch");
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
-			socket.on("data", (buffer) => {
-				const buffers = this.split_buffers(buffer);
-				while (buffers.length > 0) {
-					const subBuffer = buffers.shift();
-					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
-					this.parse_message(data);
-				}
-			});
+			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
@@ -200,14 +214,7 @@ export class ServerController {
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
-			socket.on("data", (buffer) => {
-				const buffers = this.split_buffers(buffer);
-				while (buffers.length > 0) {
-					const subBuffer = buffers.shift();
-					const data = this.decoder.get_dataset(subBuffer, 0).slice(1);
-					this.parse_message(data);
-				}
-			});
+			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
@@ -428,20 +435,6 @@ export class ServerController {
 			const command = this.commandBuffer.shift();
 			this.draining = !this.socket.write(command);
 		}
-	}
-
-	private split_buffers(buffer: Buffer) {
-		let len = buffer.byteLength;
-		let offset = 0;
-		const buffers: Buffer[] = [];
-		while (len > 0) {
-			const subLength = buffer.readUInt32LE(offset) + 4;
-			buffers.push(buffer.slice(offset, offset + subLength));
-			offset += subLength;
-			len -= subLength;
-		}
-
-		return buffers;
 	}
 
 	private do_stack_frame_vars(parameters: any[]) {
