@@ -37,9 +37,9 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
-	public controller: ServerController = new ServerController(this);
-	public scene_tree: SceneTreeProvider;
-	public debug_data: GodotDebugData = new GodotDebugData(this);
+	public controller = new ServerController(this);
+	public debug_data = new GodotDebugData(this);
+	public sceneTree: SceneTreeProvider;
 	private exception = false;
 	private got_scope: Subject = new Subject();
 	private ongoing_inspections: bigint[] = [];

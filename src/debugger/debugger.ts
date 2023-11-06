@@ -50,7 +50,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 		this.context.subscriptions.push(this.session);
 
-		this.session.scene_tree = this.sceneTreeProvider;
+		this.session.sceneTree = this.sceneTreeProvider;
 		return new DebugAdapterInlineImplementation(this.session);
 	}
 

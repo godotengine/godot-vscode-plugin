@@ -280,7 +280,7 @@ export class ServerController {
 				break;
 			case "scene:scene_tree": {
 				const tree = parse_next_scene_node(command.parameters);
-				this.session.scene_tree.fill_tree(tree);
+				this.session.sceneTree.fill_tree(tree);
 				break;
 			}
 			case "scene:inspect_object": {
