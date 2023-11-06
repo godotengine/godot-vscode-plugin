@@ -8,7 +8,7 @@ import {
 	get_breakpoint_string,
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { parse_next_scene_node } from "./helpers";
+import { build_sub_values, parse_next_scene_node } from "./helpers";
 import { debug, window } from "vscode";
 import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
@@ -292,7 +292,7 @@ export class ServerController {
 					rawObject.set(prop[0], prop[5]);
 				});
 				const inspectedVariable = { name: "", value: rawObject };
-				this.build_sub_values(inspectedVariable);
+				build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
 					this.session.inspect_callbacks.get(BigInt(id))(
 						inspectedVariable.name,
@@ -444,40 +444,6 @@ export class ServerController {
 		return buffers;
 	}
 
-	private build_sub_values(va: GodotVariable) {
-		const value = va.value;
-
-		let subValues: GodotVariable[] = undefined;
-
-		if (value && Array.isArray(value)) {
-			subValues = value.map((va, i) => {
-				return { name: `${i}`, value: va } as GodotVariable;
-			});
-		} else if (value instanceof Map) {
-			subValues = Array.from(value.keys()).map((va) => {
-				if (typeof va["stringify_value"] === "function") {
-					return {
-						name: `${va.type_name()}${va.stringify_value()}`,
-						value: value.get(va),
-					} as GodotVariable;
-				} else {
-					return {
-						name: `${va}`,
-						value: value.get(va),
-					} as GodotVariable;
-				}
-			});
-		} else if (value && typeof value["sub_values"] === "function") {
-			subValues = value.sub_values().map((sva) => {
-				return { name: sva.name, value: sva.value } as GodotVariable;
-			});
-		}
-
-		va.sub_values = subValues;
-
-		subValues?.forEach((sva) => this.build_sub_values(sva));
-	}
-
 	private do_stack_frame_vars(parameters: any[]) {
 		log.debug("do_stack_frame_vars", parameters);
 
@@ -500,7 +466,7 @@ export class ServerController {
 			stackVars.globals.push({ name: parameters[i++], value: parameters[i++] });
 		}
 
-		stackVars.forEach(item => this.build_sub_values(item));
+		stackVars.forEach(item => build_sub_values(item));
 
 		this.session.set_scopes(stackVars);
 	}
