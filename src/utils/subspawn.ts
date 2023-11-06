@@ -25,8 +25,10 @@ export function killSubProcesses(owner: string) {
 			if (c.pid) {
 				if (process.platform === "win32") {
 					execSync(`taskkill /pid ${c.pid} /T /F`);
-				} else {
+				} else if (process.platform === "darwin") {
 					execSync(`kill -9 ${c.pid}`);
+				} else {
+					process.kill(c.pid);
 				}
 			}
 		} catch {
