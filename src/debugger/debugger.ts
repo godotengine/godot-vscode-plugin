@@ -14,6 +14,7 @@ import {
 	ProviderResult,
 	Uri
 } from "vscode";
+import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
 import { register_command, projectVersion } from "../utils";
@@ -24,7 +25,23 @@ import { createLogger } from "../logger";
 
 const log = createLogger("debugger");
 
-export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider  {
+export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+	address: string;
+	port: number;
+	project: string;
+	scene_file: string;
+	additional_options: string;
+}
+
+export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+	address: string;
+	port: number;
+	project: string;
+	scene_file: string;
+	additional_options: string;
+}
+
+export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();

@@ -1,39 +1,25 @@
+import * as fs from "fs";
 import {
 	LoggingDebugSession,
 	InitializedEvent,
 	Thread,
 	Source,
 	Breakpoint,
+	StoppedEvent,
+	TerminatedEvent,
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
+import { debug } from "vscode";
+import { Subject } from "await-notify";
 import { GodotDebugData, GodotVariable, GodotStackVars } from "../debug_runtime";
+import { LaunchRequestArguments, AttachRequestArguments } from "../debugger";
+import { SceneTreeProvider } from "../scene_tree_provider";
 import { ObjectId } from "./variables/variants";
 import { parse_variable, is_variable_built_in_type } from "./helpers";
 import { ServerController } from "./server_controller";
-import { Subject } from "await-notify";
-import fs = require("fs");
-import { SceneTreeProvider } from "../scene_tree_provider";
 import { createLogger } from "../../logger";
-import { debug } from "vscode";
 
 const log = createLogger("debugger.session");
-
-export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-	address: string;
-	port: number;
-	project: string;
-	scene_file: string;
-	additional_options: string;
-}
-
-export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
-	address: string;
-	port: number;
-	project: string;
-	scene_file: string;
-	additional_options: string;
-}
 
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];

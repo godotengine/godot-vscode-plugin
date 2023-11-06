@@ -14,11 +14,8 @@ import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
+import { LaunchRequestArguments, AttachRequestArguments } from "../debugger";
 import { createLogger } from "../../logger";
-import {
-	LaunchRequestArguments,
-	AttachRequestArguments
-} from "./debug_session";
 
 const log = createLogger("debugger.controller");
 

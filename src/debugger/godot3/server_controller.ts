@@ -14,11 +14,8 @@ import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
+import { LaunchRequestArguments, AttachRequestArguments } from "../debugger";
 import { createLogger } from "../../logger";
-import {
-	LaunchRequestArguments,
-	AttachRequestArguments
-} from "./debug_session";
 
 const log = createLogger("debugger.controller");
 
@@ -121,14 +118,13 @@ export class ServerController {
 		if (force_visible_nav_mesh) {
 			command += " --debug-navigation";
 		}
-		// TODO: reimplement this
-		// let filename = "";
-		// if (args.scene_file) {
-		// 	filename = args.scene_file;
-		// } else {
-		// 	filename = window.activeTextEditor.document.fileName;
-		// }
-		// command += ` "${filename}"`;
+
+		let filename = "";
+		if (args.scene_file) {
+			filename = args.scene_file;
+		}
+		
+		command += ` "${filename}"`;
 
 		if (args.additional_options) {
 			command += " " + args.additional_options;
