@@ -397,7 +397,7 @@
 							},
 							"scene_file": {
 								"type": "string",
-								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
+								"description": "Path to a scene file to run instead of the projects 'main scene'.",
 								"default": ""
 							},
 							"editor_path": {
