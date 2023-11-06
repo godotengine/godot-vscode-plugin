@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import {
 	debug,
 	window,
@@ -17,7 +18,7 @@ import {
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import { register_command, projectVersion } from "../utils";
+import { register_command, projectVersion, set_context } from "../utils";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 
@@ -45,6 +46,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
+	public pinnedScene: Uri;
 
 	constructor(private context: ExtensionContext) {
 		context.subscriptions.push(
@@ -56,10 +58,14 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),
 			register_command("debugger.refreshInspector", this.refresh_inspector.bind(this)),
 			register_command("debugger.editValue", this.edit_value.bind(this)),
-			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
+			register_command("debugger.debugCurrentFile", this.debug_file.bind(this)),
+			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
+			register_command("debugger.pinFile", this.pin_file.bind(this)),
+			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
 		);
 	}
-		public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
+
+	public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
 		if (projectVersion.startsWith("4")) {
 			this.session = new Godot4DebugSession();
 		} else {
@@ -122,11 +128,52 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		return config;
 	}
 
-	public debug_current_file(uri: Uri) {
+	public debug_file(uri: Uri) {
+		const folder = workspace.workspaceFolders[0];
+		let path = uri.fsPath;
 		log.debug("debugCurrentFile", uri);
-		const configs = workspace.getConfiguration("launch", workspace.workspaceFolders[0].uri).get("configurations");
-		// log.debug(configs);
-		debug.startDebugging(workspace.workspaceFolders[0], configs[0]);
+		if (path.endsWith(".gd")) {
+			path = path.replace(".gd", ".tscn");
+		}
+
+		if (!fs.existsSync(path)) {
+			window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+			return;
+		}
+
+		const configs: DebugConfiguration[] = workspace.getConfiguration("launch").get("configurations");
+		log.debug(configs);
+		let config = configs.filter((c) => c.request === "launch")[0];
+		if (!config) {
+			config = {
+				name: `Debug ${path} : 'File'}`,
+				type: "godot",
+				request: "launch"
+			};
+		}
+		config.scene_file = path;
+
+		log.debug(config);
+		debug.startDebugging(folder, config);
+	}
+
+	public debug_pinned_file() {
+		log.debug("debug_pinned_file");
+
+		if (this.pinnedScene) {
+			this.debug_file(this.pinnedScene);
+		}
+
+	}
+
+	public pin_file(uri: Uri) {
+		set_context("pinnedScene", [uri.fsPath]);
+		this.pinnedScene = uri;
+	}
+
+	public unpin_file(uri: Uri) {
+		set_context("pinnedScene", []);
+		this.pinnedScene = undefined;
 	}
 
 	public inspect_node(element: SceneNode | RemoteProperty) {

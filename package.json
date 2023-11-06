@@ -178,8 +178,26 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.debugCurrentFile",
-				"title": "Run File",
+				"title": "Run Current File",
 				"icon": "$(play)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.debugPinnedFile",
+				"title": "Run Pinned File",
+				"icon": "$(play)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.pinFile",
+				"title": "Pin File",
+				"icon": "resources/pin_off.svg"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.unpinFile",
+				"title": "Unpin File",
+				"icon": "resources/pin_on.svg"
 			}
 		],
 		"keybindings": [
@@ -232,11 +250,6 @@
 					"type": "string",
 					"default": "godot4",
 					"description": "The absolute path to the Godot 4 editor executable"
-				},
-				"godotTools.sceneFileConfig": {
-					"type": "string",
-					"default": "",
-					"description": "The scene file to run"
 				},
 				"godotTools.lsp.autoReconnect.enabled": {
 					"type": "boolean",
@@ -636,8 +649,25 @@
 			"editor/title/run": [
 				{
 					"command": "godotTools.debugger.debugCurrentFile",
-					"group": "navigation",
+					"group": "navigation@10",
 					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace"
+				},
+				{
+					"command": "godotTools.debugger.debugPinnedFile",
+					"group": "navigation@10",
+					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "godotTools.debugger.pinFile",
+					"group": "navigation@11",
+					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "navigation@11",
+					"when": "(resourceLangId == gdscript || resourceLangId == gdscene) && !isInDiffEditor && !virtualWorkspace && (resourcePath in godotTools.context.pinnedScene)"
 				}
 			],
 			"editor/title/context": [
