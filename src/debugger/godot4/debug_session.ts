@@ -445,7 +445,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.previous_inspections.push(id);
 
-		this.add_to_inspections();
+		// this.add_to_inspections();
 
 		if (this.ongoing_inspections.length === 0) {
 			this.previous_inspections = [];
