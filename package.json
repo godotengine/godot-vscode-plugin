@@ -679,8 +679,8 @@
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
-		"@vscode/debugadapter": "^1.59.0",
-		"@vscode/debugprotocol": "^1.59.0",
+		"@vscode/debugadapter": "^1.64.0",
+		"@vscode/debugprotocol": "^1.64.0",
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
 		"marked": "^4.0.11",
