@@ -131,7 +131,6 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public debug_file(uri: Uri) {
 		const folder = workspace.workspaceFolders[0];
 		let path = uri.fsPath;
-		log.debug("debugCurrentFile", uri);
 		if (path.endsWith(".gd")) {
 			path = path.replace(".gd", ".tscn");
 		}
@@ -142,7 +141,6 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 
 		const configs: DebugConfiguration[] = workspace.getConfiguration("launch").get("configurations");
-		log.debug(configs);
 		let config = configs.filter((c) => c.request === "launch")[0];
 		if (!config) {
 			config = {
@@ -152,14 +150,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			};
 		}
 		config.scene_file = path;
-
-		log.debug(config);
 		debug.startDebugging(folder, config);
 	}
 
 	public debug_pinned_file() {
-		log.debug("debug_pinned_file");
-
 		if (this.pinnedScene) {
 			this.debug_file(this.pinnedScene);
 		}
