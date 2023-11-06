@@ -3,12 +3,6 @@
 A complete set of tools to code games with
 [Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
 
-> **Warning**
-> 
-> This plugin requires manual configuration to work with Godot 4!
-> See the [`gdscript_lsp_server_port` setting](#gdscript_lsp_server_port)
-> item under the Configuration section below.
-
 **IMPORTANT NOTE:** Versions 1.0.0 and later of this extension only support
 Godot 3.2 or later.
 
@@ -19,10 +13,13 @@ experience as comfortable as possible:
 
 - Syntax highlighting for the GDScript (`.gd`) language
 - Syntax highlighting for the `.tscn` and `.tres` scene formats
+- Syntax highlighting for the `.gdshader` shader format
 - Full typed GDScript support
 - Optional "Smart Mode" to improve productivity with dynamically typed scripts
 - Function definitions and documentation display on hover (see image below)
 - Rich autocompletion
+- Switch from a `.gd` file to the related `.tscn` file (default keybind is `alt+o`)
+- In-editor Scene Preview
 - Display script warnings and errors
 - Ctrl + click on a variable or method call to jump to its definition
 - Full documentation of the Godot Engine's API supported (select *Godot Tools: List native classes of Godot* in the Command Palette)
@@ -73,18 +70,14 @@ for Godot by following these steps:
 
 You can use the following settings to configure Godot Tools:
 
-##### `editor_path`
+- `godotTools.editorPath.godot3`
+- `godotTools.editorPath.godot4`
 
-The absolute path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
+The path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
 
-##### `gdscript_lsp_server_port`
-
-The WebSocket server port of the GDScript language server.
-
-For Godot 3, the default value of `6008` should work out of the box.
-
-**For Godot 4, this value must be changed to `6005` for this extension to connect to the language server.**
-See [this tracking issue](https://github.com/godotengine/godot-vscode-plugin/issues/473) for more information.
+- `godotTools.lsp.headless`
+  
+When using Godot >3.6 or >4.2, Headless LSP mode is available. In Headless mode, the extension will attempt to launch a windowless instance of the Godot editor to use as its Language Server.
 
 #### GDScript Debugger
 
@@ -102,19 +95,24 @@ To configure the GDScript debugger:
 5. Change any relevant settings.
 6. Press F5 to launch.
 
-*Configurations*
+### *Configurations*
 
 _Required_
 
-- "project": Absolute path to a directory with a project.godot file. Defaults to the currently open VSCode workspace with `${workspaceFolder}`.
-- "port": Number that represents the port the Godot remote debugger will connect with. Defaults to `6007`.
-- "address": String that represents the IP address that the Godot remote debugger will connect to. Defaults to `127.0.0.1`.
+None: seriously. This is valid debugging configuration:
+
+```json
+{ "name": "Launch", "type": "godot" }
+```
 
 _Optional_
 
-- "launch_game_instance": true/false. If true, an instance of Godot will be launched. Will use the path provided in `editor_path`. Defaults to `true`.
-- "launch_scene": true/false. If true, and launch_game_instance is true, will launch an instance of Godot to a currently active opened TSCN file. Defaults to `false`.
-- "scene_file": Path _relative to the project.godot file_ to a TSCN file. If launch_game_instance and launch_scene are both true, will use this file instead of looking for the currently active opened TSCN file.
+`project`: Absolute path to a directory with a project.godot file. Defaults to the currently open VSCode workspace with `${workspaceFolder}`.
+`port`: The port number for the Godot remote debugger to use.
+`address`: The IP address for the Godot remote debugger to use.
+`scene_file`: Path to a scene file to run instead of the projects 'main scene'.
+`editor_path`: Absolute path to the Godot executable to be used for this debug profile.
+`additional_options`: Additional command line arguments.
 
 *Usage*
 
