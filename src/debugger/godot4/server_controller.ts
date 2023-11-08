@@ -1,21 +1,16 @@
 import * as fs from "fs";
+import net = require("net");
+import { Uri, debug, window } from "vscode";
+import { execSync } from "child_process";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
-import {
-	GodotStackFrame,
-	GodotVariable,
-	GodotStackVars,
-	get_breakpoint_string,
-} from "../debug_runtime";
+import { GodotStackFrame, GodotVariable, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { Uri, debug, window } from "vscode";
-import net = require("net");
-import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port, projectVersion, set_configuration } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
-import { execSync } from "child_process";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
 import { createLogger } from "../../logger";
 
