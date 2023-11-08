@@ -159,7 +159,10 @@ export class ServerController {
 			this.abort();
 			return;
 		}
-		let command = `"${godotPath}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
+
+		let command = `"${godotPath}" --path "${args.project}"`;
+
+		command += ` --remote-debug "tcp://${args.address.replace("tcp://", "")}:${args.port}"`;
 
 		if (get_configuration("forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
@@ -190,7 +193,6 @@ export class ServerController {
 					return;
 				}
 			}
-
 			command += ` "${filename}"`;
 		}
 

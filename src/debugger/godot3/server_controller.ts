@@ -13,7 +13,7 @@ import { build_sub_values, parse_next_scene_node, split_buffers } from "./helper
 import { Uri, debug, window } from "vscode";
 import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { get_configuration, get_free_port, projectVersion } from "../../utils";
+import { get_configuration, get_free_port, projectVersion, set_configuration } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { execSync } from "child_process";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
@@ -116,6 +116,7 @@ export class ServerController {
 				return;
 			}
 			const path = uris[0].fsPath;
+			set_configuration(settingName, path);
 		});
 	}
 
@@ -158,7 +159,9 @@ export class ServerController {
 			return;
 		}
 
-		let command = `"${godotPath}" --path "${args.project}" --remote-debug "${args.address}:${args.port}"`;
+		let command = `"${godotPath}" --path "${args.project}"`;
+
+		command += ` --remote-debug "tcp://${args.address.replace("tcp://", "")}:${args.port}"`;
 
 		if (get_configuration("forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
@@ -167,9 +170,8 @@ export class ServerController {
 			command += " --debug-navigation";
 		}
 
-		let filename = "";
 		if (args.scene && args.scene !== "main") {
-			filename = args.scene;
+			let filename = args.scene;
 			if (args.scene === "current") {
 				let path = window.activeTextEditor.document.fileName;
 				if (path.endsWith(".gd")) {
@@ -190,11 +192,8 @@ export class ServerController {
 					return;
 				}
 			}
-
 			command += ` "${filename}"`;
 		}
-
-		command += ` "${filename}"`;
 
 		if (args.additional_options) {
 			command += " " + args.additional_options;
