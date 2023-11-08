@@ -59,16 +59,6 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.runProject",
-				"title": "Run workspace as Godot project"
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.runProjectDebug",
-				"title": "Run workspace as Godot project with visible collision shapes and navigation meshes"
-			},
-			{
-				"category": "Godot Tools",
 				"command": "godotTools.listNativeClasses",
 				"title": "List native classes of godot"
 			},
