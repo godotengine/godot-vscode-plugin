@@ -1,51 +1,5 @@
 import { window } from "vscode";
 
-
-export class Logger {
-	protected buffer: string = "";
-	protected tag: string = "";
-	protected time: boolean = false;
-
-	constructor(tag: string, time: boolean) {
-		this.tag = tag;
-		this.time = time;
-	}
-
-	clear() {
-		this.buffer = "";
-	}
-
-	log(...messages) {
-
-		let line = "";
-		if (this.tag) {
-			line += `[${this.tag}]`;
-		}
-		if (this.time) {
-			line += `[${new Date().toISOString()}]`;
-		}
-		if (line) {
-			line += " ";
-		}
-
-		for (let index = 0; index < messages.length; index++) {
-			line += messages[index];
-			if (index < messages.length) {
-				line += " ";
-			} else {
-				line += "\n";
-			}
-		}
-
-		this.buffer += line;
-		console.log(line);
-	}
-
-	get_buffer(): string {
-		return this.buffer;
-	}
-}
-
 export enum LOG_LEVEL {
 	SILENT,
 	ERROR,
@@ -81,7 +35,7 @@ export interface LoggerOptions {
 	output?: boolean;
 }
 
-export class Logger2 {
+export class Logger {
 	private level: LOG_LEVEL = LOG_LEVEL.DEBUG;
 	private show_tag: boolean = true;
 	private show_time: boolean;
@@ -91,7 +45,7 @@ export class Logger2 {
 
 	constructor(
 		private tag: string,
-		{ level = LOG_LEVEL.DEBUG, time = false, label = false, output = false }: LoggerOptions = {},
+		{ level = LOG_LEVEL.DEBUG, time = false, label = false, output = true }: LoggerOptions = {},
 	) {
 		this.level = level;
 		this.show_time = time;
@@ -116,25 +70,25 @@ export class Logger2 {
 
 		console.log(prefix, ...messages);
 
-		// if (this.show_output) {
-		// 	const line = `[${this.tag}] ${JSON.stringify(messages)}`;
-		// 	switch (level) {
-		// 		case LOG_LEVEL.ERROR:
-		// 			output.error(line);
-		// 			break;
-		// 		case LOG_LEVEL.WARNING:
-		// 			output.warn(line);
-		// 			break;
-		// 		case LOG_LEVEL.INFO:
-		// 			output.info(line);
-		// 			break;
-		// 		case LOG_LEVEL.DEBUG:
-		// 			output.debug(line);
-		// 			break;
-		// 		default:
-		// 			break;
-		// 	}
-		// }
+		if (this.show_output) {
+			const line = `[${this.tag}] ${JSON.stringify(messages)}`;
+			switch (level) {
+				case LOG_LEVEL.ERROR:
+					output.error(line);
+					break;
+				case LOG_LEVEL.WARNING:
+					output.warn(line);
+					break;
+				case LOG_LEVEL.INFO:
+					output.info(line);
+					break;
+				case LOG_LEVEL.DEBUG:
+					output.debug(line);
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	info(...messages) {
@@ -159,9 +113,10 @@ export class Logger2 {
 	}
 }
 
-export function createLogger(tag, options?: LoggerOptions) {
-	return new Logger2(tag, options);
-}
+const loggers: Map<string, Logger> = new Map();
 
-const logger = new Logger("godot-tools", true);
-export default logger;
+export function createLogger(tag, options?: LoggerOptions) {
+	const logger = new Logger(tag, options);
+	loggers.set(tag, logger);
+	return logger;
+}
