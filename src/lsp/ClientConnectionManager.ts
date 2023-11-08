@@ -10,9 +10,10 @@ import {
 	register_command,
 	set_configuration,
 } from "../utils";
+import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
 import { createLogger } from "../logger";
 import { execSync } from "child_process";
-import { subProcess, killSubProcesses } from '../utils/subspawn';
+import { subProcess, killSubProcesses } from "../utils/subspawn";
 
 const log = createLogger("lsp.manager");
 
@@ -83,7 +84,7 @@ export class ClientConnectionManager {
 	}
 
 	private stop_language_server() {
-		killSubProcesses('LSP');
+		killSubProcesses("LSP");
 	}
 
 	private async start_language_server() {
@@ -98,11 +99,11 @@ export class ClientConnectionManager {
 
 		const projectVersion = await get_project_version();
 
-		let minimumVersion = '6';
-		let targetVersion = '3.6';
-		if (projectVersion.startsWith('4')) {
-			minimumVersion = '2';
-			targetVersion = '4.2';
+		let minimumVersion = "6";
+		let targetVersion = "3.6";
+		if (projectVersion.startsWith("4")) {
+			minimumVersion = "2";
+			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
 		const godotPath = get_configuration(settingName);
@@ -113,21 +114,13 @@ export class ClientConnectionManager {
 			const match = output.match(pattern);
 			if (!match) {
 				const message = `Cannot launch headless LSP: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
-				vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-					if (item == "Select Godot executable") {
-						this.select_godot_executable(settingName);
-					}
-				});
+				prompt_for_godot_executable(message, settingName);
 				return;
 			}
 			this.connectedVersion = output;
 			if (match[1] !== projectVersion[0]) {
 				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
-				vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-					if (item == "Select Godot executable") {
-						this.select_godot_executable(settingName);
-					}
-				});
+				prompt_for_godot_executable(message, settingName);
 				return;
 			}
 
@@ -135,21 +128,17 @@ export class ClientConnectionManager {
 				const message = `Cannot launch headless LSP: Headless LSP mode is only available on version ${targetVersion} or newer, but the specified Godot executable is version ${match[0]}.`;
 				vscode.window.showErrorMessage(message, "Select Godot executable", "Disable Headless LSP", "Ignore").then(item => {
 					if (item == "Select Godot executable") {
-						this.select_godot_executable(settingName);
+						select_godot_executable(settingName);
 					} else if (item == "Disable Headless LSP") {
 						set_configuration("lsp.headless", false);
-						this.prompt_for_reload();
+						prompt_for_reload();
 					}
 				});
 				return;
 			}
 		} catch (e) {
 			const message = `Cannot launch headless LSP: ${settingName} of ${godotPath} is not a valid Godot executable`;
-			vscode.window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-				if (item == "Select Godot executable") {
-					this.select_godot_executable(settingName);
-				}
-			});
+			prompt_for_godot_executable(message, settingName);
 			return;
 		}
 
@@ -162,7 +151,7 @@ export class ClientConnectionManager {
 		const lspProcess = subProcess("LSP", command, { shell: true, detached: true });
 
 		const lspStdout = createLogger("lsp.stdout");
-		lspProcess.stdout.on('data', (data) => {
+		lspProcess.stdout.on("data", (data) => {
 			const out = data.toString().trim();
 			if (out) {
 				lspStdout.debug(out);
@@ -170,38 +159,15 @@ export class ClientConnectionManager {
 		});
 
 		// const lspStderr = createLogger("lsp.stderr");
-		lspProcess.stderr.on('data', (data) => {
+		lspProcess.stderr.on("data", (data) => {
 			// const out = data.toString().trim();
 			// if (out) {
 			// 	lspStderr.debug(out);
 			// }
 		});
 
-		lspProcess.on('close', (code) => {
+		lspProcess.on("close", (code) => {
 			log.info(`LSP process exited with code ${code}`);
-		});
-	}
-
-	private async select_godot_executable(settingName: string) {
-		vscode.window.showOpenDialog({
-			openLabel: "Select Godot executable",
-			filters: process.platform === "win32" ? { "Godot Editor Binary": ["exe", "EXE"] } : undefined
-		}).then(async (uris: vscode.Uri[]) => {
-			if (!uris) {
-				return;
-			}
-			const path = uris[0].fsPath;
-			set_configuration(settingName, path);
-			this.prompt_for_reload();
-		});
-	}
-
-	private async prompt_for_reload() {
-		const message = `Reload VSCode to apply settings`;
-		vscode.window.showErrorMessage(message, "Reload").then(item => {
-			if (item == "Reload") {
-				vscode.commands.executeCommand("workbench.action.reloadWindow");
-			}
 		});
 	}
 
@@ -255,8 +221,8 @@ export class ClientConnectionManager {
 		let tooltip = "";
 		switch (this.status) {
 			case ManagerStatus.INITIALIZING:
-				text = `$(sync~spin) Initializing`;
-				tooltip = `Initializing extension...`;
+				text = "$(sync~spin) Initializing";
+				tooltip = "Initializing extension...";
 				break;
 			case ManagerStatus.INITIALIZING_LSP:
 				text = `$(sync~spin) Initializing LSP ${this.reconnectionAttempts}/${maxAttempts}`;
@@ -266,19 +232,19 @@ export class ClientConnectionManager {
 				}
 				break;
 			case ManagerStatus.PENDING:
-				text = `$(sync~spin) Connecting`;
+				text = "$(sync~spin) Connecting";
 				tooltip = `Connecting to the GDScript language server at ${lspTarget}`;
 				break;
 			case ManagerStatus.CONNECTED:
-				text = `$(check) Connected`;
+				text = "$(check) Connected";
 				tooltip = `Connected to the GDScript language server.\n${lspTarget}`;
 				if (this.connectedVersion) {
 					tooltip += `\n${this.connectedVersion}`;
 				}
 				break;
 			case ManagerStatus.DISCONNECTED:
-				text = `$(x) Disconnected`;
-				tooltip = `Disconnected from the GDScript language server.`;
+				text = "$(x) Disconnected";
+				tooltip = "Disconnected from the GDScript language server.";
 				break;
 			case ManagerStatus.RETRYING:
 				text = `$(sync~spin) Connecting ${this.reconnectionAttempts}/${maxAttempts}`;

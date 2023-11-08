@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import net = require("net");
-import { Uri, debug, window } from "vscode";
+import { debug, window } from "vscode";
 import { execSync } from "child_process";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { VariantEncoder } from "./variables/variant_encoder";
@@ -9,7 +9,8 @@ import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { build_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
-import { get_configuration, get_free_port, projectVersion, set_configuration } from "../../utils";
+import { get_configuration, get_free_port, projectVersion } from "../../utils";
+import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
 import { createLogger } from "../../logger";
@@ -98,19 +99,6 @@ export class ServerController {
 		this.exception = exception;
 	}
 
-	private async select_godot_executable(settingName: string) {
-		window.showOpenDialog({
-			openLabel: "Select Godot executable",
-			filters: process.platform === "win32" ? { "Godot Editor Binary": ["exe", "EXE"] } : undefined
-		}).then(async (uris: Uri[]) => {
-			if (!uris) {
-				return;
-			}
-			const path = uris[0].fsPath;
-			set_configuration(settingName, path);
-		});
-	}
-
 	private start_game(args: LaunchRequestArguments) {
 		const settingName = "editorPath.godot3";
 		const godotPath: string = get_configuration(settingName);
@@ -121,31 +109,19 @@ export class ServerController {
 			const match = output.match(pattern);
 			if (!match) {
 				const message = `Cannot launch debug session: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
-				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-					if (item == "Select Godot executable") {
-						this.select_godot_executable(settingName);
-					}
-				});
+				prompt_for_godot_executable(message, settingName);
 				this.abort();
 				return;
 			}
 			if (match[1] !== settingName.slice(-1)) {
 				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
-				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-					if (item == "Select Godot executable") {
-						this.select_godot_executable(settingName);
-					}
-				});
+				prompt_for_godot_executable(message, settingName);
 				this.abort();
 				return;
 			}
 		} catch {
 			const message = `Cannot launch debug session: ${settingName} of ${godotPath} is not a valid Godot executable`;
-			window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
-				if (item == "Select Godot executable") {
-					this.select_godot_executable(settingName);
-				}
-			});
+			prompt_for_godot_executable(message, settingName);
 			this.abort();
 			return;
 		}
