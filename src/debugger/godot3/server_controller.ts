@@ -138,7 +138,7 @@ export class ServerController {
 				this.abort();
 				return;
 			}
-			if (match[1] !== settingName[-1]) {
+			if (match[1] !== settingName.slice(-1)) {
 				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
 				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
 					if (item == "Select Godot executable") {

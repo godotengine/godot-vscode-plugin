@@ -41,6 +41,7 @@ export class ServerController {
 	private steppingOut = false;
 	private didFirstOutput: boolean = false;
 	private partialStackVars = new GodotStackVars();
+	private connectedVersion = "";
 
 	public constructor(
 		public session: GodotDebugSession
@@ -139,7 +140,8 @@ export class ServerController {
 				this.abort();
 				return;
 			}
-			if (match[1] !== settingName[-1]) {
+			this.connectedVersion = output;
+			if (match[1] !== settingName.slice(-1)) {
 				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
 				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
 					if (item == "Select Godot executable") {
@@ -312,9 +314,12 @@ export class ServerController {
 
 	public parse_message(dataset: any[]) {
 		const command = new Command();
-		command.command = dataset[0];
-		command.threadId = dataset[1];
-		command.parameters = dataset[2];
+		let i = 0;
+		command.command = dataset[i++];
+		if (this.connectedVersion[2] >= "2") {
+			command.threadId = dataset[i++];
+		}
+		command.parameters = dataset[i++];
 		return command;
 	}
 
@@ -492,7 +497,11 @@ export class ServerController {
 	}
 
 	private send_command(command: string, parameters?: any[]) {
-		const commandArray: any[] = [command, this.threadId, parameters ?? []];
+		const commandArray: any[] = [command];
+		if (this.connectedVersion[2] >= "2") {
+			commandArray.push(this.threadId);
+		}
+		commandArray.push(parameters ?? []);
 		log.debug("tx:", commandArray);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
