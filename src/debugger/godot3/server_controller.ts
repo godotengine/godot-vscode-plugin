@@ -108,15 +108,13 @@ export class ServerController {
 
 	public start_game(args: LaunchRequestArguments) {
 		const godotPath: string = get_configuration("editorPath.godot3", "godot3");
-		const force_visible_collision_shapes = get_configuration("forceVisibleCollisionShapes", false);
-		const force_visible_nav_mesh = get_configuration("forceVisibleNavMesh", false);
 
 		let command = `"${godotPath}" --path "${args.project}" --remote-debug "${args.address}:${args.port}"`;
 
-		if (force_visible_collision_shapes) {
+		if (get_configuration("forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
 		}
-		if (force_visible_nav_mesh) {
+		if (get_configuration("forceVisibleNavMesh")) {
 			command += " --debug-navigation";
 		}
 
@@ -144,7 +142,7 @@ export class ServerController {
 
 			command += ` "${filename}"`;
 		}
-		
+
 		command += ` "${filename}"`;
 
 		if (args.additional_options) {
@@ -155,7 +153,7 @@ export class ServerController {
 			args.project
 		);
 
-		log.debug("command:", command);
+		log.info("command:", command);
 		const debugProcess = subProcess("debug", command, { shell: true });
 
 		debugProcess.stdout.on("data", (data) => { });
