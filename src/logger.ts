@@ -26,7 +26,7 @@ const LOG_COLORS = [
 	"\u001b[1;32m", // DEBUG, green
 ];
 
-const output = window.createOutputChannel("Godot", { log: true });
+// const output = window.createOutputChannel("Godot", { log: true });
 
 export interface LoggerOptions {
 	level?: LOG_LEVEL
@@ -70,25 +70,25 @@ export class Logger {
 
 		console.log(prefix, ...messages);
 
-		if (this.show_output) {
-			const line = `[${this.tag}] ${JSON.stringify(messages)}`;
-			switch (level) {
-				case LOG_LEVEL.ERROR:
-					output.error(line);
-					break;
-				case LOG_LEVEL.WARNING:
-					output.warn(line);
-					break;
-				case LOG_LEVEL.INFO:
-					output.info(line);
-					break;
-				case LOG_LEVEL.DEBUG:
-					output.debug(line);
-					break;
-				default:
-					break;
-			}
-		}
+		// if (this.show_output) {
+		// 	const line = `[${this.tag}] ${JSON.stringify(messages)}`;
+		// 	switch (level) {
+		// 		case LOG_LEVEL.ERROR:
+		// 			output.error(line);
+		// 			break;
+		// 		case LOG_LEVEL.WARNING:
+		// 			output.warn(line);
+		// 			break;
+		// 		case LOG_LEVEL.INFO:
+		// 			output.info(line);
+		// 			break;
+		// 		case LOG_LEVEL.DEBUG:
+		// 			output.debug(line);
+		// 			break;
+		// 		default:
+		// 			break;
+		// 	}
+		// }
 	}
 
 	info(...messages) {
