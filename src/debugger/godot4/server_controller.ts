@@ -198,13 +198,13 @@ export class ServerController {
 			command += ` "${filename}"`;
 		}
 
-		if (args.additional_options) {
-			command += " " + args.additional_options;
-		}
 		command += get_breakpoint_string(
 			this.session.debug_data.get_all_breakpoints(),
 			args.project
 		);
+		if (args.additional_options) {
+			command += " " + args.additional_options;
+		}
 
 		log.info("command:", command);
 		const debugProcess = subProcess("debug", command, { shell: true });
