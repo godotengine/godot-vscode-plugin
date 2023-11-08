@@ -395,9 +395,19 @@
 								"description": "The port number for the Godot remote debugger to use.",
 								"default": 6007
 							},
-							"scene_file": {
+							"scene": {
 								"type": "string",
-								"description": "Path to a scene file to run instead of the projects 'main scene'.",
+								"enum": [
+									"main",
+									"current",
+									"pinned"
+								],
+								"enumDescriptions": [
+									"Launch the 'main_scene' specified in project.godot",
+									"Launch the scene (or related scene) in the current editor",
+									"Launch the pinned scene"
+								],
+								"description": "Scene file to run when debugging. Choices are 'main', 'current', 'pinned', or providing a custom path to a scene.",
 								"default": ""
 							},
 							"editor_path": {
@@ -441,9 +451,33 @@
 						"label": "GDScript Godot Debug: Launch",
 						"description": "A new configuration for debugging a Godot project.",
 						"body": {
-							"name": "GDScript Godot",
+							"name": "GDScript: Launch Project",
 							"type": "godot",
 							"request": "launch",
+							"project": "${workspaceFolder}",
+							"additional_options": ""
+						}
+					},
+					{
+						"label": "GDScript: Launch Current File",
+						"description": "A new configuration for debugging a Godot project.",
+						"body": {
+							"name": "GDScript: Launch Current File",
+							"type": "godot",
+							"request": "launch",
+							"scene": "current",
+							"project": "${workspaceFolder}",
+							"additional_options": ""
+						}
+					},
+					{
+						"label": "GDScript: Launch Pinned File",
+						"description": "A new configuration for debugging a Godot project.",
+						"body": {
+							"name": "GDScript: Launch Pinned File",
+							"type": "godot",
+							"request": "launch",
+							"scene": "pinned",
 							"project": "${workspaceFolder}",
 							"additional_options": ""
 						}

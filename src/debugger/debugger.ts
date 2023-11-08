@@ -30,7 +30,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 	address: string;
 	port: number;
 	project: string;
-	scene_file: string;
+	scene: string;
 	additional_options: string;
 }
 
@@ -38,15 +38,16 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 	address: string;
 	port: number;
 	project: string;
-	scene_file: string;
+	scene: string;
 	additional_options: string;
 }
+
+export let pinnedScene: Uri;
 
 export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
-	public pinnedScene: Uri;
 
 	constructor(private context: ExtensionContext) {
 		context.subscriptions.push(
@@ -58,7 +59,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),
 			register_command("debugger.refreshInspector", this.refresh_inspector.bind(this)),
 			register_command("debugger.editValue", this.edit_value.bind(this)),
-			register_command("debugger.debugCurrentFile", this.debug_file.bind(this)),
+			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
 			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
 			register_command("debugger.pinFile", this.pin_file.bind(this)),
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
@@ -128,46 +129,73 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		return config;
 	}
 
-	public debug_file(uri: Uri) {
-		const folder = workspace.workspaceFolders[0];
-		let path = uri.fsPath;
+	public debug_current_file() {
+		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", window.activeTextEditor.document.uri).get("configurations");
+		const launches = configs.filter((c) => c.request === "launch");
+		const currents = configs.filter((c) => c.scene === "current");
+
+		let path = window.activeTextEditor.document.fileName;
 		if (path.endsWith(".gd")) {
 			path = path.replace(".gd", ".tscn");
+			if (!fs.existsSync(path)) {
+				window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+				return;
+			}
 		}
 
-		if (!fs.existsSync(path)) {
-			window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
-			return;
-		}
+		const default_config = {
+			name: `Debug ${path} : 'File'}`,
+			type: "godot",
+			request: "launch",
+			scene: "current",
+		};
 
-		const configs: DebugConfiguration[] = workspace.getConfiguration("launch").get("configurations");
-		let config = configs.filter((c) => c.request === "launch")[0];
-		if (!config) {
-			config = {
-				name: `Debug ${path} : 'File'}`,
-				type: "godot",
-				request: "launch"
-			};
-		}
-		config.scene_file = path;
-		debug.startDebugging(folder, config);
+		const config = currents[0] ?? launches[0] ?? configs[0] ?? default_config;
+		config.scene = path;
+
+		debug.startDebugging(workspace.workspaceFolders[0], config);
 	}
 
 	public debug_pinned_file() {
-		if (this.pinnedScene) {
-			this.debug_file(this.pinnedScene);
-		}
+		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations");
+		const launches = configs.filter((c) => c.request === "launch");
+		const currents = configs.filter((c) => c.scene === "pinned");
 
+		if (!pinnedScene) {
+			window.showErrorMessage("No pinned scene found", "Ok");
+			return;
+		}
+		let path = pinnedScene.fsPath;
+		if (path.endsWith(".gd")) {
+			path = path.replace(".gd", ".tscn");
+			if (!fs.existsSync(path)) {
+				window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+				return;
+			}
+		}
+		const default_config = {
+			name: `Debug ${path} : 'File'}`,
+			type: "godot",
+			request: "launch",
+			scene: "pinned",
+		};
+
+		const config = currents[0] ?? launches[0] ?? configs[0] ?? default_config;
+		config.scene = path;
+
+		log.debug(config);
+
+		debug.startDebugging(workspace.workspaceFolders[0], config);
 	}
 
 	public pin_file(uri: Uri) {
 		set_context("pinnedScene", [uri.fsPath]);
-		this.pinnedScene = uri;
+		pinnedScene = uri;
 	}
 
 	public unpin_file(uri: Uri) {
 		set_context("pinnedScene", []);
-		this.pinnedScene = undefined;
+		pinnedScene = undefined;
 	}
 
 	public inspect_node(element: SceneNode | RemoteProperty) {

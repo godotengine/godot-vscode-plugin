@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
@@ -14,7 +15,7 @@ import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { get_configuration, get_free_port } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
-import { LaunchRequestArguments, AttachRequestArguments } from "../debugger";
+import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
 import { createLogger } from "../../logger";
 
 const log = createLogger("debugger.controller");
@@ -119,14 +120,31 @@ export class ServerController {
 		if (force_visible_nav_mesh) {
 			command += " --debug-navigation";
 		}
-		// TODO: reimplement this
-		// let filename = "";
-		// if (args.scene_file) {
-		// 	filename = args.scene_file;
-		// } else {
-		// 	filename = window.activeTextEditor.document.fileName;
-		// }
-		// command += ` "${filename}"`;
+
+		let filename = "";
+		if (args.scene && args.scene !== "main") {
+			filename = args.scene;
+			if (args.scene === "current") {
+				let path = window.activeTextEditor.document.fileName;
+				if (path.endsWith(".gd")) {
+					path = path.replace(".gd", ".tscn");
+					if (!fs.existsSync(path)) {
+						window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+						return;
+					}
+				}
+				filename = path;
+			}
+			if (args.scene === "pinned") {
+				if (pinnedScene) {
+					filename = pinnedScene.fsPath;
+					window.showErrorMessage("No pinned scene found", "Ok");
+					return;
+				}
+			}
+
+			command += ` "${filename}"`;
+		}
 
 		if (args.additional_options) {
 			command += " " + args.additional_options;
