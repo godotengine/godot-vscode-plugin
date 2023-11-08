@@ -68,6 +68,10 @@ export class ServerController {
 		this.send_command("next");
 	}
 
+	public set_breakpoint(path_to: string, line: number) {
+		this.send_command("breakpoint", [path_to, line, true]);
+	}
+
 	public remove_breakpoint(path_to: string, line: number) {
 		this.session.debug_data.remove_breakpoint(path_to, line);
 		this.send_command("breakpoint", [path_to, line, false]);
@@ -81,23 +85,15 @@ export class ServerController {
 		this.send_command("scene:request_scene_tree");
 	}
 
+	public request_stack_dump() {
+		this.send_command("get_stack_dump");
+	}
+
 	public request_stack_frame_vars(frame_id: number) {
 		this.send_command("get_stack_frame_vars", [frame_id]);
 	}
 
-	public set_breakpoint(path_to: string, line: number) {
-		this.send_command("breakpoint", [path_to, line, true]);
-	}
-
-	public set_exception(exception: string) {
-		this.exception = exception;
-	}
-
-	public set_object_property(
-		objectId: bigint,
-		label: string,
-		newParsedValue: any
-	) {
+	public set_object_property(objectId: bigint, label: string, newParsedValue: any) {
 		this.send_command("scene:set_object_property", [
 			objectId,
 			label,
@@ -105,8 +101,8 @@ export class ServerController {
 		]);
 	}
 
-	public request_stack_dump() {
-		this.send_command("get_stack_dump");
+	public set_exception(exception: string) {
+		this.exception = exception;
 	}
 
 	private async select_godot_executable(settingName: string) {
@@ -122,7 +118,7 @@ export class ServerController {
 		});
 	}
 
-	public start_game(args: LaunchRequestArguments) {
+	private start_game(args: LaunchRequestArguments) {
 		const settingName = "editorPath.godot4";
 		const godotPath: string = get_configuration(settingName);
 
@@ -198,10 +194,8 @@ export class ServerController {
 			command += ` "${filename}"`;
 		}
 
-		command += get_breakpoint_string(
-			this.session.debug_data.get_all_breakpoints(),
-			args.project
-		);
+		command += this.session.debug_data.get_breakpoint_string(args.project);
+
 		if (args.additional_options) {
 			command += " " + args.additional_options;
 		}
@@ -312,7 +306,7 @@ export class ServerController {
 		this.server.listen(args.port, args.address);
 	}
 
-	public parse_message(dataset: any[]) {
+	private parse_message(dataset: any[]) {
 		const command = new Command();
 		let i = 0;
 		command.command = dataset[i++];
@@ -323,7 +317,7 @@ export class ServerController {
 		return command;
 	}
 
-	public handle_command(command: Command) {
+	private handle_command(command: Command) {
 		switch (command.command) {
 			case "debug_enter": {
 				const reason: string = command.parameters[1];

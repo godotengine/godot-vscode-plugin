@@ -10,30 +10,6 @@ export interface GodotBreakpoint {
 	line: number;
 }
 
-export function get_breakpoint_path(projectPath: string, file: string) {
-	const relativePath = path.relative(projectPath, file).replace(/\\/g, "/");
-	if (relativePath.length !== 0) {
-		return `res://${relativePath}`;
-	}
-	return undefined;
-}
-
-export function get_breakpoint_string(breakpoints: GodotBreakpoint[], projectPath: string) {
-	let output = "";
-	if (breakpoints.length > 0) {
-		output += " --breakpoints \"";
-		breakpoints.forEach((bp, i) => {
-			output += `${get_breakpoint_path(projectPath, bp.file)}:${bp.line}`;
-			if (i < breakpoints.length - 1) {
-				output += ",";
-			}
-		});
-		output += "\"";
-	}
-
-	return output;
-}
-
 export interface GodotStackFrame {
 	file: string;
 	function: string;
@@ -117,16 +93,26 @@ export class GodotDebugData {
 		this.session = session;
 	}
 
-	public get_all_breakpoints(): GodotBreakpoint[] {
-		const output: GodotBreakpoint[] = [];
-		Array.from(this.breakpoints.values()).forEach((bp_array) => {
-			output.push(...bp_array);
-		});
-		return output;
-	}
+	public set_breakpoint(path_to: string, line: number) {
+		log.info("set_breakpoint");
+		const bp = {
+			file: path_to.replace(/\\/g, "/"),
+			line: line,
+			id: this.breakpoint_id++,
+		};
 
-	public get_breakpoints(path: string) {
-		return this.breakpoints.get(path) || [];
+		let bps: GodotBreakpoint[] = this.breakpoints.get(bp.file);
+		if (!bps) {
+			bps = [];
+			this.breakpoints.set(bp.file, bps);
+		}
+
+		bps.push(bp);
+
+		if (this.project_path) {
+			const out_file = `res://${path.relative(this.project_path, bp.file)}`;
+			this.session?.controller.set_breakpoint(out_file.replace(/\\/g, "/"), line);
+		}
 	}
 
 	public remove_breakpoint(path_to: string, line: number) {
@@ -150,25 +136,39 @@ export class GodotDebugData {
 		}
 	}
 
-	public set_breakpoint(path_to: string, line: number) {
-		log.info("set_breakpoint");
-		const bp = {
-			file: path_to.replace(/\\/g, "/"),
-			line: line,
-			id: this.breakpoint_id++,
-		};
-
-		let bps: GodotBreakpoint[] = this.breakpoints.get(bp.file);
-		if (!bps) {
-			bps = [];
-			this.breakpoints.set(bp.file, bps);
-		}
-
-		bps.push(bp);
-
-		if (this.project_path) {
-			const out_file = `res://${path.relative(this.project_path, bp.file)}`;
-			this.session?.controller.set_breakpoint(out_file.replace(/\\/g, "/"), line);
-		}
+	public get_all_breakpoints(): GodotBreakpoint[] {
+		const output: GodotBreakpoint[] = [];
+		Array.from(this.breakpoints.values()).forEach((bp_array) => {
+			output.push(...bp_array);
+		});
+		return output;
 	}
+
+	public get_breakpoints(path: string) {
+		return this.breakpoints.get(path) || [];
+	}
+
+	public get_breakpoint_string(projectPath: string) {
+		const breakpoints = this.get_all_breakpoints();
+		let output = "";
+		if (breakpoints.length > 0) {
+			output += " --breakpoints \"";
+			breakpoints.forEach((bp, i) => {
+				output += `${get_breakpoint_path(projectPath, bp.file)}:${bp.line}`;
+				if (i < breakpoints.length - 1) {
+					output += ",";
+				}
+			});
+			output += "\"";
+		}
+		return output;
+	}
+}
+
+export function get_breakpoint_path(projectPath: string, file: string) {
+	const relativePath = path.relative(projectPath, file).replace(/\\/g, "/");
+	if (relativePath.length !== 0) {
+		return `res://${relativePath}`;
+	}
+	return undefined;
 }
