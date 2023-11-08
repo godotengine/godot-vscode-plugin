@@ -6,7 +6,7 @@ import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from './NativeDocumentManager';
 
-const log = createLogger("lsp.client", LOG_LEVEL.SILENT);
+const log = createLogger("lsp.client", {level: LOG_LEVEL.SILENT});
 
 export enum ClientStatus {
 	PENDING,

@@ -1,3 +1,5 @@
+import { window } from "vscode";
+
 
 export class Logger {
 	protected buffer: string = "";
@@ -70,19 +72,31 @@ const LOG_COLORS = [
 	"\u001b[1;32m", // DEBUG, green
 ];
 
+const output = window.createOutputChannel("Godot", { log: true });
+
+export interface LoggerOptions {
+	level?: LOG_LEVEL
+	time?: boolean;
+	label?: boolean;
+	output?: boolean;
+}
+
 export class Logger2 {
+	private level: LOG_LEVEL = LOG_LEVEL.DEBUG;
 	private show_tag: boolean = true;
 	private show_time: boolean;
 	private show_label: boolean;
 	private show_level: boolean = false;
+	private show_output: boolean;
 
 	constructor(
 		private tag: string,
-		private level: LOG_LEVEL = LOG_LEVEL.DEBUG,
-		{ time = false, label = false }: { time?: boolean, label?: boolean } = {},
+		{ level = LOG_LEVEL.DEBUG, time = false, label = false, output = false }: LoggerOptions = {},
 	) {
+		this.level = level;
 		this.show_time = time;
 		this.show_label = label;
+		this.show_output = output;
 	}
 
 	private log(level: LOG_LEVEL, ...messages) {
@@ -101,6 +115,26 @@ export class Logger2 {
 		}
 
 		console.log(prefix, ...messages);
+
+		// if (this.show_output) {
+		// 	const line = `[${this.tag}] ${JSON.stringify(messages)}`;
+		// 	switch (level) {
+		// 		case LOG_LEVEL.ERROR:
+		// 			output.error(line);
+		// 			break;
+		// 		case LOG_LEVEL.WARNING:
+		// 			output.warn(line);
+		// 			break;
+		// 		case LOG_LEVEL.INFO:
+		// 			output.info(line);
+		// 			break;
+		// 		case LOG_LEVEL.DEBUG:
+		// 			output.debug(line);
+		// 			break;
+		// 		default:
+		// 			break;
+		// 	}
+		// }
 	}
 
 	info(...messages) {
@@ -125,8 +159,8 @@ export class Logger2 {
 	}
 }
 
-export function createLogger(tag, level: LOG_LEVEL = LOG_LEVEL.DEBUG) {
-	return new Logger2(tag, level);
+export function createLogger(tag, options?: LoggerOptions) {
+	return new Logger2(tag, options);
 }
 
 const logger = new Logger("godot-tools", true);
