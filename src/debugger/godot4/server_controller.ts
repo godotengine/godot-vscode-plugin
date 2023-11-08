@@ -10,11 +10,12 @@ import {
 } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { debug, window } from "vscode";
+import { Uri, debug, window } from "vscode";
 import net = require("net");
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { get_configuration, get_free_port } from "../../utils";
+import { get_configuration, get_free_port, projectVersion, set_configuration } from "../../utils";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
+import { execSync } from "child_process";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
 import { createLogger } from "../../logger";
 
@@ -107,9 +108,57 @@ export class ServerController {
 		this.send_command("get_stack_dump");
 	}
 
-	public start_game(args: LaunchRequestArguments) {
-		const godotPath: string = get_configuration("editorPath.godot4", "godot4");
+	private async select_godot_executable(settingName: string) {
+		window.showOpenDialog({
+			openLabel: "Select Godot executable",
+			filters: process.platform === "win32" ? { "Godot Editor Binary": ["exe", "EXE"] } : undefined
+		}).then(async (uris: Uri[]) => {
+			if (!uris) {
+				return;
+			}
+			const path = uris[0].fsPath;
+			set_configuration(settingName, path);
+		});
+	}
 
+	public start_game(args: LaunchRequestArguments) {
+		const settingName = "editorPath.godot4";
+		const godotPath: string = get_configuration(settingName);
+
+		try {
+			const output = execSync(`${godotPath} --version`).toString().trim();
+			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?\w+.\w+.[0-9a-f]{9}/;
+			const match = output.match(pattern);
+			if (!match) {
+				const message = `Cannot launch debug session: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+					if (item == "Select Godot executable") {
+						this.select_godot_executable(settingName);
+					}
+				});
+				this.abort();
+				return;
+			}
+			if (match[1] !== settingName[-1]) {
+				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
+				window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+					if (item == "Select Godot executable") {
+						this.select_godot_executable(settingName);
+					}
+				});
+				this.abort();
+				return;
+			}
+		} catch {
+			const message = `Cannot launch debug session: ${settingName} of ${godotPath} is not a valid Godot executable`;
+			window.showErrorMessage(message, "Select Godot executable", "Ignore").then(item => {
+				if (item == "Select Godot executable") {
+					this.select_godot_executable(settingName);
+				}
+			});
+			this.abort();
+			return;
+		}
 		let command = `"${godotPath}" --path "${args.project}" --remote-debug "tcp://${args.address}:${args.port}"`;
 
 		if (get_configuration("forceVisibleCollisionShapes")) {
@@ -119,15 +168,15 @@ export class ServerController {
 			command += " --debug-navigation";
 		}
 
-		let filename = "";
 		if (args.scene && args.scene !== "main") {
-			filename = args.scene;
+			let filename = args.scene;
 			if (args.scene === "current") {
 				let path = window.activeTextEditor.document.fileName;
 				if (path.endsWith(".gd")) {
 					path = path.replace(".gd", ".tscn");
 					if (!fs.existsSync(path)) {
 						window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+						this.abort();
 						return;
 					}
 				}
@@ -137,6 +186,7 @@ export class ServerController {
 				if (pinnedScene) {
 					filename = pinnedScene.fsPath;
 					window.showErrorMessage("No pinned scene found", "Ok");
+					this.abort();
 					return;
 				}
 			}
@@ -194,14 +244,12 @@ export class ServerController {
 
 			socket.on("close", (had_error) => {
 				log.debug("socket close");
-				this.session.sendEvent(new TerminatedEvent());
-				this.stop();
+				this.abort();
 			});
 
 			socket.on("end", () => {
 				log.debug("socket end");
-				this.session.sendEvent(new TerminatedEvent());
-				this.stop();
+				this.abort();
 			});
 
 			socket.on("error", (error) => {
@@ -357,6 +405,11 @@ export class ServerController {
 				break;
 			}
 		}
+	}
+
+	public abort() {
+		this.session.sendEvent(new TerminatedEvent());
+		this.stop();
 	}
 
 	public stop() {

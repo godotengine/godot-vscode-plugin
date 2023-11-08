@@ -31,6 +31,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 	port: number;
 	project: string;
 	scene: string;
+	editor_path: string;
 	additional_options: string;
 }
 
