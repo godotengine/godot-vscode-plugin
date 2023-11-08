@@ -21,13 +21,14 @@ export function get_breakpoint_path(projectPath: string, file: string) {
 export function get_breakpoint_string(breakpoints: GodotBreakpoint[], projectPath: string) {
 	let output = "";
 	if (breakpoints.length > 0) {
-		output += " --breakpoints ";
+		output += " --breakpoints \"";
 		breakpoints.forEach((bp, i) => {
 			output += `${get_breakpoint_path(projectPath, bp.file)}:${bp.line}`;
 			if (i < breakpoints.length - 1) {
 				output += ",";
 			}
 		});
+		output += "\"";
 	}
 
 	return output;
