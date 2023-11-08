@@ -130,10 +130,10 @@ export class ServerController {
 
 		command += ` --remote-debug "tcp://${args.address.replace("tcp://", "")}:${args.port}"`;
 
-		if (get_configuration("forceVisibleCollisionShapes")) {
+		if (get_configuration("debugger.forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
 		}
-		if (get_configuration("forceVisibleNavMesh")) {
+		if (get_configuration("debugger.forceVisibleNavMesh")) {
 			command += " --debug-navigation";
 		}
 

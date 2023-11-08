@@ -115,6 +115,30 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.debugger.debugCurrentFile",
+				"title": "Run Current File",
+				"icon": "$(play)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.debugPinnedFile",
+				"title": "Run Pinned File",
+				"icon": "$(play)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.pinFile",
+				"title": "Pin Scene File",
+				"icon": "resources/pin_off.svg"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.unpinFile",
+				"title": "Unpin Scene File",
+				"icon": "resources/pin_on.svg"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.refresh",
 				"title": "Refresh Scene Preview"
 			},
@@ -169,30 +193,6 @@
 				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePath",
 				"title": "Copy Resource Path"
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.debugger.debugCurrentFile",
-				"title": "Run Current File",
-				"icon": "$(play)"
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.debugger.debugPinnedFile",
-				"title": "Run Pinned File",
-				"icon": "$(play)"
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.debugger.pinFile",
-				"title": "Pin Scene File",
-				"icon": "resources/pin_off.svg"
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.debugger.unpinFile",
-				"title": "Unpin Scene File",
-				"icon": "resources/pin_on.svg"
 			}
 		],
 		"keybindings": [
@@ -206,6 +206,16 @@
 			"type": "object",
 			"title": "Godot Tools",
 			"properties": {
+				"godotTools.editorPath.godot3": {
+					"type": "string",
+					"default": "godot3",
+					"description": "The absolute path to the Godot 3 editor executable"
+				},
+				"godotTools.editorPath.godot4": {
+					"type": "string",
+					"default": "godot4",
+					"description": "The absolute path to the Godot 4 editor executable"
+				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
 						"string"
@@ -236,16 +246,6 @@
 					"default": false,
 					"description": "Whether to launch the LSP as a headless child process"
 				},
-				"godotTools.editorPath.godot3": {
-					"type": "string",
-					"default": "godot3",
-					"description": "The absolute path to the Godot 3 editor executable"
-				},
-				"godotTools.editorPath.godot4": {
-					"type": "string",
-					"default": "godot4",
-					"description": "The absolute path to the Godot 4 editor executable"
-				},
 				"godotTools.lsp.autoReconnect.enabled": {
 					"type": "boolean",
 					"default": true,
@@ -261,27 +261,27 @@
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
 				},
-				"godotTools.forceVisibleCollisionShapes": {
+				"godotTools.debugger.forceVisibleCollisionShapes": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible collision shapes"
 				},
-				"godotTools.forceVisibleNavMesh": {
+				"godotTools.debugger.forceVisibleNavMesh": {
 					"type": "boolean",
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
 				},
-				"godotTools.nativeSymbolPlacement": {
+				"godotTools.documentation.newTabPlacement": {
 					"enum": [
 						"active",
 						"beside"
 					],
 					"enumDescriptions": [
-						"Place the native symbol window in the active tabs group",
-						"Place the native symbol window beside the active tabs group"
+						"Place new documentation views in the active tabs group",
+						"Place new documentation views beside the active tabs group"
 					],
 					"default": "beside",
-					"description": "Where to place the native symbol windows"
+					"description": "Where to place new documentation views"
 				},
 				"godotTools.scenePreview.previewRelatedScenes": {
 					"enum": [
