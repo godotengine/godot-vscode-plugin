@@ -176,11 +176,6 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.copyResourcePathContext",
-				"title": "Copy Resource Path"
-			},
-			{
-				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePath",
 				"title": "Copy Resource Path"
 			}
@@ -571,10 +566,6 @@
 					"when": "false"
 				},
 				{
-					"command": "godotTools.copyResourcePathContext",
-					"when": "false"
-				},
-				{
 					"command": "godotTools.debugger.editValue",
 					"when": "false"
 				},
@@ -665,7 +656,7 @@
 					"when": "resourceLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
 				},
 				{
-					"command": "godotTools.copyResourcePathContext",
+					"command": "godotTools.copyResourcePath",
 					"group": "6_copypath",
 					"when": "resourceLangId in godotTools.context.godotFiles"
 				}
@@ -696,7 +687,7 @@
 			],
 			"editor/title/context": [
 				{
-					"command": "godotTools.copyResourcePathContext",
+					"command": "godotTools.copyResourcePath",
 					"group": "1_godot"
 				},
 				{

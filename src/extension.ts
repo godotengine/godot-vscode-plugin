@@ -33,7 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
-		register_command("copyResourcePathContext", copy_resource_path),
 		register_command("copyResourcePath", copy_resource_path),
 		register_command("openTypeDocumentation", open_type_documentation),
 		register_command("switchSceneScript", switch_scene_script),
