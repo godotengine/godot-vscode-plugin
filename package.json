@@ -562,10 +562,6 @@
 					"when": "false"
 				},
 				{
-					"command": "godotTools.copyResourcePath",
-					"when": "false"
-				},
-				{
 					"command": "godotTools.debugger.editValue",
 					"when": "false"
 				},
@@ -657,8 +653,7 @@
 				},
 				{
 					"command": "godotTools.copyResourcePath",
-					"group": "6_copypath",
-					"when": "resourceLangId in godotTools.context.godotFiles"
+					"group": "6_copypath"
 				}
 			],
 			"editor/title/run": [
