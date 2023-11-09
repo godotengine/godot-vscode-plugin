@@ -8,14 +8,14 @@ import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { build_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
+import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
 import { get_configuration, get_free_port, projectVersion } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
 import { createLogger } from "../../logger";
 
-const log = createLogger("debugger.controller");
+const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 
 class Command {
 	public command: string = "";
@@ -36,6 +36,7 @@ export class ServerController {
 	private steppingOut = false;
 	private currentCommand: Command = undefined;
 	private didFirstOutput: boolean = false;
+	private connectedVersion = "";
 
 	public constructor(
 		public session: GodotDebugSession
@@ -100,35 +101,42 @@ export class ServerController {
 	}
 
 	private start_game(args: LaunchRequestArguments) {
+		log.info("Starting game process");
 		const settingName = "editorPath.godot3";
 		const godotPath: string = get_configuration(settingName);
 
 		try {
+			log.info(`Verifying version of '${godotPath}'`);
 			const output = execSync(`${godotPath} --version`).toString().trim();
 			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?\w+.\w+.[0-9a-f]{9}/;
 			const match = output.match(pattern);
 			if (!match) {
 				const message = `Cannot launch debug session: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+				log.warn(message);
 				prompt_for_godot_executable(message, settingName);
 				this.abort();
 				return;
 			}
+			log.info(`Got version string: '${output}'`);
+			this.connectedVersion = output;
 			if (match[1] !== settingName.slice(-1)) {
-				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
+				const message = `Cannot launch debug session: The current project uses Godot '${projectVersion}', but the specified Godot executable is version '${match[0]}'`;
+				log.warn(message);
 				prompt_for_godot_executable(message, settingName);
 				this.abort();
 				return;
 			}
 		} catch {
-			const message = `Cannot launch debug session: ${settingName} of ${godotPath} is not a valid Godot executable`;
+			const message = `Cannot launch debug session: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+			log.warn(message);
 			prompt_for_godot_executable(message, settingName);
 			this.abort();
 			return;
 		}
 
 		let command = `"${godotPath}" --path "${args.project}"`;
-
-		command += ` --remote-debug "tcp://${args.address.replace("tcp://", "")}:${args.port}"`;
+		const address = args.address.replace("tcp://", "");
+		command += ` --remote-debug "tcp://${address}:${args.port}"`;
 
 		if (get_configuration("debugger.forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
@@ -138,13 +146,16 @@ export class ServerController {
 		}
 
 		if (args.scene && args.scene !== "main") {
+			log.info(`Custom scene argument provided: ${args.scene}`);
 			let filename = args.scene;
 			if (args.scene === "current") {
 				let path = window.activeTextEditor.document.fileName;
 				if (path.endsWith(".gd")) {
 					path = path.replace(".gd", ".tscn");
 					if (!fs.existsSync(path)) {
-						window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+						const message = `Can't find associated scene file for ${path}`;
+						log.warn(message);
+						window.showErrorMessage(message, "Ok");
 						this.abort();
 						return;
 					}
@@ -152,23 +163,36 @@ export class ServerController {
 				filename = path;
 			}
 			if (args.scene === "pinned") {
-				if (pinnedScene) {
-					filename = pinnedScene.fsPath;
-					window.showErrorMessage("No pinned scene found", "Ok");
+				if (!pinnedScene) {
+					const message = "No pinned scene found";
+					log.warn(message);
+					window.showErrorMessage(message, "Ok");
 					this.abort();
 					return;
 				}
+				let path = pinnedScene.fsPath;
+				if (path.endsWith(".gd")) {
+					path = path.replace(".gd", ".tscn");
+					if (!fs.existsSync(path)) {
+						const message = `Can't find associated scene file for ${path}`;
+						log.warn(message);
+						window.showErrorMessage(message, "Ok");
+						this.abort();
+						return;
+					}
+				}
+				filename = path;
 			}
 			command += ` "${filename}"`;
 		}
 
-		command += this.session.debug_data.get_breakpoint_string(args.project);
+		command += this.session.debug_data.get_breakpoint_string();
 
 		if (args.additional_options) {
 			command += " " + args.additional_options;
 		}
 
-		log.info("command:", command);
+		log.info(`Launching game process using command: '${command}'`);
 		const debugProcess = subProcess("debug", command, { shell: true });
 
 		debugProcess.stdout.on("data", (data) => { });
@@ -198,7 +222,7 @@ export class ServerController {
 	}
 
 	public async launch(args: LaunchRequestArguments) {
-		log.info("launch");
+		log.info("Starting debug controller in 'launch' mode");
 
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
@@ -206,23 +230,23 @@ export class ServerController {
 			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
-				log.debug("socket close");
+				// log.debug("socket close");
 				this.abort();
 			});
 
 			socket.on("end", () => {
-				log.debug("socket end");
+				// log.debug("socket end");
 				this.abort();
 			});
 
 			socket.on("error", (error) => {
-				log.debug("socket error");
+				// log.debug("socket error");
 				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
 			socket.on("drain", () => {
-				log.debug("socket drain");
+				// log.debug("socket drain");
 				socket.resume();
 				this.draining = false;
 				this.send_buffer();
@@ -239,29 +263,31 @@ export class ServerController {
 	}
 
 	public async attach(args: AttachRequestArguments) {
+		log.info("Starting debug controller in 'attach' mode");
+
 		this.server = net.createServer((socket) => {
 			this.socket = socket;
 
 			socket.on("data", this.on_data.bind(this));
 
 			socket.on("close", (had_error) => {
-				log.debug("socket close");
+				// log.debug("socket close");
 				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
 			socket.on("end", () => {
-				log.debug("socket end");
+				// log.debug("socket end");
 				// this.session.sendEvent(new TerminatedEvent());
 				// this.stop();
 			});
 
 			socket.on("error", (error) => {
-				log.error("socket error", error);
+				// log.error("socket error", error);
 			});
 
 			socket.on("drain", () => {
-				log.debug("socket drain");
+				// log.debug("socket drain");
 				socket.resume();
 				this.draining = false;
 				this.send_buffer();
@@ -290,7 +316,7 @@ export class ServerController {
 		}
 
 		if (this.currentCommand.complete) {
-			log.debug("rx:", [this.currentCommand.command, ...this.currentCommand.parameters]);
+			// log.debug("rx:", [this.currentCommand.command, ...this.currentCommand.parameters]);
 			this.handle_command(this.currentCommand);
 		}
 	}
@@ -309,7 +335,10 @@ export class ServerController {
 			}
 			case "debug_exit":
 				break;
-			case "message:click_ctrl ":
+			case "message:click_ctrl":
+				// TODO: what is this?
+				break;
+			case "performance":
 				// TODO: what is this?
 				break;
 			case "message:scene_tree": {
@@ -370,13 +399,13 @@ export class ServerController {
 	}
 
 	public abort() {
+		log.info("Aborting debug controller");
 		this.session.sendEvent(new TerminatedEvent());
 		this.stop();
 	}
 
-
 	public stop() {
-		log.debug("stop");
+		log.info("Stopping debug controller");
 		killSubProcesses("debug");
 
 		this.socket?.destroy();
@@ -390,8 +419,6 @@ export class ServerController {
 	}
 
 	public trigger_breakpoint(stackFrames: GodotStackFrame[]) {
-		log.debug("trigger_breakpoint", stackFrames);
-
 		let continueStepping = false;
 		const stackCount = stackFrames.length;
 		if (stackCount === 0) {
@@ -401,10 +428,7 @@ export class ServerController {
 			return;
 		}
 
-		const file = stackFrames[0].file.replace(
-			"res://",
-			`${this.session.debug_data.project_path}/`
-		);
+		const file = stackFrames[0].file.replace("res://", `${this.session.debug_data.projectPath}/`);
 		const line = stackFrames[0].line;
 
 		if (this.steppingOut) {
@@ -454,7 +478,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters: any[] = []) {
 		const commandArray: any[] = [command, ...parameters];
-		log.debug("tx:", commandArray);
+		// log.debug("tx:", commandArray);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
 		this.send_buffer();
@@ -472,8 +496,6 @@ export class ServerController {
 	}
 
 	private do_stack_frame_vars(parameters: any[]) {
-		log.debug("do_stack_frame_vars", parameters);
-
 		const stackVars = new GodotStackVars();
 
 		let localsRemaining = parameters[0];

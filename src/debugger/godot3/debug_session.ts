@@ -19,7 +19,7 @@ import { parse_variable, is_variable_built_in_type } from "./helpers";
 import { ServerController } from "./server_controller";
 import { createLogger } from "../../logger";
 
-const log = createLogger("debugger.session");
+const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
@@ -87,7 +87,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.mode = "launch";
 
-		this.debug_data.project_path = args.project;
+		this.debug_data.projectPath = args.project;
 		this.exception = false;
 		await this.controller.launch(args);
 
@@ -254,7 +254,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 						column: 1,
 						source: new Source(
 							sf.file,
-							`${this.debug_data.project_path}/${sf.file.replace("res://", "")}`
+							`${this.debug_data.projectPath}/${sf.file.replace("res://", "")}`
 						),
 					};
 				}),

@@ -76,7 +76,6 @@ export function build_sub_values(va: GodotVariable) {
 
 
 export function parse_variable(va: GodotVariable, i?: number) {
-	// log.debug("parse_variable", va, i);
 	const value = va.value;
 	let rendered_value = "";
 	let reference = 0;

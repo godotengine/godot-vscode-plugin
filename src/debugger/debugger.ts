@@ -21,10 +21,9 @@ import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session"
 import { register_command, projectVersion, set_context } from "../utils";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
-
 import { createLogger } from "../logger";
 
-const log = createLogger("debugger");
+const log = createLogger("debugger", { output: "Godot Debugger" });
 
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	address: string;
@@ -50,7 +49,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
 
+
 	constructor(private context: ExtensionContext) {
+		log.info("Initializing Godot Debugger");
+
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
 			debug.registerDebugAdapterDescriptorFactory("godot", this),
@@ -68,6 +70,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
+		log.info("Creating debug session");
+		log.info(`Project version identified as ${projectVersion}`);
+
 		if (projectVersion.startsWith("4")) {
 			this.session = new Godot4DebugSession();
 		} else {
@@ -105,17 +110,20 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public debug_current_file() {
+		log.info("Attempting to debug current file");
 		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", window.activeTextEditor.document.uri).get("configurations");
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "current");
 
 		let path = window.activeTextEditor.document.fileName;
 		if (path.endsWith(".gd")) {
-			path = path.replace(".gd", ".tscn");
-			if (!fs.existsSync(path)) {
-				window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+			const scenePath = path.replace(".gd", ".tscn");
+			if (!fs.existsSync(scenePath)) {
+				log.warn(`Can't find associated scene for '${path}', aborting debug`);
+				window.showWarningMessage(`Can't find associated scene file for '${path}'`);
 				return;
 			}
+			path = scenePath;
 		}
 
 		const default_config = {
@@ -128,25 +136,30 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const config = currents[0] ?? launches[0] ?? configs[0] ?? default_config;
 		config.scene = path;
 
+		log.info(`Starting debug session for '${path}'`);
 		debug.startDebugging(workspace.workspaceFolders[0], config);
 	}
 
 	public debug_pinned_file() {
+		log.info("Attempting to debug pinned scene");
 		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations");
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "pinned");
 
 		if (!pinnedScene) {
-			window.showErrorMessage("No pinned scene found", "Ok");
+			log.warn("No pinned scene found, aborting debug");
+			window.showWarningMessage("No pinned scene found");
 			return;
 		}
 		let path = pinnedScene.fsPath;
 		if (path.endsWith(".gd")) {
-			path = path.replace(".gd", ".tscn");
-			if (!fs.existsSync(path)) {
-				window.showErrorMessage(`Can't find associated scene file for ${path}`, "Ok");
+			const scenePath = path.replace(".gd", ".tscn");
+			if (!fs.existsSync(scenePath)) {
+				log.warn(`Can't find associated scene for '${path}', aborting debug`);
+				window.showWarningMessage(`Can't find associated scene file for '${path}'`);
 				return;
 			}
+			path = scenePath;
 		}
 		const default_config = {
 			name: `Debug ${path} : 'File'}`,
@@ -158,17 +171,21 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const config = currents[0] ?? launches[0] ?? configs[0] ?? default_config;
 		config.scene = path;
 
-		log.debug(config);
-
+		log.info(`Starting debug session for '${path}'`);
 		debug.startDebugging(workspace.workspaceFolders[0], config);
 	}
 
 	public pin_file(uri: Uri) {
+		if (uri === undefined) {
+			uri = window.activeTextEditor.document.uri;
+		}
+		log.info(`Pinning debug target file: '${uri.fsPath}'`);
 		set_context("pinnedScene", [uri.fsPath]);
 		pinnedScene = uri;
 	}
 
 	public unpin_file(uri: Uri) {
+		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
 		pinnedScene = undefined;
 	}
