@@ -106,13 +106,13 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.debugCurrentFile",
-				"title": "Run Current File",
+				"title": "Debug Current File",
 				"icon": "$(play)"
 			},
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.debugPinnedFile",
-				"title": "Run Pinned File",
+				"title": "Debug Pinned File",
 				"icon": "$(play)"
 			},
 			{
@@ -126,6 +126,11 @@
 				"command": "godotTools.debugger.unpinFile",
 				"title": "Unpin Scene File",
 				"icon": "resources/pin_on.svg"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.openPinnedFile",
+				"title": "Open the currently pinned scene"
 			},
 			{
 				"category": "Godot Tools",

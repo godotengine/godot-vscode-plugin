@@ -66,6 +66,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
 			register_command("debugger.pinFile", this.pin_file.bind(this)),
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
+			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 		);
 	}
 
@@ -188,6 +189,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
 		pinnedScene = undefined;
+	}
+
+	public open_pinned_file() {
+		log.info(`Opening pinned debug target file: '${pinnedScene}'`);
+		if (pinnedScene){
+			window.showTextDocument(pinnedScene);
+		}
 	}
 
 	public inspect_node(element: SceneNode | RemoteProperty) {
