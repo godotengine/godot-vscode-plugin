@@ -1,4 +1,5 @@
-import { window } from "vscode";
+import { LogOutputChannel, window } from "vscode";
+import { is_debug_mode } from "./utils";
 
 export enum LOG_LEVEL {
 	SILENT,
@@ -26,69 +27,65 @@ const LOG_COLORS = [
 	"\u001b[1;32m", // DEBUG, green
 ];
 
-// const output = window.createOutputChannel("Godot", { log: true });
-
 export interface LoggerOptions {
 	level?: LOG_LEVEL
 	time?: boolean;
-	label?: boolean;
-	output?: boolean;
+	output?: string;
 }
 
 export class Logger {
 	private level: LOG_LEVEL = LOG_LEVEL.DEBUG;
 	private show_tag: boolean = true;
 	private show_time: boolean;
-	private show_label: boolean;
 	private show_level: boolean = false;
-	private show_output: boolean;
+	private output?: LogOutputChannel;
 
 	constructor(
 		private tag: string,
-		{ level = LOG_LEVEL.DEBUG, time = false, label = false, output = true }: LoggerOptions = {},
+		{ level = LOG_LEVEL.DEBUG, time = false, output = "" }: LoggerOptions = {},
 	) {
 		this.level = level;
 		this.show_time = time;
-		this.show_label = label;
-		this.show_output = output;
+		if (output) {
+			this.output = window.createOutputChannel(output, { log: true });
+		}
 	}
 
 	private log(level: LOG_LEVEL, ...messages) {
-		let prefix = "";
-		if (this.show_label) {
-			prefix += "[godotTools]";
-		}
-		if (this.show_time) {
-			prefix += `[${new Date().toISOString()}]`;
-		}
-		if (this.show_level) {
-			prefix += "[" + LOG_COLORS[level] + LOG_LEVEL_NAMES[level] + RESET + "]";
-		}
-		if (this.show_tag) {
-			prefix += "[" + LOG_COLORS[level] + this.tag + RESET + "]";
+		if (is_debug_mode()) {
+			let prefix = "";
+			if (this.show_time) {
+				prefix += `[${new Date().toISOString()}]`;
+			}
+			if (this.show_level) {
+				prefix += "[" + LOG_COLORS[level] + LOG_LEVEL_NAMES[level] + RESET + "]";
+			}
+			if (this.show_tag) {
+				prefix += "[" + LOG_COLORS[level] + this.tag + RESET + "]";
+			}
+
+			console.log(prefix, ...messages);
 		}
 
-		console.log(prefix, ...messages);
-
-		// if (this.show_output) {
-		// 	const line = `[${this.tag}] ${JSON.stringify(messages)}`;
-		// 	switch (level) {
-		// 		case LOG_LEVEL.ERROR:
-		// 			output.error(line);
-		// 			break;
-		// 		case LOG_LEVEL.WARNING:
-		// 			output.warn(line);
-		// 			break;
-		// 		case LOG_LEVEL.INFO:
-		// 			output.info(line);
-		// 			break;
-		// 		case LOG_LEVEL.DEBUG:
-		// 			output.debug(line);
-		// 			break;
-		// 		default:
-		// 			break;
-		// 	}
-		// }
+		if (this.output) {
+			const line = `${messages[0]}`;
+			switch (level) {
+				case LOG_LEVEL.ERROR:
+					this.output.error(line);
+					break;
+				case LOG_LEVEL.WARNING:
+					this.output.warn(line);
+					break;
+				case LOG_LEVEL.INFO:
+					this.output.info(line);
+					break;
+				case LOG_LEVEL.DEBUG:
+					this.output.debug(line);
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	info(...messages) {
