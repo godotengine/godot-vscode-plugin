@@ -18,7 +18,7 @@ import {
 
 export class VariantDecoder {
 	public decode_variant(model: BufferModel) {
-		let type = this.decode_UInt32(model);
+		const type = this.decode_UInt32(model);
 		switch (type & 0xff) {
 			case GDScriptTypes.BOOL:
 				return this.decode_UInt32(model) !== 0;
@@ -87,18 +87,21 @@ export class VariantDecoder {
 		}
 	}
 
-	public get_dataset(buffer: Buffer, offset: number) {
-		let len = buffer.readUInt32LE(offset);
-		let model: BufferModel = {
+	public get_dataset(buffer: Buffer) {
+		const len = buffer.readUInt32LE(0);
+		if (buffer.length != len + 4) {
+			return undefined;
+		}
+		const model: BufferModel = {
 			buffer: buffer,
-			offset: offset + 4,
+			offset: 4, // data starts after the initial length
 			len: len,
 		};
 
-		let output = [];
+		const output = [];
 		output.push(len + 4);
 		do {
-			let value = this.decode_variant(model);
+			const value = this.decode_variant(model);
 			output.push(value);
 		} while (model.len > 0);
 
@@ -110,12 +113,12 @@ export class VariantDecoder {
 	}
 
 	private decode_Array(model: BufferModel) {
-		let output: Array<any> = [];
+		const output: Array<any> = [];
 
-		let count = this.decode_UInt32(model);
+		const count = this.decode_UInt32(model);
 
 		for (let i = 0; i < count; i++) {
-			let value = this.decode_variant(model);
+			const value = this.decode_variant(model);
 			output.push(value);
 		}
 
@@ -131,19 +134,19 @@ export class VariantDecoder {
 	}
 
 	private decode_Color(model: BufferModel) {
-		let rgb = this.decode_Vector3(model);
-		let a = this.decode_Float(model);
+		const rgb = this.decode_Vector3(model);
+		const a = this.decode_Float(model);
 
 		return new Color(rgb.x, rgb.y, rgb.z, a);
 	}
 
 	private decode_Dictionary(model: BufferModel) {
-		let output = new Map<any, any>();
+		const output = new Map<any, any>();
 
-		let count = this.decode_UInt32(model);
+		const count = this.decode_UInt32(model);
 		for (let i = 0; i < count; i++) {
-			let key = this.decode_variant(model);
-			let value = this.decode_variant(model);
+			const key = this.decode_variant(model);
+			const value = this.decode_variant(model);
 			output.set(key, value);
 		}
 
@@ -151,7 +154,7 @@ export class VariantDecoder {
 	}
 
 	private decode_Double(model: BufferModel) {
-		let d = model.buffer.readDoubleLE(model.offset);
+		const d = model.buffer.readDoubleLE(model.offset);
 
 		model.offset += 8;
 		model.len -= 8;
@@ -160,7 +163,7 @@ export class VariantDecoder {
 	}
 
 	private decode_Float(model: BufferModel) {
-		let f = model.buffer.readFloatLE(model.offset);
+		const f = model.buffer.readFloatLE(model.offset);
 
 		model.offset += 4;
 		model.len -= 4;
@@ -169,41 +172,53 @@ export class VariantDecoder {
 	}
 
 	private decode_Int32(model: BufferModel) {
-		let u = model.buffer.readInt32LE(model.offset);
+		const result = model.buffer.readInt32LE(model.offset);
 
 		model.len -= 4;
 		model.offset += 4;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt32(model: BufferModel) {
+		const result = model.buffer.readUInt32LE(model.offset);
+		model.len -= 4;
+		model.offset += 4;
+
+		return result;
 	}
 
 	private decode_Int64(model: BufferModel) {
-		let hi = model.buffer.readInt32LE(model.offset);
-		let lo = model.buffer.readInt32LE(model.offset + 4);
-
-		let u: BigInt = BigInt((hi << 32) | lo);
-
+		const result = model.buffer.readBigInt64LE(model.offset);
 		model.len -= 8;
 		model.offset += 8;
 
-		return u;
+		return result;
+	}
+
+	private decode_UInt64(model: BufferModel) {
+		const result = model.buffer.readBigUInt64LE(model.offset);
+		model.len -= 8;
+		model.offset += 8;
+
+		return result;
 	}
 
 	private decode_NodePath(model: BufferModel) {
-		let name_count = this.decode_UInt32(model) & 0x7fffffff;
+		const name_count = this.decode_UInt32(model) & 0x7fffffff;
 		let subname_count = this.decode_UInt32(model);
-		let flags = this.decode_UInt32(model);
-		let is_absolute = (flags & 1) === 1;
+		const flags = this.decode_UInt32(model);
+		const is_absolute = (flags & 1) === 1;
 		if (flags & 2) {
 			//Obsolete format with property separate from subPath
 			subname_count++;
 		}
 
-		let total = name_count + subname_count;
-		let names: string[] = [];
-		let sub_names: string[] = [];
+		const total = name_count + subname_count;
+		const names: string[] = [];
+		const sub_names: string[] = [];
 		for (let i = 0; i < total; i++) {
-			let str = this.decode_String(model);
+			const str = this.decode_String(model);
 			if (i < name_count) {
 				names.push(str);
 			} else {
@@ -215,13 +230,13 @@ export class VariantDecoder {
 	}
 
 	private decode_Object(model: BufferModel) {
-		let class_name = this.decode_String(model);
-		let prop_count = this.decode_UInt32(model);
-		let output = new RawObject(class_name);
+		const class_name = this.decode_String(model);
+		const prop_count = this.decode_UInt32(model);
+		const output = new RawObject(class_name);
 
 		for (let i = 0; i < prop_count; i++) {
-			let name = this.decode_String(model);
-			let value = this.decode_variant(model);
+			const name = this.decode_String(model);
+			const value = this.decode_variant(model);
 			output.set(name, value);
 		}
 
@@ -229,23 +244,23 @@ export class VariantDecoder {
 	}
 
 	private decode_Object_id(model: BufferModel) {
-		let id = this.decode_UInt64(model);
+		const id = this.decode_UInt64(model);
 
 		return new ObjectId(id);
 	}
 
 	private decode_Plane(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
-		let d = this.decode_Float(model);
+		const x = this.decode_Float(model);
+		const y = this.decode_Float(model);
+		const z = this.decode_Float(model);
+		const d = this.decode_Float(model);
 
 		return new Plane(x, y, z, d);
 	}
 
 	private decode_PoolByteArray(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: number[] = [];
+		const count = this.decode_UInt32(model);
+		const output: number[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(model.buffer.readUInt8(model.offset));
 			model.offset++;
@@ -256,8 +271,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolColorArray(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: Color[] = [];
+		const count = this.decode_UInt32(model);
+		const output: Color[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Color(model));
 		}
@@ -266,8 +281,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolFloatArray(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: number[] = [];
+		const count = this.decode_UInt32(model);
+		const output: number[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Float(model));
 		}
@@ -276,8 +291,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolIntArray(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: number[] = [];
+		const count = this.decode_UInt32(model);
+		const output: number[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Int32(model));
 		}
@@ -286,8 +301,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolStringArray(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: string[] = [];
+		const count = this.decode_UInt32(model);
+		const output: string[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_String(model));
 		}
@@ -296,8 +311,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolVector2Array(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: Vector2[] = [];
+		const count = this.decode_UInt32(model);
+		const output: Vector2[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Vector2(model));
 		}
@@ -306,8 +321,8 @@ export class VariantDecoder {
 	}
 
 	private decode_PoolVector3Array(model: BufferModel) {
-		let count = this.decode_UInt32(model);
-		let output: Vector3[] = [];
+		const count = this.decode_UInt32(model);
+		const output: Vector3[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Vector3(model));
 		}
@@ -316,10 +331,10 @@ export class VariantDecoder {
 	}
 
 	private decode_Quat(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
-		let w = this.decode_Float(model);
+		const x = this.decode_Float(model);
+		const y = this.decode_Float(model);
+		const z = this.decode_Float(model);
+		const w = this.decode_Float(model);
 
 		return new Quat(x, y, z, w);
 	}
@@ -335,7 +350,7 @@ export class VariantDecoder {
 			pad = 4 - (len % 4);
 		}
 
-		let str = model.buffer.toString("utf8", model.offset, model.offset + len);
+		const str = model.buffer.toString("utf8", model.offset, model.offset + len);
 		len += pad;
 
 		model.offset += len;
@@ -356,36 +371,17 @@ export class VariantDecoder {
 		);
 	}
 
-	private decode_UInt32(model: BufferModel) {
-		let u = model.buffer.readUInt32LE(model.offset);
-		model.len -= 4;
-		model.offset += 4;
-
-		return u;
-	}
-
-	private decode_UInt64(model: BufferModel) {
-		let hi = model.buffer.readUInt32LE(model.offset);
-		let lo = model.buffer.readUInt32LE(model.offset + 4);
-
-		let u = BigInt((hi << 32) | lo);
-		model.len -= 8;
-		model.offset += 8;
-
-		return u;
-	}
-
 	private decode_Vector2(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
+		const x = this.decode_Float(model);
+		const y = this.decode_Float(model);
 
 		return new Vector2(x, y);
 	}
 
 	private decode_Vector3(model: BufferModel) {
-		let x = this.decode_Float(model);
-		let y = this.decode_Float(model);
-		let z = this.decode_Float(model);
+		const x = this.decode_Float(model);
+		const y = this.decode_Float(model);
+		const z = this.decode_Float(model);
 
 		return new Vector3(x, y, z);
 	}

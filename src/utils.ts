@@ -5,12 +5,12 @@ import { AddressInfo, createServer } from "net";
 
 const EXTENSION_PREFIX = "godotTools";
 
-export function get_configuration(name: string, default_value?: any) {
-	let config_value = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);
-	if (default_value && config_value === null) {
-		return default_value;
+export function get_configuration(name: string, defaultValue?: any) {
+	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);
+	if (defaultValue && configValue === null) {
+		return defaultValue;
 	}
-	return config_value;
+	return configValue;
 }
 
 export function set_configuration(name: string, value: any) {
@@ -40,16 +40,19 @@ export function get_word_under_cursor(): string {
 	return symbolName;
 }
 
-export async function get_project_version(): Promise<string | undefined> {
-	const project_dir = await get_project_dir();
+export let projectVersion = undefined;
 
-	if (!project_dir) {
+export async function get_project_version(): Promise<string | undefined> {
+	const dir = await get_project_dir();
+
+	if (!dir) {
+		projectVersion = undefined;
 		return undefined;
 	}
 
-	let godot_version = '3.x';
-	const project_file = vscode.Uri.file(path.join(project_dir, 'project.godot'));
-	const document = await vscode.workspace.openTextDocument(project_file);
+	let godotVersion = "3.x";
+	const projectFile = vscode.Uri.file(path.join(dir, "project.godot"));
+	const document = await vscode.workspace.openTextDocument(projectFile);
 	const text = document.getText();
 
 	const match = text.match(/config\/features=PackedStringArray\((.*)\)/);
@@ -57,25 +60,30 @@ export async function get_project_version(): Promise<string | undefined> {
 		const line = match[0];
 		const version = line.match(/\"(4.[0-9]+)\"/);
 		if (version) {
-			godot_version = version[1];
+			godotVersion = version[1];
 		}
 	}
-	return godot_version;
+	
+	projectVersion = godotVersion;
+	return godotVersion;
 }
 
+export let projectDir = undefined;
+
 export async function get_project_dir() {
-	let project_dir = undefined;
-	let project_file = '';
+	let dir = undefined;
+	let projectFile = "";
 	if (vscode.workspace.workspaceFolders != undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot");
 		if (files) {
-			project_file = files[0].fsPath;
-			if (fs.existsSync(project_file) && fs.statSync(project_file).isFile()) {
-				project_dir = path.dirname(project_file);
+			projectFile = files[0].fsPath;
+			if (fs.existsSync(projectFile) && fs.statSync(projectFile).isFile()) {
+				dir = path.dirname(projectFile);
 			}
 		}
 	}
-	return project_dir;
+	projectDir = dir;
+	return dir;
 }
 
 export function find_project_file(start: string, depth: number = 20) {
@@ -86,10 +94,10 @@ export function find_project_file(start: string, depth: number = 20) {
 	if (start == folder) {
 		return null;
 	}
-	const project_file = path.join(folder, "project.godot");
+	const projectFile = path.join(folder, "project.godot");
 
-	if (fs.existsSync(project_file) && fs.statSync(project_file).isFile()) {
-		return project_file;
+	if (fs.existsSync(projectFile) && fs.statSync(projectFile).isFile()) {
+		return projectFile;
 	} else {
 		if (depth === 0) {
 			return null;
@@ -116,8 +124,8 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 	if (!files) {
 		return null;
 	}
-	const project_dir = files[0].fsPath.replace("project.godot", "");
-	return vscode.Uri.joinPath(vscode.Uri.file(project_dir), resPath.substring(6));
+	const dir = files[0].fsPath.replace("project.godot", "");
+	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring(6));
 }
 
 export async function get_free_port(): Promise<number> {

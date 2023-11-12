@@ -109,12 +109,12 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 	private pin_preview() {
 		this.scenePreviewPinned = true;
-		set_context("godotTools.context.scenePreviewPinned", true);
+		set_context("scenePreview.pinned", true);
 	}
 
 	private unpin_preview() {
 		this.scenePreviewPinned = false;
-		set_context("godotTools.context.scenePreviewPinned", false);
+		set_context("scenePreview.pinned", false);
 		this.refresh();
 	}
 

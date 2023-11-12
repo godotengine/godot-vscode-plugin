@@ -7,7 +7,6 @@ import {
 	TreeItemCollapsibleState,
 } from "vscode";
 import path = require("path");
-import fs = require("fs");
 
 export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	private _on_did_change_tree_data: EventEmitter<
@@ -18,7 +17,7 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	public readonly onDidChangeTreeData: Event<SceneNode> | undefined = this
 		._on_did_change_tree_data.event;
 
-	constructor() {}
+	constructor() { }
 
 	public fill_tree(tree: SceneNode) {
 		this.tree = tree;
@@ -38,9 +37,8 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
-		let has_children = element.children.length > 0;
-		let tree_item: TreeItem | undefined;
-		tree_item = new TreeItem(
+		const has_children = element.children.length > 0;
+		const tree_item: TreeItem = new TreeItem(
 			element.label,
 			has_children
 				? element === this.tree
@@ -51,17 +49,19 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 
 		tree_item.description = element.class_name;
 		tree_item.iconPath = element.iconPath;
+		if (element.scene_file_path) {
+			let tooltip = "";
+			tooltip += `${element.label}`;
+			tooltip += `\n${element.class_name}`;
+			tooltip += `\n${element.object_id}`;
+			if (element.scene_file_path) {
+				tooltip += `\n${element.scene_file_path}`;
+			}
+			tree_item.tooltip = tooltip;
+		}
 
 		return tree_item;
 	}
-}
-
-function match_icon_to_class(class_name: string) {
-	let icon_name = `icon${class_name
-		.replace(/(2|3)D/, "$1d")
-		.replace(/([A-Z0-9])/g, "_$1")
-		.toLowerCase()}.svg`;
-	return icon_name;
 }
 
 export class SceneNode extends TreeItem {
@@ -70,58 +70,17 @@ export class SceneNode extends TreeItem {
 		public class_name: string,
 		public object_id: number,
 		public children: SceneNode[],
-		public collapsibleState?: TreeItemCollapsibleState
+		public scene_file_path?: string,
+		public view_flags?: number,
 	) {
-		super(label, collapsibleState);
+		super(label);
 
-		let light = path.join(
-			__filename,
-			"..",
-			"..",
-			"..",
-			"..",
-			"resources",
-			"light",
-			match_icon_to_class(class_name)
-		);
-		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"..",
-				"..",
-				"resources",
-				"light",
-				"node.svg"
-			);
-		}
-		let dark = path.join(
-			__filename,
-			"..",
-			"..",
-			"..",
-			"..",
-			"resources",
-			"dark",
-			match_icon_to_class(class_name)
-		);
-		if (!fs.existsSync(light)) {
-			path.join(
-				__filename,
-				"..",
-				"..",
-				"..",
-				"..",
-				"resources",
-				"dark",
-				"node.svg"
-			);
-		}
+		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
+		const iconName = class_name + ".svg";
 
 		this.iconPath = {
-			light: light,
-			dark: dark,
+			light: path.join(iconDir, "light", iconName),
+			dark: path.join(iconDir, "dark", iconName),
 		};
 	}
 }

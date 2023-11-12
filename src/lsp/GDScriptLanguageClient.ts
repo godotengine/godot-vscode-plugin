@@ -1,12 +1,12 @@
 import { EventEmitter } from "events";
 import * as vscode from 'vscode';
 import { LanguageClient, RequestMessage, ResponseMessage, integer } from "vscode-languageclient/node";
-import { createLogger } from "../logger";
+import { createLogger, LOG_LEVEL } from "../logger";
 import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from './NativeDocumentManager';
 
-const log = createLogger("lsp.client");
+const log = createLogger("lsp.client", {level: LOG_LEVEL.SILENT});
 
 export enum ClientStatus {
 	PENDING,
@@ -19,7 +19,7 @@ export enum TargetLSP {
 	EDITOR,
 }
 
-const CUSTOM_MESSAGE = "gdscrip_client/";
+const CUSTOM_MESSAGE = "gdscript_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
 	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
@@ -153,8 +153,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			// this is a dirty hack to fix language server sending us prerendered
 			// markdown but not correctly stripping leading #'s, leading to 
 			// docstrings being displayed as titles
-			const value: string = message.result["contents"].value;
-			message.result["contents"].value = value.replace(/\n[#]+/g, '\n');
+			const value: string = message.result["contents"]?.value;
+			message.result["contents"].value = value?.replace(/\n[#]+/g, '\n');
 		}
 
 		this.message_handler.on_message(message);
@@ -164,8 +164,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.lastSymbolHovered = "";
 		set_context("typeFound", false);
 
-		let decl: string = message.result["contents"].value;
-		decl = decl.split('\n')[0].trim();
+		let decl: string = message?.result["contents"]?.value;
+		if (!decl) {
+			return;
+		}
+		decl = decl.split("\n")[0].trim();
 
 		// strip off the value
 		if (decl.includes("=")) {
