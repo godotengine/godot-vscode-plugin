@@ -110,7 +110,7 @@ export class ServerController {
 		try {
 			log.info(`Verifying version of '${godotPath}'`);
 			const output = execSync(`${godotPath} --version`).toString().trim();
-			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?\w+.\w+.[0-9a-f]{9}/;
+			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?(?:\w+\.)+[0-9a-f]{9}/;
 			const match = output.match(pattern);
 			if (!match) {
 				const message = `Cannot launch debug session: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
