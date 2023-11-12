@@ -42,13 +42,16 @@ To install from GitHub Releases or a development build,
 see [Install from a VSIX](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix)
 in the Visual Studio Code documentation.
 
-## Available commands
+## Commands
 
 The extension adds a few entries to the VS Code Command Palette under "Godot Tools":
 
 - Open workspace with Godot editor
-- Run the workspace as a Godot project
 - List Godot's native classes
+- Debug the current `.tscn`/`.gd` file
+- Debug the pinned `.tscn`/`.gd` file
+- Pin/Unpin the current `.tscn`/`.gd` file for debugging
+- Open the pinned file
 
 ## Configuration
 
