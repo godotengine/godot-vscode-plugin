@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
 import * as Prism from "prismjs";
-import * as marked from "marked";
+import { marked } from "marked";
 import { get_configuration, register_command } from "../utils";
 import {
 	Methods,
@@ -24,7 +24,7 @@ const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
 
-export default class NativeDocumentManager extends EventEmitter {
+export class NativeDocumentManager extends EventEmitter {
 	private io: MessageIO = null;
 	private native_classes: { [key: string]: GodotNativeClassInfo } = {};
 
@@ -137,7 +137,7 @@ export default class NativeDocumentManager extends EventEmitter {
 	 * configuration and previously opened native symbols.
 	 */
 	private get_new_native_symbol_column(): vscode.ViewColumn {
-		const config_placement = get_configuration("nativeSymbolPlacement");
+		const config_placement = get_configuration("documentation.newTabPlacement");
 
 		if (config_placement == "active") {
 			return vscode.ViewColumn.Active;

@@ -86,6 +86,7 @@ export class TCPMessageIO extends MessageIO {
 			socket.on('data', this.on_message.bind(this));
 			socket.on('end', this.on_disconnected.bind(this));
 			socket.on('close', this.on_disconnected.bind(this));
+			socket.on('error', this.on_error.bind(this));
 		});
 	}
 
@@ -97,6 +98,10 @@ export class TCPMessageIO extends MessageIO {
 	protected on_disconnected() {
 		this.socket = null;
 		this.emit('disconnected');
+	}
+
+	protected on_error(error) {
+		// TODO: handle errors?
 	}
 }
 
@@ -111,7 +116,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout: number;
 
-	public constructor(io: MessageIO, encoding: string = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
 		super();
 		this.io = io;
 		this.io.reader = this;
@@ -207,7 +212,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	private encoding: BufferEncoding;
 	private errorCount: number;
 
-	public constructor(io: MessageIO, encoding: string = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
 		super();
 		this.io = io;
 		this.io.writer = this;

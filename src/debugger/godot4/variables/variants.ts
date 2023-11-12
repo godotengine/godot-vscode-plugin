@@ -1,4 +1,4 @@
-import { GodotVariable } from "../debug_runtime";
+import { GodotVariable } from "../../debug_runtime";
 
 export enum GDScriptTypes {
 	NIL,
@@ -6,40 +6,53 @@ export enum GDScriptTypes {
 	// atomic types
 	BOOL,
 	INT,
-	REAL,
+	FLOAT,
 	STRING,
 
 	// math types
-
-	VECTOR2, // 5
+	VECTOR2,
+	VECTOR2I,
 	RECT2,
+	RECT2I,
 	VECTOR3,
+	VECTOR3I,
 	TRANSFORM2D,
+	VECTOR4,
+	VECTOR4I,
 	PLANE,
-	QUAT, // 10
+	QUATERNION,
 	AABB,
 	BASIS,
-	TRANSFORM,
+	TRANSFORM3D,
+	PROJECTION,
 
 	// misc types
 	COLOR,
-	NODE_PATH, // 15
-	_RID,
+	STRING_NAME,
+	NODE_PATH,
+	RID,
 	OBJECT,
+	CALLABLE,
+	SIGNAL,
 	DICTIONARY,
 	ARRAY,
 
-	// arrays
-	POOL_BYTE_ARRAY, // 20
-	POOL_INT_ARRAY,
-	POOL_REAL_ARRAY,
-	POOL_STRING_ARRAY,
-	POOL_VECTOR2_ARRAY,
-	POOL_VECTOR3_ARRAY, // 25
-	POOL_COLOR_ARRAY,
+	// typed arrays
+	PACKED_BYTE_ARRAY,
+	PACKED_INT32_ARRAY,
+	PACKED_INT64_ARRAY,
+	PACKED_FLOAT32_ARRAY,
+	PACKED_FLOAT64_ARRAY,
+	PACKED_STRING_ARRAY,
+	PACKED_VECTOR2_ARRAY,
+	PACKED_VECTOR3_ARRAY,
+	PACKED_COLOR_ARRAY,
 
-	VARIANT_MAX,
+	VARIANT_MAX
 }
+
+export const ENCODE_FLAG_64 = 1 << 16;
+export const ENCODE_FLAG_OBJECT_AS_ID = 1 << 16;
 
 export interface BufferModel {
 	buffer: Buffer;
@@ -83,6 +96,47 @@ export class Vector3 implements GDObject {
 	}
 }
 
+export class Vector3i extends Vector3 {
+	// TODO: Truncate values in sub_values and stringify_value
+	public type_name(): string {
+		return "Vector3i";
+	}
+}
+
+export class Vector4 implements GDObject {
+	constructor(
+		public x: number = 0.0,
+		public y: number = 0.0,
+		public z: number = 0.0,
+		public w: number = 0.0
+	) {}
+
+	public stringify_value(): string {
+		return `(${clean_number(this.x)}, ${clean_number(this.y)}, ${
+			clean_number(this.z)}, ${clean_number(this.w)})`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [
+			{ name: "x", value: this.x },
+			{ name: "y", value: this.y },
+			{ name: "z", value: this.z },
+			{ name: "w", value: this.w },
+		];
+	}
+
+	public type_name(): string {
+		return "Vector4";
+	}
+}
+
+export class Vector4i extends Vector4 {
+	// TODO: Truncate values in sub_values and stringify_value
+	public type_name(): string {
+		return "Vector4i";
+	}
+}
+
 export class Vector2 implements GDObject {
 	constructor(public x: number = 0.0, public y: number = 0.0) {}
 
@@ -99,6 +153,13 @@ export class Vector2 implements GDObject {
 
 	public type_name(): string {
 		return "Vector2";
+	}
+}
+
+export class Vector2i extends Vector2 {
+	// TODO: Truncate values in sub_values and stringify_value
+	public type_name(): string {
+		return "Vector2i";
 	}
 }
 
@@ -217,6 +278,12 @@ export class ObjectId implements GDObject {
 	}
 }
 
+export class RID extends ObjectId {
+	public type_name(): string {
+		return "RID";
+	}
+}
+
 export class Plane implements GDObject {
 	constructor(
 		public x: number,
@@ -292,7 +359,35 @@ export class Rect2 implements GDObject {
 	}
 }
 
-export class Transform implements GDObject {
+export class Rect2i extends Rect2 {
+	// TODO: Truncate values in sub_values and stringify_value
+	public type_name(): string {
+		return "Rect2i";
+	}
+}
+
+export class Projection implements GDObject {
+	constructor(public x: Vector4, public y: Vector4, public z: Vector4, public w: Vector4) {}
+
+	public stringify_value(): string {
+		return `(${this.x.stringify_value()}, ${this.y.stringify_value()}, ${this.z.stringify_value()}, ${this.w.stringify_value()})`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [
+			{ name: "x", value: this.x },
+			{ name: "y", value: this.y },
+			{ name: "z", value: this.z },
+			{ name: "w", value: this.w },
+		];
+	}
+
+	public type_name(): string {
+		return "Projection";
+	}
+}
+
+export class Transform3D implements GDObject {
 	constructor(public basis: Basis, public origin: Vector3) {}
 
 	public stringify_value(): string {
@@ -328,5 +423,53 @@ export class Transform2D implements GDObject {
 
 	public type_name(): string {
 		return "Transform2D";
+	}
+}
+
+export class StringName implements GDObject {
+	constructor(public value: string) {}
+
+	public stringify_value(): string {
+		return this.value;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [
+			{ name: "value", value: this.value },
+		];
+	}
+
+	public type_name(): string {
+		return "StringName";
+	}
+}
+
+export class Callable implements GDObject {
+	public stringify_value(): string {
+		return "()";
+	}
+
+	public sub_values(): GodotVariable[] {
+		return [];
+	}
+
+	public type_name(): string {
+		return "Callable";
+	}
+}
+
+export class Signal implements GDObject {
+	constructor(public name: string, public oid: ObjectId) {}
+
+	public stringify_value(): string {
+		return `${this.name}() ${this.oid.stringify_value()}`;
+	}
+
+	public sub_values(): GodotVariable[] {
+		return undefined;
+	}
+
+	public type_name(): string {
+		return "Signal";
 	}
 }
