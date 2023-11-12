@@ -72,8 +72,8 @@
 				"command": "godotTools.debugger.inspectNode",
 				"title": "Inspect Remote Node",
 				"icon": {
-					"light": "resources/light/icon_GUI_visibility_visible.svg",
-					"dark": "resources/dark/icon_GUI_visibility_visible.svg"
+					"light": "resources/godot_icons/light/GuiVisibilityVisible.svg",
+					"dark": "resources/godot_icons/dark/GuiVisibilityVisible.svg"
 				}
 			},
 			{
@@ -81,8 +81,8 @@
 				"command": "godotTools.debugger.refreshSceneTree",
 				"title": "Refresh",
 				"icon": {
-					"light": "resources/light/icon_refresh.svg",
-					"dark": "resources/dark/icon_refresh.svg"
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
@@ -90,8 +90,8 @@
 				"command": "godotTools.debugger.refreshInspector",
 				"title": "Refresh",
 				"icon": {
-					"light": "resources/light/icon_refresh.svg",
-					"dark": "resources/dark/icon_refresh.svg"
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
@@ -99,21 +99,27 @@
 				"command": "godotTools.debugger.editValue",
 				"title": "Edit value",
 				"icon": {
-					"light": "resources/light/icon_edit.svg",
-					"dark": "resources/dark/icon_edit.svg"
+					"light": "resources/godot_icons/light/Edit.svg",
+					"dark": "resources/godot_icons/dark/Edit.svg"
 				}
 			},
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.debugCurrentFile",
 				"title": "Debug Current File",
-				"icon": "$(play)"
+				"icon": {
+					"light": "resources/godot_icons/light/PlayScene.svg",
+					"dark": "resources/godot_icons/dark/PlayScene.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.debugger.debugPinnedFile",
 				"title": "Debug Pinned File",
-				"icon": "$(play)"
+				"icon": {
+					"light": "resources/godot_icons/light/Play.svg",
+					"dark": "resources/godot_icons/dark/Play.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
