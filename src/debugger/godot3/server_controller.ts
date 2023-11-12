@@ -136,7 +136,7 @@ export class ServerController {
 
 		let command = `"${godotPath}" --path "${args.project}"`;
 		const address = args.address.replace("tcp://", "");
-		command += ` --remote-debug "tcp://${address}:${args.port}"`;
+		command += ` --remote-debug "${address}:${args.port}"`;
 
 		if (get_configuration("debugger.forceVisibleCollisionShapes")) {
 			command += " --debug-collisions";
