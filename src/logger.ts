@@ -1,108 +1,119 @@
+import { LogOutputChannel, window } from "vscode";
+import { is_debug_mode } from "./utils";
 
-export class Logger {
-	protected buffer: string = "";
-	protected tag: string = "";
-	protected time: boolean = false;
-
-	constructor(tag: string, time: boolean) {
-		this.tag = tag;
-		this.time = time;
-	}
-
-	clear() {
-		this.buffer = "";
-	}
-
-	log(...messages) {
-
-		let line = "";
-		if (this.tag) {
-			line += `[${this.tag}]`;
-		}
-		if (this.time) {
-			line += `[${new Date().toISOString()}]`;
-		}
-		if (line) {
-			line += " ";
-		}
-
-		for (let index = 0; index < messages.length; index++) {
-			line += messages[index];
-			if (index < messages.length) {
-				line += " ";
-			} else {
-				line += "\n";
-			}
-		}
-
-		this.buffer += line;
-		console.log(line);
-	}
-
-	get_buffer(): string {
-		return this.buffer;
-	}
+export enum LOG_LEVEL {
+	SILENT,
+	ERROR,
+	WARNING,
+	INFO,
+	DEBUG,
 }
 
-export class Logger2 {
-	protected tag: string = "";
-	protected level: string = "";
-	protected time: boolean = false;
+const LOG_LEVEL_NAMES = [
+	"SILENT",
+	"ERROR",
+	"WARN ",
+	"INFO ",
+	"DEBUG",
+];
 
-	constructor(tag: string) {
-		this.tag = tag;
+const RESET = "\u001b[0m";
+
+const LOG_COLORS = [
+	RESET, // SILENT, normal
+	"\u001b[1;31m", // ERROR, red
+	"\u001b[1;33m", // WARNING, yellow
+	"\u001b[1;36m", // INFO, cyan
+	"\u001b[1;32m", // DEBUG, green
+];
+
+export interface LoggerOptions {
+	level?: LOG_LEVEL
+	time?: boolean;
+	output?: string;
+}
+
+export class Logger {
+	private level: LOG_LEVEL = LOG_LEVEL.DEBUG;
+	private show_tag: boolean = true;
+	private show_time: boolean;
+	private show_level: boolean = false;
+	private output?: LogOutputChannel;
+
+	constructor(
+		private tag: string,
+		{ level = LOG_LEVEL.DEBUG, time = false, output = "" }: LoggerOptions = {},
+	) {
+		this.level = level;
+		this.show_time = time;
+		if (output) {
+			this.output = window.createOutputChannel(output, { log: true });
+		}
 	}
 
-	log(...messages) {
-		let line = "[godotTools]";
-		if (this.time) {
-			line += `[${new Date().toISOString()}]`;
-		}
-		if (this.level) {
-			line += `[${this.level}]`;
-			this.level = "";
-		}
-		if (this.tag) {
-			line += `[${this.tag}]`;
-		}
-		if (line) {
-			line += " ";
+	private log(level: LOG_LEVEL, ...messages) {
+		if (is_debug_mode()) {
+			let prefix = "";
+			if (this.show_time) {
+				prefix += `[${new Date().toISOString()}]`;
+			}
+			if (this.show_level) {
+				prefix += "[" + LOG_COLORS[level] + LOG_LEVEL_NAMES[level] + RESET + "]";
+			}
+			if (this.show_tag) {
+				prefix += "[" + LOG_COLORS[level] + this.tag + RESET + "]";
+			}
+
+			console.log(prefix, ...messages);
 		}
 
-		for (let index = 0; index < messages.length; index++) {
-			line += messages[index];
-			if (index < messages.length) {
-				line += " ";
-			} else {
-				line += "\n";
+		if (this.output) {
+			const line = `${messages[0]}`;
+			switch (level) {
+				case LOG_LEVEL.ERROR:
+					this.output.error(line);
+					break;
+				case LOG_LEVEL.WARNING:
+					this.output.warn(line);
+					break;
+				case LOG_LEVEL.INFO:
+					this.output.info(line);
+					break;
+				case LOG_LEVEL.DEBUG:
+					this.output.debug(line);
+					break;
+				default:
+					break;
 			}
 		}
-
-		console.log(line);
 	}
 
 	info(...messages) {
-		this.level = "INFO";
-		this.log(messages);
+		if (LOG_LEVEL.INFO <= this.level) {
+			this.log(LOG_LEVEL.INFO, ...messages);
+		}
 	}
 	debug(...messages) {
-		this.level = "DEBUG";
-		this.log(messages);
+		if (LOG_LEVEL.DEBUG <= this.level) {
+			this.log(LOG_LEVEL.DEBUG, ...messages);
+		}
 	}
 	warn(...messages) {
-		this.level = "WARNING";
-		this.log(messages);
+		if (LOG_LEVEL.WARNING <= this.level) {
+			this.log(LOG_LEVEL.WARNING, ...messages);
+		}
 	}
 	error(...messages) {
-		this.level = "ERROR";
-		this.log(messages);
+		if (LOG_LEVEL.ERROR <= this.level) {
+			this.log(LOG_LEVEL.ERROR, ...messages);
+		}
 	}
 }
 
+const loggers: Map<string, Logger> = new Map();
 
-export function createLogger(tag) {
-	return new Logger2(tag);
+export function createLogger(tag, options?: LoggerOptions) {
+	const logger = new Logger(tag, options);
+	loggers.set(tag, logger);
+	return logger;
 }
-
-const logger = new Logger("godot-tools", true);
-export default logger;

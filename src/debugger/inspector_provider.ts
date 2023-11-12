@@ -6,8 +6,7 @@ import {
 	TreeItem,
 	TreeItemCollapsibleState,
 } from "vscode";
-import { GodotVariable } from "../debug_runtime";
-import { RawObject, ObjectId } from "../variables/variants";
+import { GodotVariable, RawObject, ObjectId } from "./debug_runtime";
 
 export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	private _on_did_change_tree_data: EventEmitter<
@@ -63,10 +62,10 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		property: RemoteProperty,
 		new_parsed_value: any
 	) {
-		let idx = parents.length - 1;
-		let value = parents[idx].value;
+		const idx = parents.length - 1;
+		const value = parents[idx].value;
 		if (Array.isArray(value)) {
-			let idx = parseInt(property.label);
+			const idx = parseInt(property.label);
 			if (idx < value.length) {
 				value[idx] = new_parsed_value;
 			}
@@ -98,7 +97,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	}
 
 	private parse_variable(va: GodotVariable, object_id?: number) {
-		let value = va.value;
+		const value = va.value;
 		let rendered_value = "";
 
 		if (typeof value === "number") {
@@ -132,31 +131,31 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		let child_props: RemoteProperty[] = [];
 
 		if (value) {
-			let sub_variables =
+			const sub_variables =
 				typeof value["sub_values"] === "function" &&
 				value instanceof ObjectId === false
 					? value.sub_values()
 					: Array.isArray(value)
 					? value.map((va, i) => {
 							return { name: `${i}`, value: va };
-					  })
+					})
 					: value instanceof Map
 					? Array.from(value.keys()).map((va) => {
-							let name =
+							const name =
 								typeof va["rendered_value"] === "function"
 									? va.rendered_value()
 									: `${va}`;
-							let map_value = value.get(va);
+							const map_value = value.get(va);
 
 							return { name: name, value: map_value };
-					  })
+					})
 					: [];
 			child_props = sub_variables?.map((va) => {
 				return this.parse_variable(va, object_id);
 			});
 		}
 
-		let out_prop = new RemoteProperty(
+		const out_prop = new RemoteProperty(
 			va.name,
 			value,
 			object_id,
