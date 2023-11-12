@@ -16,6 +16,7 @@ import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../
 import { createLogger } from "../../logger";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
+const socketLog = createLogger("debugger.socket");
 
 class Command {
 	public command: string = "";
@@ -316,7 +317,7 @@ export class ServerController {
 		}
 
 		if (this.currentCommand.complete) {
-			// log.debug("rx:", [this.currentCommand.command, ...this.currentCommand.parameters]);
+			socketLog.debug("rx:", [this.currentCommand.command, ...this.currentCommand.parameters]);
 			this.handle_command(this.currentCommand);
 		}
 	}
@@ -478,7 +479,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters: any[] = []) {
 		const commandArray: any[] = [command, ...parameters];
-		// log.debug("tx:", commandArray);
+		socketLog.debug("tx:", commandArray);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
 		this.send_buffer();
