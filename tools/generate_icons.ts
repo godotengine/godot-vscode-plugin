@@ -57,7 +57,45 @@ function to_title_case(str) {
 }
 
 function get_class_list(modules) {
-	const classes: string[] = [];
+	const classes: string[] = [
+		"GuiVisibilityHidden.svg",
+		"GuiVisibilityVisible.svg",
+		"GuiVisibilityXray.svg",
+		"Edit.svg",
+		"Help.svg",
+		"HelpSearch.svg",
+		"ImportCheck.svg",
+		"ImportFail.svg",
+		"Info.svg",
+		"Play.svg",
+		"PlayBackwards.svg",
+		"PlayCustom.svg",
+		"PlayRemote.svg",
+		"PlayScene.svg",
+		"PlayStart.svg",
+		"Progress1.svg",
+		"Progress2.svg",
+		"Progress3.svg",
+		"Progress4.svg",
+		"Progress5.svg",
+		"Progress6.svg",
+		"Progress7.svg",
+		"Progress8.svg",
+		"Progress9.svg",
+		"Reload.svg",
+		"ReloadSmall.svg",
+		"Script.svg",
+		"ScriptCreate.svg",
+		"ScriptRemove.svg",
+		"Search.svg",
+		"Stop.svg",
+		"Lock.svg",
+		"Unlock.svg",
+		"Zoom.svg",
+		"ZoomLess.svg",
+		"ZoomMore.svg",
+		"ZoomReset.svg",
+	];
 
 	const files = ["scene/register_scene_types.cpp"];
 	modules.forEach(mod => {
