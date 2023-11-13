@@ -49,9 +49,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
 
-
 	constructor(private context: ExtensionContext) {
 		log.info("Initializing Godot Debugger");
+
+		this.restore_pinned_file();
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
@@ -183,17 +184,27 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info(`Pinning debug target file: '${uri.fsPath}'`);
 		set_context("pinnedScene", [uri.fsPath]);
 		pinnedScene = uri;
+		this.context.workspaceState.update("pinnedScene", pinnedScene);
 	}
 
 	public unpin_file(uri: Uri) {
 		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
 		pinnedScene = undefined;
+		this.context.workspaceState.update("pinnedScene", pinnedScene);
+	}
+
+	public restore_pinned_file() {
+		pinnedScene = this.context.workspaceState.get("pinnedScene", undefined);
+		if (pinnedScene) {
+			log.info(`Restoring pinned debug target file: '${pinnedScene.fsPath}'`);
+			set_context("pinnedScene", [pinnedScene.fsPath]);
+		}
 	}
 
 	public open_pinned_file() {
 		log.info(`Opening pinned debug target file: '${pinnedScene}'`);
-		if (pinnedScene){
+		if (pinnedScene) {
 			window.showTextDocument(pinnedScene);
 		}
 	}
