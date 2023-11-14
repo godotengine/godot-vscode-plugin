@@ -356,6 +356,11 @@
 				"path": "./syntaxes/GDResource.tmLanguage.json"
 			},
 			{
+				"language": "gdscene",
+				"scopeName": "source.gdresource",
+				"path": "./syntaxes/GDResource.tmLanguage.json"
+			},
+			{
 				"language": "gdshader",
 				"scopeName": "source.gdshader",
 				"path": "./syntaxes/GDShader.tmLanguage.json"
