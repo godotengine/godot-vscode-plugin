@@ -2,6 +2,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate } from "./settings_updater";
 import { GDDocumentLinkProvider } from "./document_link_provider";
+import { GDResourceHoverProvider } from "./hover_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
 import { ScenePreviewProvider } from "./scene_preview_provider";
 import { GodotDebugger } from "./debugger/debugger";
@@ -20,6 +21,7 @@ import { prompt_for_godot_executable } from "./utils/prompts";
 
 let lspClientManager: ClientConnectionManager = null;
 let linkProvider: GDDocumentLinkProvider = null;
+let hoverProvider: GDResourceHoverProvider = null;
 let scenePreviewManager: ScenePreviewProvider = null;
 let godotDebugger: GodotDebugger = null;
 
@@ -28,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	lspClientManager = new ClientConnectionManager(context);
 	linkProvider = new GDDocumentLinkProvider(context);
+	hoverProvider = new GDResourceHoverProvider(context);
 	scenePreviewManager = new ScenePreviewProvider(context);
 	godotDebugger = new GodotDebugger(context);
 
