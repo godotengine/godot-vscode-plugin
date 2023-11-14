@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	lspClientManager = new ClientConnectionManager(context);
 	linkProvider = new GDDocumentLinkProvider(context);
-	scenePreviewManager = new ScenePreviewProvider();
+	scenePreviewManager = new ScenePreviewProvider(context);
 	godotDebugger = new GodotDebugger(context);
 
 	context.subscriptions.push(

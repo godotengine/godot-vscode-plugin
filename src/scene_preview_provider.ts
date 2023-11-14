@@ -1,5 +1,6 @@
 import {
 	TreeDataProvider,
+	ExtensionContext,
 	EventEmitter,
 	Event,
 	TreeView,
@@ -29,6 +30,28 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private externalResources = {};
 
 	private changeEvent = new EventEmitter<void>();
+
+	constructor(private context: ExtensionContext) {
+		this.tree = vscode.window.createTreeView("scenePreview", {
+			treeDataProvider: this,
+		});
+
+		this.tree.onDidChangeSelection(this.tree_selection_changed);
+
+		context.subscriptions.push(
+			register_command("scenePreview.pin", this.pin_preview.bind(this)),
+			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
+			register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this)),
+			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
+			register_command("scenePreview.openScene", this.open_scene.bind(this)),
+			register_command("scenePreview.openScript", this.open_script.bind(this)),
+			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
+			register_command("scenePreview.refresh", this.refresh.bind(this)),
+			vscode.window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
+		);
+
+		this.refresh();
+	}
 
 	public get onDidChangeTreeData(): Event<void> {
 		return this.changeEvent.event;
@@ -79,32 +102,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			await this.parse_scene(fileName);
 			this.changeEvent.fire();
 		}
-	}
-
-	constructor() {
-		this.tree = vscode.window.createTreeView("scenePreview", {
-			treeDataProvider: this,
-		});
-
-		this.tree.onDidChangeSelection(this.tree_selection_changed);
-
-		register_command("scenePreview.pin", this.pin_preview.bind(this));
-		register_command("scenePreview.unpin", this.unpin_preview.bind(this));
-		register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this));
-		register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this));
-		register_command("scenePreview.openScene", this.open_scene.bind(this));
-		register_command("scenePreview.openScript", this.open_script.bind(this));
-		register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this));
-
-		register_command("scenePreview.refresh", () =>
-			this.refresh()
-		);
-
-		vscode.window.onDidChangeActiveTextEditor(() => {
-			vscode.commands.executeCommand("godotTools.scenePreview.refresh");
-		});
-
-		this.refresh();
 	}
 
 	private pin_preview() {
@@ -172,13 +169,12 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 		this.externalResources = {};
 
-		const resourceRegex = /\[ext_resource.*/g;
-		for (const match of text.matchAll(resourceRegex)) {
+		for (const match of text.matchAll(/\[ext_resource.*/g)) {
 			const line = match[0];
 			const type = line.match(/type="([\w]+)"/)?.[1];
 			const path = line.match(/path="([\w.:/]+)"/)?.[1];
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
-			const id = line.match(/id="?([\w]+)"?/)?.[1];
+			const id = line.match(/ id="?([\w]+)"?/)?.[1];
 
 			this.externalResources[id] = {
 				path: path,
