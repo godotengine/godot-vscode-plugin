@@ -178,7 +178,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			const type = line.match(/type="([\w]+)"/)?.[1];
 			const path = line.match(/path="([\w.:/]+)"/)?.[1];
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
-			const id = line.match(/id="([\w]+)"/)?.[1];
+			const id = line.match(/id="?([\w]+)"?/)?.[1];
 
 			this.externalResources[id] = {
 				path: path,
