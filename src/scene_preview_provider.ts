@@ -19,7 +19,7 @@ import {
 } from "./utils";
 import { createLogger } from "./logger";
 
-const log = createLogger("scene preview");
+const log = createLogger("scene_preview");
 
 export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private root: SceneNode | undefined;
