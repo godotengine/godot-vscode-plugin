@@ -189,15 +189,15 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		}
 
 		let root = "";
-		let nodes = {};
+		const nodes = {};
 		let lastNode = null;
 
 		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*"?([\w]+)"?\s*\))?\]/g;
 		for (const match of text.matchAll(nodeRegex)) {
-			let name = match[1];
-			let type = match[2] ? match[2] : "PackedScene";
+			const name = match[1];
+			const type = match[2] ? match[2] : "PackedScene";
 			let parent = match[3];
-			let instance = match[4] ? match[4] : 0;
+			const instance = match[4] ? match[4] : 0;
 			let _path = "";
 			let relativePath = "";
 
@@ -218,7 +218,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 				lastNode.parse_body();
 			}
 
-			let node = new SceneNode(name, type);
+			const node = new SceneNode(name, type);
 			node.path = _path;
 			node.description = type;
 			node.relativePath = relativePath;
@@ -229,7 +229,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 				if (instance in this.externalResources) {
 					node.tooltip = this.externalResources[instance].path;
 					node.resourcePath = this.externalResources[instance].path;
-					if (['.tscn'].includes(path.extname(node.resourcePath))) {
+					if ([".tscn"].includes(path.extname(node.resourcePath))) {
 						node.contextValue += "openable";
 					}
 				}
@@ -283,7 +283,7 @@ export class SceneNode extends TreeItem {
 	public body: string;
 	public unique: boolean = false;
 	public hasScript: boolean = false;
-	public scriptId: string = '';
+	public scriptId: string = "";
 	public children: SceneNode[] = [];
 
 	constructor(
@@ -294,7 +294,7 @@ export class SceneNode extends TreeItem {
 		super(label, collapsibleState);
 
 		const iconDir = path.join(__filename, "..", "..", "resources", "godot_icons");
-		const iconName = className + '.svg';
+		const iconName = className + ".svg";
 
 		this.iconPath = {
 			light: path.join(iconDir, "light", iconName),
@@ -304,8 +304,8 @@ export class SceneNode extends TreeItem {
 
 	public parse_body() {
 		const lines = this.body.split("\n");
-		let newLines = [];
-		let tags = [];
+		const newLines = [];
+		const tags = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
 			if (line.startsWith("tile_data")) {
