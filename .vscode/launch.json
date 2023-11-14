@@ -27,8 +27,9 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"${workspaceFolder}/workspace.code-workspace",
-				"--extensionDevelopmentPath=${workspaceFolder}"
+				"--profile=temp",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${workspaceFolder}/workspace.code-workspace"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
