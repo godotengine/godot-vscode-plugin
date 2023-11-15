@@ -6,7 +6,8 @@ import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from './NativeDocumentManager';
 
-const log = createLogger("lsp.client", {level: LOG_LEVEL.SILENT});
+const log = createLogger("lsp.client");
+const socketLog = createLogger("lsp.socket");
 
 export enum ClientStatus {
 	PENDING,
@@ -120,7 +121,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: RequestMessage) {
-		log.debug("tx:", message);
+		socketLog.debug("tx:", message);
 
 		this.sentMessages.set(message.id, message.method);
 
@@ -131,7 +132,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private on_message(message: ResponseMessage) {
 		const msgString = JSON.stringify(message);
-		log.debug("rx:", message);
+		socketLog.debug("rx:", message);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
