@@ -62,6 +62,17 @@ export class NativeDocumentManager extends EventEmitter {
 				native_class: symbolName,
 				symbol_name: symbolName,
 			});
+			return;
+		}
+
+		if (symbolName.includes(".")) {
+			const parts = symbolName.split(".");
+			this.inspect_native_symbol({
+				native_class: parts[0],
+				symbol_name: parts[0],
+			});
+			return;
+
 		}
 	}
 

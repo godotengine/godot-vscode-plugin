@@ -171,6 +171,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 		decl = decl.split("\n")[0].trim();
 
+		const match = decl.match(/func (@?\w+)\.(\w+)\(/);
+		if (match) {
+			this.lastSymbolHovered = `${match[1]}.${match[2]}`;
+			set_context("typeFound", true);
+			return;
+		}
+
 		// strip off the value
 		if (decl.includes("=")) {
 			decl = decl.split("=")[0];
