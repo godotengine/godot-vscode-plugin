@@ -320,7 +320,7 @@ export class ClientConnectionManager {
 			options = ["Open workspace with Godot Editor", ...options];
 		}
 
-		vscode.window.showErrorMessage(message, "Open workspace with Godot Editor", ...options).then(item => {
+		vscode.window.showErrorMessage(message, ...options).then(item => {
 			if (item == "Retry") {
 				this.connect_to_language_server();
 			}
