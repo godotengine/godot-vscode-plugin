@@ -203,7 +203,7 @@
 			{
 				"command": "godotTools.switchSceneScript",
 				"key": "alt+o",
-				"when": "editorLangId == 'gdscript' && editorTextFocus || editorLangId == 'gdresource' && editorTextFocus"
+				"when": "editorLangId in godotTools.context.godotFiles && editorTextFocus"
 			}
 		],
 		"configuration": {
@@ -742,7 +742,7 @@
 				},
 				{
 					"command": "godotTools.switchSceneScript",
-					"when": "editorLangId in godotTools.context.sceneLikeFiles",
+					"when": "editorLangId in godotTools.context.godotFiles",
 					"group": "custom1@1"
 				}
 			]
