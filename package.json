@@ -60,7 +60,7 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.listNativeClasses",
-				"title": "List Godot's native classes"
+				"title": "List Godot classes"
 			},
 			{
 				"category": "Godot Tools",

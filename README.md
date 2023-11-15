@@ -14,19 +14,25 @@ experience as comfortable as possible:
 - Syntax highlighting for the GDScript (`.gd`) language
 - Syntax highlighting for the `.tscn` and `.tres` scene formats
 - Syntax highlighting for the `.gdshader` shader format
+- Document links (ctrl+click) for `res://` style resource paths
 - Full typed GDScript support
 - Optional "Smart Mode" to improve productivity with dynamically typed scripts
 - Function definitions and documentation display on hover (see image below)
 - Rich autocompletion
 - Switch from a `.gd` file to the related `.tscn` file (default keybind is `alt+o`)
-- In-editor Scene Preview
 - Display script warnings and errors
 - Ctrl + click on a variable or method call to jump to its definition
-- Full documentation of the Godot Engine's API supported (select *Godot Tools: List native classes of Godot* in the Command Palette)
 - Run a Godot project from VS Code
 - Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
+- Full documentation of the Godot Engine's API supported (select `Godot Tools: List Godot classes` in the Command Palette)
 ![Showing the documentation on hover feature](img/godot-tools.png)
+- In-editor Scene Preview
+![Showing the scene preview feature](img/scene-preview.png)
+
+- Document links and hover previews for `ExtResource()` and `SubResource()` statements
+![Showing the scene preview feature](img/hover-extresource.png)
+![Showing the scene preview feature](img/hover-subresource.png)
 
 ## Download
 
@@ -57,8 +63,7 @@ The extension adds a few entries to the VS Code Command Palette under "Godot Too
 
 ### Godot
 
-If you like this extension, you can set VS Code as your default script editor
-for Godot by following these steps:
+If you like this extension, you can set VS Code as your default script editor for Godot by following these steps:
 
 1. Open the **Editor Settings**
 2. Select **Text Editor > External**
