@@ -172,7 +172,7 @@ export class ClientConnectionManager {
 	}
 
 	private get_lsp_connection_string() {
-		let host = get_configuration("lsp.serverHost");
+		const host = get_configuration("lsp.serverHost");
 		let port = get_configuration("lsp.serverPort");
 		if (this.client.port !== -1) {
 			port = this.client.port;
@@ -313,10 +313,19 @@ export class ClientConnectionManager {
 		this.update_status_widget();
 
 		const lspTarget = this.get_lsp_connection_string();
-		let message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
-		vscode.window.showErrorMessage(message, "Retry", "Ignore").then(item => {
+		const message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
+
+		let options = ["Retry", "Ignore"];
+		if (this.target == TargetLSP.EDITOR) {
+			options = ["Open workspace with Godot Editor", ...options];
+		}
+
+		vscode.window.showErrorMessage(message, "Open workspace with Godot Editor", ...options).then(item => {
 			if (item == "Retry") {
 				this.connect_to_language_server();
+			}
+			if (item == "Open workspace with Godot Editor") {
+				vscode.commands.executeCommand("godotTools.openEditor");
 			}
 		});
 	}
