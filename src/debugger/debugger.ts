@@ -16,7 +16,7 @@ import {
 	FileDecoration,
 	FileDecorationProvider,
 	Uri,
-	EventEmitter, 
+	EventEmitter,
 	Event,
 } from "vscode";
 import { DebugProtocol } from "@vscode/debugprotocol";
@@ -202,6 +202,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 		log.info(`Pinning debug target file: '${uri.fsPath}'`);
 		set_context("pinnedScene", [uri.fsPath]);
+		if (pinnedScene) {
+			this._onDidChangeFileDecorations.fire(pinnedScene);
+		}
 		pinnedScene = uri;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
 		this._onDidChangeFileDecorations.fire(uri);
