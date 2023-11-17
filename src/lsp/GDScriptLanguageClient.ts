@@ -236,14 +236,14 @@ class MessageHandler extends EventEmitter {
 		this.io = io;
 	}
 
-	changeWorkspace(params: { path: string }) {
-		vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
-			if (item == "Reload") {
-				let folderUrl = vscode.Uri.file(params.path);
-				vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
-			}
-		});
-	}
+	// changeWorkspace(params: { path: string }) {
+	// 	vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
+	// 		if (item == "Reload") {
+	// 			let folderUrl = vscode.Uri.file(params.path);
+	// 			vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
+	// 		}
+	// 	});
+	// }
 
 	on_message(message: any) {
 		// FIXME: Hot fix VSCode 1.42 hover position
