@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import {
 	TreeDataProvider,
 	ExtensionContext,
@@ -7,10 +8,13 @@ import {
 	ProviderResult,
 	TreeItem,
 	TreeItemCollapsibleState,
+	window,
+	Uri,
+	CancellationToken,
+	FileDecoration,
 } from "vscode";
 import path = require("path");
 import fs = require("fs");
-import * as vscode from "vscode";
 import {
 	get_configuration,
 	find_file,
@@ -28,6 +32,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	private scenePreviewPinned = false;
 	private currentScene = "";
 	private externalResources = {};
+	public nodes: Map<string, SceneNode> = new Map();
 
 	private changeEvent = new EventEmitter<void>();
 
@@ -47,7 +52,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
-			vscode.window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
+			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
+			window.registerFileDecorationProvider(new ScriptDecorationProvider(this)),
+			window.registerFileDecorationProvider(new UniqueDecorationProvider(this)),
+			this.tree,
 		);
 
 		this.refresh();
@@ -168,6 +176,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 		const text = document.getText();
 
 		this.externalResources = {};
+		this.nodes = new Map();
 
 		for (const match of text.matchAll(/\[ext_resource.*/g)) {
 			const line = match[0];
@@ -221,6 +230,12 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			node.parent = parent;
 			node.text = match[0];
 			node.position = match.index;
+			node.resourceUri = vscode.Uri.from({
+				scheme: "godot",
+				path: _path,
+			});
+			this.nodes.set(_path, node);
+
 			if (instance) {
 				if (instance in this.externalResources) {
 					node.tooltip = this.externalResources[instance].path;
@@ -269,6 +284,34 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	}
 }
 
+class UniqueDecorationProvider implements vscode.FileDecorationProvider {
+	constructor(private previewer: ScenePreviewProvider) { }
+
+	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
+		if (uri.scheme !== "godot") return undefined;
+		const node = this.previewer.nodes.get(uri.path);
+		if (node.unique) {
+			return {
+				badge: "%",
+			};
+		}
+	}
+}
+
+class ScriptDecorationProvider implements vscode.FileDecorationProvider {
+	constructor(private previewer: ScenePreviewProvider) { }
+
+	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
+		if (uri.scheme !== "godot") return undefined;
+		const node = this.previewer.nodes.get(uri.path);
+		if (node.hasScript) {
+			return {
+				badge: "S",
+			};
+		}
+	}
+}
+
 export class SceneNode extends TreeItem {
 	public path: string;
 	public relativePath: string;
@@ -301,18 +344,15 @@ export class SceneNode extends TreeItem {
 	public parse_body() {
 		const lines = this.body.split("\n");
 		const newLines = [];
-		const tags = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
 			if (line.startsWith("tile_data")) {
 				line = "tile_data = PoolIntArray(...)";
 			}
 			if (line.startsWith("unique_name_in_owner = true")) {
-				tags.push("%");
 				this.unique = true;
 			}
 			if (line.startsWith("script = ExtResource")) {
-				tags.push("S");
 				this.hasScript = true;
 				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)[1];
 				this.contextValue += "hasScript";
@@ -322,12 +362,6 @@ export class SceneNode extends TreeItem {
 			}
 		}
 		this.body = newLines.join("\n");
-
-		let prefix = "";
-		if (tags.length != 0) {
-			prefix = tags.join(" ") + " | ";
-		}
-		this.description = prefix + this.description;
 		const content = new vscode.MarkdownString();
 		content.appendCodeblock(this.body, "gdresource");
 		this.tooltip = content;
