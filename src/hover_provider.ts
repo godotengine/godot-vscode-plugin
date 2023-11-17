@@ -8,7 +8,13 @@ import {
 export class GDResourceHoverProvider implements vscode.HoverProvider {
 	constructor(private context: vscode.ExtensionContext) {
 		context.subscriptions.push(
-			vscode.languages.registerHoverProvider(["gdresource", "gdscene"], this),
+			vscode.languages.registerHoverProvider(
+				[
+					{ language: "gdresource", scheme: "file" },
+					{ language: "gdscene", scheme: "file" }
+				],
+				this
+			),
 		);
 	}
 

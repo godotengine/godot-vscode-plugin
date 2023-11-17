@@ -12,7 +12,13 @@ import { convert_resource_path_to_uri } from "./utils";
 export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 	constructor(private context: vscode.ExtensionContext) {
 		context.subscriptions.push(
-			vscode.languages.registerDocumentLinkProvider(["gdresource", "gdscene"], this),
+			vscode.languages.registerDocumentLinkProvider(
+				[
+					{ language: "gdresource", scheme: "file" },
+					{ language: "gdscene", scheme: "file" }
+				],
+				this
+			),
 		);
 	}
 
