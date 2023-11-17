@@ -13,7 +13,11 @@ import {
 	DebugSession,
 	CancellationToken,
 	ProviderResult,
-	Uri
+	FileDecoration,
+	FileDecorationProvider,
+	Uri,
+	EventEmitter, 
+	Event,
 } from "vscode";
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
@@ -44,10 +48,15 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 
 export let pinnedScene: Uri;
 
-export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
+export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider, FileDecorationProvider {
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
+
+	private _onDidChangeFileDecorations = new EventEmitter<Uri>();
+	get onDidChangeFileDecorations(): Event<Uri> {
+		return this._onDidChangeFileDecorations.event;
+	}
 
 	constructor(private context: ExtensionContext) {
 		log.info("Initializing Godot Debugger");
@@ -59,6 +68,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			debug.registerDebugAdapterDescriptorFactory("godot", this),
 			window.registerTreeDataProvider("inspectNode", this.inspectorProvider),
 			window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider),
+			window.registerFileDecorationProvider(this),
 			register_command("debugger.inspectNode", this.inspect_node.bind(this)),
 			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),
 			register_command("debugger.refreshInspector", this.refresh_inspector.bind(this)),
@@ -69,6 +79,15 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 		);
+	}
+
+	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
+		if (uri.scheme !== "file") return undefined;
+		if (pinnedScene && uri.fsPath === pinnedScene.fsPath) {
+			return {
+				badge: "🖈",
+			};
+		}
 	}
 
 	public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
@@ -185,13 +204,16 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		set_context("pinnedScene", [uri.fsPath]);
 		pinnedScene = uri;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
+		this._onDidChangeFileDecorations.fire(uri);
 	}
 
 	public unpin_file(uri: Uri) {
 		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
+		const previousPinnedScene = pinnedScene;
 		pinnedScene = undefined;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
+		this._onDidChangeFileDecorations.fire(previousPinnedScene);
 	}
 
 	public restore_pinned_file() {
