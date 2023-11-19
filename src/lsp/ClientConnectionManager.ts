@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
 import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 import {
 	get_configuration,
