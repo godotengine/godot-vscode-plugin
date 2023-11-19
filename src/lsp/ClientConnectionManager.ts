@@ -28,7 +28,6 @@ enum ManagerStatus {
 }
 
 export class ClientConnectionManager {
-	private context: vscode.ExtensionContext;
 	public client: GDScriptLanguageClient = null;
 
 	private reconnectionAttempts = 0;
@@ -39,25 +38,15 @@ export class ClientConnectionManager {
 
 	private connectedVersion: string = "";
 
-	constructor(p_context: vscode.ExtensionContext) {
-		this.context = p_context;
+	constructor(private context: vscode.ExtensionContext) {
+		this.context = context;
 
-		this.client = new GDScriptLanguageClient(p_context);
+		this.client = new GDScriptLanguageClient(context);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("lsp.autoReconnect.cooldown"));
-
-		register_command("startLanguageServer", () => {
-			// TODO: this might leave the manager in a wierd state
-			this.start_language_server();
-			this.reconnectionAttempts = 0;
-			this.target = TargetLSP.HEADLESS;
-			this.client.connect_to_server(this.target);
-		});
-		register_command("stopLanguageServer", this.stop_language_server.bind(this));
-		register_command("checkStatus", this.on_status_item_click.bind(this));
 
 		set_context("connectedToLSP", false);
 
@@ -65,6 +54,19 @@ export class ClientConnectionManager {
 		this.statusWidget.command = "godotTools.checkStatus";
 		this.statusWidget.show();
 		this.update_status_widget();
+
+		context.subscriptions.push(
+			register_command("startLanguageServer", () => {
+				// TODO: this might leave the manager in a wierd state
+				this.start_language_server();
+				this.reconnectionAttempts = 0;
+				this.target = TargetLSP.HEADLESS;
+				this.client.connect_to_server(this.target);
+			}),
+			register_command("stopLanguageServer", this.stop_language_server.bind(this)),
+			register_command("checkStatus", this.on_status_item_click.bind(this)),
+			this.statusWidget,
+		);
 
 		this.connect_to_language_server();
 	}
