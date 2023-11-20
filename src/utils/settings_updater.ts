@@ -13,10 +13,10 @@ const OLD_SETTINGS_CONVERSIONS = [
 ];
 
 export function updateOldStyleSettings() {
-	let configuration = vscode.workspace.getConfiguration();
+	const configuration = vscode.workspace.getConfiguration();
 	let settings_changed = false;
-	for (let [old_style_key, new_style_key] of OLD_SETTINGS_CONVERSIONS) {
-		let value = configuration.get(old_style_key);
+	for (const [old_style_key, new_style_key] of OLD_SETTINGS_CONVERSIONS) {
+		const value = configuration.get(old_style_key);
 		if (value === undefined) {
 			continue;
 		}
@@ -29,7 +29,7 @@ export function updateOldStyleSettings() {
 		vscode.window.showInformationMessage(
 			`Settings from godot-tools version <1.4.0 have been updated to the new format.
 			Please view the changelog for version 1.4.0 for more information.`,
-			'Okay'
+			"Okay"
 		);
 	}
 }
@@ -39,7 +39,7 @@ export function updateOldStyleSettings() {
  * which persists across restarts & updates.
  */
 export function updateStoredVersion(context: vscode.ExtensionContext) {
-	const syncedVersion: string = vscode.extensions.getExtension(context.extension.id)!
+	const syncedVersion: string = vscode.extensions.getExtension(context.extension.id)
 		.packageJSON.version;
 	context.globalState.update("previousVersion", syncedVersion);
 }
