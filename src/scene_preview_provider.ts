@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {
 	TreeDataProvider,
+	TreeDragAndDropController,
 	ExtensionContext,
 	EventEmitter,
 	Event,
@@ -9,9 +10,11 @@ import {
 	TreeItem,
 	TreeItemCollapsibleState,
 	window,
+	languages,
 	Uri,
 	CancellationToken,
 	FileDecoration,
+	DocumentDropEditProvider,
 } from "vscode";
 import path = require("path");
 import fs = require("fs");
@@ -26,7 +29,9 @@ import {
 
 const log = createLogger("scene_preview");
 
-export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
+export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider {
+	public dropMimeTypes = [];
+	public dragMimeTypes = [];
 	private root: SceneNode | undefined;
 	private tree: TreeView<SceneNode>;
 	private scenePreviewPinned = false;
@@ -39,6 +44,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 	constructor(private context: ExtensionContext) {
 		this.tree = vscode.window.createTreeView("scenePreview", {
 			treeDataProvider: this,
+			dragAndDropController: this
 		});
 
 		this.tree.onDidChangeSelection(this.tree_selection_changed);
@@ -55,6 +61,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
 			window.registerFileDecorationProvider(new ScriptDecorationProvider(this)),
 			window.registerFileDecorationProvider(new UniqueDecorationProvider(this)),
+			languages.registerDocumentDropEditProvider({language: "gdscript", scheme: "godot"}, this),
 			this.tree,
 		);
 
@@ -63,6 +70,16 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode> {
 
 	public get onDidChangeTreeData(): Event<void> {
 		return this.changeEvent.event;
+	}
+
+	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
+		data.set("text/plain", new vscode.DataTransferItem(`$${source[0].relativePath}`));
+	}
+
+	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
+		log.debug("provideDocumentDropEdits", dataTransfer);
+		const text = dataTransfer.get("text/plain").value;
+		return new vscode.DocumentDropEdit(text);
 	}
 
 	public async refresh() {
