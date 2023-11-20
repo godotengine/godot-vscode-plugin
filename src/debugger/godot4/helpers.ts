@@ -1,8 +1,5 @@
 import { GodotVariable, RawObject } from "../debug_runtime";
 import { SceneNode } from "../scene_tree_provider";
-import { createLogger } from "../../logger";
-
-const log = createLogger("debugger.helpers");
 
 export function parse_next_scene_node(params: any[], ofs: { offset: number } = { offset: 0 }): SceneNode {
 	const child_count: number = params[ofs.offset++];

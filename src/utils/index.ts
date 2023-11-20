@@ -3,6 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { AddressInfo, createServer } from "net";
 
+export { createLogger, LOG_LEVEL, LoggerOptions } from "./logger";
+
 const EXTENSION_PREFIX = "godotTools";
 
 export function get_configuration(name: string, defaultValue?: any) {

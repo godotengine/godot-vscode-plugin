@@ -8,9 +8,9 @@ import {
 	set_context,
 	register_command,
 	set_configuration,
+	createLogger,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
-import { createLogger } from "../logger";
 import { execSync } from "child_process";
 import { subProcess, killSubProcesses } from "../utils/subspawn";
 

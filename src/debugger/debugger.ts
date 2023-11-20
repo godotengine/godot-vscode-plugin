@@ -22,10 +22,9 @@ import {
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import { register_command, projectVersion, set_context } from "../utils";
+import { register_command, projectVersion, set_context, createLogger } from "../utils";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
-import { createLogger } from "../logger";
 
 const log = createLogger("debugger", { output: "Godot Debugger" });
 

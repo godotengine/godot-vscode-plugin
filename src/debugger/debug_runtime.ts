@@ -1,6 +1,6 @@
 import { SceneTreeProvider } from "./scene_tree_provider";
 import path = require("path");
-import { createLogger } from "../logger";
+import { createLogger } from "../utils";
 
 const log = createLogger("debugger.runtime");
 

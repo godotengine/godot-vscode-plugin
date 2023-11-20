@@ -17,7 +17,7 @@ import { SceneTreeProvider } from "../scene_tree_provider";
 import { ObjectId } from "./variables/variants";
 import { parse_variable, is_variable_built_in_type } from "./helpers";
 import { ServerController } from "./server_controller";
-import { createLogger } from "../../logger";
+import { createLogger } from "../../utils";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 

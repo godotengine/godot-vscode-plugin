@@ -1,5 +1,5 @@
 import { LogOutputChannel, window } from "vscode";
-import { is_debug_mode } from "./utils";
+import { is_debug_mode } from ".";
 
 export enum LOG_LEVEL {
 	SILENT,

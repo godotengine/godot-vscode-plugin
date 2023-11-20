@@ -1,10 +1,9 @@
 import { EventEmitter } from "events";
-import * as vscode from 'vscode';
-import { LanguageClient, RequestMessage, ResponseMessage, integer } from "vscode-languageclient/node";
-import { createLogger, LOG_LEVEL } from "../logger";
-import { get_configuration, set_context } from "../utils";
+import * as vscode from "vscode";
+import { LanguageClient, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
+import { get_configuration, set_context, createLogger } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
-import { NativeDocumentManager } from './NativeDocumentManager';
+import { NativeDocumentManager } from "./NativeDocumentManager";
 
 const log = createLogger("lsp.client");
 const socketLog = createLogger("lsp.socket");
@@ -64,7 +63,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	constructor(context: vscode.ExtensionContext) {
 		super(
-			`GDScriptLanguageClient`,
+			"GDScriptLanguageClient",
 			() => {
 				return new Promise((resolve, reject) => {
 					resolve({ reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io) });
@@ -85,10 +84,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.context = context;
 		this.status = ClientStatus.PENDING;
 		this.message_handler = new MessageHandler(this.io);
-		this.io.on('disconnected', this.on_disconnected.bind(this));
-		this.io.on('connected', this.on_connected.bind(this));
-		this.io.on('message', this.on_message.bind(this));
-		this.io.on('send_message', this.on_send_message.bind(this));
+		this.io.on("disconnected", this.on_disconnected.bind(this));
+		this.io.on("connected", this.on_connected.bind(this));
+		this.io.on("message", this.on_message.bind(this));
+		this.io.on("send_message", this.on_send_message.bind(this));
 		this.native_doc_manager = new NativeDocumentManager(this.io);
 	}
 
@@ -143,7 +142,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			const count = (message["result"] as Array<object>).length;
 			for (let i = 0; i < count; i++) {
 				const x: string = message["result"][i]["target"];
-				message["result"][i]["target"] = x.replace('file://', 'file:///');
+				message["result"][i]["target"] = x.replace("file://", "file:///");
 			}
 		}
 
@@ -155,7 +154,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			// markdown but not correctly stripping leading #'s, leading to 
 			// docstrings being displayed as titles
 			const value: string = message.result["contents"]?.value;
-			message.result["contents"].value = value?.replace(/\n[#]+/g, '\n');
+			message.result["contents"].value = value?.replace(/\n[#]+/g, "\n");
 		}
 
 		this.message_handler.on_message(message);
@@ -254,7 +253,7 @@ class MessageHandler extends EventEmitter {
 		if (message && message.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
 			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
 			if (this[method]) {
-				let ret = this[method](message.params);
+				const ret = this[method](message.params);
 				if (ret) {
 					this.io.writer.write(ret);
 				}
