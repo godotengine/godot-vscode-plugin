@@ -265,16 +265,6 @@
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
 				},
-				"godotTools.debugger.forceVisibleCollisionShapes": {
-					"type": "boolean",
-					"default": false,
-					"description": "Force the project to run with visible collision shapes"
-				},
-				"godotTools.debugger.forceVisibleNavMesh": {
-					"type": "boolean",
-					"default": false,
-					"description": "Force the project to run with visible navigation meshes"
-				},
 				"godotTools.documentation.newTabPlacement": {
 					"enum": [
 						"active",
@@ -421,7 +411,60 @@
 							},
 							"editor_path": {
 								"type": "string",
-								"description": "Absolute path to the Godot executable to be used for this debug profile."
+								"description": "Absolute path to the Godot executable to be used for this debug profile.",
+								"default": false
+							},
+							"profiling": {
+								"type": "boolean",
+								"description": "Enable profiling in the script debugger.",
+								"default": false
+							},
+							"single_threaded_scene": {
+								"type": "boolean",
+								"description": "Scene tree runs in single-threaded mode. Sub-thread groups are disabled and run on the main thread. (Godot 4 only)",
+								"default": false
+							},
+							"debug_collisions": {
+								"type": "boolean",
+								"description": "Show collision shapes when running the scene.",
+								"default": false
+							},
+							"debug_paths": {
+								"type": "boolean",
+								"description": "Show navigation polygons when running the scene. (Godot 4 only)",
+								"default": false
+							},
+							"debug_navigation": {
+								"type": "boolean",
+								"description": "Show navigation polygons when running the scene.",
+								"default": false
+							},
+							"debug_avoidance": {
+								"type": "boolean",
+								"description": "Show navigation avoidance debug visuals when running the scene. (Godot 4 only)",
+								"default": false
+							},
+							"debug_stringnames": {
+								"type": "boolean",
+								"description": "Print all StringName allocations to stdout when the engine quits. (Godot 4 only)",
+								"default": false
+							},
+							"frame_delay": {
+								"type": "number",
+								"description": "Simulate high CPU load (delay each frame by <ms> milliseconds)."
+							},
+							"time_scale": {
+								"type": "number",
+								"description": "Force time scale (higher values are faster, 1.0 is normal speed)."
+							},
+							"disable_vsync": {
+								"type": "boolean",
+								"description": "Forces disabling of vertical synchronization, even if enabled in the project settings. Does not override driver-level V-Sync enforcement. (Godot 4 only)",
+								"default": false
+							},
+							"fixed_fps": {
+								"type": "number",
+								"description": "Force a fixed number of frames per second. This setting disables real-time synchronization."
 							},
 							"additional_options": {
 								"type": "string",

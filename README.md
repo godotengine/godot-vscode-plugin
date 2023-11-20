@@ -105,22 +105,44 @@ To configure the GDScript debugger:
 
 ### *Configurations*
 
-_Required_
-
-None: seriously. This is valid debugging configuration:
-
+Minimal:
 ```json
-{ "name": "Launch", "type": "godot" }
+{
+	"name": "Launch",
+	"type": "godot",
+	"request": "launch"
+}
 ```
 
-_Optional_
+Everything:
+```json
+{
+	"name": "Launch",
+	"type": "godot",
+	"request": "launch",
+	"project": "${workspaceFolder}",
+	"address": "127.0.0.1",
+	"port": 6007,
+	"scene": "main|current|pinned|<path>",
+	"editor_path": "<path>",
+	// engine command line flags
+	"profiling": false,
+	"single_threaded_scene": false,
+	"debug_collisions": false,
+	"debug_paths": false,
+	"debug_navigation": false,
+	"debug_avoidance": false,
+	"debug_stringnames": false,
+	"frame_delay": 0,
+	"time_scale": 1.0,
+	"disable_vsync": false,
+	"fixed_fps": 60,
+	// anything else
+	"additional_options": ""
+}
+```
 
-`project`: Absolute path to a directory with a project.godot file. Defaults to the currently open VSCode workspace with `${workspaceFolder}`.
-`port`: The port number for the Godot remote debugger to use.
-`address`: The IP address for the Godot remote debugger to use.
-`scene_file`: Path to a scene file to run instead of the projects 'main scene'.
-`editor_path`: Absolute path to the Godot executable to be used for this debug profile.
-`additional_options`: Additional command line arguments.
+Godot's command flags are documented here: https://docs.godotengine.org/en/stable/tutorials/editor/command_line_tutorial.html
 
 *Usage*
 

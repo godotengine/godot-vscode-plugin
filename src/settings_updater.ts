@@ -8,8 +8,6 @@ const OLD_SETTINGS_CONVERSIONS = [
 	["godot_tools.reconnect_automatically", "godotTools.lsp.autoReconnect.enabled"],
 	["godot_tools.reconnect_cooldown", "godotTools.lsp.autoReconnect.cooldown"],
 	["godot_tools.reconnect_attempts", "godotTools.lsp.autoReconnect.attempts"],
-	["godot_tools.force_visible_collision_shapes", "godotTools.debugger.forceVisibleCollisionShapes"],
-	["godot_tools.force_visible_nav_mesh", "godotTools.debugger.forceVisibleNavMesh"],
 	["godot_tools.native_symbol_placement", "godotTools.documentation.newTabPlacement"],
 	["godot_tools.scenePreview.previewRelatedScenes", "godotTools.scenePreview.previewRelatedScenes"]
 ];

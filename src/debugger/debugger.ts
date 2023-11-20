@@ -35,6 +35,17 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 	project: string;
 	scene: string;
 	editor_path: string;
+	profiling: boolean;
+	single_threaded_scene: boolean;
+	debug_collisions: boolean;
+	debug_paths: boolean;
+	debug_navigation: boolean;
+	debug_avoidance: boolean;
+	debug_stringnames: boolean;
+	frame_delay: number;
+	time_scale: number;
+	disable_vsync: boolean;
+	fixed_fps: number;
 	additional_options: string;
 }
 

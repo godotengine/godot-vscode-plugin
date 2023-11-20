@@ -139,12 +139,12 @@ export class ServerController {
 		const address = args.address.replace("tcp://", "");
 		command += ` --remote-debug "${address}:${args.port}"`;
 
-		if (get_configuration("debugger.forceVisibleCollisionShapes")) {
-			command += " --debug-collisions";
-		}
-		if (get_configuration("debugger.forceVisibleNavMesh")) {
-			command += " --debug-navigation";
-		}
+		if (args.profiling) { command += " --profiling"; }
+		if (args.debug_collisions) { command += " --debug-collisions"; }
+		if (args.debug_paths) { command += " --debug-paths"; }
+		if (args.frame_delay) { command += ` --frame-delay ${args.frame_delay}`; }
+		if (args.time_scale) { command += ` --time-scale ${args.time_scale}`; }
+		if (args.fixed_fps) { command += ` --fixed-fps ${args.fixed_fps}`; }
 
 		if (args.scene && args.scene !== "main") {
 			log.info(`Custom scene argument provided: ${args.scene}`);
