@@ -77,7 +77,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
-		log.debug("provideDocumentDropEdits", dataTransfer);
 		const text = dataTransfer.get("text/plain").value;
 		return new vscode.DocumentDropEdit(text);
 	}
