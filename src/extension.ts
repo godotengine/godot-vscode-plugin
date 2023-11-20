@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate } from "./settings_updater";
+import { attemptSettingsUpdate } from "./utils/settings_updater";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { GDResourceHoverProvider } from "./hover_provider";
 import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
