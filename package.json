@@ -491,28 +491,34 @@
 				},
 				"initialConfigurations": [
 					{
-						"name": "GDScript: Launch Godot",
+						"name": "GDScript: Launch Project",
 						"type": "godot",
 						"request": "launch",
 						"project": "${workspaceFolder}",
+						"debug_collisions": false,
+						"debug_paths": false,
+						"debug_navigation": false,
 						"additional_options": ""
 					}
 				],
 				"configurationSnippets": [
 					{
-						"label": "GDScript Godot Debug: Launch",
-						"description": "A new configuration for debugging a Godot project.",
+						"label": "GDScript: Launch Project",
+						"description": "A config to launch the current project.",
 						"body": {
 							"name": "GDScript: Launch Project",
 							"type": "godot",
 							"request": "launch",
 							"project": "${workspaceFolder}",
+							"debug_collisions": false,
+							"debug_paths": false,
+							"debug_navigation": false,
 							"additional_options": ""
 						}
 					},
 					{
 						"label": "GDScript: Launch Current File",
-						"description": "A new configuration for debugging a Godot project.",
+						"description": "A config to launch the currently open scene.",
 						"body": {
 							"name": "GDScript: Launch Current File",
 							"type": "godot",
@@ -524,7 +530,7 @@
 					},
 					{
 						"label": "GDScript: Launch Pinned File",
-						"description": "A new configuration for debugging a Godot project.",
+						"description": "A config to launch the currently pinned scene.",
 						"body": {
 							"name": "GDScript: Launch Pinned File",
 							"type": "godot",
@@ -532,17 +538,6 @@
 							"scene": "pinned",
 							"project": "${workspaceFolder}",
 							"additional_options": ""
-						}
-					},
-					{
-						"label": "GDScript Godot Debug: Attach",
-						"description": "A new configuration for debugging a Godot project.",
-						"body": {
-							"name": "GDScript: Attach to Godot",
-							"type": "godot",
-							"request": "attach",
-							"address": "127.0.0.1",
-							"port": 6007
 						}
 					}
 				]
