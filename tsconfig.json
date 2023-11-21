@@ -10,6 +10,7 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": false,
+		"skipLibCheck": true,
 		"allowJs": true
 	},
 	"exclude": [
