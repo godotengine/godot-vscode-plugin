@@ -61,7 +61,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
 			window.registerFileDecorationProvider(new ScriptDecorationProvider(this)),
 			window.registerFileDecorationProvider(new UniqueDecorationProvider(this)),
-			languages.registerDocumentDropEditProvider({language: "gdscript", scheme: "godot"}, this),
+			languages.registerDocumentDropEditProvider(["gdscript", "csharp"], this),
 			this.tree,
 		);
 
@@ -73,12 +73,22 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
-		data.set("text/plain", new vscode.DataTransferItem(`$${source[0].relativePath}`));
+		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
+		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 	}
 
 	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
-		const text = dataTransfer.get("text/plain").value;
-		return new vscode.DocumentDropEdit(text);
+		const path = dataTransfer.get("godot/path").value;
+		const className = dataTransfer.get("godot/class").value;
+
+		if (path && className) {
+			if (document.languageId === "gdscript") {
+				return new vscode.DocumentDropEdit(`$${path}`);
+			}
+			if (document.languageId === "csharp") {
+				return new vscode.DocumentDropEdit(`GetNode<${className}>("${path}")`);
+			}
+		}
 	}
 
 	public async refresh() {
@@ -92,7 +102,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			const mode = get_configuration("scenePreview.previewRelatedScenes");
 			// attempt to find related scene
 			if (!fileName.endsWith(".tscn")) {
-				const searchName = fileName.replace(".gd", ".tscn");
+				const searchName = fileName.replace(".gd", ".tscn").replace(".cs", ".tscn");
 
 				if (mode == "anyFolder") {
 					const relatedScene = await find_file(searchName);
