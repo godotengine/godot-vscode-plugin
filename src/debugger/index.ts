@@ -1,0 +1,1 @@
+export { GodotDebugger } from "./debugger";

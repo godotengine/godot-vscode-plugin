@@ -3,7 +3,9 @@ import * as path from "path";
 import * as fs from "fs";
 import { AddressInfo, createServer } from "net";
 
-export { createLogger, LOG_LEVEL, LoggerOptions } from "./logger";
+export { createLogger, LOG_LEVEL } from "./logger";
+export type { LoggerOptions } from "./logger";
+export { attemptSettingsUpdate } from "./settings_updater";
 
 const EXTENSION_PREFIX = "godotTools";
 

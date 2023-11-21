@@ -1,11 +1,11 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate } from "./utils/settings_updater";
+import { attemptSettingsUpdate } from "./utils";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { GDResourceHoverProvider } from "./hover_provider";
-import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
+import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_preview_provider";
-import { GodotDebugger } from "./debugger/debugger";
+import { GodotDebugger } from "./debugger";
 import { exec, execSync } from "child_process";
 import {
 	get_configuration,
@@ -19,11 +19,11 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 
-let lspClientManager: ClientConnectionManager = null;
-let linkProvider: GDDocumentLinkProvider = null;
-let hoverProvider: GDResourceHoverProvider = null;
-let scenePreviewManager: ScenePreviewProvider = null;
-let godotDebugger: GodotDebugger = null;
+export let lspClientManager: ClientConnectionManager = null;
+export let linkProvider: GDDocumentLinkProvider = null;
+export let hoverProvider: GDResourceHoverProvider = null;
+export let scenePreviewManager: ScenePreviewProvider = null;
+export let godotDebugger: GodotDebugger = null;
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
