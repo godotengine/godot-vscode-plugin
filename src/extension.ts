@@ -6,6 +6,7 @@ import { GDResourceHoverProvider } from "./hover_provider";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_preview_provider";
 import { GodotDebugger } from "./debugger";
+import { FormattingProvider } from "./formatter/formatter";
 import { exec, execSync } from "child_process";
 import {
 	get_configuration,
@@ -24,6 +25,7 @@ export let linkProvider: GDDocumentLinkProvider = null;
 export let hoverProvider: GDResourceHoverProvider = null;
 export let scenePreviewManager: ScenePreviewProvider = null;
 export let godotDebugger: GodotDebugger = null;
+export let formattingProvider: FormattingProvider = null;
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
@@ -33,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 	hoverProvider = new GDResourceHoverProvider(context);
 	scenePreviewManager = new ScenePreviewProvider(context);
 	godotDebugger = new GodotDebugger(context);
+	formattingProvider = new FormattingProvider(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
