@@ -4,7 +4,7 @@ import { attemptSettingsUpdate } from "./utils";
 import { GDDocumentLinkProvider } from "./document_link_provider";
 import { GDResourceHoverProvider } from "./hover_provider";
 import { ClientConnectionManager } from "./lsp";
-import { ScenePreviewProvider } from "./scene_preview_provider";
+import { ScenePreviewProvider } from "./scene_tools";
 import { GodotDebugger } from "./debugger";
 import { FormattingProvider } from "./formatter";
 import { exec, execSync } from "child_process";
