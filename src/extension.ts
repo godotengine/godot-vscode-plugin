@@ -6,7 +6,7 @@ import { GDResourceHoverProvider } from "./hover_provider";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_preview_provider";
 import { GodotDebugger } from "./debugger";
-import { FormattingProvider } from "./formatter/formatter";
+import { FormattingProvider } from "./formatter";
 import { exec, execSync } from "child_process";
 import {
 	get_configuration,

@@ -1,1 +1,1 @@
-export { FormattingProvider } from "./formatter";	
+export * from "./formatter";	

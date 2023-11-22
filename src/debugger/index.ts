@@ -1,1 +1,1 @@
-export { GodotDebugger } from "./debugger";
+export * from "./debugger";
