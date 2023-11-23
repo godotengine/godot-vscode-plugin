@@ -64,16 +64,10 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 			}
 		}
 		for (const match of text.matchAll(/res:\/\/[^"^']*/g)) {
-
-			if (match[0].endsWith(".gd") ||
-				match[0].endsWith(".tscn") ||
-				match[0].endsWith(".tres")) {
-
-				const r = this.create_range(document, match);
-				const uri = await convert_resource_path_to_uri(match[0]);
-				if (uri instanceof Uri) {
-					links.push(new vscode.DocumentLink(r, uri));
-				}
+			const r = this.create_range(document, match);
+			const uri = await convert_resource_path_to_uri(match[0]);
+			if (uri instanceof Uri) {
+				links.push(new vscode.DocumentLink(r, uri));
 			}
 		}
 
