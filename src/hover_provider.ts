@@ -38,28 +38,34 @@ export class GDResourceHoverProvider implements vscode.HoverProvider {
 
 	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<vscode.Hover> {
 		if (["gdresource", "gdscene"].includes(document.languageId)) {
-			const wordPattern = /(?:Ext|Sub)Resource\(\s?"?(\w+)\s?"?\)/;
 			const scene = this.parser.parse_scene(document);
 
-			const word = document.getText(document.getWordRangeAtPosition(position));
+			const wordPattern = /(?:Ext|Sub)Resource\(\s?"?(\w+)\s?"?\)/;
+			const word = document.getText(document.getWordRangeAtPosition(position, wordPattern));
 
-			if (word == "ExtResource") {
-				const word = document.getText(document.getWordRangeAtPosition(position, wordPattern));
+			if (word.startsWith("ExtResource")) {
 				const match = word.match(wordPattern);
 				const id = match[1];
-
+				const resource = scene.externalResources[id];
 				const definition = scene.externalResources[id].body;
+				const links = await this.get_links(definition);
+
 
 				const contents = new vscode.MarkdownString();
-				const links = await this.get_links(definition);
 				contents.appendMarkdown(links);
+				contents.appendMarkdown("---");
 				contents.appendCodeblock(definition, "gdresource");
+				if (resource.type === "Script") {
+					contents.appendMarkdown("---");
+					const uri = await convert_resource_path_to_uri(resource.path);
+					const text = (await vscode.workspace.openTextDocument(uri)).getText();
+					contents.appendCodeblock(text, "gdscript");
+				}
 				const hover = new vscode.Hover(contents);
 				return hover;
 			}
 
-			if (word == "SubResource") {
-				const word = document.getText(document.getWordRangeAtPosition(position, wordPattern));
+			if (word.startsWith("SubResource")) {
 				const match = word.match(wordPattern);
 				const id = match[1];
 
@@ -79,6 +85,8 @@ export class GDResourceHoverProvider implements vscode.HoverProvider {
 			let type = "";
 			if (link.endsWith(".gd")) {
 				type = "gdscript";
+			} else if (link.endsWith(".cs")) {
+				type = "csharp";
 			} else if (link.endsWith(".tscn")) {
 				type = "gdscene";
 			} else if (link.endsWith(".tres")) {
@@ -86,7 +94,7 @@ export class GDResourceHoverProvider implements vscode.HoverProvider {
 			} else {
 				return;
 			}
-		
+
 			const uri = await convert_resource_path_to_uri(link);
 			const text = (await vscode.workspace.openTextDocument(uri)).getText();
 			const contents = new vscode.MarkdownString();
