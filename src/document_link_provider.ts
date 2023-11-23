@@ -7,15 +7,21 @@ import {
 	CancellationToken,
 	DocumentLink,
 } from "vscode";
-import { convert_resource_path_to_uri } from "./utils";
+import { SceneParser } from "./scene_tools";
+import { convert_resource_path_to_uri, createLogger } from "./utils";
+
+const log = createLogger("link_provider");
 
 export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
+	public parser = new SceneParser();
+
 	constructor(private context: vscode.ExtensionContext) {
 		context.subscriptions.push(
 			vscode.languages.registerDocumentLinkProvider(
 				[
 					{ language: "gdresource", scheme: "file" },
-					{ language: "gdscene", scheme: "file" }
+					{ language: "gdscene", scheme: "file" },
+					{ language: "gdscript", scheme: "file" },
 				],
 				this
 			),
@@ -23,87 +29,60 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 	}
 
 	async provideDocumentLinks(document: TextDocument, token: CancellationToken): Promise<DocumentLink[]> {
+		const scene = this.parser.parse_scene(document);
 		const text = document.getText();
-		const lines = text.split("\n");
+		const path = document.uri.fsPath;
 
-		const externalResources: Map<string, any> = new Map();
-		const subResources: Map<string, any> = new Map();
+		const links: DocumentLink[] = [];
 
-		const links = [];
-
-		let match;
-		for (let i = 0; i < lines.length; i++) {
-			// gather external resources
-			match = lines[i].match(/\[ext_resource.*/);
-			if (match) {
-				const line = match[0];
-				const id = line.match(/ id="?([\w]+)"?/)?.[1];
-				externalResources[id] = {
-					line: i + 1,
-					col: match.index
-				};
-			}
-			// gather sub resources
-			match = lines[i].match(/\[sub_resource.*/);
-			if (match) {
-				const line = match[0];
-				const id = line.match(/ id="?([\w]+)"?/)?.[1];
-				subResources[id] = {
-					line: i + 1,
-					col: match.index
-				};
-			}
-
-			// create external resource links
-			match = lines[i].match(/ExtResource\(\s?"?(\w+)\s?"?\)/);
-			if (match) {
+		if (["gdresource", "gdscene"].includes(document.languageId)) {
+			for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
 				const id = match[1];
-				const line = externalResources[id].line;
-				const col = externalResources[id].col;
 				const uri = Uri.from({
 					scheme: "file",
-					path: document.uri.fsPath,
-					fragment: `${line},${col}`,
-
+					path: path,
+					fragment: `${scene.externalResources[id].line},0`,
 				});
-				const r = this.create_range(i, match);
-				links.push(new vscode.DocumentLink(r, uri));
 
+				const r = this.create_range(document, match);
+				const link = new vscode.DocumentLink(r, uri);
+				link.tooltip = "Jump to resource definition";
+				links.push(link);
 			}
 
-			// create sub resource links
-			match = lines[i].match(/SubResource\(\s?"?(\w+)\s?"?\)/);
-			if (match) {
+			for (const match of text.matchAll(/SubResource\(\s?"?(\w+)\s?"?\)/g)) {
 				const id = match[1];
-				const line = subResources[id].line;
-				const col = subResources[id].col;
 				const uri = Uri.from({
 					scheme: "file",
-					path: document.uri.fsPath,
-					fragment: `${line},${col}`,
-
+					path: path,
+					fragment: `${scene.subResources[id].line},0`,
 				});
-				const r = this.create_range(i, match);
-				links.push(new vscode.DocumentLink(r, uri));
 
+				const r = this.create_range(document, match);
+				const link = new vscode.DocumentLink(r, uri);
+				links.push(link);
 			}
+		}
+		for (const match of text.matchAll(/res:\/\/[^"^']*/g)) {
 
-			// create resource path links
-			match = lines[i].match(/res:\/\/[^"^']*/);
-			if (match) {
-				const r = this.create_range(i, match);
+			if (match[0].endsWith(".gd") ||
+				match[0].endsWith(".tscn") ||
+				match[0].endsWith(".tres")) {
+
+				const r = this.create_range(document, match);
 				const uri = await convert_resource_path_to_uri(match[0]);
 				if (uri instanceof Uri) {
 					links.push(new vscode.DocumentLink(r, uri));
 				}
 			}
 		}
+
 		return links;
 	}
 
-	private create_range(i, match) {
-		const start = new Position(i, match.index);
-		const end = new Position(i, match.index + match[0].length);
+	private create_range(document: TextDocument, match: RegExpMatchArray) {
+		const start = document.positionAt(match.index);
+		const end = document.positionAt(match.index + match[0].length);
 		const r = new Range(start, end);
 		return r;
 	}

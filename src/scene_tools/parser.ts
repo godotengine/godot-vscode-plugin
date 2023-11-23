@@ -7,9 +7,15 @@ import { createLogger } from "../utils";
 const log = createLogger("scenes.parser");
 
 export class SceneParser {
+	private static instance: SceneParser;
 	public scenes: Map<string, Scene> = new Map();
 
-	constructor() { }
+	constructor() {
+		if (SceneParser.instance) {
+			return SceneParser.instance;
+		}
+		SceneParser.instance = this;
+	}
 
 	public parse_scene(document: TextDocument) {
 		const path = document.uri.fsPath;
@@ -40,11 +46,37 @@ export class SceneParser {
 			const id = line.match(/ id="?([\w]+)"?/)?.[1];
 
 			scene.externalResources[id] = {
+				body: line,
 				path: path,
 				type: type,
 				uid: uid,
 				id: id,
+				index: match.index,
+				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
 			};
+		}
+
+		let lastResource = null;
+		for (const match of text.matchAll(/\[sub_resource.*/g)) {
+			const line = match[0];
+			const type = line.match(/type="([\w]+)"/)?.[1];
+			const path = line.match(/path="([\w.:/]+)"/)?.[1];
+			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
+			const id = line.match(/ id="?([\w]+)"?/)?.[1];
+			const resource = {
+				path: path,
+				type: type,
+				uid: uid,
+				id: id,
+				index: match.index,
+				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
+			};
+			if (lastResource) {
+				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
+			}
+
+			scene.subResources[id] = resource;
+			lastResource = resource;
 		}
 
 		let root = "";
@@ -75,6 +107,10 @@ export class SceneParser {
 			if (lastNode) {
 				lastNode.body = text.slice(lastNode.position, match.index);
 				lastNode.parse_body();
+			}
+			if (lastResource) {
+				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
+				lastResource = null;
 			}
 
 			const node = new SceneNode(name, type);
@@ -111,9 +147,18 @@ export class SceneParser {
 			lastNode = node;
 		}
 
-		lastNode.body = text.slice(lastNode.position, text.length);
-		lastNode.parse_body();
+		if (lastNode) {
+			lastNode.body = text.slice(lastNode.position, text.length);
+			lastNode.parse_body();
+		}
 
+		const resourceRegex = /\[resource\]/g;
+		for (const match of text.matchAll(resourceRegex)) {
+			if (lastResource) {
+				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
+				lastResource = null;
+			}
+		}
 		return scene;
 	}
 }

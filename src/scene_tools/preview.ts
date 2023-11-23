@@ -31,7 +31,7 @@ import { SceneNode, Scene } from "./types";
 
 const log = createLogger("scenes.preview");
 
-export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider {
+export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider {
 	public dropMimeTypes = [];
 	public dragMimeTypes = [];
 	private tree: TreeView<SceneNode>;
@@ -153,8 +153,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			this.currentScene = fileName;
 
 			this.changeTreeEvent.fire();
-
-			log.debug("refreshed scene preview");
 		}
 	}
 
@@ -246,7 +244,7 @@ class UniqueDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreview) { }
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
@@ -266,7 +264,7 @@ class ScriptDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreview) { }
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
