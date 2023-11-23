@@ -5,42 +5,10 @@ import { AddressInfo, createServer } from "net";
 
 export * from "./logger";
 export * from "./settings_updater";
-
-const EXTENSION_PREFIX = "godotTools";
-
-export function get_configuration(name: string, defaultValue?: any) {
-	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);
-	if (defaultValue && configValue === null) {
-		return defaultValue;
-	}
-	return configValue;
-}
-
-export function set_configuration(name: string, value: any) {
-	return vscode.workspace.getConfiguration(EXTENSION_PREFIX).update(name, value);
-}
+export * from "./vscode_utils";
 
 export function is_debug_mode(): boolean {
 	return process.env.VSCODE_DEBUG_MODE === "true";
-}
-
-const CONTEXT_PREFIX = `${EXTENSION_PREFIX}.context.`;
-
-export function set_context(name: string, value: any) {
-	return vscode.commands.executeCommand("setContext", CONTEXT_PREFIX + name, value);
-}
-
-export function register_command(command: string, callback: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
-	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
-}
-
-export function get_word_under_cursor(): string {
-	const activeEditor = vscode.window.activeTextEditor;
-	const document = activeEditor.document;
-	const curPos = activeEditor.selection.active;
-	const wordRange = document.getWordRangeAtPosition(curPos);
-	const symbolName = document.getText(wordRange);
-	return symbolName;
 }
 
 export let projectVersion = undefined;
