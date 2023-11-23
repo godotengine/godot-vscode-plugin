@@ -58,6 +58,10 @@ function to_title_case(str) {
 
 function get_class_list(modules) {
 	const classes: string[] = [
+		"ArrowDown.svg",
+		"ArrowLeft.svg",
+		"ArrowRight.svg",
+		"ArrowUp.svg",
 		"GuiVisibilityHidden.svg",
 		"GuiVisibilityVisible.svg",
 		"GuiVisibilityXray.svg",
@@ -88,6 +92,9 @@ function get_class_list(modules) {
 		"ScriptCreate.svg",
 		"ScriptRemove.svg",
 		"Search.svg",
+		"Signals.svg",
+		"SignalsAndGroups.svg",
+		"Slot.svg",
 		"Stop.svg",
 		"Lock.svg",
 		"Unlock.svg",
