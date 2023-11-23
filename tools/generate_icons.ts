@@ -1,5 +1,8 @@
 import { join, extname } from "path";
-import fs = require("fs");
+import * as fs from "fs";
+import util from "node:util";
+import * as child_process from "node:child_process";
+const _exec = util.promisify(child_process.exec);
 
 const dark_colors = {
 	"#fc7f7f": "#fc9c9c",
@@ -16,7 +19,7 @@ const light_colors = {
 	"#8eef97": "#29d739",
 };
 
-function replace_colors(colors: Object, data: String) {
+function replace_colors(colors: object, data: string) {
 	for (const [from, to] of Object.entries(colors)) {
 		data = data.replace(from, to);
 	}
@@ -27,9 +30,6 @@ const iconsPath = "editor/icons";
 const modulesPath = "modules";
 const outputPath = "resources/godot_icons";
 const godotPath = process.argv[2];
-
-const util = require("node:util");
-const _exec = util.promisify(require("node:child_process").exec);
 
 async function exec(command) {
 	const { stdout, stderr } = await _exec(command);
