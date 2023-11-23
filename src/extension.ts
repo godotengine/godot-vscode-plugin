@@ -20,22 +20,22 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 
-export let lspClientManager: ClientConnectionManager = null;
-export let linkProvider: GDDocumentLinkProvider = null;
-export let hoverProvider: GDResourceHoverProvider = null;
-export let scenePreview: ScenePreview = null;
-export let godotDebugger: GodotDebugger = null;
-export let formattingProvider: FormattingProvider = null;
+interface Globals {
+	[key: string]: any
+}
+
+export const globals: Globals = {};
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
 
-	lspClientManager = new ClientConnectionManager(context);
-	linkProvider = new GDDocumentLinkProvider(context);
-	hoverProvider = new GDResourceHoverProvider(context);
-	scenePreview = new ScenePreview(context);
-	godotDebugger = new GodotDebugger(context);
-	formattingProvider = new FormattingProvider(context);
+	globals.context = context;
+	globals.lsp = new ClientConnectionManager(context);
+	globals.linkProvider = new GDDocumentLinkProvider(context);
+	globals.hoverProvider = new GDResourceHoverProvider(context);
+	globals.scenePreview = new ScenePreview(context);
+	globals.debugger = new GodotDebugger(context);
+	globals.formatter = new FormattingProvider(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> {
 	return new Promise<void>((resolve, reject) => {
-		lspClientManager.client.stop();
+		globals.lsp.client.stop();
 		resolve();
 	});
 }
@@ -75,7 +75,7 @@ function copy_resource_path(uri: vscode.Uri) {
 }
 
 function open_type_documentation() {
-	lspClientManager.client.open_documentation();
+	globals.lsp.client.open_documentation();
 }
 
 async function switch_scene_script() {
