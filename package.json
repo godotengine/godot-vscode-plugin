@@ -337,7 +337,8 @@
 					"gdshader"
 				],
 				"extensions": [
-					".gdshader"
+					".gdshader",
+					".gdshaderinc"
 				],
 				"configuration": "./configurations/gdshader-configuration.json"
 			}
