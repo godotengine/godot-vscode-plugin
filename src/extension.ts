@@ -102,7 +102,7 @@ function open_workspace_with_editor() {
 		const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?\w+.\w+.[0-9a-f]{9}/;
 		const match = output.match(pattern);
 		if (!match) {
-			const message = `Cannot launch Godot editor: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+			const message = `Cannot launch Godot editor: '${settingName}' value of '${godotPath}' is not a valid Godot executable`;
 			prompt_for_godot_executable(message, settingName);
 			return;
 		}
@@ -112,7 +112,7 @@ function open_workspace_with_editor() {
 			return;
 		}
 	} catch {
-		const message = `Cannot launch Godot editor: ${settingName} of ${godotPath} is not a valid Godot executable`;
+		const message = `Cannot launch Godot editor: ${settingName} value of ${godotPath} is not a valid Godot executable`;
 		prompt_for_godot_executable(message, settingName);
 		return;
 	}
