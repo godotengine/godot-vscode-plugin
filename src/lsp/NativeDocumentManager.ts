@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
-import * as ls from "vscode-languageclient";
-import { EventEmitter } from "events";
-import { MessageIO } from "./MessageIO";
 import { NotificationMessage } from "vscode-jsonrpc";
+import { SymbolKind, ResponseMessage } from "vscode-languageclient";
+import { EventEmitter } from "events";
 import * as Prism from "prismjs";
 import { marked } from "marked";
-import { get_configuration, register_command } from "../utils";
+import { MessageIO } from "./MessageIO";
+import { get_configuration } from "../utils";
 import {
 	Methods,
 	NativeSymbolInspectParams,
@@ -13,6 +13,9 @@ import {
 	GodotNativeClassInfo,
 	GodotCapabilities,
 } from "./gdscript.capabilities";
+import { createLogger } from "../utils";
+
+const log = createLogger("docs");
 
 marked.setOptions({
 	highlight: function (code, lang) {
@@ -24,60 +27,65 @@ const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
 
-export class NativeDocumentManager extends EventEmitter {
+export class NativeDocumentManager extends EventEmitter implements vscode.CustomReadonlyEditorProvider {
 	private io: MessageIO = null;
 	private native_classes: { [key: string]: GodotNativeClassInfo } = {};
 
-	constructor(io: MessageIO) {
+	private messageCount = -1;
+	private pendingInspections: Map<number, string> = new Map();
+	private webViews: Map<string, vscode.WebviewPanel> = new Map();
+
+	constructor(io: MessageIO, context: vscode.ExtensionContext) {
 		super();
 		this.io = io;
-		io.on("message", (message: NotificationMessage) => {
-			if (message.method == Methods.SHOW_NATIVE_SYMBOL) {
-				this.show_native_symbol(message.params as GodotNativeSymbol);
-			} else if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
-				for (const gdclass of (message.params as GodotCapabilities)
-					.native_classes) {
-					this.native_classes[gdclass.name] = gdclass;
-				}
-				for (const gdclass of (message.params as GodotCapabilities)
-					.native_classes) {
-					if (gdclass.inherits) {
-						const extended_classes =
-							this.native_classes[gdclass.inherits].extended_classes || [];
-						extended_classes.push(gdclass.name);
-						this.native_classes[
-							gdclass.inherits
-						].extended_classes = extended_classes;
-					}
-				}
+		io.on("message", this.on_message.bind(this));
+		const options = {
+			webviewOptions: {
+				enableScripts: true,
+				retainContextWhenHidden: true,
+				enableFindWidget: true,
 			}
-		});
+		};
+		context.subscriptions.push(
+			vscode.window.registerCustomEditorProvider("godotDocs", this, options),
+		);
+	}
 
-		register_command("listNativeClasses", this.list_native_classes.bind(this));
+	openCustomDocument(uri: vscode.Uri, openContext: vscode.CustomDocumentOpenContext, token: vscode.CancellationToken): vscode.CustomDocument | Thenable<vscode.CustomDocument> {
+		return { uri: uri, dispose: () => { } };
+	}
+
+	resolveCustomEditor(document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): void | Thenable<void> {
+		const symbol = document.uri.path.split(".")[0].replace("/", ".");
+
+		this.webViews.set(symbol, webviewPanel);
+		this.request_documentation(symbol);
 	}
 
 	public request_documentation(symbolName: string) {
 		if (symbolName in this.native_classes) {
-			this.inspect_native_symbol({
+			const id = this.inspect_native_symbol({
 				native_class: symbolName,
 				symbol_name: symbolName,
 			});
+			this.pendingInspections.set(id, undefined);
 			return;
 		}
 
 		if (symbolName.includes(".")) {
 			const parts = symbolName.split(".");
-			this.inspect_native_symbol({
+			const id = this.inspect_native_symbol({
 				native_class: parts[0],
 				symbol_name: parts[0],
 			});
+			this.pendingInspections.set(id, parts[1]);
 			return;
 
 		}
 	}
 
-	private async list_native_classes() {
-		let classname = await vscode.window.showQuickPick(
+	public async list_native_classes() {
+		const classname = await vscode.window.showQuickPick(
 			Object.keys(this.native_classes).sort(),
 			{
 				placeHolder: "Type godot class name here",
@@ -93,44 +101,80 @@ export class NativeDocumentManager extends EventEmitter {
 	}
 
 	private inspect_native_symbol(params: NativeSymbolInspectParams) {
-		let json_data = "";
-		if (get_configuration("lsp.serverProtocol") == "ws") {
-			json_data = JSON.stringify({
-				id: -1,
-				jsonrpc: "2.0",
-				method: Methods.INSPECT_NATIVE_SYMBOL,
-				params,
-			});
-		} else {
-			json_data = JSON.stringify({
-				jsonrpc: "2.0",
-				method: Methods.INSPECT_NATIVE_SYMBOL,
-				params: params,
-			});
-			this.send_header(json_data.length);
-		}
-		this.io.send_message(json_data);
+		const id = this.messageCount--;
+		this.io.writer.write({
+			jsonrpc: "2.0",
+			id: id,
+			method: Methods.INSPECT_NATIVE_SYMBOL,
+			params: params,
+		});
+		return id;
 	}
 
-	private send_header(data_length: number) {
-		this.io.send_message(`Content-Length: ${data_length}\r\n\r\n`);
-	}
+	public on_message(message: NotificationMessage) {
+		if ("id" in message) {
+			const msg = message as ResponseMessage;
+			const id = msg.id as number;
+			const target = this.pendingInspections.get(id);
+			this.pendingInspections.delete(id);
 
-	private show_native_symbol(symbol: GodotNativeSymbol) {
-		// 创建webview
-		const panel = vscode.window.createWebviewPanel(
-			"doc",
-			symbol.name,
-			this.get_new_native_symbol_column(),
-			{
-				enableScripts: true, // 启用JS，默认禁用
-				retainContextWhenHidden: false, // webview被隐藏时保持状态，避免被重置
-				enableFindWidget: true,
+			if (id && id < 0) {
+				this.show_native_symbol(msg.result as GodotNativeSymbol, target);
+				return;
 			}
-		);
+		}
+
+		if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
+			for (const gdclass of (message.params as GodotCapabilities)
+				.native_classes) {
+				this.native_classes[gdclass.name] = gdclass;
+			}
+			for (const gdclass of (message.params as GodotCapabilities)
+				.native_classes) {
+				if (gdclass.inherits) {
+					const extended_classes =
+						this.native_classes[gdclass.inherits].extended_classes || [];
+					extended_classes.push(gdclass.name);
+					this.native_classes[
+						gdclass.inherits
+					].extended_classes = extended_classes;
+				}
+			}
+		}
+	}
+
+	private show_native_symbol(symbol: GodotNativeSymbol, target?: string) {
+		let key = symbol.name;
+		if (target) {
+			key += `.${target}`;
+		}
+
+		let panel;
+		if (this.webViews.has(key)) {
+			panel = this.webViews.get(key);
+			panel.webview.viewColumn = this.get_new_native_symbol_column();
+		} else {
+			panel = vscode.window.createWebviewPanel(
+				"doc",
+				symbol.name,
+				this.get_new_native_symbol_column(),
+				{
+					enableScripts: true,
+					retainContextWhenHidden: true,
+					enableFindWidget: true,
+				}
+			);
+		}
 		panel.title = symbol.name;
 		panel.webview.html = this.make_html_content(symbol);
 		panel.webview.onDidReceiveMessage(this.on_webview_message.bind(this));
+
+		if (target) {
+			panel.webview.postMessage({
+				command: "focus",
+				target: target,
+			});
+		}
 	}
 
 	/**
@@ -177,7 +221,7 @@ export class NativeDocumentManager extends EventEmitter {
 	}
 
 	private make_html_content(symbol: GodotNativeSymbol): string {
-		return `
+		return  /*html*/`
 		<html>
 			<head>
 				<style type="text/css">
@@ -210,6 +254,14 @@ export class NativeDocumentManager extends EventEmitter {
 						});
 					}
 				};
+				window.addEventListener('message', event => {
+					const message = event.data;
+					switch (message.command) {
+						case 'focus':
+							document.getElementById(message.target).scrollIntoView();
+							break;
+					}
+				});
 			</script>
 		</html>`;
 	}
@@ -219,14 +271,14 @@ export class NativeDocumentManager extends EventEmitter {
 		const classinfo = this.native_classes[symbol.native_class];
 
 		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
-			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
+			const parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
 			if (!parts) {
 				return "";
 			}
 			const ret_type = make_link(parts[2] || "void", undefined);
 			let args = (parts[1] || "").replace(
 				/\:\s([A-z0-9_]+)(\,\s*)?/g,
-				`: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`
+				": <a href=\"\" onclick=\"inspect('$1', '$1')\">$1</a>$2"
 			);
 			args = args.replace(/\s=\s(.*?)[\,\)]/g, "");
 			return `${ret_type} ${with_class ? `${classlink}.` : ""}${element(
@@ -241,16 +293,16 @@ export class NativeDocumentManager extends EventEmitter {
 			with_class = false
 		): { index?: string; body: string } {
 			switch (s.kind) {
-				case ls.SymbolKind.Property:
-				case ls.SymbolKind.Variable:
+				case SymbolKind.Property:
+				case SymbolKind.Variable:
 					{
 						// var Control.anchor_left: float
 						const parts = /\.([A-z_0-9]+)\:\s(.*)$/.exec(s.detail);
 						if (!parts) {
 							return;
 						}
-						let type = make_link(parts[2], undefined);
-						let name = element("a", s.name, { href: `#${s.name}` });
+						const type = make_link(parts[2], undefined);
+						const name = element("a", s.name, { href: `#${s.name}` });
 						const title = element(
 							"h4",
 							`${type} ${with_class ? `${classlink}.` : ""}${s.name}`
@@ -266,7 +318,7 @@ export class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case ls.SymbolKind.Constant:
+				case SymbolKind.Constant:
 					{
 						// const Control.FOCUS_ALL: FocusMode = 2
 						// const Control.NOTIFICATION_RESIZED = 40
@@ -276,9 +328,9 @@ export class NativeDocumentManager extends EventEmitter {
 						if (!parts) {
 							return;
 						}
-						let type = make_link(parts[3] || "int", undefined);
-						let name = parts[1];
-						let value = element("code", parts[4]);
+						const type = make_link(parts[3] || "int", undefined);
+						const name = parts[1];
+						const value = element("code", parts[4]);
 
 						const title = element(
 							"p",
@@ -294,7 +346,7 @@ export class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case ls.SymbolKind.Event:
+				case SymbolKind.Event:
 					{
 						const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail);
 						if (!parts) {
@@ -302,7 +354,7 @@ export class NativeDocumentManager extends EventEmitter {
 						}
 						const args = (parts[2] || "").replace(
 							/\:\s([A-z0-9_]+)(\,\s*)?/g,
-							`: <a href="" onclick="inspect('$1', '$1')">$1</a>$2`
+							": <a href=\"\" onclick=\"inspect('$1', '$1')\">$1</a>$2"
 						);
 						const title = element(
 							"p",
@@ -319,8 +371,8 @@ export class NativeDocumentManager extends EventEmitter {
 						};
 					}
 					break;
-				case ls.SymbolKind.Method:
-				case ls.SymbolKind.Function:
+				case SymbolKind.Method:
+				case SymbolKind.Function:
 					{
 						const signature = make_function_signature(s, with_class);
 						const title = element("h4", signature);
@@ -340,7 +392,7 @@ export class NativeDocumentManager extends EventEmitter {
 			}
 		}
 
-		if (symbol.kind == ls.SymbolKind.Class) {
+		if (symbol.kind == SymbolKind.Class) {
 			let doc = element("h2", `Native class ${symbol.name}`);
 			const parts = /extends\s+([A-z0-9]+)/.exec(symbol.detail);
 			let inherits = parts && parts.length > 1 ? parts[1] : "";
@@ -373,22 +425,22 @@ export class NativeDocumentManager extends EventEmitter {
 			let propertyies = "";
 			let others = "";
 
-			for (let s of symbol.children as GodotNativeSymbol[]) {
+			for (const s of symbol.children as GodotNativeSymbol[]) {
 				const elements = make_symbol_elements(s);
 				switch (s.kind) {
-					case ls.SymbolKind.Property:
-					case ls.SymbolKind.Variable:
+					case SymbolKind.Property:
+					case SymbolKind.Variable:
 						properties_index += element("li", elements.index);
 						propertyies += element("li", elements.body, { id: s.name });
 						break;
-					case ls.SymbolKind.Constant:
+					case SymbolKind.Constant:
 						constants += element("li", elements.body, { id: s.name });
 						break;
-					case ls.SymbolKind.Event:
+					case SymbolKind.Event:
 						signals += element("li", elements.body, { id: s.name });
 						break;
-					case ls.SymbolKind.Method:
-					case ls.SymbolKind.Function:
+					case SymbolKind.Method:
+					case SymbolKind.Function:
 						methods_index += element("li", elements.index);
 						methods += element("li", elements.body, { id: s.name });
 						break;
@@ -423,7 +475,7 @@ export class NativeDocumentManager extends EventEmitter {
 			let doc = "";
 			const elements = make_symbol_elements(symbol, true);
 			if (elements.index) {
-				const symbols: ls.SymbolKind[] = [ls.SymbolKind.Function, ls.SymbolKind.Method];
+				const symbols: SymbolKind[] = [SymbolKind.Function, SymbolKind.Method];
 				if (!symbols.includes(symbol.kind)) {
 					doc += element("h2", elements.index);
 				}
@@ -471,7 +523,7 @@ function make_codeblock(code: string) {
 
 function format_documentation(p_bbcode: string, classname: string) {
 	let html = p_bbcode.trim();
-	let lines = html.split("\n");
+	const lines = html.split("\n");
 	let in_code_block = false;
 	let code_block_indent = -1;
 	let cur_code_block = "";
@@ -479,7 +531,7 @@ function format_documentation(p_bbcode: string, classname: string) {
 	html = "";
 	for (let i = 0; i < lines.length; i++) {
 		let line = lines[i];
-		let block_start = line.indexOf("[codeblock]");
+		const block_start = line.indexOf("[codeblock]");
 		if (block_start != -1) {
 			code_block_indent = block_start;
 			in_code_block = true;
@@ -498,11 +550,11 @@ function format_documentation(p_bbcode: string, classname: string) {
 		if (!in_code_block) {
 			line = line.trim();
 			// [i] [/u] [code] --> <i> </u> <code>
-			line = line.replace(/(\[(\/?)([a-z]+)\])/g, `<$2$3>`);
+			line = line.replace(/(\[(\/?)([a-z]+)\])/g, "<$2$3>");
 			// [Reference] --> <a>Reference</a>
 			line = line.replace(
 				/(\[([A-Z]+[A-Z_a-z0-9]*)\])/g,
-				`<a href="" onclick="inspect('$2', '$2')">$2</a>`
+				"<a href=\"\" onclick=\"inspect('$2', '$2')\">$2</a>"
 			);
 			// [method _set] --> <a>_set</a>
 			line = line.replace(
@@ -518,6 +570,7 @@ function format_documentation(p_bbcode: string, classname: string) {
 			}
 		}
 	}
+
 	return html;
 }
 
@@ -582,7 +635,7 @@ const GDScriptGrammar = {
 	punctuation: /[{}[\];(),.:]/,
 };
 
-const PrismStyleSheet = `
+const PrismStyleSheet =  /*css*/`
 code[class*="language-"],
 pre[class*="language-"] {
 	color: #657b83; /* base00 */

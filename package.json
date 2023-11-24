@@ -41,6 +41,17 @@
 		"generate-icons": "ts-node tools/generate_icons.ts"
 	},
 	"contributes": {
+		"customEditors": [
+			{
+				"viewType": "godotDocs",
+				"displayName": "godotDocs",
+				"selector": [
+					{
+						"filenamePattern": "*.godotDocs"
+					}
+				]
+			}
+		],
 		"commands": [
 			{
 				"category": "Godot Tools",
@@ -59,7 +70,7 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.listNativeClasses",
+				"command": "godotTools.listGodotClasses",
 				"title": "List Godot classes"
 			},
 			{
@@ -593,7 +604,7 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "godotTools.listNativeClasses",
+					"command": "godotTools.listGodotClasses",
 					"when": "godotTools.context.connectedToLSP"
 				},
 				{

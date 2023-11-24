@@ -41,6 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("openEditor", open_workspace_with_editor),
 		register_command("copyResourcePath", copy_resource_path),
 		register_command("openDocumentation", open_documentation),
+		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 	);
 
@@ -76,6 +77,10 @@ function copy_resource_path(uri: vscode.Uri) {
 
 function open_documentation() {
 	globals.lsp.client.open_documentation();
+}
+
+async function list_classes() {
+	await globals.lsp.client.list_classes();
 }
 
 async function switch_scene_script() {
