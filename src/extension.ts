@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
 		register_command("copyResourcePath", copy_resource_path),
-		register_command("openTypeDocumentation", open_type_documentation),
+		register_command("openDocumentation", open_documentation),
 		register_command("switchSceneScript", switch_scene_script),
 	);
 
@@ -74,7 +74,7 @@ function copy_resource_path(uri: vscode.Uri) {
 	vscode.env.clipboard.writeText(relative_path);
 }
 
-function open_type_documentation() {
+function open_documentation() {
 	globals.lsp.client.open_documentation();
 }
 

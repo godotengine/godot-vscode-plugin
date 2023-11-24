@@ -64,8 +64,8 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.openTypeDocumentation",
-				"title": "Open Type Documentation"
+				"command": "godotTools.openDocumentation",
+				"title": "Open Godot Documentation"
 			},
 			{
 				"category": "Godot Tools",
@@ -775,7 +775,7 @@
 			],
 			"editor/context": [
 				{
-					"command": "godotTools.openTypeDocumentation",
+					"command": "godotTools.openDocumentation",
 					"when": "godotTools.context.connectedToLSP && godotTools.context.typeFound",
 					"group": "navigation@9"
 				},
