@@ -31,7 +31,9 @@ export function format_document(document: TextDocument): TextEdit[] {
 			continue;
 		}
 		const tokens = tokenize(line.text);
-		const leadingWhitespace = tokens[0].replace("    ", "\t");
+		// TODO: figure out how to handle leading whitespace correctly
+		// const leadingWhitespace = tokens[0].replace("    ", "\t");
+		const leadingWhitespace = tokens[0];
 		tokens.shift();
 		const newLine = (leadingWhitespace + tokens.join("")).trimEnd();
 
