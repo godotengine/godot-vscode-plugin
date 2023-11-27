@@ -4,6 +4,10 @@ import {
 	MarkdownString,
 } from "vscode";
 import * as path from "path";
+import { is_debug_mode } from "../utils";
+
+const dots = is_debug_mode() ? ["..", "..", ".."] : ["..", ".."];
+const iconDir = path.join(__filename, ...dots, "resources", "godot_icons");
 
 export class SceneNode extends TreeItem {
 	public path: string;
@@ -25,7 +29,6 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
 		const iconName = className + ".svg";
 
 		this.iconPath = {
