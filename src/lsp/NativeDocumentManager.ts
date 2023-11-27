@@ -44,21 +44,23 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 				enableScripts: true,
 				retainContextWhenHidden: true,
 				enableFindWidget: true,
-			}
+			},
+			supportsMultipleEditorsPerDocument: true,
 		};
 		context.subscriptions.push(
 			vscode.window.registerCustomEditorProvider("godotDocs", this, options),
 		);
 	}
 
-	openCustomDocument(uri: vscode.Uri, openContext: vscode.CustomDocumentOpenContext, token: vscode.CancellationToken): vscode.CustomDocument | Thenable<vscode.CustomDocument> {
+	openCustomDocument(uri: vscode.Uri, openContext: vscode.CustomDocumentOpenContext, token: vscode.CancellationToken): vscode.CustomDocument {
 		return { uri: uri, dispose: () => { } };
 	}
 
-	resolveCustomEditor(document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): void | Thenable<void> {
+	resolveCustomEditor(document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): void {
 		const symbol = document.uri.path.split(".")[0].replace("/", ".");
 
 		this.webViews.set(symbol, webviewPanel);
+		webviewPanel.title = symbol;
 		this.request_documentation(symbol);
 	}
 
@@ -152,6 +154,7 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 		let panel;
 		if (this.webViews.has(key)) {
 			panel = this.webViews.get(key);
+			this.webViews.delete(key);
 			panel.webview.viewColumn = this.get_new_native_symbol_column();
 		} else {
 			panel = vscode.window.createWebviewPanel(

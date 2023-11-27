@@ -24,6 +24,10 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 		}
 		log.debug("provideDefinition", key, target);
 
+		if (!target) {
+			return null;
+		}
+
 		const uri = vscode.Uri.from({
 			scheme: "godotDocs",
 			path: target.split(".").join("/") + ".godotDocs",
