@@ -9,7 +9,7 @@ export const enum Methods {
 
 export interface NativeSymbolInspectParams {
 	native_class: string;
-	symbol_name: string;
+	symbol_name?: string;
 }
 
 export class GodotNativeSymbol implements DocumentSymbol {

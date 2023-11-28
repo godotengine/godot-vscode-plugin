@@ -5,6 +5,7 @@ import { createLogger, LOG_LEVEL } from "../logger";
 import { get_configuration, set_context } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from './NativeDocumentManager';
+import { NativeSymbolInspectParams } from "./gdscript.capabilities";
 
 const log = createLogger("lsp.client", {level: LOG_LEVEL.SILENT});
 
@@ -17,6 +18,12 @@ export enum ClientStatus {
 export enum TargetLSP {
 	HEADLESS,
 	EDITOR,
+}
+
+export interface GDScriptTypeData {
+	class: string
+	member?: string
+	member_type?: string
 }
 
 const CUSTOM_MESSAGE = "gdscript_client/";
@@ -120,7 +127,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: RequestMessage) {
-		log.debug("tx:", message);
+		// log.debug("tx:", message);
+		console.log("on_send_message:", message)
 
 		this.sentMessages.set(message.id, message.method);
 
@@ -131,7 +139,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private on_message(message: ResponseMessage) {
 		const msgString = JSON.stringify(message);
-		log.debug("rx:", message);
+		console.log("on_message:", message)
+		// log.debug("rx:", message);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
@@ -149,15 +158,36 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const method = this.sentMessages.get(message.id);
 		if (method === "textDocument/hover") {
 			this.handle_hover_response(message);
-
 			// this is a dirty hack to fix language server sending us prerendered
 			// markdown but not correctly stripping leading #'s, leading to 
 			// docstrings being displayed as titles
 			const value: string = message.result["contents"]?.value;
 			message.result["contents"].value = value?.replace(/\n[#]+/g, '\n');
+		} else if (method === "textDocument/definition") {
+			this.handle_definition_response(message);
 		}
 
 		this.message_handler.on_message(message);
+	}
+
+	private handle_definition_response(message: ResponseMessage) {
+		console.log("handle_definition_response: ", this.lastSymbolHovered)
+		if (message.result && !(message.result as any[]).length) {
+			const activeEditor = vscode.window.activeTextEditor;
+			const { line, character } = activeEditor.selection.active;
+			const uri = vscode.window.activeTextEditor.document.uri.toString()
+			console.log(uri)
+			const fakeHoverMessage = {
+				jsonrpc: "2.0",
+				id: -1,
+				method: "textDocument/hover",
+				params: {
+					position: { line: line, character: character },
+					textDocument: { uri: uri }
+				}
+			}
+			this.io.writer.write(fakeHoverMessage);
+		}
 	}
 
 	private handle_hover_response(message: ResponseMessage) {
@@ -168,7 +198,36 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (!decl) {
 			return;
 		}
+
+		const typeData = this.parse_declaration(decl);
+		if (!typeData.native_class) {
+			return
+		}
+
+		this.lastSymbolHovered = typeData.native_class;
+
+		if (message.id === -1) {
+			console.log(typeData)
+			this.native_doc_manager.request_documentation(typeData);
+			return
+		}
+
+		set_context("typeFound", true);
+	}
+
+	private parse_declaration(decl: string): NativeSymbolInspectParams {
 		decl = decl.split("\n")[0].trim();
+
+		if (decl.includes("<Native>")) {
+			return { native_class: decl.split(" ")[2] }
+		}
+
+		const parts = decl.split(" ")[1].split(".");
+		return {
+			native_class: parts[0],
+			symbol_name: parts[1].split(":")[0].split("(")[0]
+		};
+		
 
 		// strip off the value
 		if (decl.includes("=")) {
@@ -178,19 +237,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			const parts = decl.split(":");
 			if (parts.length === 2) {
 				decl = parts[1].trim();
-
 			}
 		}
-		if (decl.includes("<Native>")) {
-			decl = decl.split(" ")[2];
-		}
-
-		if (decl.includes(" ")) {
-			return;
-		}
-
-		this.lastSymbolHovered = decl;
-		set_context("typeFound", true);
 	}
 
 	private on_connected() {

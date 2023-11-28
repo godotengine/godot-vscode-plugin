@@ -27,6 +27,7 @@ const enum WebViewMessageType {
 export class NativeDocumentManager extends EventEmitter {
 	private io: MessageIO = null;
 	private native_classes: { [key: string]: GodotNativeClassInfo } = {};
+	private lastDocRequest: NativeSymbolInspectParams = null;
 
 	constructor(io: MessageIO) {
 		super();
@@ -56,11 +57,12 @@ export class NativeDocumentManager extends EventEmitter {
 		register_command("listNativeClasses", this.list_native_classes.bind(this));
 	}
 
-	public request_documentation(symbolName: string) {
-		if (symbolName in this.native_classes) {
+	public request_documentation(params: NativeSymbolInspectParams) {
+		if (params.native_class in this.native_classes) {
+			this.lastDocRequest = params
 			this.inspect_native_symbol({
-				native_class: symbolName,
-				symbol_name: symbolName,
+				native_class: params.native_class,
+				symbol_name: params.symbol_name ? params.symbol_name : params.native_class,
 			});
 		}
 	}
@@ -105,8 +107,43 @@ export class NativeDocumentManager extends EventEmitter {
 		this.io.send_message(`Content-Length: ${data_length}\r\n\r\n`);
 	}
 
+	private open_docs(symbol: GodotNativeSymbol) {
+		const { symbol_name } = this.lastDocRequest
+		const url = this.get_docs_url(symbol, symbol_name)
+        vscode.commands.executeCommand('simpleBrowser.api.open',
+            vscode.Uri.parse(url),
+            {
+                preserveFocus: false,
+                viewColumn: this.get_new_native_symbol_column(),
+            }
+        );
+	}
+
+	private get_docs_url(symbol: GodotNativeSymbol, symbol_name: string) {
+		const _class = symbol.native_class.toLowerCase()
+		const paramMap = {
+			[ls.SymbolKind.Property]: 'property',
+			[ls.SymbolKind.Variable]: 'property',
+			[ls.SymbolKind.Constant]: 'constant',
+			[ls.SymbolKind.Method]: 'method',
+			[ls.SymbolKind.Function]: 'method',
+			[ls.SymbolKind.Event]: 'signal',
+		}
+        let anchor_id = `class-${_class}`;
+        if (paramMap[symbol.kind]) {
+            if (symbol_name[0] == '_') {
+                symbol_name = symbol_name.substr(1);
+            }
+            anchor_id += `-${paramMap[symbol.kind]}-${symbol_name.toLowerCase()}`.replace(/_/g, '-');
+        }
+        return `https://docs.godotengine.org/en/stable/classes/class_${_class}.html#${anchor_id}`;
+	}
+
 	private show_native_symbol(symbol: GodotNativeSymbol) {
 		// 创建webview
+		this.open_docs(symbol)
+		return
+
 		const panel = vscode.window.createWebviewPanel(
 			"doc",
 			symbol.name,
@@ -206,6 +243,7 @@ export class NativeDocumentManager extends EventEmitter {
 	private make_symbol_document(symbol: GodotNativeSymbol): string {
 		const classlink = make_link(symbol.native_class, undefined);
 		const classinfo = this.native_classes[symbol.native_class];
+		const { symbol_name } = this.lastDocRequest
 
 		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
