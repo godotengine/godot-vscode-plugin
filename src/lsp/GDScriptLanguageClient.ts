@@ -154,7 +154,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		// 	log.debug("changeWorkspace", message.params);
 		// }
 		const sentMessage = this.sentMessages.get(message.id);
-		if (sentMessage.method === "textDocument/hover") {
+		if (sentMessage && sentMessage.method === "textDocument/hover") {
 			this.handle_hover_response(message, sentMessage);
 
 			// this is a dirty hack to fix language server sending us prerendered
