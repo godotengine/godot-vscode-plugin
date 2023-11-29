@@ -62,8 +62,10 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 			symbol += `.${document.uri.fragment}`;
 		}
 
+		webviewPanel.webview.options = {
+			enableScripts: true,
+		};
 		this.webViews.set(symbol, webviewPanel);
-		webviewPanel.title = symbol;
 		this.request_documentation(symbol);
 	}
 
@@ -174,7 +176,7 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 			);
 		}
 		panel.title = symbol.name;
-		panel.webview.html = this.make_html_content(symbol);
+		panel.webview.html = this.make_html_content(symbol, target);
 		panel.webview.onDidReceiveMessage(this.on_webview_message.bind(this));
 
 		if (target) {
@@ -228,7 +230,15 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 		}
 	}
 
-	private make_html_content(symbol: GodotNativeSymbol): string {
+	private make_html_content(symbol: GodotNativeSymbol, target?: string): string {
+		let initialFocus = "";
+		if (target) {
+			initialFocus = `
+				window.addEventListener('load', event => {
+					document.getElementById('${target}').scrollIntoView();
+				});
+			`;
+		}
 		return  /*html*/`
 		<html>
 			<head>
@@ -270,6 +280,8 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 							break;
 					}
 				});
+				document.title = native_class;
+				${initialFocus};
 			</script>
 		</html>`;
 	}
