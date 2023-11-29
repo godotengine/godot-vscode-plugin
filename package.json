@@ -43,11 +43,11 @@
 	"contributes": {
 		"customEditors": [
 			{
-				"viewType": "godotDocs",
-				"displayName": "godotDocs",
+				"viewType": "gddoc",
+				"displayName": "Godot Documentation",
 				"selector": [
 					{
-						"filenamePattern": "*.godotDocs"
+						"filenamePattern": "*.gddoc"
 					}
 				]
 			}

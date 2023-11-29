@@ -22,18 +22,18 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 			const key = `${document.uri},${position.line},${position.character - 1}`;
 			target = this.data.get(key);
 		}
-		log.debug("provideDefinition", key, target);
 
 		if (!target) {
 			return null;
 		}
 
+		const parts = target.split(".");
 		const uri = vscode.Uri.from({
-			scheme: "godotDocs",
-			path: target.split(".").join("/") + ".godotDocs",
+			scheme: "gddoc",
+			path: parts[0] + ".gddoc",
+			fragment: parts[1],
 		});
 
-		log.debug("provideDefinition", uri);
 		return new vscode.Location(uri, new vscode.Position(0, 0));
 	}
 }

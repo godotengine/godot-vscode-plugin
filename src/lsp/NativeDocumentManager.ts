@@ -48,7 +48,7 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 			supportsMultipleEditorsPerDocument: true,
 		};
 		context.subscriptions.push(
-			vscode.window.registerCustomEditorProvider("godotDocs", this, options),
+			vscode.window.registerCustomEditorProvider("gddoc", this, options),
 		);
 	}
 
@@ -57,7 +57,10 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 	}
 
 	resolveCustomEditor(document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): void {
-		const symbol = document.uri.path.split(".")[0].replace("/", ".");
+		let symbol = document.uri.path.split(".")[0];
+		if (document.uri.fragment) {
+			symbol += `.${document.uri.fragment}`;
+		}
 
 		this.webViews.set(symbol, webviewPanel);
 		webviewPanel.title = symbol;
@@ -155,12 +158,14 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 		if (this.webViews.has(key)) {
 			panel = this.webViews.get(key);
 			this.webViews.delete(key);
-			panel.webview.viewColumn = this.get_new_native_symbol_column();
 		} else {
 			panel = vscode.window.createWebviewPanel(
-				"doc",
-				symbol.name,
-				this.get_new_native_symbol_column(),
+				"gddoc",
+				symbol.name + ".gddoc",
+				{
+					viewColumn: this.get_new_native_symbol_column(),
+					preserveFocus: true,
+				},
 				{
 					enableScripts: true,
 					retainContextWhenHidden: true,
