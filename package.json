@@ -261,6 +261,25 @@
 					"default": false,
 					"description": "Force the project to run with visible navigation meshes"
 				},
+				"godotTools.documentation.method": {
+					"enum": [
+						"web",
+						"webOpenExternal",
+						"local"
+					],
+					"enumDescriptions": [
+						"Open online Godot documentation within VSCode",
+						"Open online Godot documentation in default browser",
+						"Open local Godot documentation in VSCode"
+					],
+					"default": "web",
+					"description": "Which method to use for opening Godot documentation"
+				},
+				"godotTools.documentation.webUrl": {
+					"type": "string",
+					"default": "https://docs.godotengine.org/en/stable",
+					"description": "URL to use when opening online Godot documentation"
+				},
 				"godotTools.documentation.newTabPlacement": {
 					"enum": [
 						"active",

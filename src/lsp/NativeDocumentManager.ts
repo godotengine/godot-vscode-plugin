@@ -107,16 +107,21 @@ export class NativeDocumentManager extends EventEmitter {
 		this.io.send_message(`Content-Length: ${data_length}\r\n\r\n`);
 	}
 
-	private open_docs(symbol: GodotNativeSymbol) {
+	private open_web_documentation(symbol: GodotNativeSymbol, external = false) {
 		const { symbol_name } = this.lastDocRequest
 		const url = this.get_docs_url(symbol, symbol_name)
-        vscode.commands.executeCommand('simpleBrowser.api.open',
-            vscode.Uri.parse(url),
-            {
-                preserveFocus: false,
-                viewColumn: this.get_new_native_symbol_column(),
-            }
-        );
+		const uri = vscode.Uri.parse(url)
+
+		if (external) {
+			vscode.env.openExternal(uri)
+			return
+		}
+
+		const options = {
+			preserveFocus: false,
+			viewColumn: this.get_new_native_symbol_column(),
+		}
+        vscode.commands.executeCommand('simpleBrowser.api.open', uri, options);
 	}
 
 	private get_docs_url(symbol: GodotNativeSymbol, symbol_name: string) {
@@ -132,18 +137,22 @@ export class NativeDocumentManager extends EventEmitter {
         let anchor_id = `class-${_class}`;
         if (paramMap[symbol.kind]) {
             if (symbol_name[0] == '_') {
-                symbol_name = symbol_name.substr(1);
+                symbol_name = symbol_name.substring(1)
             }
             anchor_id += `-${paramMap[symbol.kind]}-${symbol_name.toLowerCase()}`.replace(/_/g, '-');
         }
-        return `https://docs.godotengine.org/en/stable/classes/class_${_class}.html#${anchor_id}`;
+		const baseUrl = get_configuration("documentation.webUrl")
+        return `${baseUrl}/classes/class_${_class}.html#${anchor_id}`;
 	}
 
 	private show_native_symbol(symbol: GodotNativeSymbol) {
-		// 创建webview
-		this.open_docs(symbol)
-		return
+		const docsType = get_configuration("documentation.method")
+		if (docsType.startsWith("web")) {
+			this.open_web_documentation(symbol, docsType === "webOpenExternal")
+			return
+		}
 
+		// 创建webview
 		const panel = vscode.window.createWebviewPanel(
 			"doc",
 			symbol.name,
@@ -243,7 +252,6 @@ export class NativeDocumentManager extends EventEmitter {
 	private make_symbol_document(symbol: GodotNativeSymbol): string {
 		const classlink = make_link(symbol.native_class, undefined);
 		const classinfo = this.native_classes[symbol.native_class];
-		const { symbol_name } = this.lastDocRequest
 
 		function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 			let parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);

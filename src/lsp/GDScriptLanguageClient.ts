@@ -20,10 +20,9 @@ export enum TargetLSP {
 	EDITOR,
 }
 
-export interface GDScriptTypeData {
-	class: string
-	member?: string
-	member_type?: string
+export interface GDScriptDeclarationData extends NativeSymbolInspectParams {
+	symbol_type?: string
+	description?: string
 }
 
 const CUSTOM_MESSAGE = "gdscript_client/";
@@ -44,7 +43,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public port: number = -1;
 	public lastPortTried: number = -1;
 	public sentMessages = new Map();
-	public lastSymbolHovered: string = "";
+	public lastSymbolHovered: GDScriptDeclarationData
 
 	public get started(): boolean { return this._started; }
 	public get status(): ClientStatus { return this._status; }
@@ -64,8 +63,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	public open_documentation() {
-		const symbol = this.lastSymbolHovered;
-		this.native_doc_manager.request_documentation(symbol);
+		this.native_doc_manager.request_documentation(this.lastSymbolHovered);
 	}
 
 	constructor(context: vscode.ExtensionContext) {
@@ -170,13 +168,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.message_handler.on_message(message);
 	}
 
+	// Send fake textDocument/hover request to get symbol definition under the cursor
+	// (there's most likely a proper way to do this)
 	private handle_definition_response(message: ResponseMessage) {
-		console.log("handle_definition_response: ", this.lastSymbolHovered)
 		if (message.result && !(message.result as any[]).length) {
 			const activeEditor = vscode.window.activeTextEditor;
 			const { line, character } = activeEditor.selection.active;
 			const uri = vscode.window.activeTextEditor.document.uri.toString()
-			console.log(uri)
 			const fakeHoverMessage = {
 				jsonrpc: "2.0",
 				id: -1,
@@ -190,55 +188,83 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-	private handle_hover_response(message: ResponseMessage) {
-		this.lastSymbolHovered = "";
-		set_context("typeFound", false);
+	private async handle_fake_hover_response(message: ResponseMessage) {
+		const content: string[] | object = message?.result["contents"];
 
-		let decl: string = message?.result["contents"]?.value;
-		if (!decl) {
+		let typeData = this.parse_declaration(content["value"]);
+		if (!typeData && Array.isArray(content)) {
+			typeData = await this.select_type_data(content);
+		}
+
+		if (!typeData || !typeData.native_class) {
+			return
+		}
+
+		this.native_doc_manager.request_documentation(typeData);
+	}
+
+	private async select_type_data(decls: string[]): Promise<GDScriptDeclarationData> {
+		const typeOptions = decls.map((decl) => this.parse_declaration(decl));
+		const pickOptions = typeOptions.map((typeData, i) => {
+			let label = typeData.native_class
+			if (typeData.symbol_name) {
+				label += `.${typeData.symbol_name}`
+			}
+			return {
+				label: label,
+				description: typeData.symbol_type,
+				detail: typeData.description,
+			};
+		});
+		const selected = await vscode.window.showQuickPick(
+			pickOptions, { placeHolder: "Open Godot Documentation" }
+		);
+		if (!selected) {
+			return;
+		}
+		return typeOptions[pickOptions.indexOf(selected)];
+	}
+
+	private handle_hover_response(message: ResponseMessage) {
+		if (message.id === -1) {
+			this.handle_fake_hover_response(message);
 			return;
 		}
 
+		this.lastSymbolHovered = null;
+		set_context("typeFound", false);
+
+		let decl: string = message?.result["contents"]?.value;
+
 		const typeData = this.parse_declaration(decl);
-		if (!typeData.native_class) {
+		if (!typeData || !typeData.native_class) {
 			return
 		}
 
-		this.lastSymbolHovered = typeData.native_class;
-
-		if (message.id === -1) {
-			console.log(typeData)
-			this.native_doc_manager.request_documentation(typeData);
-			return
-		}
+		this.lastSymbolHovered = typeData;
 
 		set_context("typeFound", true);
 	}
 
-	private parse_declaration(decl: string): NativeSymbolInspectParams {
+	private parse_declaration(decl: string): GDScriptDeclarationData {
+		if (!decl) {
+			return;
+		}
+		const description = decl.split("\n")[2];
 		decl = decl.split("\n")[0].trim();
 
 		if (decl.includes("<Native>")) {
-			return { native_class: decl.split(" ")[2] }
+			return { native_class: decl.split(" ")[2], description };
 		}
 
-		const parts = decl.split(" ")[1].split(".");
+		const parts = decl.split(" ")
+		const [native_class, symbol] = parts[1].split(".")
 		return {
-			native_class: parts[0],
-			symbol_name: parts[1].split(":")[0].split("(")[0]
+			native_class,
+			description,
+			symbol_name: symbol.split(":")[0].split("(")[0],
+			symbol_type: parts[2],
 		};
-		
-
-		// strip off the value
-		if (decl.includes("=")) {
-			decl = decl.split("=")[0];
-		}
-		if (decl.includes(":")) {
-			const parts = decl.split(":");
-			if (parts.length === 2) {
-				decl = parts[1].trim();
-			}
-		}
 	}
 
 	private on_connected() {
