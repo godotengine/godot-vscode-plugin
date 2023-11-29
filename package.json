@@ -314,7 +314,7 @@
 				"extensions": [
 					".gd"
 				],
-				"configuration": "./configurations/gdscript-configuration.json"
+				"configuration": "./configurations/gdscript.language-configuration.json"
 			},
 			{
 				"id": "gdscene",
@@ -325,7 +325,7 @@
 				"extensions": [
 					"tscn"
 				],
-				"configuration": "./configurations/gdresource-configuration.json"
+				"configuration": "./configurations/gdresource.language-configuration.json"
 			},
 			{
 				"id": "gdresource",
@@ -340,7 +340,7 @@
 					"gdns",
 					"gdnlib"
 				],
-				"configuration": "./configurations/gdresource-configuration.json"
+				"configuration": "./configurations/gdresource.language-configuration.json"
 			},
 			{
 				"id": "gdshader",
@@ -351,7 +351,7 @@
 					".gdshader",
 					".gdshaderinc"
 				],
-				"configuration": "./configurations/gdshader-configuration.json"
+				"configuration": "./configurations/gdshader.language-configuration.json"
 			}
 		],
 		"grammars": [
