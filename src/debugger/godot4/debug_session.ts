@@ -515,8 +515,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 					? collection_items.get(key)?.id
 					: collection_items[key]?.id;
 			} else {
-				result.object_id = Array.from(root.value.entries())
-					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
+				const entries = Array.from(root.value.entries());
+				const item = entries.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName);
+				result.object_id = item?.[1].id;
 			}
 		}
 
