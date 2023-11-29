@@ -22,7 +22,7 @@ experience as comfortable as possible:
 - In-editor Scene Preview
 - Display script warnings and errors
 - Ctrl + click on a variable or method call to jump to its definition
-- Full documentation of the Godot Engine's API supported (select *Godot Tools: List native classes of Godot* in the Command Palette)
+- Open Godot documentation when Ctrl + clicking native classes, methods, and properties
 - Run a Godot project from VS Code
 - Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
 
