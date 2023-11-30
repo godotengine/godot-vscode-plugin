@@ -54,6 +54,10 @@ export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDro
 			dragAndDropController: this
 		});
 
+		const selector = [
+			{ language: "csharp", scheme: "file" },
+			{ language: "gdscript", scheme: "file" },
+		];
 		context.subscriptions.push(
 			register_command("scenePreview.pin", this.pin_preview.bind(this)),
 			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
@@ -66,7 +70,7 @@ export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDro
 			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
 			window.registerFileDecorationProvider(this.scriptDecorator),
-			languages.registerDocumentDropEditProvider(["gdscript", "csharp"], this),
+			languages.registerDocumentDropEditProvider(selector, this),
 			this.watcher.onDidChange(this.on_file_changed.bind(this)),
 			this.watcher,
 			this.tree.onDidChangeSelection(this.tree_selection_changed),

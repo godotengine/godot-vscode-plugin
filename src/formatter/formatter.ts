@@ -63,11 +63,9 @@ export function format_document(document: TextDocument): TextEdit[] {
 
 export class FormattingProvider implements DocumentFormattingEditProvider {
 	constructor(private context: ExtensionContext) {
+		const selector = { language: "gdscript", scheme: "file" };
 		context.subscriptions.push(
-			vscode.languages.registerDocumentFormattingEditProvider(
-				{ language: "gdscript", scheme: "file" },
-				this,
-			),
+			vscode.languages.registerDocumentFormattingEditProvider(selector, this),
 		);
 	}
 
