@@ -158,11 +158,24 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		if (sentMessage && sentMessage.method === "textDocument/hover") {
 			this.handle_hover_response(message, sentMessage);
 
-			// this is a dirty hack to fix language server sending us prerendered
-			// markdown but not correctly stripping leading #'s, leading to 
-			// docstrings being displayed as titles
-			const value: string = message.result["contents"]?.value;
-			message.result["contents"].value = value?.replace(/\n[#]+/g, "\n");
+			// fix markdown contents
+			let value: string = message.result["contents"]?.value;
+			if (value) {
+				// this is a dirty hack to fix language server sending us prerendered
+				// markdown but not correctly stripping leading #'s, leading to 
+				// docstrings being displayed as titles
+				value = value?.replace(/\n[#]+/g, "\n");
+
+				// fix bbcode code boxes
+				value = value?.replace("`codeblocks`", "");
+				value = value?.replace("`/codeblocks`", "");
+				value = value?.replace("`gdscript`", "\nGDScript:\n```gdscript");
+				value = value?.replace("`/gdscript`", "```");
+				value = value?.replace("`csharp`", "\nC#:\n```csharp");
+				value = value?.replace("`/csharp`", "```");
+
+				message.result["contents"].value = value;
+			}
 		}
 
 		this.messageHandler.on_message(message);
