@@ -710,6 +710,20 @@
                 },
                 {
                     "include": "#line_continuation"
+                },
+				{
+                    "match": "\\s*(?:\\-\\>)\\s*(void\\w*)|([a-zA-Z_]\\w*)\\s*\\:",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.language.void.gdscript"
+                        },
+                        "2": {
+                            "name": "entity.name.type.class.gdscript"
+                        }
+                    }
+                },
+                {
+                    "include": "#base_expression"
                 }
             ]
         },
