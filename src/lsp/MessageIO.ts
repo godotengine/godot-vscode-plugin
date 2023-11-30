@@ -227,6 +227,9 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	}
 
 	public write(msg: Message): Promise<void> {
+		if (msg.method === "didChangeWatchedFiles") {
+			return;
+		}
 		let json = JSON.stringify(msg);
 		let contentLength = Buffer.byteLength(json, this.encoding);
 
