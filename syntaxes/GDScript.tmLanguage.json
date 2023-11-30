@@ -295,12 +295,6 @@
                 {
                     "include": "#builtin_classes"
                 },
-				{
-                    "include": "#any_variable"
-                },
-                {
-                    "include": "#any_property"
-                },
                 {
                     "include": "#const_vars"
                 },
@@ -319,16 +313,32 @@
         "in_keyword": {
             "patterns": [
                 {
-                    "match": "\\b(for)\\s+[a-zA-Z_]\\w*\\s+(in)\\b",
+					
+					"begin": "\\b(for)\\b",
+					"end": ":",
                     "captures": {
-                        "1": { "name": "keyword.control.gdscript" },
-                        "2": { "name": "keyword.control.gdscript" }
-                    }
+                        "1": { "name": "keyword.control.gdscript" }
+                    },
+					"patterns": [
+						{
+							"match": "\\bin\\b",
+							"name": "keyword.control.gdscript"
+						},
+						{
+							"include": "#base_expression"
+						},
+						{
+							"include": "#any_variable"
+						},
+						{
+							"include": "#any_property"
+						}
+					]
                 },
-                {
-                    "match": "\\bin\\b",
-                    "name": "keyword.operator.wordlike.gdscript"
-                }
+				{
+					"match": "\\bin\\b",
+					"name": "keyword.operator.wordlike.gdscript"
+				}
             ]
         },
         "compare_op": {
@@ -344,7 +354,7 @@
             "name": "keyword.operator.assignment.gdscript"
         },
         "control_flow": {
-            "match": "\\b(?:if|elif|else|for|while|break|continue|pass|return|match|yield|await)\\b",
+            "match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|yield|await)\\b",
             "name": "keyword.control.gdscript"
         },
         "keywords": {
@@ -730,6 +740,12 @@
                 },
                 {
                     "include": "#base_expression"
+                },
+				{
+                    "include": "#any_variable"
+                },
+                {
+                    "include": "#any_property"
                 }
             ]
         },
