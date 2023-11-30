@@ -256,10 +256,10 @@ export function tokenize(input: string): string[] {
 			token = char;
 			tokenType = "curly";
 		} else if (char.match(/[\[\]\(\)\{\}\.]/)) {
+			if (char === "(") {
+				parenDepth++;
+			}
 			if (inParamList) {
-				if (char === "(") {
-					parenDepth++;
-				}
 				if (char === ")") {
 					parenDepth--;
 					if (parenDepth === 0) {
@@ -286,6 +286,7 @@ export function tokenize(input: string): string[] {
 		tokens.push(between(lastTokenType, tokenType) + "" + token);
 		if (prevToken === "func") {
 			inParamList = true;
+			parenDepth = 1;
 		}
 		lastTokenType = tokenType;
 		prevToken = token;
