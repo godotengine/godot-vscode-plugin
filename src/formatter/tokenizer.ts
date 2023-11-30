@@ -236,17 +236,17 @@ export function tokenize(input: string): string[] {
 			pos++;
 			token = "r" + readString();
 			tokenType = "string";
-		} else if (char.match(/[\&\$\%\^]/) && input.charAt(pos + 1).trim()) {
+		} else if (char.match(/[\&\$\%\^]/) && nextChar.trim()) {
 			token = readNode();
 			tokenType = "node";
-		} else if (char === "-" && input.charAt(pos + 1).match(/[0-9\.a-z_A-Z]/)) {
+		} else if (char === "-" && nextChar.match(/[0-9\.a-z_A-Z]/)) {
 			pos++;
 			if (input.charAt(pos).match(/[a-z_A-Z]/)) {
 				token = "-" + readName();
 			} else {
 				token = "-" + readNumber();
 			}
-		} else if (char === "." && input.charAt(pos + 1).match(/[0-9]/)) {
+		} else if (char === "." && nextChar.match(/[0-9]/)) {
 			token = readNumber();
 		} else if (char.match(/[a-z_A-Z]/)) {
 			token = readName();
