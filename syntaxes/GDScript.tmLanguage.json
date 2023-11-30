@@ -295,6 +295,12 @@
                 {
                     "include": "#builtin_classes"
                 },
+				{
+                    "include": "#any_variable"
+                },
+                {
+                    "include": "#any_property"
+                },
                 {
                     "include": "#const_vars"
                 },
