@@ -1,11 +1,21 @@
 import * as vscode from "vscode";
+import {
+	CancellationToken,
+	CustomDocument,
+	CustomDocumentOpenContext,
+	CustomReadonlyEditorProvider,
+	ExtensionContext,
+	Uri,
+	ViewColumn,
+	WebviewPanel,
+} from "vscode";
 import { NotificationMessage } from "vscode-jsonrpc";
 import { SymbolKind, ResponseMessage } from "vscode-languageclient";
 import { EventEmitter } from "events";
 import * as Prism from "prismjs";
 import { marked } from "marked";
 import { MessageIO } from "./MessageIO";
-import { get_configuration } from "../utils";
+import { get_configuration, createLogger } from "../utils";
 import {
 	Methods,
 	NativeSymbolInspectParams,
@@ -13,7 +23,6 @@ import {
 	GodotNativeClassInfo,
 	GodotCapabilities,
 } from "./gdscript.capabilities";
-import { createLogger } from "../utils";
 
 const log = createLogger("docs");
 
@@ -27,15 +36,15 @@ const enum WebViewMessageType {
 	INSPECT_NATIVE_SYMBOL = "INSPECT_NATIVE_SYMBOL",
 }
 
-export class NativeDocumentManager extends EventEmitter implements vscode.CustomReadonlyEditorProvider {
+export class NativeDocumentManager extends EventEmitter implements CustomReadonlyEditorProvider {
 	private io: MessageIO = null;
-	private native_classes: { [key: string]: GodotNativeClassInfo } = {};
+	public native_classes: { [key: string]: GodotNativeClassInfo } = {};
 
 	private messageCount = -1;
 	private pendingInspections: Map<number, string> = new Map();
-	private webViews: Map<string, vscode.WebviewPanel> = new Map();
+	private webViews: Map<string, WebviewPanel> = new Map();
 
-	constructor(io: MessageIO, context: vscode.ExtensionContext) {
+	constructor(io: MessageIO, context: ExtensionContext) {
 		super();
 		this.io = io;
 		io.on("message", this.on_message.bind(this));
@@ -52,11 +61,11 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 		);
 	}
 
-	openCustomDocument(uri: vscode.Uri, openContext: vscode.CustomDocumentOpenContext, token: vscode.CancellationToken): vscode.CustomDocument {
+	openCustomDocument(uri: Uri, openContext: CustomDocumentOpenContext, token: CancellationToken): CustomDocument {
 		return { uri: uri, dispose: () => { } };
 	}
 
-	resolveCustomEditor(document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel, token: vscode.CancellationToken): void {
+	resolveCustomEditor(document: CustomDocument, webviewPanel: WebviewPanel, token: CancellationToken): void {
 		let symbol = document.uri.path.split(".")[0];
 		if (document.uri.fragment) {
 			symbol += `.${document.uri.fragment}`;
@@ -191,11 +200,11 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 	 * Returns placement for a new native symbol window based on the extension
 	 * configuration and previously opened native symbols.
 	 */
-	private get_new_native_symbol_column(): vscode.ViewColumn {
+	private get_new_native_symbol_column(): ViewColumn {
 		const config_placement = get_configuration("documentation.newTabPlacement");
 
 		if (config_placement == "active") {
-			return vscode.ViewColumn.Active;
+			return ViewColumn.Active;
 		}
 
 		const tab_groups = vscode.window.tabGroups;
@@ -216,7 +225,7 @@ export class NativeDocumentManager extends EventEmitter implements vscode.Custom
 		if (first_non_editor_column) {
 			return first_non_editor_column;
 		} else {
-			return vscode.ViewColumn.Beside;
+			return ViewColumn.Beside;
 		}
 	}
 
@@ -522,6 +531,7 @@ function element<K extends keyof HTMLElementTagNameMap>(
 	return `${indent || ""}<${tag} ${props_str}>${content}</${tag}>${new_line ? "\n" : ""
 		}`;
 }
+
 function make_link(classname: string, symbol: string) {
 	if (!symbol || symbol == classname) {
 		return element("a", classname, {
@@ -536,14 +546,15 @@ function make_link(classname: string, symbol: string) {
 	}
 }
 
-function make_codeblock(code: string) {
-	const md = marked.parse("```gdscript\n" + code + "\n```");
+function make_codeblock(code: string, language: string) {
+	const md = marked.parse(`\`\`\`${language}\n ${code} \n\`\`\``);
 	return `<div class="codeblock">${md}</div>`;
 }
 
 function format_documentation(p_bbcode: string, classname: string) {
 	let html = p_bbcode.trim();
 	const lines = html.split("\n");
+
 	let in_code_block = false;
 	let code_block_indent = -1;
 	let cur_code_block = "";
@@ -557,13 +568,13 @@ function format_documentation(p_bbcode: string, classname: string) {
 			in_code_block = true;
 			line = line.replace("[codeblock]", "");
 		} else if (in_code_block) {
-			line = line.substr(code_block_indent, line.length);
+			line = line.slice(code_block_indent, line.length);
 		}
 
 		if (in_code_block && line.indexOf("[/codeblock]") != -1) {
 			line = line.replace("[/codeblock]", "");
 			in_code_block = false;
-			html += make_codeblock(cur_code_block);
+			html += make_codeblock(cur_code_block, "gdscript");
 			cur_code_block = "";
 		}
 
