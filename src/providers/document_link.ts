@@ -5,25 +5,25 @@ import {
 	TextDocument,
 	CancellationToken,
 	DocumentLink,
+	DocumentLinkProvider,
+	ExtensionContext,
 } from "vscode";
-import { SceneParser } from "./scene_tools";
-import { convert_resource_path_to_uri, createLogger } from "./utils";
+import { SceneParser } from "../scene_tools";
+import { convert_resource_path_to_uri, createLogger } from "../utils";
 
-const log = createLogger("link_provider");
+const log = createLogger("providers.document_links");
 
-export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
+export class GDDocumentLinkProvider implements DocumentLinkProvider {
 	public parser = new SceneParser();
 
-	constructor(private context: vscode.ExtensionContext) {
+	constructor(private context: ExtensionContext) {
+		const selector = [
+			{ language: "gdresource", scheme: "file" },
+			{ language: "gdscene", scheme: "file" },
+			{ language: "gdscript", scheme: "file" },
+		];
 		context.subscriptions.push(
-			vscode.languages.registerDocumentLinkProvider(
-				[
-					{ language: "gdresource", scheme: "file" },
-					{ language: "gdscene", scheme: "file" },
-					{ language: "gdscript", scheme: "file" },
-				],
-				this
-			),
+			vscode.languages.registerDocumentLinkProvider(selector, this),
 		);
 	}
 
@@ -44,7 +44,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 				});
 
 				const r = this.create_range(document, match);
-				const link = new vscode.DocumentLink(r, uri);
+				const link = new DocumentLink(r, uri);
 				link.tooltip = "Jump to resource definition";
 				links.push(link);
 			}
@@ -58,7 +58,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 				});
 
 				const r = this.create_range(document, match);
-				const link = new vscode.DocumentLink(r, uri);
+				const link = new DocumentLink(r, uri);
 				links.push(link);
 			}
 		}
@@ -66,7 +66,7 @@ export class GDDocumentLinkProvider implements vscode.DocumentLinkProvider {
 			const r = this.create_range(document, match);
 			const uri = await convert_resource_path_to_uri(match[0]);
 			if (uri instanceof Uri) {
-				links.push(new vscode.DocumentLink(r, uri));
+				links.push(new DocumentLink(r, uri));
 			}
 		}
 

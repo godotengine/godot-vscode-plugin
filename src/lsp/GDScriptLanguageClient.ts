@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 import { get_configuration, set_context, createLogger } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from "./NativeDocumentManager";
-import { DefinitionProvider } from "./DefinitionProvider";
+import { GDDefinitionProvider } from "../providers";
 
 const log = createLogger("lsp.client");
 const socketLog = createLogger("lsp.socket");
@@ -29,7 +29,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private _initialize_request: Message = null;
 	private messageHandler: MessageHandler = null;
 	private docManager: NativeDocumentManager = null;
-	private definitionProvider: DefinitionProvider = new DefinitionProvider(this);
+	private definitionProvider: GDDefinitionProvider = null;
 
 	public target: TargetLSP = TargetLSP.EDITOR;
 
@@ -85,6 +85,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.on("send_message", this.on_send_message.bind(this));
 		this.messageHandler = new MessageHandler(this.io);
 		this.docManager = new NativeDocumentManager(this.io, context);
+		this.definitionProvider = new GDDefinitionProvider(this, context);
 	}
 
 	public open_documentation() {

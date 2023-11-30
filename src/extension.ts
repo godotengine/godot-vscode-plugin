@@ -1,8 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate } from "./utils";
-import { GDDocumentLinkProvider } from "./document_link_provider";
-import { GDResourceHoverProvider } from "./hover_provider";
+import { GDInlayHintsProvider, GDHoverProvider, GDDocumentLinkProvider } from "./providers";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreview } from "./scene_tools";
 import { GodotDebugger } from "./debugger";
@@ -32,7 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.context = context;
 	globals.lsp = new ClientConnectionManager(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
-	globals.hoverProvider = new GDResourceHoverProvider(context);
+	globals.hoverProvider = new GDHoverProvider(context);
+	globals.inlayProvider = new GDInlayHintsProvider(context);
 	globals.scenePreview = new ScenePreview(context);
 	globals.debugger = new GodotDebugger(context);
 	globals.formatter = new FormattingProvider(context);

@@ -4,24 +4,22 @@ import {
 	TextDocument,
 	CancellationToken,
 } from "vscode";
-import { SceneParser } from "./scene_tools";
-import { convert_resource_path_to_uri, createLogger } from "./utils";
+import { SceneParser } from "../scene_tools";
+import { convert_resource_path_to_uri, createLogger } from "../utils";
 
-const log = createLogger("hover_provider");
+const log = createLogger("providers.hover");
 
-export class GDResourceHoverProvider implements vscode.HoverProvider {
+export class GDHoverProvider implements vscode.HoverProvider {
 	public parser = new SceneParser();
 
 	constructor(private context: vscode.ExtensionContext) {
+		const selector = [
+			{ language: "gdresource", scheme: "file" },
+			{ language: "gdscene", scheme: "file" },
+			{ language: "gdscript", scheme: "file" },
+		];
 		context.subscriptions.push(
-			vscode.languages.registerHoverProvider(
-				[
-					{ language: "gdresource", scheme: "file" },
-					{ language: "gdscene", scheme: "file" },
-					{ language: "gdscript", scheme: "file" },
-				],
-				this
-			),
+			vscode.languages.registerHoverProvider(selector, this),
 		);
 	}
 
