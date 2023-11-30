@@ -64,12 +64,22 @@ export class SceneNode extends TreeItem {
 	}
 }
 
+export interface GDResource {
+	path: string;
+	type: string;
+	id: string;
+	uid: string;
+	body?: string;
+	index: number;
+	line: number;
+}
+
 export class Scene {
 	public path: string;
 	public title: string;
 	public mtime: number;
 	public root: SceneNode | undefined;
-	public externalResources = {};
-	public subResources = {};
+	public externalResources: {[key: string]: GDResource} = {};
+	public subResources: {[key: string]: GDResource} = {};
 	public nodes: Map<string, SceneNode> = new Map();
 }
