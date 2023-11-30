@@ -72,6 +72,7 @@ export function tokenize(input: string): string[] {
 	let inParamList = false;
 	let parenDepth = 0;
 	let prevToken: string | null = null;
+	let prevPrevToken: string | null = null;
 
 	// these functions are declared inside tokenize() so that pos and tokenType 
 	// can be in function scope instead of global
@@ -256,10 +257,10 @@ export function tokenize(input: string): string[] {
 			token = char;
 			tokenType = "curly";
 		} else if (char.match(/[\[\]\(\)\{\}\.]/)) {
-			if (char === "(") {
-				parenDepth++;
-			}
 			if (inParamList) {
+				if (char === "(") {
+					parenDepth++;
+				}
 				if (char === ")") {
 					parenDepth--;
 					if (parenDepth === 0) {
@@ -284,12 +285,16 @@ export function tokenize(input: string): string[] {
 		}
 
 		tokens.push(between(lastTokenType, tokenType) + "" + token);
-		if (prevToken === "func") {
-			inParamList = true;
-			parenDepth = 1;
+		if (token === "(") {
+			if (prevToken === "func" || prevPrevToken === "func") {
+				inParamList = true;
+				parenDepth = 1;
+			}
 		}
+
 		lastTokenType = tokenType;
 		prevToken = token;
+		prevPrevToken = prevToken;
 		readWhitespace();
 	}
 	return tokens;
