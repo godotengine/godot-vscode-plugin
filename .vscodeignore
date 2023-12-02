@@ -1,10 +1,10 @@
 *
 */**
+**/*.js.map
 !out/extension.js
-!syntaxes/
+!syntaxes/*.tmLanguage.json
 !resources/
 !configurations/
-syntaxes/examples
 !package.json
 !package.nls.json
 !README.md
