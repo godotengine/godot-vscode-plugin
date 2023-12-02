@@ -130,11 +130,6 @@
                     ]
                 },
                 {
-                    "name": "invalid.illegal.escape.gdscript",
-                    "begin": "'''",
-                    "end": "'''"
-                },
-                {
                     "begin": "(r)?\"\"\"",
                     "end": "\"\"\"",
                     "patterns": [

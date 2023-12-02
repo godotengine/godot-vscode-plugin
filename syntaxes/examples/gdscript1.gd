@@ -144,7 +144,7 @@ var r = 'single quotes'
 var s = """
 triple double quotes
 """
-var t = '''triple single quotes''' # this should be red because it's invalid
+var t = '''triple single quotes'''
 
 # ------------------------------------------------------------------------------
 
