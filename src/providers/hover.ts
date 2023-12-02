@@ -1,18 +1,23 @@
 import * as vscode from "vscode";
 import {
+	Uri,
 	Position,
 	TextDocument,
 	CancellationToken,
+	ExtensionContext,
+	HoverProvider,
+	MarkdownString,
+	Hover,
 } from "vscode";
 import { SceneParser } from "../scene_tools";
 import { convert_resource_path_to_uri, createLogger } from "../utils";
 
 const log = createLogger("providers.hover");
 
-export class GDHoverProvider implements vscode.HoverProvider {
+export class GDHoverProvider implements HoverProvider {
 	public parser = new SceneParser();
 
-	constructor(private context: vscode.ExtensionContext) {
+	constructor(private context: ExtensionContext) {
 		const selector = [
 			{ language: "gdresource", scheme: "file" },
 			{ language: "gdscene", scheme: "file" },
@@ -27,14 +32,14 @@ export class GDHoverProvider implements vscode.HoverProvider {
 		let links = "";
 		for (const match of text.matchAll(/res:\/\/[^"^']*/g)) {
 			const uri = await convert_resource_path_to_uri(match[0]);
-			if (uri instanceof vscode.Uri) {
+			if (uri instanceof Uri) {
 				links += `* [${match[0]}](${uri})\n`;
 			}
 		}
 		return links;
 	}
 
-	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<vscode.Hover> {
+	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
 		if (["gdresource", "gdscene"].includes(document.languageId)) {
 			const scene = this.parser.parse_scene(document);
 
@@ -48,8 +53,7 @@ export class GDHoverProvider implements vscode.HoverProvider {
 				const definition = scene.externalResources[id].body;
 				const links = await this.get_links(definition);
 
-
-				const contents = new vscode.MarkdownString();
+				const contents = new MarkdownString();
 				contents.appendMarkdown(links);
 				contents.appendMarkdown("---");
 				contents.appendCodeblock(definition, "gdresource");
@@ -59,7 +63,7 @@ export class GDHoverProvider implements vscode.HoverProvider {
 					const text = (await vscode.workspace.openTextDocument(uri)).getText();
 					contents.appendCodeblock(text, "gdscript");
 				}
-				const hover = new vscode.Hover(contents);
+				const hover = new Hover(contents);
 				return hover;
 			}
 
@@ -71,9 +75,9 @@ export class GDHoverProvider implements vscode.HoverProvider {
 				// don't display contents of giant arrays
 				definition = definition?.replace(/Array\([0-9,\.\- ]*\)/, "Array(...)");
 
-				const contents = new vscode.MarkdownString();
+				const contents = new MarkdownString();
 				contents.appendCodeblock(definition, "gdresource");
-				const hover = new vscode.Hover(contents);
+				const hover = new Hover(contents);
 				return hover;
 			}
 		}
@@ -95,9 +99,9 @@ export class GDHoverProvider implements vscode.HoverProvider {
 
 			const uri = await convert_resource_path_to_uri(link);
 			const text = (await vscode.workspace.openTextDocument(uri)).getText();
-			const contents = new vscode.MarkdownString();
+			const contents = new MarkdownString();
 			contents.appendCodeblock(text, type);
-			const hover = new vscode.Hover(contents);
+			const hover = new Hover(contents);
 			return hover;
 		}
 	}
