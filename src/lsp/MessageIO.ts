@@ -6,6 +6,7 @@ import { Socket } from 'net';
 import MessageBuffer from "./MessageBuffer";
 import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc";
 import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc";
+
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
@@ -46,11 +47,11 @@ export class WebSocketMessageIO extends MessageIO {
 		}
 	}
 
-	async connect_to_language_server(host:string, port: number): Promise<void> {
+	async connect_to_language_server(host: string, port: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const ws = new WebSocket(`ws://${host}:${port}`);
-			ws.on('open', ()=>{ this.on_connected(ws); resolve(); });
+			ws.on('open', () => { this.on_connected(ws); resolve(); });
 			ws.on('message', this.on_message.bind(this));
 			ws.on('error', this.on_disconnected.bind(this));
 			ws.on('close', this.on_disconnected.bind(this));
@@ -77,12 +78,12 @@ export class TCPMessageIO extends MessageIO {
 		}
 	}
 
-	async connect_to_language_server(host:string, port: number):Promise<void> {
+	async connect_to_language_server(host: string, port: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const socket = new Socket();
 			socket.connect(port, host);
-			socket.on('connect', ()=>{ this.on_connected(socket); resolve(); });
+			socket.on('connect', () => { this.on_connected(socket); resolve(); });
 			socket.on('data', this.on_message.bind(this));
 			socket.on('end', this.on_disconnected.bind(this));
 			socket.on('close', this.on_disconnected.bind(this));
@@ -137,12 +138,9 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		this.messageToken = 0;
 		this.partialMessageTimer = undefined;
 		this.callback = callback;
-		this.io.on('data', (data: Buffer) => {
-			this.onData(data);
-		});
-		this.io.on('error', (error: any) => this.fireError(error));
-		this.io.on('close', () => this.fireClose());
-		
+		this.io.on('data', this.onData.bind(this));
+		this.io.on('error', this.fireError.bind(this));
+		this.io.on('close', this.fireClose.bind(this));
 		return;
 	}
 
@@ -221,13 +219,13 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 		this.io.on('error', (error: any) => this.fireError(error));
 		this.io.on('close', () => this.fireClose());
 	}
-	
+
 	public end(): void {
-		
+
 	}
 
 	public write(msg: Message): Promise<void> {
-		if (msg.method === "didChangeWatchedFiles") {
+		if ((msg as RequestMessage).method === "didChangeWatchedFiles") {
 			return;
 		}
 		let json = JSON.stringify(msg);
@@ -249,7 +247,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			this.errorCount++;
 			this.fireError(error, msg, this.errorCount);
 		}
-		
+
 		return;
 	}
 }
