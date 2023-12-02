@@ -92,7 +92,7 @@ export async function find_file(file: string): Promise<vscode.Uri | null> {
 
 export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
 	const files = await vscode.workspace.findFiles("**/project.godot");
-	if (!files) {
+	if (!files || files[0] === undefined) {
 		return null;
 	}
 	const dir = files[0].fsPath.replace("project.godot", "");
