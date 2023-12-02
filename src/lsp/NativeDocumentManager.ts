@@ -37,16 +37,14 @@ const enum WebViewMessageType {
 }
 
 export class NativeDocumentManager extends EventEmitter implements CustomReadonlyEditorProvider {
-	private io: MessageIO = null;
 	public native_classes: { [key: string]: GodotNativeClassInfo } = {};
 
 	private messageCount = -1;
 	private pendingInspections: Map<number, string> = new Map();
 	private webViews: Map<string, WebviewPanel> = new Map();
 
-	constructor(io: MessageIO, context: ExtensionContext) {
+	constructor(private io: MessageIO, context: ExtensionContext) {
 		super();
-		this.io = io;
 		io.on("message", this.on_message.bind(this));
 		const options = {
 			webviewOptions: {
@@ -141,19 +139,14 @@ export class NativeDocumentManager extends EventEmitter implements CustomReadonl
 		}
 
 		if (message.method == Methods.GDSCRIPT_CAPABILITIES) {
-			for (const gdclass of (message.params as GodotCapabilities)
-				.native_classes) {
+			for (const gdclass of (message.params as GodotCapabilities).native_classes) {
 				this.native_classes[gdclass.name] = gdclass;
 			}
-			for (const gdclass of (message.params as GodotCapabilities)
-				.native_classes) {
+			for (const gdclass of (message.params as GodotCapabilities).native_classes) {
 				if (gdclass.inherits) {
-					const extended_classes =
-						this.native_classes[gdclass.inherits].extended_classes || [];
+					const extended_classes = this.native_classes[gdclass.inherits].extended_classes || [];
 					extended_classes.push(gdclass.name);
-					this.native_classes[
-						gdclass.inherits
-					].extended_classes = extended_classes;
+					this.native_classes[gdclass.inherits].extended_classes = extended_classes;
 				}
 			}
 		}
