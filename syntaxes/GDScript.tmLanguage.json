@@ -67,6 +67,7 @@
 			"captures": { "1": { "name": "punctuation.definition.comment.number-sign.gdscript" } }
 		},
 		"strings": {
+			"name": "string.quoted.gdscript",
 			"begin": "(r)?(\"\"\"|'''|\"|')",
 			"end": "\\2",
 			"beginCaptures": { "1": { "name": "constant.character.escape.gdscript" } },
@@ -74,9 +75,14 @@
 				{
 					"name": "constant.character.escape.gdscript",
 					"match": "\\\\."
-				}
-			],
-			"name": "string.quoted.gdscript"
+				},
+				{ "include": "#string_formatting" }
+			]
+		},
+		"string_formatting": {
+			"name": "meta.format.percent.gdscript",
+			"match": "(?x)\n  (\n    % (\\([\\w\\s]*\\))?\n      [-+#0 ]*\n      (\\d+|\\*)? (\\.(\\d+|\\*))?\n      ([hlL])?\n      [diouxXeEfFgGcrsab%]\n  )\n",
+			"captures": { "1": { "name": "constant.character.format.placeholder.other.gdscript" } }
 		},
 		"nodepath_object": {
 			"name": "meta.literal.nodepath.gdscript",
