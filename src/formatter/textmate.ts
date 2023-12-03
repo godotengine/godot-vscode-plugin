@@ -108,6 +108,7 @@ function between(tokens: Token[], current: number) {
 	if (next === "(") {
 		if (prev === "export") return "";
 		if (prev === "func") return "";
+		if (prev === "assert") return "";
 	}
 
 	if (prev === ")" && nextToken.type === "keyword") return " ";
