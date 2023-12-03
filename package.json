@@ -377,6 +377,15 @@
 				"path": "./syntaxes/GDShader.tmLanguage.json"
 			}
 		],
+		"semanticTokenScopes": [
+			{
+				"scopes": {
+					"nodePath": [
+						"constant.character.escape"
+					]
+				}
+			}
+		],
 		"snippets": [
 			{
 				"language": "gdscript",
