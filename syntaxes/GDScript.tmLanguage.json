@@ -388,7 +388,7 @@
 		},
 		"lambda_declaration": {
 			"name": "meta.function.gdscript",
-			"begin": "(func)(?=\\()",
+			"begin": "(func)\\s?(?=\\()",
 			"end": "(:|(?=[#'\"\\n]))",
 			"beginCaptures": {
 				"1": { "name": "keyword.language.gdscript storage.type.function.gdscript" },
