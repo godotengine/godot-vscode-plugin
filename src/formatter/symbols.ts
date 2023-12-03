@@ -2,6 +2,7 @@
 export const keywords = [
 	"and",
 	"as",
+	"await",
 	"break",
 	"breakpoint",
 	"class_name",

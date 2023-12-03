@@ -43,11 +43,15 @@ interface Token {
 	value: string;
 	type?: string;
 	param?: boolean;
+	skip?: boolean;
 }
 
 function parse_token(token: Token) {
 	if (token.scopes.includes("meta.function.parameters.gdscript")) {
 		token.param = true;
+	}
+	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
+		token.skip = true;
 	}
 	if (keywords.includes(token.value)) {
 		token.type = "keyword";
@@ -77,7 +81,12 @@ function between(tokens: Token[], current: number) {
 	const next = nextToken.value;
 	const prev = prevToken?.value;
 
+	// console.log(prevToken, nextToken);
+
 	if (!prev) return "";
+
+	if (next === "#") return " ";
+	if (prevToken.skip) return "";
 
 	if (nextToken.param) {
 		if (next === "=") return "";
@@ -96,16 +105,18 @@ function between(tokens: Token[], current: number) {
 	if (prev === "@") return "";
 
 	if (prev === ":" && next === "=") return "";
+	if (prev === "export" && next === "(") return "";
+	if (prev === ")" && nextToken.type === "keyword") return " ";
+
 	if (prev === ":") return " ";
-	if (next === "#") return " ";
+	if (prev === ";") return " ";
 	if (prev === "#") return " ";
 	if (next === "=") return " ";
 	if (prev === "=") return " ";
 	if (prev === "(") return "";
-	if (prevToken?.type === "keyword") {
-		if (next === "(") return "";
-		return " ";
-	}
+	if (next === "{") return " ";
+	if (next === "{}") return " ";
+	if (prevToken?.type === "keyword") return " ";
 	if (nextToken.type === "keyword") return " ";
 	if (prevToken?.type === "symbol") return " ";
 	if (nextToken.type === "symbol") return " ";
