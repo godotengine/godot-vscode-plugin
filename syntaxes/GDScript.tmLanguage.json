@@ -318,13 +318,13 @@
 			]
 		},
 		"builtin_get_node_shorthand_quoted": {
-			"begin": "(?:(\\$)|(&|\\^|@))(\"|')",
-			"end": "(\\3)",
 			"name": "meta.literal.nodepath.gdscript constant.character.escape.gdscript",
+			"begin": "(?:(\\$)|(&|\\^|@))(\"|')",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
 				"2": { "name": "variable.other.enummember.gdscript" }
 			},
+			"end": "(\\3)",
 			"patterns": [
 				{
 					"match": "%",
@@ -333,10 +333,13 @@
 			]
 		},
 		"builtin_get_node_shorthand_bare": {
-			"begin": "(\\$|%)",
-			"end": "[^\\w%]",
 			"name": "meta.literal.nodepath.gdscript",
-			"beginCaptures": { "1": { "name": "keyword.control.flow.gdscript" } },
+			"begin": "(\\$|%|\\$%)([a-zA-Z_]\\w*/?)",
+			"beginCaptures": {
+				"1": { "name": "keyword.control.flow.gdscript" },
+				"2": { "name": "constant.character.escape.gdscript" }
+			},
+			"end": "[^\\w%]",
 			"patterns": [
 				{
 					"match": "(%)?([a-zA-Z_]\\w*/?)",
