@@ -176,27 +176,27 @@
 			"patterns": [
 				{
 					"match": "0b[01_]+",
-					"name": "constant.numeric.integer.binary.gdscript markup.italic"
+					"name": "constant.numeric.integer.binary.gdscript"
 				},
 				{
 					"match": "0x[0-9A-Fa-f_]+",
-					"name": "constant.numeric.integer.hexadecimal.gdscript markup.italic"
+					"name": "constant.numeric.integer.hexadecimal.gdscript"
 				},
 				{
 					"match": "[-]?([0-9_]+\\.[0-9_]*(e[\\-\\+]?[0-9_]+)?)",
-					"name": "constant.numeric.float.gdscript markup.italic"
+					"name": "constant.numeric.float.gdscript"
 				},
 				{
 					"match": "[-]?(\\.[0-9_]+(e[\\-\\+]?[0-9_]+)?)",
-					"name": "constant.numeric.float.gdscript markup.italic"
+					"name": "constant.numeric.float.gdscript"
 				},
 				{
 					"match": "[-]?([0-9_]+e[\\-\\+]?\\[0-9_])",
-					"name": "constant.numeric.float.gdscript markup.italic"
+					"name": "constant.numeric.float.gdscript"
 				},
 				{
 					"match": "[-]?[0-9_]+",
-					"name": "constant.numeric.integer.gdscript markup.italic"
+					"name": "constant.numeric.integer.gdscript"
 				}
 			]
 		},
