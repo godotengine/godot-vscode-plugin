@@ -490,9 +490,12 @@
 		"round_braces": {
 			"begin": "\\(",
 			"end": "\\)",
-			"beginCaptures": { "0": { "name": "punctuation.parenthesis.begin.python" } },
-			"endCaptures": { "0": { "name": "punctuation.parenthesis.end.python" } },
-			"patterns": [ { "include": "#base_expression" } ]
+			"beginCaptures": { "0": { "name": "punctuation.parenthesis.begin.gdscript" } },
+			"endCaptures": { "0": { "name": "punctuation.parenthesis.end.gdscript" } },
+			"patterns": [
+				{ "include": "#base_expression" },
+				{ "include": "#any_variable" }
+			]
 		},
 		"line_continuation": {
 			"patterns": [
