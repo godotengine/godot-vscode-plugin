@@ -1,3 +1,4 @@
+export * from "./completions";
 export * from "./definition";
 export * from "./document_link";
 export * from "./hover";
