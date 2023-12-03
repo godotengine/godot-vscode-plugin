@@ -105,7 +105,11 @@ function between(tokens: Token[], current: number) {
 	if (prev === "@") return "";
 
 	if (prev === ":" && next === "=") return "";
-	if (prev === "export" && next === "(") return "";
+	if (next === "(") {
+		if (prev === "export") return "";
+		if (prev === "func") return "";
+	}
+
 	if (prev === ")" && nextToken.type === "keyword") return " ";
 
 	if (prev === ":") return " ";
@@ -116,6 +120,7 @@ function between(tokens: Token[], current: number) {
 	if (prev === "(") return "";
 	if (next === "{") return " ";
 	if (next === "{}") return " ";
+
 	if (prevToken?.type === "keyword") return " ";
 	if (nextToken.type === "keyword") return " ";
 	if (prevToken?.type === "symbol") return " ";
