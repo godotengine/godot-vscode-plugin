@@ -22,6 +22,7 @@
 		"Linters",
 		"Snippets",
 		"Debuggers",
+		"Formatters",
 		"Other"
 	],
 	"activationEvents": [
