@@ -21,8 +21,9 @@ import { createLogger } from "../utils";
 const log = createLogger("docs");
 
 export class NativeDocumentManager implements CustomReadonlyEditorProvider {
-	public classInfo: { [key: string]: GodotNativeClassInfo } = {};
-	public symbolDb: { [key: string]: GodotNativeSymbol } = {};
+	public classInfo = new Map<string, GodotNativeClassInfo>();
+	public symbolDb = new Map<string, GodotNativeSymbol>();
+	public htmlDb = new Map<string, string>();
 
 	private ready = false;
 
@@ -100,7 +101,10 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 			symbol.class_info = this.classInfo[symbol.name];
 			this.symbolDb[symbol.name] = symbol;
 		}
-		panel.webview.html = make_html_content(symbol, target);
+		if (!this.htmlDb.has(className)) {
+			this.htmlDb[className] = make_html_content(symbol, target);
+		}
+		panel.webview.html = this.htmlDb[className];
 		panel.webview.onDidReceiveMessage(msg => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
 				vscode.commands.executeCommand("vscode.open", this.make_uri(msg.data.native_class));
