@@ -1,10 +1,9 @@
 import { Range, TextDocument, TextEdit } from "vscode";
 import * as fs from "fs";
-import * as path from "path";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { is_debug_mode } from "../utils";
+import { get_extension_uri } from "../utils";
 
 // Promisify readFile
 function readFile(path) {
@@ -13,10 +12,8 @@ function readFile(path) {
 	});
 }
 
-const dots = is_debug_mode() ? ["..", "..", ".."] : ["..", ".."];
-const basePath = path.join(__filename, ...dots);
-const grammarPath = path.join(basePath, "syntaxes/GDScript.tmLanguage.json");
-const wasmPath = path.join(basePath, "resources/onig.wasm");
+const grammarPath = get_extension_uri("syntaxes/GDScript.tmLanguage.json").fsPath;
+const wasmPath = get_extension_uri("resources/onig.wasm").fsPath;
 const wasmBin = fs.readFileSync(wasmPath).buffer;
 
 // Create a registry that can create a grammar from a scope name.

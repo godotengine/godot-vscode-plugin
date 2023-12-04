@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { globals } from "../extension";
 
 const EXTENSION_PREFIX = "godotTools";
 
@@ -22,4 +23,8 @@ export function set_context(name: string, value: any) {
 
 export function register_command(command: string, callback: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
 	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
+}
+
+export function get_extension_uri(...paths: string[]) {
+	return vscode.Uri.joinPath(vscode.extensions.getExtension("geequlim.godot-tools").extensionUri, ...paths ?? "");
 }

@@ -4,10 +4,9 @@ import {
 	MarkdownString,
 } from "vscode";
 import * as path from "path";
-import { is_debug_mode } from "../utils";
+import { get_extension_uri } from "../utils";
 
-const dots = is_debug_mode() ? ["..", "..", ".."] : ["..", ".."];
-const iconDir = path.join(__filename, ...dots, "resources", "godot_icons");
+const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
 
 export class SceneNode extends TreeItem {
 	public path: string;
