@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { LanguageClient, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
+import { LanguageClient, NotificationMessage, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
 import { EventEmitter } from "events";
-import { get_configuration, set_context, createLogger } from "../utils";
+import { get_configuration, createLogger } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { NativeDocumentManager } from "./NativeDocumentManager";
 import { GDDefinitionProvider } from "../providers";
@@ -84,12 +84,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.on("message", this.on_message.bind(this));
 		this.io.on("send_message", this.on_send_message.bind(this));
 		this.messageHandler = new MessageHandler(this.io);
-		this.docManager = new NativeDocumentManager(this.io, context);
+		this.docManager = new NativeDocumentManager(this.io, this, context);
 		this.definitionProvider = new GDDefinitionProvider(this, context);
-	}
-
-	public open_documentation() {
-		this.docManager.request_documentation(this.lastSymbolHovered);
 	}
 
 	public async list_classes() {
@@ -134,7 +130,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 	}
 
-	private on_message(message: ResponseMessage) {
+	private on_message(message: ResponseMessage | NotificationMessage) {
 		const msgString = JSON.stringify(message);
 		socketLog.debug("rx:", message);
 
@@ -151,86 +147,73 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			}
 		}
 
-		// if (message.method === "gdscript_client/changeWorkspace") {	
-		// 	log.debug("changeWorkspace", message.params);
-		// }
-		const sentMessage = this.sentMessages.get(message.id);
-		if (sentMessage && sentMessage.method === "textDocument/hover") {
-			this.handle_hover_response(message, sentMessage);
+		if ("method" in message && message.method === "gdscript/capabilities") {
+			this.docManager.register_capabilities(message);
+		}
 
-			// fix markdown contents
-			let value: string = message.result["contents"]?.value;
-			if (value) {
-				// this is a dirty hack to fix language server sending us prerendered
-				// markdown but not correctly stripping leading #'s, leading to 
-				// docstrings being displayed as titles
-				value = value?.replace(/\n[#]+/g, "\n");
+		if ("id" in message) {
+			const sentMessage = this.sentMessages.get(message.id);
+			if (sentMessage && sentMessage.method === "textDocument/hover") {
+				// fix markdown contents
+				let value: string = message.result["contents"]?.value;
+				if (value) {
+					// this is a dirty hack to fix language server sending us prerendered
+					// markdown but not correctly stripping leading #'s, leading to 
+					// docstrings being displayed as titles
+					value = value.replace(/\n[#]+/g, "\n");
 
-				// fix bbcode code boxes
-				value = value?.replace("`codeblocks`", "");
-				value = value?.replace("`/codeblocks`", "");
-				value = value?.replace("`gdscript`", "\nGDScript:\n```gdscript");
-				value = value?.replace("`/gdscript`", "```");
-				value = value?.replace("`csharp`", "\nC#:\n```csharp");
-				value = value?.replace("`/csharp`", "```");
+					// fix bbcode code boxes
+					value = value.replace("`codeblocks`", "");
+					value = value.replace("`/codeblocks`", "");
+					value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
+					value = value.replace("`/gdscript`", "```");
+					value = value.replace("`csharp`", "\nC#:\n```csharp");
+					value = value.replace("`/csharp`", "```");
 
-				message.result["contents"].value = value;
+					message.result["contents"].value = value;
+				}
 			}
 		}
 
 		this.messageHandler.on_message(message);
 	}
 
-	private handle_hover_response(message: ResponseMessage, sentMessage: RequestMessage) {
-		this.lastSymbolHovered = "";
-		set_context("typeFound", false);
+	public async get_symbol_at_position(uri: vscode.Uri, position: vscode.Position) {
+		const params = {
+			textDocument: { uri: uri.toString() },
+			position: { line: position.line, character: position.character },
+		};
+		const response = await this.sendRequest("textDocument/hover", params);
 
-		const result = message?.result;
-		const contents = result["contents"];
+		return this.parse_hover_response(response);
+	}
+
+	private parse_hover_response(message) {
+		const contents = message["contents"];
 
 		let decl: string;
 		if (contents instanceof Array) {
 			decl = contents[0];
 		} else {
-			decl = message?.result["contents"]?.value;
+			decl = contents.value;
 		}
 		if (!decl) {
-			return;
+			return "";
 		}
 		decl = decl.split("\n")[0].trim();
-		const params = sentMessage.params;
-		const key = params["textDocument"]["uri"] + "," + params["position"]["line"] + "," + params["position"]["character"];
 
-		const match = decl.match(/(?:func|const) (@?\w+)\.(\w+)/);
+		let match;
+		match = decl.match(/(?:func|const) (@?\w+)\.(\w+)/);
 		if (match) {
-			this.lastSymbolHovered = `${match[1]}.${match[2]}`;
-			this.definitionProvider.data.set(key, this.lastSymbolHovered);
-			set_context("typeFound", true);
-			return;
+			decl = `${match[1]}.${match[2]}`;
 		}
 
-		// strip off the value
-		if (decl.includes("=")) {
-			decl = decl.split("=")[0];
-		}
-		if (decl.includes(":")) {
-			const parts = decl.split(":");
-			if (parts.length === 2) {
-				decl = parts[1].trim();
-
-			}
-		}
-		if (decl.includes("<Native>")) {
-			decl = decl.split(" ")[2];
+		match = decl.match(/<Native> class (\w+)/);
+		if (match) {
+			decl = `${match[1]}`;
 		}
 
-		if (decl.includes(" ")) {
-			return;
-		}
-
-		this.lastSymbolHovered = decl;
-		this.definitionProvider.data.set(key, this.lastSymbolHovered);
-		set_context("typeFound", true);
+		return decl;
 	}
 
 	private on_connected() {

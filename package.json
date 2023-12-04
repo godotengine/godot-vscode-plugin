@@ -76,11 +76,6 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.openDocumentation",
-				"title": "Open Godot Documentation"
-			},
-			{
-				"category": "Godot Tools",
 				"command": "godotTools.debugger.inspectNode",
 				"title": "Inspect Remote Node",
 				"icon": {
@@ -276,18 +271,6 @@
 					"type": "number",
 					"default": 10,
 					"description": "How many times the client will attempt to reconnect"
-				},
-				"godotTools.documentation.newTabPlacement": {
-					"enum": [
-						"active",
-						"beside"
-					],
-					"enumDescriptions": [
-						"Place new documentation views in the active tabs group",
-						"Place new documentation views beside the active tabs group"
-					],
-					"default": "beside",
-					"description": "Where to place new documentation views"
 				},
 				"godotTools.scenePreview.previewRelatedScenes": {
 					"enum": [
@@ -795,11 +778,6 @@
 				}
 			],
 			"editor/context": [
-				{
-					"command": "godotTools.openDocumentation",
-					"when": "godotTools.context.connectedToLSP && godotTools.context.typeFound",
-					"group": "navigation@9"
-				},
 				{
 					"command": "godotTools.switchSceneScript",
 					"when": "editorLangId in godotTools.context.godotFiles",
