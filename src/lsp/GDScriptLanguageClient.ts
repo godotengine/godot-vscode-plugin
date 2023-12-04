@@ -199,17 +199,18 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		decl = decl.split("\n")[0].trim();
 
 		let match;
+		let result = undefined;
 		match = decl.match(/(?:func|const) (@?\w+)\.(\w+)/);
 		if (match) {
-			decl = `${match[1]}.${match[2]}`;
+			result = `${match[1]}.${match[2]}`;
 		}
 
 		match = decl.match(/<Native> class (\w+)/);
 		if (match) {
-			decl = `${match[1]}`;
+			result = `${match[1]}`;
 		}
 
-		return decl;
+		return result;
 	}
 
 	private on_connected() {
