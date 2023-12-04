@@ -3,13 +3,26 @@ import { SymbolKind } from "vscode-languageclient";
 import * as fs from "fs";
 import * as path from "path";
 import * as Prism from "prismjs";
+import * as csharp from "prismjs/components/prism-csharp";
 import { marked } from "marked";
 import { GodotNativeSymbol } from "./gdscript.capabilities";
 import { is_debug_mode } from "../utils";
+import yabbcode = require("ya-bbcode");
+
+const parser = new yabbcode();
+
+//! I do not understand why this is necessary
+//! if you don't touch this csharp object, it's not imported or something, idk
+const wtf = csharp;
 
 marked.setOptions({
 	highlight: function (code, lang) {
-		return Prism.highlight(code, GDScriptGrammar, lang);
+		if (lang === "gdscript") {
+			return Prism.highlight(code, GDScriptGrammar, lang);
+		}
+		if (lang === "csharp") {
+			return Prism.highlight(code, Prism.languages.csharp, lang);
+		}
 	},
 });
 
@@ -374,60 +387,47 @@ function make_link(classname: string, symbol: string) {
 }
 
 function make_codeblock(code: string, language: string) {
-	const md = marked.parse(`\`\`\`${language}\n ${code} \n\`\`\``);
-	return `<div class="codeblock">${md}</div>`;
+	const lines = code.split("\n");
+	const indent = lines[0].match(/^\s*/)[0].length;
+	code = lines.map(line => line.slice(indent)).join("\n");
+	return marked.parse(`\`\`\`${language}\n${code}\n\`\`\``);
 }
 
-function format_documentation(p_bbcode: string, classname: string) {
-	let html = p_bbcode.trim();
-	const lines = html.split("\n");
+function format_documentation(bbcode: string, classname: string) {
+	let html = parser.parse(bbcode.trim());
 
-	let in_code_block = false;
-	let code_block_indent = -1;
-	let cur_code_block = "";
+	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
 
-	html = "";
-	for (let i = 0; i < lines.length; i++) {
-		let line = lines[i];
-		const block_start = line.indexOf("[codeblock]");
-		if (block_start != -1) {
-			code_block_indent = block_start;
-			in_code_block = true;
-			line = line.replace("[codeblock]", "");
-		} else if (in_code_block) {
-			line = line.slice(code_block_indent, line.length);
-		}
-
-		if (in_code_block && line.indexOf("[/codeblock]") != -1) {
-			line = line.replace("[/codeblock]", "");
-			in_code_block = false;
-			html += make_codeblock(cur_code_block, "gdscript");
-			cur_code_block = "";
-		}
-
-		if (!in_code_block) {
-			line = line.trim();
-			// [i] [/u] [code] --> <i> </u> <code>
-			line = line.replace(/(\[(\/?)([a-z]+)\])/g, "<$2$3>");
-			// [Reference] --> <a>Reference</a>
-			line = line.replace(
-				/(\[([A-Z]+[A-Z_a-z0-9]*)\])/g,
-				"<a href=\"\" onclick=\"inspect('$2', '$2')\">$2</a>"
-			);
-			// [method _set] --> <a>_set</a>
-			line = line.replace(
-				/(\[([a-z]+)\s+([A-Z_a-z][A-Z_a-z0-9]*)\])/g,
-				`<a href="" onclick="inspect('${classname}', '$3')">$3</a>`
-			);
-			line += "<br/>";
-			html += line;
-		} else {
-			line += "\n";
-			if (cur_code_block || line.trim()) {
-				cur_code_block += line;
-			}
-		}
+	for (const match of html.matchAll(/\[codeblock].*?\[\/codeblock]/gs)) {
+		let block = match[0];
+		block = block.replaceAll(/\[\/?codeblock\](<br\/>)?/g, "");
+		block = block.replaceAll("<br/>", "\n");
+		html = html.replace(match[0], make_codeblock(block, "gdscript"));
 	}
+	for (const match of html.matchAll(/\[gdscript].*?\[\/gdscript]/gs)) {
+		let block = match[0];
+		block = block.replaceAll(/\[\/?gdscript\](<br\/>)?/g, "");
+		block = block.replaceAll("<br/>", "\n");
+		html = html.replace(match[0], make_codeblock(block, "gdscript"));
+	}
+	for (const match of html.matchAll(/\[csharp].*?\[\/csharp]/gs)) {
+		let block = match[0];
+		block = block.replaceAll(/\[\/?csharp\](<br\/>)?/g, "");
+		block = block.replaceAll("<br/>", "\n");
+		html = html.replace(match[0], make_codeblock(block, "csharp"));
+	}
+
+	html = html.replaceAll("<br/>		", "");
+	// [Reference] --> <a>Reference</a>
+	html = html.replaceAll(
+		/(\[(\w+)\])/g,
+		`<a href="" onclick="inspect('$2', '$2')">$2</a>` // eslint-disable-line quotes
+	);
+	// [method _set] --> <a>_set</a>
+	html = html.replaceAll(
+		/\[\w+\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\.(\w+)\]/g,
+		`<a href="" onclick="inspect('$1', '$2')">$1.$2</a>` // eslint-disable-line quotes
+	);
 
 	return html;
 }

@@ -819,6 +819,7 @@
 		"vscode-languageclient": "^7.0.0",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.0.0",
-		"ws": "^8.13.0"
+		"ws": "^8.13.0",
+		"ya-bbcode": "^4.0.0"
 	}
 }
