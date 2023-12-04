@@ -9,7 +9,6 @@ import {
 	WebviewPanel,
 } from "vscode";
 import { NotificationMessage } from "vscode-jsonrpc";
-import { MessageIO } from "./MessageIO";
 import {
 	Methods,
 	NativeSymbolInspectParams,
