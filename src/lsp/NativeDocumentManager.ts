@@ -26,7 +26,9 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 	public classInfo: { [key: string]: GodotNativeClassInfo } = {};
 	public symbolDb: { [key: string]: GodotNativeSymbol } = {};
 
-	constructor(private io: MessageIO, private client, context: ExtensionContext) {
+	private ready = false;
+
+	constructor(private client, context: ExtensionContext) {
 		const options = {
 			webviewOptions: {
 				enableScripts: true,
@@ -51,7 +53,7 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 				this.classInfo[gdclass.inherits].extended_classes = extended_classes;
 			}
 		}
-		
+		this.ready = true;
 	}
 
 	public async list_native_classes() {
@@ -80,6 +82,10 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 			enableScripts: true,
 		};
 
+		while (!this.ready) {
+			await new Promise(resolve => setTimeout(resolve, 100));
+		}
+
 		if (className in this.symbolDb) {
 			symbol = this.symbolDb[className];
 		}
@@ -96,7 +102,6 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 			symbol.class_info = this.classInfo[symbol.name];
 			this.symbolDb[symbol.name] = symbol;
 		}
-
 		panel.webview.html = make_html_content(symbol, target);
 		panel.webview.onDidReceiveMessage(msg => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {

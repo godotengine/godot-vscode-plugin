@@ -1,11 +1,21 @@
-import { AbstractMessageReader, MessageReader, DataCallback, Disposable } from "vscode-jsonrpc";
+import {
+	AbstractMessageReader,
+	MessageReader,
+	DataCallback,
+	Disposable,
+	RequestMessage,
+	ResponseMessage,
+	NotificationMessage,
+	AbstractMessageWriter,
+	MessageWriter
+} from "vscode-jsonrpc";
 import { EventEmitter } from "events";
-import { WebSocket, Data } from 'ws';
-import { Socket } from 'net';
-
+import { WebSocket, Data } from "ws";
+import { Socket } from "net";
 import MessageBuffer from "./MessageBuffer";
-import { AbstractMessageWriter, MessageWriter } from "vscode-jsonrpc";
-import { RequestMessage, ResponseMessage, NotificationMessage } from "vscode-jsonrpc";
+import { createLogger } from "../utils";
+
+const log = createLogger("lsp.io");
 
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
@@ -20,7 +30,7 @@ export class MessageIO extends EventEmitter {
 
 	protected on_message(chunk: Data) {
 		let message = chunk.toString();
-		this.emit('data', message);
+		this.emit("data", message);
 	}
 
 	on_send_message(message: any) {
@@ -51,10 +61,10 @@ export class WebSocketMessageIO extends MessageIO {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const ws = new WebSocket(`ws://${host}:${port}`);
-			ws.on('open', () => { this.on_connected(ws); resolve(); });
-			ws.on('message', this.on_message.bind(this));
-			ws.on('error', this.on_disconnected.bind(this));
-			ws.on('close', this.on_disconnected.bind(this));
+			ws.on("open", () => { this.on_connected(ws); resolve(); });
+			ws.on("message", this.on_message.bind(this));
+			ws.on("error", this.on_disconnected.bind(this));
+			ws.on("close", this.on_disconnected.bind(this));
 		});
 	}
 
@@ -65,7 +75,7 @@ export class WebSocketMessageIO extends MessageIO {
 
 	protected on_disconnected() {
 		this.socket = null;
-		this.emit('disconnected');
+		this.emit("disconnected");
 	}
 }
 
@@ -83,11 +93,11 @@ export class TCPMessageIO extends MessageIO {
 			this.socket = null;
 			const socket = new Socket();
 			socket.connect(port, host);
-			socket.on('connect', () => { this.on_connected(socket); resolve(); });
-			socket.on('data', this.on_message.bind(this));
-			socket.on('end', this.on_disconnected.bind(this));
-			socket.on('close', this.on_disconnected.bind(this));
-			socket.on('error', this.on_error.bind(this));
+			socket.on("connect", () => { this.on_connected(socket); resolve(); });
+			socket.on("data", this.on_message.bind(this));
+			socket.on("end", this.on_disconnected.bind(this));
+			socket.on("close", this.on_disconnected.bind(this));
+			socket.on("error", this.on_error.bind(this));
 		});
 	}
 
@@ -98,7 +108,7 @@ export class TCPMessageIO extends MessageIO {
 
 	protected on_disconnected() {
 		this.socket = null;
-		this.emit('disconnected');
+		this.emit("disconnected");
 	}
 
 	protected on_error(error) {
@@ -117,7 +127,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout: number;
 
-	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = "utf8") {
 		super();
 		this.io = io;
 		this.io.reader = this;
@@ -138,9 +148,9 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		this.messageToken = 0;
 		this.partialMessageTimer = undefined;
 		this.callback = callback;
-		this.io.on('data', this.onData.bind(this));
-		this.io.on('error', this.fireError.bind(this));
-		this.io.on('close', this.fireClose.bind(this));
+		this.io.on("data", this.onData.bind(this));
+		this.io.on("error", this.fireError.bind(this));
+		this.io.on("close", this.fireClose.bind(this));
 		return;
 	}
 
@@ -152,13 +162,13 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 				if (!headers) {
 					return;
 				}
-				let contentLength = headers['Content-Length'];
+				let contentLength = headers["Content-Length"];
 				if (!contentLength) {
-					throw new Error('Header must provide a Content-Length property.');
+					throw new Error("Header must provide a Content-Length property.");
 				}
 				let length = parseInt(contentLength);
 				if (isNaN(length)) {
-					throw new Error('Content-Length value must be a number.');
+					throw new Error("Content-Length value must be a number.");
 				}
 				this.nextMessageLength = length;
 				// Take the encoding form the header. For compatibility
@@ -174,6 +184,8 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.nextMessageLength = -1;
 			this.messageToken++;
 			var json = JSON.parse(msg);
+
+			log.debug("rx:", json);
 			this.callback(json);
 			// callback
 			this.io.on_message_callback(json);
@@ -202,22 +214,22 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	}
 }
 
-const ContentLength: string = 'Content-Length: ';
-const CRLF = '\r\n';
+const ContentLength: string = "Content-Length: ";
+const CRLF = "\r\n";
 export class MessageIOWriter extends AbstractMessageWriter implements MessageWriter {
 
 	private io: MessageIO;
 	private encoding: BufferEncoding;
 	private errorCount: number;
 
-	public constructor(io: MessageIO, encoding: BufferEncoding = 'utf8') {
+	public constructor(io: MessageIO, encoding: BufferEncoding = "utf8") {
 		super();
 		this.io = io;
 		this.io.writer = this;
 		this.encoding = encoding as BufferEncoding;
 		this.errorCount = 0;
-		this.io.on('error', (error: any) => this.fireError(error));
-		this.io.on('close', () => this.fireClose());
+		this.io.on("error", (error: any) => this.fireError(error));
+		this.io.on("close", () => this.fireClose());
 	}
 
 	public end(): void {
@@ -239,8 +251,10 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			// callback
 			this.io.on_send_message(msg);
 			// Header must be written in ASCII encoding
-			this.io.send_message(headers.join(''));
+			this.io.send_message(headers.join(""));
 			// Now write the content. This can be written in any encoding
+			
+			log.debug("tx:", msg);
 			this.io.send_message(json);
 			this.errorCount = 0;
 		} catch (error) {

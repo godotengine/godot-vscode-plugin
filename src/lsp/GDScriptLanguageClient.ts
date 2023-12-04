@@ -7,7 +7,6 @@ import { NativeDocumentManager } from "./NativeDocumentManager";
 import { GDDefinitionProvider } from "../providers";
 
 const log = createLogger("lsp.client");
-const socketLog = createLogger("lsp.socket");
 
 export enum ClientStatus {
 	PENDING,
@@ -84,7 +83,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.on("message", this.on_message.bind(this));
 		this.io.on("send_message", this.on_send_message.bind(this));
 		this.messageHandler = new MessageHandler(this.io);
-		this.docManager = new NativeDocumentManager(this.io, this, context);
+		this.docManager = new NativeDocumentManager(this, context);
 		this.definitionProvider = new GDDefinitionProvider(this, context);
 	}
 
@@ -121,8 +120,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_send_message(message: RequestMessage) {
-		socketLog.debug("tx:", message);
-
 		this.sentMessages.set(message.id, message);
 
 		if (message.method == "initialize") {
@@ -132,7 +129,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private on_message(message: ResponseMessage | NotificationMessage) {
 		const msgString = JSON.stringify(message);
-		socketLog.debug("rx:", message);
 
 		// This is a dirty hack to fix the language server sending us
 		// invalid file URIs
