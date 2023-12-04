@@ -16,7 +16,7 @@ import {
 	GodotCapabilities,
 } from "./gdscript.capabilities";
 import { make_html_content } from "./native_document_builder";
-import { createLogger } from "../utils";
+import { createLogger, get_extension_uri } from "../utils";
 
 const log = createLogger("docs");
 
@@ -27,7 +27,7 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 
 	private ready = false;
 
-	constructor(private client, context: ExtensionContext) {
+	constructor(private client, private context: ExtensionContext) {
 		const options = {
 			webviewOptions: {
 				enableScripts: true,
@@ -102,12 +102,14 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 			this.symbolDb[symbol.name] = symbol;
 		}
 		if (!this.htmlDb.has(className)) {
-			this.htmlDb[className] = make_html_content(symbol, target);
+			this.htmlDb[className] = make_html_content(panel.webview, symbol, target);
 		}
 		panel.webview.html = this.htmlDb[className];
+		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
 		panel.webview.onDidReceiveMessage(msg => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
-				vscode.commands.executeCommand("vscode.open", this.make_uri(msg.data.native_class));
+				const uri = this.make_uri(msg.data.native_class, msg.data.symbol_name);
+				vscode.commands.executeCommand("vscode.open", uri);
 			}
 		});
 

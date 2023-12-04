@@ -1,12 +1,10 @@
 import * as vscode from "vscode";
 import { SymbolKind } from "vscode-languageclient";
-import * as fs from "fs";
-import * as path from "path";
 import * as Prism from "prismjs";
 import * as csharp from "prismjs/components/prism-csharp";
 import { marked } from "marked";
 import { GodotNativeSymbol } from "./gdscript.capabilities";
-import { is_debug_mode } from "../utils";
+import { get_extension_uri } from "../utils";
 import yabbcode = require("ya-bbcode");
 
 const parser = new yabbcode();
@@ -25,9 +23,6 @@ marked.setOptions({
 		}
 	},
 });
-
-const dots = is_debug_mode() ? ["..", ".."] : [".."];
-const pagemapJs = fs.readFileSync(path.join(__dirname, ...dots, "resources", "pagemap.js"), "utf8");
 
 // TODO: find a better way to apply this theming
 let options = "";
@@ -60,7 +55,11 @@ if (theme === vscode.ColorThemeKind.Dark) {
 	}`;
 }
 
-export function make_html_content(symbol: GodotNativeSymbol, target?: string): string {
+export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSymbol, target?: string): string {
+	const pagemapJsUri = webview.asWebviewUri(get_extension_uri("media", "pagemap.js"));
+	const prismCssUri = webview.asWebviewUri(get_extension_uri("media", "prism.css"));
+	const docsCssUri = webview.asWebviewUri(get_extension_uri("media", "docs.css"));
+
 	let initialFocus = "";
 	if (target) {
 		initialFocus = `
@@ -70,48 +69,30 @@ export function make_html_content(symbol: GodotNativeSymbol, target?: string): s
 		`;
 	}
 
-	return  /*html*/`
+	return  /*html*/`<!DOCTYPE html>
 		<html>
-			<head>
-				<style type="text/css">
-					${PrismStyleSheet}
-					.codeblock {
-						padding: 0.5em;
-						margin: .5em 0;
-						overflow: auto;
-						border-radius: 0.3em;
-						!background-color: #fdf6e3;
-					}
-					a {
-						text-decoration: none;
-					}
-					#map {
-						position: fixed;
-						top: 0;
-						right: 0;
-						width: 200px;
-						height: 100%;
-						z-index: 100;
-					}
-				</style>
-			</head>
-			<body style="line-height: 16pt;">
-				<main>
-					${make_symbol_document(symbol)}
-				</main>
-				<canvas id='map'></canvas>
-				<script>${pagemapJs}</script>
-				<script>
-					pagemap(
-						document.querySelector('#map'),
-						${options},
-					);
-				</script>
-			</body>
+		<head>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<link href="${docsCssUri}" rel="stylesheet">
+			<link href="${prismCssUri}" rel="stylesheet">
+
+			<title>${symbol.name}</title>
+		</head>
+		<body style="line-height: 16pt;">
+			<main>
+				${make_symbol_document(symbol)}
+			</main>
+
+			<canvas id='map'></canvas>
+			
+			<script src="${pagemapJsUri}"></script>
 			<script>
+				pagemap(document.querySelector('#map'), ${options});			
+				${initialFocus};
+
 				var vscode = acquireVsCodeApi();
 				function inspect(native_class, symbol_name) {
-					if (typeof(godot_class) != 'undefined' && godot_class == native_class) {
+					if (typeof (godot_class) != 'undefined' && godot_class == native_class) {
 						document.getElementById(symbol_name).scrollIntoView();
 					} else {
 						vscode.postMessage({
@@ -131,9 +112,8 @@ export function make_html_content(symbol: GodotNativeSymbol, target?: string): s
 							break;
 					}
 				});
-				document.title = ${symbol.name};
-				${initialFocus};
 			</script>
+		</body>
 		</html>`;
 }
 
@@ -148,7 +128,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 		const ret_type = make_link(parts[2] || "void", undefined);
 		let args = (parts[1] || "").replace(
 			/\:\s([A-z0-9_]+)(\,\s*)?/g,
-			": <a href=\"\" onclick=\"inspect('$1', '$1')\">$1</a>$2"
+			": <a href=\"\" onclick=\"inspect('$1')\">$1</a>$2"
 		);
 		args = args.replace(/\s=\s(.*?)[\,\)]/g, "");
 		return `${ret_type} ${with_class ? `${classlink}.` : ""}${element(
@@ -224,7 +204,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 					}
 					const args = (parts[2] || "").replace(
 						/\:\s([A-z0-9_]+)(\,\s*)?/g,
-						": <a href=\"\" onclick=\"inspect('$1', '$1')\">$1</a>$2"
+						": <a href=\"\" onclick=\"inspect('$1')\">$1</a>$2"
 					);
 					const title = element(
 						"p",
@@ -375,7 +355,7 @@ function element<K extends keyof HTMLElementTagNameMap>(
 function make_link(classname: string, symbol: string) {
 	if (!symbol || symbol == classname) {
 		return element("a", classname, {
-			onclick: `inspect('${classname}', '${classname}')`,
+			onclick: `inspect('${classname}')`,
 			href: "",
 		});
 	} else {
@@ -397,6 +377,7 @@ function format_documentation(bbcode: string, classname: string) {
 	let html = parser.parse(bbcode.trim());
 
 	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
+	html = html.replaceAll("&quot;", "\"");
 
 	for (const match of html.matchAll(/\[codeblock].*?\[\/codeblock]/gs)) {
 		let block = match[0];
@@ -417,13 +398,23 @@ function format_documentation(bbcode: string, classname: string) {
 		html = html.replace(match[0], make_codeblock(block, "csharp"));
 	}
 
-	html = html.replaceAll("<br/>		", "");
-	// [Reference] --> <a>Reference</a>
+	// html = html.replaceAll("<br/>		", "");
+	// [param <name>]
 	html = html.replaceAll(
-		/(\[(\w+)\])/g,
-		`<a href="" onclick="inspect('$2', '$2')">$2</a>` // eslint-disable-line quotes
+		/\[param\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
+		"<code>$1</code>"
 	);
-	// [method _set] --> <a>_set</a>
+	// [method <name>]
+	html = html.replaceAll(
+		/\[method\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
+		`<a href="" onclick="inspect('${classname}', '$1')">$1</a>`
+	);
+	// [<reference>]
+	html = html.replaceAll(
+		/\[(\w+)\]/g,
+		`<a href="" onclick="inspect('${classname}', '$1')">$1</a>`
+	);
+	// [method <class>.<name>]
 	html = html.replaceAll(
 		/\[\w+\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\.(\w+)\]/g,
 		`<a href="" onclick="inspect('$1', '$2')">$1.$2</a>` // eslint-disable-line quotes
@@ -492,126 +483,3 @@ const GDScriptGrammar = {
 	operator: /[-+%=]=?|!=|\*\*?=?|\/\/?=?|<[<=>]?|>[=>]?|[&|^~]/,
 	punctuation: /[{}[\];(),.:]/,
 };
-
-const PrismStyleSheet =  /*css*/`
-code[class*="language-"],
-pre[class*="language-"] {
-	color: #657b83; /* base00 */
-	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-	font-size: 1em;
-	text-align: left;
-	white-space: pre;
-	word-spacing: normal;
-	word-break: normal;
-	word-wrap: normal;
-
-	line-height: 1.5;
-
-	-moz-tab-size: 4;
-	-o-tab-size: 4;
-	tab-size: 4;
-
-	-webkit-hyphens: none;
-	-moz-hyphens: none;
-	-ms-hyphens: none;
-	hyphens: none;
-}
-
-pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
-code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
-	background: #073642; /* base02 */
-}
-
-pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
-code[class*="language-"]::selection, code[class*="language-"] ::selection {
-	background: #073642; /* base02 */
-}
-
-/* Code blocks */
-pre[class*="language-"] {
-	padding: 1em;
-	margin: .5em 0;
-	overflow: auto;
-	border-radius: 0.3em;
-}
-
-:not(pre) > code[class*="language-"],
-pre[class*="language-"] {
-	background-color: #fdf6e3; /* base3 */
-}
-
-/* Inline code */
-:not(pre) > code[class*="language-"] {
-	padding: .1em;
-	border-radius: .3em;
-}
-
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
-	color: #93a1a1; /* base1 */
-}
-
-.token.punctuation {
-	color: #586e75; /* base01 */
-}
-
-.namespace {
-	opacity: .7;
-}
-
-.token.property,
-.token.tag,
-.token.boolean,
-.token.number,
-.token.constant,
-.token.symbol,
-.token.deleted {
-	color: #268bd2; /* blue */
-}
-
-.token.selector,
-.token.attr-name,
-.token.string,
-.token.char,
-.token.builtin,
-.token.url,
-.token.inserted {
-	color: #2aa198; /* cyan */
-}
-
-.token.entity {
-	color: #657b83; /* base00 */
-	background: #eee8d5; /* base2 */
-}
-
-.token.atrule,
-.token.attr-value,
-.token.keyword {
-	color: #859900; /* green */
-}
-
-.token.function,
-.token.class-name {
-	color: #b58900; /* yellow */
-}
-
-.token.regex,
-.token.important,
-.token.variable {
-	color: #cb4b16; /* orange */
-}
-
-.token.important,
-.token.bold {
-	font-weight: bold;
-}
-.token.italic {
-	font-style: italic;
-}
-
-.token.entity {
-	cursor: help;
-}
-`;
