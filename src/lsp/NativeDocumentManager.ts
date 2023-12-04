@@ -10,7 +10,6 @@ import {
 } from "vscode";
 import { NotificationMessage } from "vscode-jsonrpc";
 import {
-	Methods,
 	NativeSymbolInspectParams,
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
