@@ -9,7 +9,7 @@ import {
 	DefinitionProvider,
 	ExtensionContext,
 } from "vscode";
-import { createLogger } from "../utils";
+import { make_docs_uri, createLogger } from "../utils";
 
 const log = createLogger("providers.definitions");
 
@@ -31,8 +31,24 @@ export class GDDefinitionProvider implements DefinitionProvider {
 			const range = document.getWordRangeAtPosition(position, /(\w+)/);
 			if (range) {
 				const word = document.getText(range);
-				const uri = this.make_uri(word);
-				return new Location(uri, new Position(0, 0));
+				if (this.client.docManager.classInfo[word] !== undefined) {
+					const uri = make_docs_uri(word);
+					return new Location(uri, new Position(0, 0));
+				} else {
+					let i = 0;
+					let line;
+					let match;
+
+					do {
+						line = document.lineAt(position.line - i++);
+						match = line.text.match(/(?<=type)="(\w+)"/);
+					} while (!match && line.lineNumber > 0);
+
+					if (this.client.docManager.classInfo[match[1]] !== undefined) {
+						const uri = make_docs_uri(match[1], word);
+						return new Location(uri, new Position(0, 0));
+					}
+				}
 			}
 
 			return null;
@@ -43,18 +59,10 @@ export class GDDefinitionProvider implements DefinitionProvider {
 		if (!target) {
 			return null;
 		}
-		
+
 		const parts = target.split(".");
-		const uri = this.make_uri(parts[0], parts[1]);
+		const uri = make_docs_uri(parts[0], parts[1]);
 
 		return new Location(uri, new Position(0, 0));
-	}
-
-	make_uri(path: string, fragment?: string) {
-		return Uri.from({
-			scheme: "gddoc",
-			path: path + ".gddoc",
-			fragment: fragment,
-		});
 	}
 }

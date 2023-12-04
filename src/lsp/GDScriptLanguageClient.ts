@@ -27,7 +27,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
 	private messageHandler: MessageHandler = null;
-	private docManager: NativeDocumentManager = null;
+	public docManager: NativeDocumentManager = null;
 	private definitionProvider: GDDefinitionProvider = null;
 
 	public target: TargetLSP = TargetLSP.EDITOR;

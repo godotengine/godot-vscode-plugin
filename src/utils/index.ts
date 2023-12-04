@@ -108,3 +108,11 @@ export async function get_free_port(): Promise<number> {
 		});
 	});
 }
+
+export function make_docs_uri(path: string, fragment?: string) {
+	return vscode.Uri.from({
+		scheme: "gddoc",
+		path: path + ".gddoc",
+		fragment: fragment,
+	});
+}

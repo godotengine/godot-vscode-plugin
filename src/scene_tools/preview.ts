@@ -25,6 +25,7 @@ import {
 	convert_resource_path_to_uri,
 	register_command,
 	createLogger,
+	make_docs_uri,
 } from "../utils";
 import { SceneParser } from "./parser";
 import { SceneNode, Scene } from "./types";
@@ -66,6 +67,7 @@ export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDro
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
+			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
 			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
@@ -191,9 +193,9 @@ export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDro
 	}
 
 	private async open_script(item: SceneNode) {
-		const id = this.scene.externalResources[item.scriptId].path;
+		const path = this.scene.externalResources[item.scriptId].path;
 
-		const uri = await convert_resource_path_to_uri(id);
+		const uri = await convert_resource_path_to_uri(path);
 		if (uri) {
 			vscode.window.showTextDocument(uri, { preview: true });
 		}
@@ -205,6 +207,10 @@ export class ScenePreview implements TreeDataProvider<SceneNode>, TreeDragAndDro
 		const end = document.positionAt(item.position + item.text.length);
 		const range = new vscode.Range(start, end);
 		vscode.window.showTextDocument(document, { selection: range });
+	}
+
+	private async open_documentation(item: SceneNode) {
+		vscode.commands.executeCommand("vscode.open", make_docs_uri(item.className));
 	}
 
 	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {

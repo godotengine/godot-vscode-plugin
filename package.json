@@ -169,6 +169,11 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openDocumentation",
+				"title": "Open Documentation"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.copyNodePath",
 				"title": "Copy Node Path"
 			},
@@ -609,6 +614,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.openDocumentation",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.pin",
 					"when": "false"
 				},
@@ -689,6 +698,11 @@
 				},
 				{
 					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "view == scenePreview",
+					"group": "1@1"
+				},
+				{
+					"command": "godotTools.scenePreview.openDocumentation",
 					"when": "view == scenePreview",
 					"group": "1@1"
 				},

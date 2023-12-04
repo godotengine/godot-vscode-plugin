@@ -16,7 +16,7 @@ import {
 	GodotCapabilities,
 } from "./gdscript.capabilities";
 import { make_html_content } from "./native_document_builder";
-import { createLogger, get_extension_uri } from "../utils";
+import { createLogger, get_extension_uri, make_docs_uri } from "../utils";
 
 const log = createLogger("docs");
 
@@ -64,7 +64,7 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 			}
 		);
 		if (classname) {
-			vscode.commands.executeCommand("vscode.open", this.make_uri(classname));
+			vscode.commands.executeCommand("vscode.open", make_docs_uri(classname));
 		}
 	}
 
@@ -108,7 +108,7 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
 		panel.webview.onDidReceiveMessage(msg => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
-				const uri = this.make_uri(msg.data.native_class, msg.data.symbol_name);
+				const uri = make_docs_uri(msg.data.native_class, msg.data.symbol_name);
 				vscode.commands.executeCommand("vscode.open", uri);
 			}
 		});
@@ -119,13 +119,5 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 				target: target,
 			});
 		}
-	}
-
-	make_uri(path: string, fragment?: string) {
-		return Uri.from({
-			scheme: "gddoc",
-			path: path + ".gddoc",
-			fragment: fragment,
-		});
 	}
 }
