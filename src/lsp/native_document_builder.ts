@@ -364,7 +364,7 @@ function element<K extends keyof HTMLElementTagNameMap>(
 ) {
 	let props_str = "";
 	for (const key in props) {
-		if (props.hasOwnProperty(key)) {
+		if (Object.prototype.hasOwnProperty.call(props, key)) {
 			props_str += ` ${key}="${props[key]}"`;
 		}
 	}
