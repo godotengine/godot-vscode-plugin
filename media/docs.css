@@ -6,6 +6,10 @@
 	!background-color: #fdf6e3;
 }
 
+body {
+	margin-right: 200px;
+}
+
 a {
 	text-decoration: none;
 }
