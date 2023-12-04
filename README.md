@@ -1,40 +1,64 @@
 # Godot Tools
 
-A complete set of tools to code games with
-[Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
+Game development tools for working with [Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
 
 **IMPORTANT NOTE:** Versions 1.0.0 and later of this extension only support
 Godot 3.2 or later.
 
-## Features
+- [Godot Tools](#godot-tools)
+- [Features](#features)
+- [Download](#download)
+- [Commands](#commands)
+- [Configuration](#configuration)
+		- [Godot Editor](#godot-editor)
+		- [VS Code](#vs-code)
+- [GDScript Debugger](#gdscript-debugger)
+		- [*Configurations*](#configurations)
+	- [Issues and contributions](#issues-and-contributions)
+- [Contributing](#contributing)
+	- [FAQ](#faq)
+		- [Why does it fail to connect to the language server?](#why-does-it-fail-to-connect-to-the-language-server)
+		- [Why isn't IntelliSense displaying script members?](#why-isnt-intellisense-displaying-script-members)
 
-The extension comes with a wealth of features to make your Godot programming
-experience as comfortable as possible:
 
-- Syntax highlighting for the GDScript (`.gd`) language
-- Syntax highlighting for the `.tscn` and `.tres` scene formats
-- Syntax highlighting for the `.gdshader` shader format
-- Document links (ctrl+click) for `res://` style resource paths
-- Full typed GDScript support
-- Optional "Smart Mode" to improve productivity with dynamically typed scripts
-- Function definitions and documentation display on hover (see image below)
-- Rich autocompletion
-- Switch from a `.gd` file to the related `.tscn` file (default keybind is `alt+o`)
-- Display script warnings and errors
-- Ctrl + click on a variable or method call to jump to its definition
-- Run a Godot project from VS Code
-- Debug your GDScript-based Godot project from VS Code with breakpoints, step-in/out/over, variable watch, call stack, and active scene tree
+# Features
 
-- Full documentation of the Godot Engine's API supported (select `Godot Tools: List Godot classes` in the Command Palette)
-![Showing the documentation on hover feature](img/godot-tools.png)
-- In-editor Scene Preview
-![Showing the scene preview feature](img/scene-preview.png)
+(**bold items** are new in Godot Tools `v2.0.0`)
+- **ALL FEATURES FULLY SUPPORT GODOT 4**
+- GDScript (`.gd`) language features:
+  - syntax highlighting
+  - `ctrl+click` on any symbol to jump to its definition or **open its documentation**
+  - `ctrl+click` on `res://resource/path` links
+  - **hover previews on `res://resource/path` links**
+  - autocompletions
+  - full typed GDScript support
+  - optional "Smart Mode" to improve productivity with dynamically typed scripts
+  - Hover previews show function/variable definitions including doc-comments
+  - **switch from a `.gd` file to the related `.tscn` file (default keybind is `alt+o`)**
+  - display script warnings and errors
+- GDScript Debugger features:
+  - **completely rewritten, greatly improved reliability**
+  - **new, simple configuration** (seriously, just hit F5!)
+  - **convenient launch targets: current project/current file/pinned file**,
+  - breakpoints
+  - exceptions
+  - step-in/out/over
+  - variable watch
+  - call stack
+  - active scene tree
+  - inspector
+- GDResource (`.tscn` and `.tres`) language features:
+  - syntax highlighting
+  - **`ctrl+click` on `res://resource/path` links**
+  - **`ctrl+click` on symbols to jump to its definition or open its documentation**
+  - **hover previews show definitions of External and Sub Resources**
+  - **hover previews on `res://resource/path` links**
+  - **inlay hints to help visualize External and Sub Resources**
+  - **in-editor Scene Preview**
+- GDShader (`.gdshader`) language features:
+  - syntax highlighting
 
-- Document links and hover previews for `ExtResource()` and `SubResource()` statements
-![Showing the scene preview feature](img/hover-extresource.png)
-![Showing the scene preview feature](img/hover-subresource.png)
-
-## Download
+# Download
 
 - [Visual Studio Marketplace **(recommended)**](https://marketplace.visualstudio.com/items?itemName=geequlim.godot-tools)
   - Stable release, with support for automatic updates.
@@ -48,33 +72,31 @@ To install from GitHub Releases or a development build,
 see [Install from a VSIX](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix)
 in the Visual Studio Code documentation.
 
-## Commands
+# Commands
 
 The extension adds a few entries to the VS Code Command Palette under "Godot Tools":
 
 - Open workspace with Godot editor
-- List Godot's native classes
+- List Godot's native classes (and open thier documentation)
 - Debug the current `.tscn`/`.gd` file
 - Debug the pinned `.tscn`/`.gd` file
 - Pin/Unpin the current `.tscn`/`.gd` file for debugging
 - Open the pinned file
 
-## Configuration
+# Configuration
 
-### Godot
+### Godot Editor
 
-If you like this extension, you can set VS Code as your default script editor for Godot by following these steps:
+You can set VS Code as your default script editor for Godot by following these steps:
 
 1. Open the **Editor Settings**
 2. Select **Text Editor > External**
-3. Make sure the **Use External Editor** box is checked
+3. Check **Use External Editor** 
 4. Fill **Exec Path** with the path to your VS Code executable
     * On macOS, this executable is typically located at: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
 5. Fill **Exec Flags** with `{project} --goto {file}:{line}:{col}`
 
 ### VS Code
-
-#### Settings
 
 You can use the following settings to configure Godot Tools:
 
@@ -87,7 +109,7 @@ The path to the Godot editor executable. _Under Mac OS, this is the executable i
   
 When using Godot >3.6 or >4.2, Headless LSP mode is available. In Headless mode, the extension will attempt to launch a windowless instance of the Godot editor to use as its Language Server.
 
-#### GDScript Debugger
+# GDScript Debugger
 
 The debugger is for GDScript projects. To debug C# projects, use [C# Tools for Godot](https://github.com/godotengine/godot-csharp-vscode).
 
@@ -162,29 +184,16 @@ and create pull requests anytime.
 See the [full changelog](https://github.com/GodotExplorer/godot-tools/blob/master/CHANGELOG.md)
 for the latest changes.
 
-### Building from source
+# Contributing
 
-#### Requirements
-
-- [npm](https://www.npmjs.com/get-npm)
-
-#### Process
-
-1. Open a command prompt/terminal and browse to the location of this repository on your local filesystem.
-2. Download dependencies by using the command `npm install`
-3. When done, package a VSIX file by using the command `npm run package`.
-4. Install it by opening Visual Studio Code, opening the Extensions tab, clicking on the More actions (**...**) button in the top right, and choose **Install from VSIX...** and find the compiled VSIX file.
-
-When developing for the extension, you can open this project in Visual Studio Code and debug the extension by using the **Run Extension** launch configuration instead of going through steps 3 and 4. It will launch a new instance of Visual Studio Code that has the extension running. You can then open a Godot project folder and debug the extension or GDScript debugger.
+see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## FAQ
 
 ### Why does it fail to connect to the language server?
 
 - Godot 3.2 or later is required.
-- For Godot 4, the [`gdscript_lsp_server_port` setting](#gdscript_lsp_server_port)
-  must be changed to `6005` to match the Godot editor's new default
-  language server port number.
+- Make sure the Godot editor is running
 - Make sure to open the project in the Godot editor first. If you opened
   the editor after opening VS Code, you can click the **Retry** button
   in the bottom-right corner in VS Code.
