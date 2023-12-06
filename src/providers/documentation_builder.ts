@@ -3,7 +3,7 @@ import { SymbolKind } from "vscode-languageclient";
 import * as Prism from "prismjs";
 import * as csharp from "prismjs/components/prism-csharp";
 import { marked } from "marked";
-import { GodotNativeSymbol } from "./gdscript.capabilities";
+import { GodotNativeSymbol } from "../lsp/gdscript.capabilities";
 import { get_extension_uri } from "../utils";
 import yabbcode = require("ya-bbcode");
 
@@ -398,27 +398,27 @@ function format_documentation(bbcode: string, classname: string) {
 		html = html.replace(match[0], make_codeblock(block, "csharp"));
 	}
 
-	html = html.replaceAll("<br/>		", "");
-	// [param <name>]
-	html = html.replaceAll(
-		/\[param\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
-		"<code>$1</code>"
-	);
-	// [method <name>]
-	html = html.replaceAll(
-		/\[method\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
-		`<a href="" onclick="inspect('${classname}', '$1')">$1</a>`
-	);
-	// [<reference>]
-	html = html.replaceAll(
-		/\[(\w+)\]/g,
-		`<a href="" onclick="inspect('$1')">$1</a>` // eslint-disable-line quotes
-	);
-	// [method <class>.<name>]
-	html = html.replaceAll(
-		/\[\w+\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\.(\w+)\]/g,
-		`<a href="" onclick="inspect('$1', '$2')">$1.$2</a>` // eslint-disable-line quotes
-	);
+html = html.replaceAll("<br/>		", "");
+// [param <name>]
+html = html.replaceAll(
+	/\[param\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
+	"<code>$1</code>"
+);
+// [method <name>]
+html = html.replaceAll(
+	/\[method\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
+	`<a href="" onclick="inspect('${classname}', '$1')">$1</a>`
+);
+// [<reference>]
+html = html.replaceAll(
+	/\[(\w+)\]/g,
+	`<a href="" onclick="inspect('$1')">$1</a>` // eslint-disable-line quotes
+);
+// [method <class>.<name>]
+html = html.replaceAll(
+	/\[\w+\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\.(\w+)\]/g,
+	`<a href="" onclick="inspect('$1', '$2')">$1.$2</a>` // eslint-disable-line quotes
+);
 
 	return html;
 }

@@ -10,11 +10,12 @@ import {
 	ExtensionContext,
 } from "vscode";
 import { make_docs_uri, createLogger } from "../utils";
+import { globals } from "../extension";
 
 const log = createLogger("providers.definitions");
 
 export class GDDefinitionProvider implements DefinitionProvider {
-	constructor(private client, private context: ExtensionContext) {
+	constructor(private context: ExtensionContext) {
 		const selector = [
 			{ language: "gdresource", scheme: "file" },
 			{ language: "gdscene", scheme: "file" },
@@ -31,7 +32,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 			const range = document.getWordRangeAtPosition(position, /(\w+)/);
 			if (range) {
 				const word = document.getText(range);
-				if (this.client.docManager.classInfo[word] !== undefined) {
+				if (globals.docsProvider.classInfo[word] !== undefined) {
 					const uri = make_docs_uri(word);
 					return new Location(uri, new Position(0, 0));
 				} else {
@@ -44,7 +45,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 						match = line.text.match(/(?<=type)="(\w+)"/);
 					} while (!match && line.lineNumber > 0);
 
-					if (this.client.docManager.classInfo[match[1]] !== undefined) {
+					if (globals.docsProvider.classInfo[match[1]] !== undefined) {
 						const uri = make_docs_uri(match[1], word);
 						return new Location(uri, new Position(0, 0));
 					}
@@ -54,7 +55,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 			return null;
 		}
 
-		const target = await this.client.get_symbol_at_position(document.uri, position);
+		const target = await globals.lsp.client.get_symbol_at_position(document.uri, position);
 
 		if (!target) {
 			return null;

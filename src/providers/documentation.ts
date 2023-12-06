@@ -14,20 +14,21 @@ import {
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
 	GodotCapabilities,
-} from "./gdscript.capabilities";
-import { make_html_content } from "./native_document_builder";
+} from "../lsp/gdscript.capabilities";
+import { make_html_content } from "./documentation_builder";
 import { createLogger, get_extension_uri, make_docs_uri } from "../utils";
+import { globals } from "../extension";
 
 const log = createLogger("docs");
 
-export class NativeDocumentManager implements CustomReadonlyEditorProvider {
+export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 	public classInfo = new Map<string, GodotNativeClassInfo>();
 	public symbolDb = new Map<string, GodotNativeSymbol>();
 	public htmlDb = new Map<string, string>();
 
 	private ready = false;
 
-	constructor(private client, private context: ExtensionContext) {
+	constructor(private context: ExtensionContext) {
 		const options = {
 			webviewOptions: {
 				enableScripts: true,
@@ -95,7 +96,7 @@ export class NativeDocumentManager implements CustomReadonlyEditorProvider {
 				symbol_name: className,
 			};
 
-			const response = await this.client.sendRequest("textDocument/nativeSymbol", params);
+			const response = await globals.lsp.client.sendRequest("textDocument/nativeSymbol", params);
 
 			symbol = response as GodotNativeSymbol;
 			symbol.class_info = this.classInfo[symbol.name];

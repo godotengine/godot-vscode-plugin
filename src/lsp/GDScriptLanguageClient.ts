@@ -3,8 +3,7 @@ import { LanguageClient, NotificationMessage, RequestMessage, ResponseMessage } 
 import { EventEmitter } from "events";
 import { get_configuration, createLogger } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
-import { NativeDocumentManager } from "./NativeDocumentManager";
-import { GDDefinitionProvider } from "../providers";
+import { globals } from "../extension";
 
 const log = createLogger("lsp.client");
 
@@ -27,8 +26,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
 	private messageHandler: MessageHandler = null;
-	public docManager: NativeDocumentManager = null;
-	private definitionProvider: GDDefinitionProvider = null;
 
 	public target: TargetLSP = TargetLSP.EDITOR;
 
@@ -83,12 +80,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.on("message", this.on_message.bind(this));
 		this.io.on("send_message", this.on_send_message.bind(this));
 		this.messageHandler = new MessageHandler(this.io);
-		this.docManager = new NativeDocumentManager(this, context);
-		this.definitionProvider = new GDDefinitionProvider(this, context);
 	}
 
 	public async list_classes() {
-		await this.docManager.list_native_classes();
+		await globals.docsProvider.list_native_classes();
 	}
 
 	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
@@ -144,7 +139,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 
 		if ("method" in message && message.method === "gdscript/capabilities") {
-			this.docManager.register_capabilities(message);
+			globals.docsProvider.register_capabilities(message);
 		}
 
 		if ("id" in message) {

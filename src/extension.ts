@@ -7,9 +7,11 @@ import {
 	GDDocumentLinkProvider,
 	GDSemanticTokensProvider,
 	GDCompletionItemProvider,
+	GDDocumentationProvider,
+	GDDefinitionProvider,
 } from "./providers";
 import { ClientConnectionManager } from "./lsp";
-import { ScenePreview } from "./scene_tools";
+import { ScenePreviewProvider } from "./scene_tools";
 import { GodotDebugger } from "./debugger";
 import { FormattingProvider } from "./formatter";
 import { exec, execSync } from "child_process";
@@ -25,25 +27,38 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 
-interface Globals {
-	[key: string]: any
+interface Extension {
+	context?: vscode.ExtensionContext;
+	lsp?: ClientConnectionManager;
+	debug?: GodotDebugger;
+	scenePreviewProvider?: ScenePreviewProvider;
+	linkProvider?: GDDocumentLinkProvider;
+	hoverProvider?: GDHoverProvider;
+	inlayProvider?: GDInlayHintsProvider;
+	formattingProvider?: FormattingProvider;
+	semanticTokensProvider?: GDSemanticTokensProvider;
+	completionProvider?: GDCompletionItemProvider;
+	docsProvider?: GDDocumentationProvider;
+	definitionProvider?: GDDefinitionProvider;
 }
 
-export const globals: Globals = {};
+export const globals: Extension = {};
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
 
 	globals.context = context;
 	globals.lsp = new ClientConnectionManager(context);
+	globals.debug = new GodotDebugger(context);
+	globals.scenePreviewProvider = new ScenePreviewProvider(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
 	globals.inlayProvider = new GDInlayHintsProvider(context);
-	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
-	// globals.completionsProvider = new GDCompletionItemProvider(context);
-	globals.scenePreview = new ScenePreview(context);
-	globals.debugger = new GodotDebugger(context);
-	globals.formatter = new FormattingProvider(context);
+	globals.formattingProvider = new FormattingProvider(context);
+	globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
+	globals.completionProvider = new GDCompletionItemProvider(context);
+	globals.docsProvider = new GDDocumentationProvider(context);
+	globals.definitionProvider = new GDDefinitionProvider(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
