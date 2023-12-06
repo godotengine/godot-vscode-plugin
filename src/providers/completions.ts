@@ -16,9 +16,7 @@ import { createLogger } from "../utils";
 
 const log = createLogger("providers.completions");
 
-
 export class GDCompletionItemProvider implements CompletionItemProvider {
-
 	constructor(private context: ExtensionContext) {
 		const selector = [
 			{ language: "gdresource", scheme: "file" },

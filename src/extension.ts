@@ -9,6 +9,7 @@ import {
 	GDCompletionItemProvider,
 	GDDocumentationProvider,
 	GDDefinitionProvider,
+	GDTaskProvider,
 } from "./providers";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_tools";
@@ -36,10 +37,11 @@ interface Extension {
 	hoverProvider?: GDHoverProvider;
 	inlayProvider?: GDInlayHintsProvider;
 	formattingProvider?: FormattingProvider;
-	semanticTokensProvider?: GDSemanticTokensProvider;
-	completionProvider?: GDCompletionItemProvider;
 	docsProvider?: GDDocumentationProvider;
 	definitionProvider?: GDDefinitionProvider;
+	semanticTokensProvider?: GDSemanticTokensProvider;
+	completionProvider?: GDCompletionItemProvider;
+	tasksProvider?: GDTaskProvider;
 }
 
 export const globals: Extension = {};
@@ -55,10 +57,11 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.hoverProvider = new GDHoverProvider(context);
 	globals.inlayProvider = new GDInlayHintsProvider(context);
 	globals.formattingProvider = new FormattingProvider(context);
-	globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
-	globals.completionProvider = new GDCompletionItemProvider(context);
 	globals.docsProvider = new GDDocumentationProvider(context);
 	globals.definitionProvider = new GDDefinitionProvider(context);
+	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
+	// globals.completionProvider = new GDCompletionItemProvider(context);
+	// globals.tasksProvider = new GDTaskProvider(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),

@@ -19,7 +19,7 @@ import { make_html_content } from "./documentation_builder";
 import { createLogger, get_extension_uri, make_docs_uri } from "../utils";
 import { globals } from "../extension";
 
-const log = createLogger("docs");
+const log = createLogger("providers.docs");
 
 export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 	public classInfo = new Map<string, GodotNativeClassInfo>();

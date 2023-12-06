@@ -11,7 +11,9 @@ import {
 	SemanticTokensLegend,
 	SemanticTokensBuilder,
 } from "vscode";
+import { createLogger } from "../utils";
 
+const log = createLogger("providers.tokens");
 
 export class GDSemanticTokensProvider implements DocumentSemanticTokensProvider {
 	private legend = new SemanticTokensLegend(
@@ -29,13 +31,13 @@ export class GDSemanticTokensProvider implements DocumentSemanticTokensProvider 
 			{ language: "gdscript", scheme: "file" },
 		];
 
-		// context.subscriptions.push(
-		// 	vscode.languages.registerDocumentSemanticTokensProvider(selector, this, this.legend),
-		// );
+		context.subscriptions.push(
+			vscode.languages.registerDocumentSemanticTokensProvider(selector, this, this.legend),
+		);
 	}
 
 	async provideDocumentSemanticTokens(document: TextDocument, token: CancellationToken): Promise<SemanticTokens> {
-		console.log("provideDocumentSemanticTokens");
+		log.debug("provideDocumentSemanticTokens");
 		const builder = new SemanticTokensBuilder(this.legend);
 		const text = document.getText();
 
@@ -44,7 +46,6 @@ export class GDSemanticTokensProvider implements DocumentSemanticTokensProvider 
 			const r = this.create_range(document, match);
 			builder.push(r, "nodePath", []);
 		}
-
 
 		return builder.build();
 	}
