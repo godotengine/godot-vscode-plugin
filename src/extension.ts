@@ -1,10 +1,20 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate } from "./settings_updater";
-import { GDDocumentLinkProvider } from "./document_link_provider";
-import { ClientConnectionManager } from "./lsp/ClientConnectionManager";
-import { ScenePreviewProvider } from "./scene_preview_provider";
-import { GodotDebugger } from "./debugger/debugger";
+import { attemptSettingsUpdate } from "./utils";
+import {
+	GDInlayHintsProvider,
+	GDHoverProvider,
+	GDDocumentLinkProvider,
+	GDSemanticTokensProvider,
+	GDCompletionItemProvider,
+	GDDocumentationProvider,
+	GDDefinitionProvider,
+	GDTaskProvider,
+} from "./providers";
+import { ClientConnectionManager } from "./lsp";
+import { ScenePreviewProvider } from "./scene_tools";
+import { GodotDebugger } from "./debugger";
+import { FormattingProvider } from "./formatter";
 import { exec, execSync } from "child_process";
 import {
 	get_configuration,
@@ -18,23 +28,45 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 
-let lspClientManager: ClientConnectionManager = null;
-let linkProvider: GDDocumentLinkProvider = null;
-let scenePreviewManager: ScenePreviewProvider = null;
-let godotDebugger: GodotDebugger = null;
+interface Extension {
+	context?: vscode.ExtensionContext;
+	lsp?: ClientConnectionManager;
+	debug?: GodotDebugger;
+	scenePreviewProvider?: ScenePreviewProvider;
+	linkProvider?: GDDocumentLinkProvider;
+	hoverProvider?: GDHoverProvider;
+	inlayProvider?: GDInlayHintsProvider;
+	formattingProvider?: FormattingProvider;
+	docsProvider?: GDDocumentationProvider;
+	definitionProvider?: GDDefinitionProvider;
+	semanticTokensProvider?: GDSemanticTokensProvider;
+	completionProvider?: GDCompletionItemProvider;
+	tasksProvider?: GDTaskProvider;
+}
+
+export const globals: Extension = {};
 
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
 
-	lspClientManager = new ClientConnectionManager(context);
-	linkProvider = new GDDocumentLinkProvider(context);
-	scenePreviewManager = new ScenePreviewProvider();
-	godotDebugger = new GodotDebugger(context);
+	globals.context = context;
+	globals.lsp = new ClientConnectionManager(context);
+	globals.debug = new GodotDebugger(context);
+	globals.scenePreviewProvider = new ScenePreviewProvider(context);
+	globals.linkProvider = new GDDocumentLinkProvider(context);
+	globals.hoverProvider = new GDHoverProvider(context);
+	globals.inlayProvider = new GDInlayHintsProvider(context);
+	globals.formattingProvider = new FormattingProvider(context);
+	globals.docsProvider = new GDDocumentationProvider(context);
+	globals.definitionProvider = new GDDefinitionProvider(context);
+	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
+	// globals.completionProvider = new GDCompletionItemProvider(context);
+	// globals.tasksProvider = new GDTaskProvider(context);
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
 		register_command("copyResourcePath", copy_resource_path),
-		register_command("openTypeDocumentation", open_type_documentation),
+		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 	);
 
@@ -46,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> {
 	return new Promise<void>((resolve, reject) => {
-		lspClientManager.client.stop();
+		globals.lsp.client.stop();
 		resolve();
 	});
 }
@@ -68,8 +100,8 @@ function copy_resource_path(uri: vscode.Uri) {
 	vscode.env.clipboard.writeText(relative_path);
 }
 
-function open_type_documentation() {
-	lspClientManager.client.open_documentation();
+async function list_classes() {
+	await globals.lsp.client.list_classes();
 }
 
 async function switch_scene_script() {
@@ -96,7 +128,7 @@ function open_workspace_with_editor() {
 		const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?(?:\w+\.)+[0-9a-f]{9}/;
 		const match = output.match(pattern);
 		if (!match) {
-			const message = `Cannot launch Godot editor: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+			const message = `Cannot launch Godot editor: '${settingName}' value of '${godotPath}' is not a valid Godot executable`;
 			prompt_for_godot_executable(message, settingName);
 			return;
 		}
@@ -106,7 +138,7 @@ function open_workspace_with_editor() {
 			return;
 		}
 	} catch {
-		const message = `Cannot launch Godot editor: ${settingName} of ${godotPath} is not a valid Godot executable`;
+		const message = `Cannot launch Godot editor: ${settingName} value of ${godotPath} is not a valid Godot executable`;
 		prompt_for_godot_executable(message, settingName);
 		return;
 	}

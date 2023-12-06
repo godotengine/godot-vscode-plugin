@@ -1,0 +1,24 @@
+.codeblock {
+	padding: 0.5em;
+	margin: .5em 0;
+	overflow: auto;
+	border-radius: 0.3em;
+	!background-color: #fdf6e3;
+}
+
+body {
+	margin-right: 200px;
+}
+
+a {
+	text-decoration: none;
+}
+
+#map {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 200px;
+	height: 100%;
+	z-index: 100;
+}

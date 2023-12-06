@@ -1,23 +1,20 @@
-import { GodotVariable, RawObject } from "../debug_runtime";
+import { GodotVariable, } from "../debug_runtime";
 import { SceneNode } from "../scene_tree_provider";
-import { createLogger } from "../../logger";
-
-const log = createLogger("debugger.helpers");
 
 export function parse_next_scene_node(params: any[], ofs: { offset: number } = { offset: 0 }): SceneNode {
-	const child_count: number = params[ofs.offset++];
+	const childCount: number = params[ofs.offset++];
 	const name: string = params[ofs.offset++];
-	const class_name: string = params[ofs.offset++];
+	const className: string = params[ofs.offset++];
 	const id: number = params[ofs.offset++];
-	const scene_file_path: string = params[ofs.offset++];
-	const view_flags: number = params[ofs.offset++];
+	const sceneFilePath: string = params[ofs.offset++];
+	const viewFlags: number = params[ofs.offset++];
 
 	const children: SceneNode[] = [];
-	for (let i = 0; i < child_count; ++i) {
+	for (let i = 0; i < childCount; ++i) {
 		children.push(parse_next_scene_node(params, ofs));
 	}
 
-	return new SceneNode(name, class_name, id, children, scene_file_path, view_flags);
+	return new SceneNode(name, className, id, children, sceneFilePath, viewFlags);
 }
 
 export function split_buffers(buffer: Buffer) {
@@ -38,7 +35,6 @@ export function is_variable_built_in_type(va: GodotVariable) {
 	var type = typeof va.value;
 	return ["number", "bigint", "boolean", "string"].some(x => x == type);
 }
-
 
 export function build_sub_values(va: GodotVariable) {
 	const value = va.value;
@@ -73,7 +69,6 @@ export function build_sub_values(va: GodotVariable) {
 
 	subValues?.forEach(build_sub_values);
 }
-
 
 export function parse_variable(va: GodotVariable, i?: number) {
 	const value = va.value;

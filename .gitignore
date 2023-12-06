@@ -1,10 +1,5 @@
 out
 node_modules
-server
-publish/*.vsix
-test
 *.vsix
-configurations/tmp.txt
-configurations/test.py
 .vscode-test
 workspace.code-workspace

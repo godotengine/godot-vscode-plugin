@@ -9,11 +9,10 @@ import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { get_configuration, get_free_port, projectVersion } from "../../utils";
+import { get_configuration, get_free_port, projectVersion, createLogger } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
-import { createLogger } from "../../logger";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -139,12 +138,12 @@ export class ServerController {
 		const address = args.address.replace("tcp://", "");
 		command += ` --remote-debug "${address}:${args.port}"`;
 
-		if (get_configuration("debugger.forceVisibleCollisionShapes")) {
-			command += " --debug-collisions";
-		}
-		if (get_configuration("debugger.forceVisibleNavMesh")) {
-			command += " --debug-navigation";
-		}
+		if (args.profiling) { command += " --profiling"; }
+		if (args.debug_collisions) { command += " --debug-collisions"; }
+		if (args.debug_paths) { command += " --debug-paths"; }
+		if (args.frame_delay) { command += ` --frame-delay ${args.frame_delay}`; }
+		if (args.time_scale) { command += ` --time-scale ${args.time_scale}`; }
+		if (args.fixed_fps) { command += ` --fixed-fps ${args.fixed_fps}`; }
 
 		if (args.scene && args.scene !== "main") {
 			log.info(`Custom scene argument provided: ${args.scene}`);

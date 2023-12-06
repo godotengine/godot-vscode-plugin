@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { set_configuration } from "../utils";
+import { set_configuration } from ".";
 
 export function prompt_for_reload() {
 	const message = "Reload VSCode to apply settings";

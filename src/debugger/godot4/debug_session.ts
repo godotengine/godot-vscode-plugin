@@ -17,7 +17,7 @@ import { SceneTreeProvider } from "../scene_tree_provider";
 import { ObjectId } from "./variables/variants";
 import { parse_variable, is_variable_built_in_type } from "./helpers";
 import { ServerController } from "./server_controller";
-import { createLogger } from "../../logger";
+import { createLogger } from "../../utils";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
@@ -515,8 +515,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 					? collection_items.get(key)?.id
 					: collection_items[key]?.id;
 			} else {
-				result.object_id = Array.from(root.value.entries())
-					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName)[1].id;
+				const entries = Array.from(root.value.entries());
+				const item = entries.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName);
+				result.object_id = item?.[1].id;
 			}
 		}
 

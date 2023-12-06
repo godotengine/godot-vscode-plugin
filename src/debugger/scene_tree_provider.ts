@@ -7,6 +7,9 @@ import {
 	TreeItemCollapsibleState,
 } from "vscode";
 import path = require("path");
+import { get_extension_uri } from "../utils";
+
+const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
 
 export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	private _on_did_change_tree_data: EventEmitter<
@@ -75,7 +78,6 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label);
 
-		const iconDir = path.join(__filename, "..", "..", "..", "resources", "godot_icons");
 		const iconName = class_name + ".svg";
 
 		this.iconPath = {

@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
 import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 import {
 	get_configuration,
@@ -9,9 +8,9 @@ import {
 	set_context,
 	register_command,
 	set_configuration,
+	createLogger,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
-import { createLogger } from "../logger";
 import { execSync } from "child_process";
 import { subProcess, killSubProcesses } from "../utils/subspawn";
 
@@ -28,7 +27,6 @@ enum ManagerStatus {
 }
 
 export class ClientConnectionManager {
-	private context: vscode.ExtensionContext;
 	public client: GDScriptLanguageClient = null;
 
 	private reconnectionAttempts = 0;
@@ -39,25 +37,15 @@ export class ClientConnectionManager {
 
 	private connectedVersion: string = "";
 
-	constructor(p_context: vscode.ExtensionContext) {
-		this.context = p_context;
+	constructor(private context: vscode.ExtensionContext) {
+		this.context = context;
 
-		this.client = new GDScriptLanguageClient(p_context);
+		this.client = new GDScriptLanguageClient(context);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
 
 		setInterval(() => {
 			this.retry_callback();
 		}, get_configuration("lsp.autoReconnect.cooldown"));
-
-		register_command("startLanguageServer", () => {
-			// TODO: this might leave the manager in a wierd state
-			this.start_language_server();
-			this.reconnectionAttempts = 0;
-			this.target = TargetLSP.HEADLESS;
-			this.client.connect_to_server(this.target);
-		});
-		register_command("stopLanguageServer", this.stop_language_server.bind(this));
-		register_command("checkStatus", this.on_status_item_click.bind(this));
 
 		set_context("connectedToLSP", false);
 
@@ -65,6 +53,19 @@ export class ClientConnectionManager {
 		this.statusWidget.command = "godotTools.checkStatus";
 		this.statusWidget.show();
 		this.update_status_widget();
+
+		context.subscriptions.push(
+			register_command("startLanguageServer", () => {
+				// TODO: this might leave the manager in a wierd state
+				this.start_language_server();
+				this.reconnectionAttempts = 0;
+				this.target = TargetLSP.HEADLESS;
+				this.client.connect_to_server(this.target);
+			}),
+			register_command("stopLanguageServer", this.stop_language_server.bind(this)),
+			register_command("checkStatus", this.on_status_item_click.bind(this)),
+			this.statusWidget,
+		);
 
 		this.connect_to_language_server();
 	}
@@ -172,7 +173,7 @@ export class ClientConnectionManager {
 	}
 
 	private get_lsp_connection_string() {
-		let host = get_configuration("lsp.serverHost");
+		const host = get_configuration("lsp.serverHost");
 		let port = get_configuration("lsp.serverPort");
 		if (this.client.port !== -1) {
 			port = this.client.port;
@@ -313,10 +314,19 @@ export class ClientConnectionManager {
 		this.update_status_widget();
 
 		const lspTarget = this.get_lsp_connection_string();
-		let message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
-		vscode.window.showErrorMessage(message, "Retry", "Ignore").then(item => {
+		const message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
+
+		let options = ["Retry", "Ignore"];
+		if (this.target == TargetLSP.EDITOR) {
+			options = ["Open workspace with Godot Editor", ...options];
+		}
+
+		vscode.window.showErrorMessage(message, ...options).then(item => {
 			if (item == "Retry") {
 				this.connect_to_language_server();
+			}
+			if (item == "Open workspace with Godot Editor") {
+				vscode.commands.executeCommand("godotTools.openEditor");
 			}
 		});
 	}
