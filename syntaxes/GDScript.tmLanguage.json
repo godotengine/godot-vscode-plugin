@@ -202,7 +202,7 @@
 					"name": "constant.numeric.float.gdscript"
 				},
 				{
-					"match": "[-]?[0-9_]+",
+					"match": "[-]?[0-9](_[0-9]+)?+",
 					"name": "constant.numeric.integer.gdscript"
 				}
 			]
