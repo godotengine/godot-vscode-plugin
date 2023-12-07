@@ -11,6 +11,10 @@ const dots = ["..", "..", ".."];
 const basePath = path.join(__filename, ...dots);
 
 suite("GDScript Formatter Tests", () => {
+	// Search for all folders in the snapshots folder and run a test for each
+	// comparing the the output of the formatter with the expected output.
+	// To add a new test, create a new folder in the snapshots folder
+	// and add two files, `in.gd` and `out.gd` for the input and expected output.
   const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
   const testFolders = fs.readdirSync(snapshotsFolderPath);
 
