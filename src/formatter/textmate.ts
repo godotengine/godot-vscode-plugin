@@ -141,18 +141,24 @@ export function format_document(document: TextDocument): TextEdit[] {
 	const edits: TextEdit[] = [];
 
 	let lineTokens: vsctm.ITokenizeLineResult = null;
+	let onlyEmptyLinesSoFar = true;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
 		if (line.isEmptyOrWhitespace) {
-			// delete empty lines
-			if (lineNum === 0 || document.lineAt(lineNum - 1).isEmptyOrWhitespace) {
-				const range = new Range(lineNum, 0, lineNum + 1, 0);
-				edits.push(TextEdit.delete(range));
+			// delete empty lines at the beginning of the file
+			if (onlyEmptyLinesSoFar) {
+				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
+			}
+			// delete delete the current empty line if the next line is empty too
+			else if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
+				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			}
 			continue;
 		}
+		onlyEmptyLinesSoFar = false;
+
 		// skip comments
 		if (line.text[line.firstNonWhitespaceCharacterIndex] === "#") {
 			continue;

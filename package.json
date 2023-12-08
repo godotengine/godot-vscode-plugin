@@ -802,6 +802,7 @@
 		}
 	},
 	"devDependencies": {
+		"@types/chai": "^4.3.11",
 		"@types/marked": "^4.0.8",
 		"@types/mocha": "^10.0.6",
 		"@types/node": "^18.15.0",
