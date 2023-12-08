@@ -1,4 +1,3 @@
-
 func test():
 
 	pass
