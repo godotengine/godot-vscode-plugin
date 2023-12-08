@@ -1,5 +1,5 @@
-var a = 10
-var b := 10
+var a= 10
+var b :=10
 var c: int = 10
 
 func f(b:=10):

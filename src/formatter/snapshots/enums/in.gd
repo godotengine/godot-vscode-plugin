@@ -1,7 +1,7 @@
-enum State {A, B, C}
+enum State {   A,B, C  }
 
 enum State2 {
-	A,
-	B,
+	A  ,
+	B ,
 	C
 }
