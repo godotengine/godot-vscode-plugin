@@ -15,27 +15,27 @@ suite("GDScript Formatter Tests", () => {
 	// comparing the output of the formatter with the expected output.
 	// To add a new test, create a new folder in the snapshots folder
 	// and add two files, `in.gd` and `out.gd` for the input and expected output.
-  const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
-  const testFolders = fs.readdirSync(snapshotsFolderPath);
+	const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
+	const testFolders = fs.readdirSync(snapshotsFolderPath);
 
-  testFolders.forEach((testFolder) => {
-    const testFolderPath = path.join(snapshotsFolderPath, testFolder);
-    if (fs.statSync(testFolderPath).isDirectory()) {
-      test(`Snapshot Test: ${testFolder}`, async () => {
-        const uriIn = vscode.Uri.file(path.join(testFolderPath, "in.gd"));
-        const uriOut = vscode.Uri.file(path.join(testFolderPath, "out.gd"));
-        const documentIn = await vscode.workspace.openTextDocument(uriIn);
-        const documentOut = await vscode.workspace.openTextDocument(uriOut);
-        const edits = format_document(documentIn);
+	testFolders.forEach((testFolder) => {
+		const testFolderPath = path.join(snapshotsFolderPath, testFolder);
+		if (fs.statSync(testFolderPath).isDirectory()) {
+			test(`Snapshot Test: ${testFolder}`, async () => {
+				const uriIn = vscode.Uri.file(path.join(testFolderPath, "in.gd"));
+				const uriOut = vscode.Uri.file(path.join(testFolderPath, "out.gd"));
+				const documentIn = await vscode.workspace.openTextDocument(uriIn);
+				const documentOut = await vscode.workspace.openTextDocument(uriOut);
+				const edits = format_document(documentIn);
 
-        // Apply the formatting edits
-        const workspaceEdit = new vscode.WorkspaceEdit();
-        workspaceEdit.set(uriIn, edits);
-        await vscode.workspace.applyEdit(workspaceEdit);
+				// Apply the formatting edits
+				const workspaceEdit = new vscode.WorkspaceEdit();
+				workspaceEdit.set(uriIn, edits);
+				await vscode.workspace.applyEdit(workspaceEdit);
 
-        // Compare the result with the expected output
-        expect(documentIn.getText()).to.equal(documentOut.getText());
-      });
-    }
-  });
+				// Compare the result with the expected output
+				expect(documentIn.getText()).to.equal(documentOut.getText());
+			});
+		}
+	});
 });
