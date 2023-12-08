@@ -29,9 +29,9 @@ suite("GDScript Formatter Tests", () => {
         const edits = format_document(documentIn);
 
         // Apply the formatting edits
-        const edit = new vscode.WorkspaceEdit();
-        edit.set(uriIn, edits);
-        await vscode.workspace.applyEdit(edit);
+        const workspaceEdit = new vscode.WorkspaceEdit();
+        workspaceEdit.set(uriIn, edits);
+        await vscode.workspace.applyEdit(workspaceEdit);
 
         // Compare the result with the expected output
         expect(documentIn.getText()).to.equal(documentOut.getText());
