@@ -39,19 +39,8 @@
 				{ "include": "#getter_setter_godot4" },
 				{ "include": "#assignment_operator" },
 				{ "include": "#annotations" },
-		{ "include": "#class_name" },
-		{ "include": "#class_name" },
-		{ "include": "#builtin_func" },
-		{ "include": "#builtin_get_node_shorthand" },
-		{ "include": "#builtin_classes" },
-		{ "include": "#const_vars" },
-		{ "include": "#pascal_case_class" },
 				{ "include": "#class_name" },
-		{ "include": "#builtin_func" },
-		{ "include": "#builtin_get_node_shorthand" },
-		{ "include": "#builtin_classes" },
-		{ "include": "#const_vars" },
-		{ "include": "#pascal_case_class" },
+				{ "include": "#builtin_classes" },
 				{ "include": "#class_new" },
 				{ "include": "#class_is" },
 				{ "include": "#class_enum" },
@@ -66,6 +55,7 @@
 				{ "include": "#nodepath_object" },
 				{ "include": "#nodepath_function" },
 				{ "include": "#strings" },
+				{ "include": "#const_vars" },
 				{ "include": "#keywords" },
 				{ "include": "#logic_operator" },
 				{ "include": "#compare_operator" },
@@ -87,7 +77,6 @@
 				{ "include": "#letter" },
 				{ "include": "#numbers" },
 				{ "include": "#builtin_classes" },
-				{ "include": "#const_vars" },
 				{ "include": "#pascal_case_class" },
 				{ "include": "#line_continuation" }
 			]
@@ -239,13 +228,15 @@
 			]
 		},
 		"variable_declaration": {
-			"begin": "\\b(?:(var)|(const))\\s+([a-zA-Z_]\\w*)\\s*",
-			"end": "$|;",
+			"name": "meta.variable.gdscript",
+			"begin": "\\b(?:(var)|(const))\\s+(?:(\\b[A-Z_][A-Z_0-9]*\\b)|([A-Za-z_]\\w*))\\s*",
 			"beginCaptures": {
 				"1": { "name": "keyword.language.gdscript storage.type.var.gdscript" },
 				"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" },
-				"3": { "name": "variable.other.gdscript" }
+				"3": { "name": "constant.language.gdscript" },
+				"4": { "name": "variable.other.gdscript" }
 			},
+			"end": "$|;",
 			"patterns": [
 				{
 					"match": ":=|=(?!=)",
@@ -266,7 +257,7 @@
 						"3": { "name": "entity.name.function.gdscript" }
 					}
 				},
-				{ "include": "#base_expression" },
+				{ "include": "#expression" },
 				{ "include": "#letter" },
 				{ "include": "#any_variable" },
 				{ "include": "#any_property" },
@@ -527,10 +518,11 @@
 			"name": "variable.other.gdscript"
 		},
 		"any_property": {
-			"match": "\\b(\\.)\\s*(?<![@\\$#%])([A-Za-z_]\\w*)\\b(?![(])",
+			"match": "\\b(\\.)\\s*(?<![@\\$#%])(?:(\\b[A-Z_][A-Z_0-9]*\\b)|([A-Za-z_]\\w*))\\b(?![(])",
 			"captures": {
 				"1": { "name": "punctuation.accessor.gdscript" },
-				"2": { "name": "variable.other.property.gdscript" }
+				"2": { "name": "constant.language.gdscript" },
+				"3": { "name": "variable.other.property.gdscript" }
 			}
 		},
 		"function_call": {
@@ -547,7 +539,6 @@
 		},
 		"function_name": {
 			"patterns": [
-				{ "include": "#builtin_func" },
 				{ "include": "#builtin_classes" },
 				{
 					"comment": "Some color schemas support meta.function-call.generic scope",
