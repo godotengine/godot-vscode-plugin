@@ -29,6 +29,15 @@ func remote_function_a():
 func remote_function_b():
 	pass
 
+signal sig_a
+signal sig_b()
+signal sig_c(param1, param2)
+signal sig_d(param1: int, param2: Dictionary)
+signal sig_e(
+		param1: int, # first param
+		param2: Dictionary,
+	)
+
 # ------------------------------------------------------------------------------
 
 func f():
