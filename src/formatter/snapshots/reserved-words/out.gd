@@ -1,4 +1,4 @@
-func f:
+func f():
 	g(_a_signal_b)
 	g(_a_await_b)
 	g(_a_func_b)
