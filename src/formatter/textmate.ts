@@ -113,6 +113,12 @@ function between(tokens: Token[], current: number) {
 	}
 	if (prev === "@") return "";
 
+	if (prev === "-") {
+		if (tokens[current - 2]?.value === "(") {
+			return "";
+		}
+	}
+
 	if (prev === ":" && next === "=") return "";
 	if (next === "(") {
 		if (prev === "export") return "";
