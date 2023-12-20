@@ -113,7 +113,7 @@
 				{
 					"begin": "(\"|')",
 					"end": "\\1",
-					"name": "constant.character.escape.gdscript",
+					"name": "string.quoted.gdscript constant.character.escape.gdscript",
 					"patterns": [
 						{
 							"match": "%",
@@ -135,7 +135,7 @@
 				{
 					"begin": "(\"|')",
 					"end": "\\1",
-					"name": "meta.literal.nodepath.gdscript constant.character.escape",
+					"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape",
 					"patterns": [
 						{
 							"match": "%",
@@ -325,7 +325,7 @@
 			]
 		},
 		"builtin_get_node_shorthand_quoted": {
-			"name": "meta.literal.nodepath.gdscript constant.character.escape.gdscript",
+			"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape.gdscript",
 			"begin": "(?:(\\$)|(&|\\^|@))(\"|')",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
@@ -346,10 +346,10 @@
 				"1": { "name": "keyword.control.flow.gdscript" },
 				"2": { "name": "constant.character.escape.gdscript" }
 			},
-			"end": "(?=,|\\))|[^\\w/%]|\\s",
+			"end": "(?!%?\\s*[a-zA-Z_]\\w*)\\s*/?*",
 			"patterns": [
 				{
-					"match": "(%)?([a-zA-Z_]\\w*/?)",
+					"match": "(%)?\\s*([a-zA-Z_]\\w*)\\s*/?",
 					"captures": {
 						"1": { "name": "keyword.control.flow.gdscript" },
 						"2": { "name": "constant.character.escape.gdscript" }
