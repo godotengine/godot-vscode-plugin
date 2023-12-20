@@ -3,8 +3,8 @@ import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLangu
 import {
 	get_configuration,
 	get_free_port,
-	get_project_version,
-	get_project_dir,
+	projectDir,
+	projectVersion,
 	set_context,
 	register_command,
 	set_configuration,
@@ -91,14 +91,10 @@ export class ClientConnectionManager {
 	private async start_language_server() {
 		this.stop_language_server();
 
-		const projectDir = await get_project_dir();
-
 		if (!projectDir) {
 			vscode.window.showErrorMessage("Current workspace is not a Godot project");
 			return;
 		}
-
-		const projectVersion = await get_project_version();
 
 		let minimumVersion = "6";
 		let targetVersion = "3.6";
