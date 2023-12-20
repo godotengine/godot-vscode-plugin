@@ -16,7 +16,7 @@ jobs:
       - name: Run tests
         run: |
           npm install
-          npm compile
+          npm run compile
           npm run test
 
       - name: Lint and build extension
