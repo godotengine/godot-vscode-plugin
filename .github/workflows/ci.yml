@@ -13,6 +13,12 @@ jobs:
         with:
           node-version: 16.x
 
+      - name: Run tests
+        run: |
+          npm install
+          npm compile
+          npm run test
+
       - name: Lint and build extension
         run: |
           npm install
