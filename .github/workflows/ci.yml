@@ -23,7 +23,9 @@ jobs:
       - name: Run headless test
         uses: GabrielBB/xvfb-action@v1.0
         with:
-          run: npm test
+          run: |
+            npm run compile
+            npm test
 
   build:
     runs-on: ubuntu-latest
@@ -31,14 +33,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4.0.0
         with:
           node-version: 16.x
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Lint and build extension
         run: |
-          npm install
           npm run lint
           npm run package -- --out godot-tools.vsix
           ls -l godot-tools.vsix
