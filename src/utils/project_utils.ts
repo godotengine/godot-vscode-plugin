@@ -3,35 +3,27 @@ import * as path from "path";
 import * as fs from "fs";
 
 export let projectDir = undefined;
+export let projectFile = undefined;
 
 export async function get_project_dir() {
-	let dir = undefined;
-	let projectFile = "";
+	let file = "";
 	if (vscode.workspace.workspaceFolders != undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot");
 		if (files[0]) {
-			projectFile = files[0].fsPath;
-			if (fs.existsSync(projectFile) && fs.statSync(projectFile).isFile()) {
-				dir = path.dirname(projectFile);
+			file = files[0].fsPath;
+			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
+				return;
 			}
 		}
 	}
-	projectDir = dir;
-	return dir;
+	projectFile = file;
+	projectDir = path.dirname(file);
 }
 
 export let projectVersion = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
-	const dir = await get_project_dir();
-
-	if (!dir) {
-		projectVersion = undefined;
-		return undefined;
-	}
-
 	let godotVersion = "3.x";
-	const projectFile = vscode.Uri.file(path.join(dir, "project.godot"));
 	const document = await vscode.workspace.openTextDocument(projectFile);
 	const text = document.getText();
 
