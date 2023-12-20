@@ -6,7 +6,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -20,10 +20,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # - name: Run headless test
+      #   run: |
+      #     npm run compile
+      #     npm test
+
       - name: Run headless test
-        run: |
-          npm run compile
-          npm test
+        uses: coactions/setup-xvfb@v1
+        with:
+          run: |
+            npm run compile
+            npm test
 
   build:
     runs-on: ubuntu-latest
