@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { execSync } from "child_process";
 
 export let projectDir = undefined;
 export let projectFile = undefined;
@@ -67,4 +68,27 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 	}
 	const dir = files[0].fsPath.replace("project.godot", "");
 	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring(6));
+}
+
+type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
+type VERIFY_RESULT = {
+	status: VERIFY_STATUS,
+	version?: string,
+}
+
+export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4"): VERIFY_RESULT {
+	try {
+		const output = execSync(`${godotPath} -h`).toString().trim();
+		const pattern = /^Godot Engine v(([34])\.([0-9]+)(?:\.[0-9]+)?)/;
+		const match = output.match(pattern);
+		if (!match) {
+			return { status: "INVALID_EXE" };
+		}
+		if (match[2] !== expectedVersion) {
+			return { status: "WRONG_VERSION", version: match[1] };
+		}
+		return { status: "SUCCESS", version: match[1] };
+	} catch {
+		return { status: "INVALID_EXE" };
+	}
 }
