@@ -2,8 +2,31 @@ name: Continuous integration
 on: [push, pull_request]
 
 jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run headless test
+        uses: GabrielBB/xvfb-action@v1.0
+        with:
+          run: npm test
+
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -12,12 +35,6 @@ jobs:
         uses: actions/setup-node@v4.0.0
         with:
           node-version: 16.x
-
-      - name: Run tests
-        run: |
-          npm install
-          npm run compile
-          npm run test
 
       - name: Lint and build extension
         run: |
