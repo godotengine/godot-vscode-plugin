@@ -9,9 +9,9 @@ import {
 	register_command,
 	set_configuration,
 	createLogger,
+	verify_godot_version,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
-import { execSync } from "child_process";
 import { subProcess, killSubProcesses } from "../utils/subspawn";
 
 const log = createLogger("lsp.manager");
@@ -105,37 +105,32 @@ export class ClientConnectionManager {
 		const settingName = `editorPath.godot${projectVersion[0]}`;
 		const godotPath = get_configuration(settingName);
 
-		try {
-			const output = execSync(`${godotPath} --version`).toString().trim();
-			const pattern = /([34])\.([0-9]+)\.(?:[0-9]+\.)?(?:\w+\.)+[0-9a-f]{9}/;
-			const match = output.match(pattern);
-			if (!match) {
-				const message = `Cannot launch headless LSP: '${settingName}' of '${godotPath}' is not a valid Godot executable`;
+		const result = verify_godot_version(godotPath, projectVersion[0]);
+		switch (result.status) {
+			case "WRONG_VERSION": {
+				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
 				prompt_for_godot_executable(message, settingName);
 				return;
 			}
-			this.connectedVersion = output;
-			if (match[1] !== projectVersion[0]) {
-				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is version ${match[0]}`;
+			case "INVALID_EXE": {
+				const message = `Cannot launch headless LSP: '${godotPath}' is not a valid Godot executable`;
 				prompt_for_godot_executable(message, settingName);
 				return;
 			}
+		}
 
-			if (match[2] < minimumVersion) {
-				const message = `Cannot launch headless LSP: Headless LSP mode is only available on version ${targetVersion} or newer, but the specified Godot executable is version ${match[0]}.`;
-				vscode.window.showErrorMessage(message, "Select Godot executable", "Disable Headless LSP", "Ignore").then(item => {
-					if (item == "Select Godot executable") {
-						select_godot_executable(settingName);
-					} else if (item == "Disable Headless LSP") {
-						set_configuration("lsp.headless", false);
-						prompt_for_reload();
-					}
-				});
-				return;
-			}
-		} catch (e) {
-			const message = `Cannot launch headless LSP: ${settingName} of ${godotPath} is not a valid Godot executable`;
-			prompt_for_godot_executable(message, settingName);
+		if (result.version[2] < minimumVersion) {
+			const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;
+			vscode.window.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore").then(item => {
+				if (item == "Select Godot executable") {
+					select_godot_executable(settingName);
+				} else if (item == "Open Settings") {
+					vscode.commands.executeCommand("workbench.action.openSettings", settingName);
+				} else if (item == "Disable Headless LSP") {
+					set_configuration("lsp.headless", false);
+					prompt_for_reload();
+				}
+			});
 			return;
 		}
 
