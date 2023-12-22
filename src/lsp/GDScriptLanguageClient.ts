@@ -154,6 +154,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 					value = value.replace(/\n[#]+/g, "\n");
 
 					// fix bbcode code boxes
+					value = value.replaceAll("`br`", "\n\n");
 					value = value.replace("`codeblocks`", "");
 					value = value.replace("`/codeblocks`", "");
 					value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
