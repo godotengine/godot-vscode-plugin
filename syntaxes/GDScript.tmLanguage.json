@@ -518,7 +518,7 @@
 			"name": "variable.other.gdscript"
 		},
 		"any_property": {
-			"match": "\\b(\\.)\\s*(?<![@\\$#%])(?:(\\b[A-Z_][A-Z_0-9]*\\b)|([A-Za-z_]\\w*))\\b(?![(])",
+			"match": "\\b(\\.)\\s*(?<![@\\$#%])(?:([A-Z_][A-Z_0-9]*)|([A-Za-z_]\\w*))\\b(?![(])",
 			"captures": {
 				"1": { "name": "punctuation.accessor.gdscript" },
 				"2": { "name": "constant.language.gdscript" },
