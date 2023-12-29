@@ -6,8 +6,10 @@
 
 func f():
 	print("$Sprite1", $Sprite1)
-	print("%Sprite1", %Sprite1)
+	print(  "%Sprite1"  ,     %Sprite1)
 	var a=val % otherVal
+
+@onready var score := $HBoxContainer/Score   as   Label
 
 var a = $Child
 var a = $Child/   GrandChild
