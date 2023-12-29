@@ -21,10 +21,9 @@ import {
 	find_file,
 	find_project_file,
 	register_command,
-	get_project_version,
 	set_context,
-	projectDir,
-	projectVersion,
+	get_project_dir,
+	get_project_version,
 	verify_godot_version,
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
@@ -74,30 +73,35 @@ export function activate(context: vscode.ExtensionContext) {
 	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader",]);
 	set_context("sceneLikeFiles", ["gdscript", "gdscene"]);
 
-	get_project_version().then(() => {
-		const settingName = `editorPath.godot${projectVersion[0]}`;
-		const godotPath = get_configuration(settingName);
-		const result = verify_godot_version(godotPath, projectVersion[0]);
+	get_project_version().then(async () => {
+		initial_setup();
+	});
+}
 
-		switch (result.status) {
-			case "SUCCESS": {
-				break;
-			}
-			case "WRONG_VERSION": {
-				const message = `The specified Godot executable, '${godotPath}' is the wrong version. 
+async function initial_setup() {
+	const projectVersion = await get_project_version();
+	const settingName = `editorPath.godot${projectVersion[0]}`;
+	const godotPath = get_configuration(settingName);
+	const result = verify_godot_version(godotPath, projectVersion[0]);
+
+	switch (result.status) {
+		case "SUCCESS": {
+			break;
+		}
+		case "WRONG_VERSION": {
+			const message = `The specified Godot executable, '${godotPath}' is the wrong version. 
 				The current project uses Godot v${projectVersion}, but the specified executable is Godot v${result.version}.
 				Extension features will not work correctly unless this is fixed.`;
-				prompt_for_godot_executable(message, settingName);
-				break;
-			}
-			case "INVALID_EXE": {
-				const message = `The specified Godot executable, '${godotPath}' is invalid. 
-				Extension features will not work correctly unless this is fixed.`;
-				prompt_for_godot_executable(message, settingName);
-				break;
-			}
+			prompt_for_godot_executable(message, settingName);
+			break;
 		}
-	});
+		case "INVALID_EXE": {
+			const message = `The specified Godot executable, '${godotPath}' is invalid. 
+				Extension features will not work correctly unless this is fixed.`;
+			prompt_for_godot_executable(message, settingName);
+			break;
+		}
+	}
 }
 
 export function deactivate(): Thenable<void> {
@@ -143,10 +147,12 @@ async function switch_scene_script() {
 	}
 }
 
-function open_workspace_with_editor() {
+async function open_workspace_with_editor() {
+	const projectDir = await get_project_dir();
+	const projectVersion = await get_project_version();
+
 	const settingName = `editorPath.godot${projectVersion[0]}`;
 	const godotPath = get_configuration(settingName);
-
 	const result = verify_godot_version(godotPath, projectVersion[0]);
 
 	switch (result.status) {

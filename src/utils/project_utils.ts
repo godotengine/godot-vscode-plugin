@@ -3,8 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { execSync } from "child_process";
 
-export let projectDir = undefined;
-export let projectFile = undefined;
+let projectDir = undefined;
+let projectFile = undefined;
 
 export async function get_project_dir() {
 	let file = "";
@@ -19,11 +19,15 @@ export async function get_project_dir() {
 	}
 	projectFile = file;
 	projectDir = path.dirname(file);
+	return projectDir;
 }
 
-export let projectVersion = undefined;
+let projectVersion = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
+	if (projectDir === undefined || projectFile === undefined) {
+		await get_project_dir();
+	}
 	let godotVersion = "3.x";
 	const document = await vscode.workspace.openTextDocument(projectFile);
 	const text = document.getText();
@@ -38,7 +42,7 @@ export async function get_project_version(): Promise<string | undefined> {
 	}
 
 	projectVersion = godotVersion;
-	return godotVersion;
+	return projectVersion;
 }
 
 export function find_project_file(start: string, depth: number = 20) {
@@ -73,10 +77,10 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 type VERIFY_RESULT = {
 	status: VERIFY_STATUS,
-	version?: string,
+	version?: string, 
 }
 
-export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4"): VERIFY_RESULT {
+export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
 	try {
 		const output = execSync(`${godotPath} -h`).toString().trim();
 		const pattern = /^Godot Engine v(([34])\.([0-9]+)(?:\.[0-9]+)?)/;

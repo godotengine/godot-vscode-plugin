@@ -8,7 +8,7 @@ import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { get_configuration, get_free_port, projectVersion, createLogger, verify_godot_version } from "../../utils";
+import { get_configuration, get_free_port, createLogger, verify_godot_version, get_project_version } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
@@ -99,7 +99,7 @@ export class ServerController {
 		this.exception = exception;
 	}
 
-	private start_game(args: LaunchRequestArguments) {
+	private async start_game(args: LaunchRequestArguments) {
 		log.info("Starting game process");
 		const settingName = "editorPath.godot3";
 		const godotPath: string = get_configuration(settingName);
@@ -110,6 +110,7 @@ export class ServerController {
 		log.info("Got version string:", result);
 		switch (result.status) {
 			case "WRONG_VERSION": {
+				const projectVersion = await get_project_version();
 				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
 				log.warn(message);
 				prompt_for_godot_executable(message, settingName);
@@ -122,6 +123,8 @@ export class ServerController {
 				return;
 			}
 		}
+
+		this.connectedVersion = result.version;
 
 		let command = `"${godotPath}" --path "${args.project}"`;
 		const address = args.address.replace("tcp://", "");

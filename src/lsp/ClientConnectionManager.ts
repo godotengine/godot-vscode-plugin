@@ -3,8 +3,8 @@ import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLangu
 import {
 	get_configuration,
 	get_free_port,
-	projectDir,
-	projectVersion,
+	get_project_dir,
+	get_project_version,
 	set_context,
 	register_command,
 	set_configuration,
@@ -91,11 +91,13 @@ export class ClientConnectionManager {
 	private async start_language_server() {
 		this.stop_language_server();
 
+		const projectDir = await get_project_dir();
 		if (!projectDir) {
 			vscode.window.showErrorMessage("Current workspace is not a Godot project");
 			return;
 		}
 
+		const projectVersion = await get_project_version();
 		let minimumVersion = "6";
 		let targetVersion = "3.6";
 		if (projectVersion.startsWith("4")) {
@@ -118,6 +120,7 @@ export class ClientConnectionManager {
 				return;
 			}
 		}
+		this.connectedVersion = result.version;
 
 		if (result.version[2] < minimumVersion) {
 			const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;

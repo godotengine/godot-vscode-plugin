@@ -22,7 +22,7 @@ import {
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import { register_command, projectVersion, set_context, createLogger } from "../utils";
+import { register_command, set_context, createLogger, get_project_version } from "../utils";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 
@@ -100,8 +100,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 	}
 
-	public createDebugAdapterDescriptor(session: DebugSession): ProviderResult<DebugAdapterDescriptor> {
+	public async createDebugAdapterDescriptor(session: DebugSession): Promise<DebugAdapterDescriptor> {
 		log.info("Creating debug session");
+		const projectVersion = await get_project_version();
 		log.info(`Project version identified as ${projectVersion}`);
 
 		if (projectVersion.startsWith("4")) {
