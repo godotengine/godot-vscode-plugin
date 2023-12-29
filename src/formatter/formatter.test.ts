@@ -34,7 +34,7 @@ suite("GDScript Formatter Tests", () => {
 				await vscode.workspace.applyEdit(workspaceEdit);
 
 				// Compare the result with the expected output
-				expect(documentIn.getText()).to.equal(documentOut.getText());
+				expect(documentIn.getText().replace("\r\n", "\n")).to.equal(documentOut.getText().replace("\r\n", "\n"));
 			});
 		}
 	});
