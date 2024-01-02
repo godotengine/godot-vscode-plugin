@@ -233,6 +233,16 @@
 					"default": "godot4",
 					"description": "The absolute path to the Godot 4 editor executable"
 				},
+				"godotTools.editor.verbose": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to launch the Godot Editor with the --verbose flag"
+				},
+				"godotTools.editor.revealTerminal": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to reveal the terminal when launching the Godot Editor"
+				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
 						"string"
