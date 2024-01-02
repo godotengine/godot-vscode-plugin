@@ -5,7 +5,7 @@ import { get_configuration, createLogger } from "../utils";
 import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
 import { globals } from "../extension";
 
-const log = createLogger("lsp.client");
+const log = createLogger("lsp.client", { output: "Godot LSP" });
 
 export enum ClientStatus {
 	PENDING,
@@ -216,6 +216,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			this.io.writer.write(this._initialize_request);
 		}
 		this.status = ClientStatus.CONNECTED;
+	
+		const host = get_configuration("lsp.serverHost");
+		log.info(`connected to LSP at ${host}:${this.lastPortTried}`);
 	}
 
 	private on_disconnected() {

@@ -116,7 +116,6 @@ export class TCPMessageIO extends MessageIO {
 	}
 }
 
-
 export class MessageIOReader extends AbstractMessageReader implements MessageReader {
 
 	private io: MessageIO;
@@ -253,7 +252,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			// Header must be written in ASCII encoding
 			this.io.send_message(headers.join(""));
 			// Now write the content. This can be written in any encoding
-			
+
 			log.debug("tx:", msg);
 			this.io.send_message(json);
 			this.errorCount = 0;

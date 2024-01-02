@@ -14,7 +14,7 @@ import {
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
 import { subProcess, killSubProcesses } from "../utils/subspawn";
 
-const log = createLogger("lsp.manager");
+const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
 enum ManagerStatus {
 	INITIALIZING,
