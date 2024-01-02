@@ -205,6 +205,7 @@ export class ClientConnectionManager {
 				this.retry_connect_client();
 				break;
 			case ManagerStatus.RETRYING:
+				this.show_retrying_prompt();
 				break;
 		}
 	}
@@ -307,6 +308,10 @@ export class ClientConnectionManager {
 		this.status = ManagerStatus.DISCONNECTED;
 		this.update_status_widget();
 
+		this.show_retrying_prompt();
+	}
+
+	private show_retrying_prompt() {
 		const lspTarget = this.get_lsp_connection_string();
 		const message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
 
@@ -321,6 +326,7 @@ export class ClientConnectionManager {
 			}
 			if (item == "Open workspace with Godot Editor") {
 				vscode.commands.executeCommand("godotTools.openEditor");
+				this.connect_to_language_server();
 			}
 		});
 	}
