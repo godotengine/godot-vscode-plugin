@@ -190,11 +190,12 @@ export class ClientConnectionManager {
 				break;
 			case ManagerStatus.CONNECTED: {
 				const message = `Connected to the GDScript language server at ${lspTarget}.`;
-				vscode.window.showInformationMessage(
-					message,
-					"Restart LSP",
-					"Ok"
-				).then(item => {
+
+				let options = ["Ok"];
+				if (this.target == TargetLSP.HEADLESS) {
+					options = ["Restart LSP", ...options];
+				}
+				vscode.window.showInformationMessage(message, ...options).then(item => {
 					if (item === "Restart LSP") {
 						this.connect_to_language_server();
 					}
