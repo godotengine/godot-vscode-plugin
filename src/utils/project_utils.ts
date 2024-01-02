@@ -10,8 +10,10 @@ export async function get_project_dir() {
 	let file = "";
 	if (vscode.workspace.workspaceFolders != undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot");
-		if (files[0]) {
-			file = files[0].fsPath;
+		// if multiple project files, pick the top-most one
+		const best = files.reduce((a, b) => a.fsPath.length <= b.fsPath.length ? a : b);
+		if (best) {
+			file = best.fsPath;
 			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
 				return;
 			}
@@ -66,18 +68,14 @@ export function find_project_file(start: string, depth: number = 20) {
 }
 
 export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
-	const files = await vscode.workspace.findFiles("**/project.godot");
-	if (!files || files[0] === undefined) {
-		return null;
-	}
-	const dir = files[0].fsPath.replace("project.godot", "");
+	const dir = find_project_file(resPath).replace("project.godot", "");
 	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring(6));
 }
 
 type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 type VERIFY_RESULT = {
 	status: VERIFY_STATUS,
-	version?: string, 
+	version?: string,
 }
 
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
