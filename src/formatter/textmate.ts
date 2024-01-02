@@ -173,10 +173,18 @@ export function format_document(document: TextDocument): TextEdit[] {
 			// delete empty lines at the beginning of the file
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
-			}
-			// delete delete the current empty line if the next line is empty too
-			else if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
-				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
+			} else {
+				// Limit the number of consecutive empty lines
+				const maxEmptyLines: number = 1;
+				if (maxEmptyLines === 1) {
+					if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
+						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
+					}
+				} else if (maxEmptyLines === 2) {
+					if (lineNum < document.lineCount - 2 && document.lineAt(lineNum + 1).isEmptyOrWhitespace && document.lineAt(lineNum + 2).isEmptyOrWhitespace) {
+						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
+					}
+				}
 			}
 			continue;
 		}

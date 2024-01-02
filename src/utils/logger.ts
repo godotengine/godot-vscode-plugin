@@ -7,6 +7,7 @@ export enum LOG_LEVEL {
 	WARNING,
 	INFO,
 	DEBUG,
+	TRACE,
 }
 
 const LOG_LEVEL_NAMES = [
@@ -15,6 +16,7 @@ const LOG_LEVEL_NAMES = [
 	"WARN ",
 	"INFO ",
 	"DEBUG",
+	"TRACE",
 ];
 
 const RESET = "\u001b[0m";
@@ -25,6 +27,7 @@ const LOG_COLORS = [
 	"\u001b[1;33m", // WARNING, yellow
 	"\u001b[1;36m", // INFO, cyan
 	"\u001b[1;32m", // DEBUG, green
+	"\u001b[1;35m", // TRACE, magenta
 ];
 
 export interface LoggerOptions {
@@ -68,19 +71,21 @@ export class Logger {
 		}
 
 		if (this.output) {
-			const line = `${messages[0]}`;
 			switch (level) {
 				case LOG_LEVEL.ERROR:
-					this.output.error(line);
+					this.output.error(messages[0]);
 					break;
 				case LOG_LEVEL.WARNING:
-					this.output.warn(line);
+					this.output.warn(messages[0]);
 					break;
 				case LOG_LEVEL.INFO:
-					this.output.info(line);
+					this.output.info(messages[0]);
 					break;
 				case LOG_LEVEL.DEBUG:
-					this.output.debug(line);
+					this.output.debug(messages[0], ...messages.slice(1));
+					break;
+				case LOG_LEVEL.TRACE:
+					this.output.trace(messages[0]);
 					break;
 				default:
 					break;
@@ -88,6 +93,16 @@ export class Logger {
 		}
 	}
 
+	error(...messages) {
+		if (LOG_LEVEL.ERROR <= this.level) {
+			this.log(LOG_LEVEL.ERROR, ...messages);
+		}
+	}
+	warn(...messages) {
+		if (LOG_LEVEL.WARNING <= this.level) {
+			this.log(LOG_LEVEL.WARNING, ...messages);
+		}
+	}
 	info(...messages) {
 		if (LOG_LEVEL.INFO <= this.level) {
 			this.log(LOG_LEVEL.INFO, ...messages);
@@ -98,14 +113,9 @@ export class Logger {
 			this.log(LOG_LEVEL.DEBUG, ...messages);
 		}
 	}
-	warn(...messages) {
-		if (LOG_LEVEL.WARNING <= this.level) {
-			this.log(LOG_LEVEL.WARNING, ...messages);
-		}
-	}
-	error(...messages) {
-		if (LOG_LEVEL.ERROR <= this.level) {
-			this.log(LOG_LEVEL.ERROR, ...messages);
+	trace(...messages) {
+		if (LOG_LEVEL.TRACE <= this.level) {
+			this.log(LOG_LEVEL.TRACE, ...messages);
 		}
 	}
 }
