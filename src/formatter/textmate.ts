@@ -3,7 +3,9 @@ import * as fs from "fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { get_extension_uri } from "../utils";
+import { get_extension_uri, createLogger } from "../utils";
+
+const log = createLogger("formatter.tm");
 
 // Promisify readFile
 function readFile(path) {
@@ -37,13 +39,18 @@ interface Token {
 	// startIndex: number;
 	// endIndex: number;
 	scopes: string[];
+	original: string;
 	value: string;
 	type?: string;
 	param?: boolean;
+	string?: boolean;
 	skip?: boolean;
 }
 
 function parse_token(token: Token) {
+	if (token.scopes.includes("string.quoted.gdscript")) {
+		token.string = true;
+	}
 	if (token.scopes.includes("meta.function.parameters.gdscript")) {
 		token.param = true;
 	}
@@ -83,11 +90,15 @@ function between(tokens: Token[], current: number) {
 	if (!prev) return "";
 
 	if (next === "#") return " ";
-	if (prevToken.skip) return "";
+	if (prevToken.skip && nextToken.skip) return "";
 
 	if (nextToken.param) {
+		if (next === "%") return " ";
+		if (prev === "%") return " ";
 		if (next === "=") return "";
 		if (prev === "=") return "";
+		if (next === ":=") return "";
+		if (prev === ":=") return "";
 		if (prevToken?.type === "symbol") return " ";
 		if (nextToken.type === "symbol") return " ";
 	}
@@ -95,11 +106,18 @@ function between(tokens: Token[], current: number) {
 	if (next === ":") {
 		if (["var", "const"].includes(tokens[current - 2]?.value)) {
 			if (tokens[current + 1]?.value !== "=") return "";
+			if (tokens[current + 1]?.value !== "=") return "";
 			return " ";
 		}
 		if (prevToken?.type === "keyword") return "";
 	}
 	if (prev === "@") return "";
+
+	if (prev === "-") {
+		if (tokens[current - 2]?.value === "(") {
+			return "";
+		}
+	}
 
 	if (prev === ":" && next === "=") return "";
 	if (next === "(") {
@@ -110,13 +128,18 @@ function between(tokens: Token[], current: number) {
 
 	if (prev === ")" && nextToken.type === "keyword") return " ";
 
+	if (prev === "[" && nextToken.type === "symbol") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
 	if (prev === "#") return " ";
 	if (next === "=") return " ";
 	if (prev === "=") return " ";
+	if (tokens[current - 2]?.value === "=") {
+		if (["+", "-"].includes(prev)) return "";
+	}
 	if (prev === "(") return "";
 	if (next === "{") return " ";
+	if (next === "\\") return " ";
 	if (next === "{}") return " ";
 
 	if (prevToken?.type === "keyword") return " ";
@@ -141,18 +164,24 @@ export function format_document(document: TextDocument): TextEdit[] {
 	const edits: TextEdit[] = [];
 
 	let lineTokens: vsctm.ITokenizeLineResult = null;
+	let onlyEmptyLinesSoFar = true;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
 		if (line.isEmptyOrWhitespace) {
-			// delete empty lines
-			if (lineNum === 0 || document.lineAt(lineNum - 1).isEmptyOrWhitespace) {
-				const range = new Range(lineNum, 0, lineNum + 1, 0);
-				edits.push(TextEdit.delete(range));
+			// delete empty lines at the beginning of the file
+			if (onlyEmptyLinesSoFar) {
+				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
+			}
+			// delete delete the current empty line if the next line is empty too
+			else if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
+				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			}
 			continue;
 		}
+		onlyEmptyLinesSoFar = false;
+
 		// skip comments
 		if (line.text[line.firstNonWhitespaceCharacterIndex] === "#") {
 			continue;
@@ -171,22 +200,25 @@ export function format_document(document: TextDocument): TextEdit[] {
 
 		const tokens: Token[] = [];
 		for (const t of lineTokens.tokens) {
-			const value = line.text.slice(t.startIndex, t.endIndex).trim();
-			// skip whitespace tokens
-			if (value.trim() === "") {
-				continue;
-			}
-
 			const token: Token = {
 				scopes: t.scopes,
-				value: value,
+				original: line.text.slice(t.startIndex, t.endIndex),
+				value: line.text.slice(t.startIndex, t.endIndex).trim(),
 			};
-
 			parse_token(token);
+			// skip whitespace tokens
+			if (!token.string && token.value.trim() === "") {
+				continue;
+			}
 			tokens.push(token);
 		}
 		for (let i = 0; i < tokens.length; i++) {
-			nextLine += between(tokens, i) + tokens[i].value;
+			// log.debug(i, tokens[i].value, tokens[i]);
+			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
+				nextLine += tokens[i].original;
+			} else {
+				nextLine += between(tokens, i) + tokens[i].value.trim();
+			}
 		}
 
 		edits.push(TextEdit.replace(line.range, nextLine));

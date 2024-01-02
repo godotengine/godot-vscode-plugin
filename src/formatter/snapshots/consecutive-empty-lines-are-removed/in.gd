@@ -1,0 +1,6 @@
+
+
+func test():
+
+	pass
+

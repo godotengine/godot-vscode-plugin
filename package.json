@@ -802,6 +802,7 @@
 		}
 	},
 	"devDependencies": {
+		"@types/chai": "^4.3.11",
 		"@types/marked": "^4.0.8",
 		"@types/mocha": "^10.0.6",
 		"@types/node": "^18.15.0",
@@ -814,6 +815,7 @@
 		"@vscode/test-cli": "^0.0.4",
 		"@vscode/test-electron": "^2.3.8",
 		"@vscode/vsce": "^2.21.0",
+		"chai": "^4.3.10",
 		"esbuild": "^0.17.15",
 		"eslint": "^8.37.0",
 		"mocha": "^10.2.0",

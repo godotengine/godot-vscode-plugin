@@ -30,6 +30,7 @@ Godot 3.2 or later.
   - `ctrl+click` on any symbol to jump to its definition or **open its documentation**
   - `ctrl+click` on `res://resource/path` links
   - **hover previews on `res://resource/path` links**
+  - **builtin code formatter**
   - autocompletions
   - full typed GDScript support
   - optional "Smart Mode" to improve productivity with dynamically typed scripts

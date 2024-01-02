@@ -153,6 +153,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 					// docstrings being displayed as titles
 					value = value.replace(/\n[#]+/g, "\n");
 
+					// fix bbcode line breaks
+					value = value.replaceAll("`br`", "\n\n");
+
 					// fix bbcode code boxes
 					value = value.replace("`codeblocks`", "");
 					value = value.replace("`/codeblocks`", "");

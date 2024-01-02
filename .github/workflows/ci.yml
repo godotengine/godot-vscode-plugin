@@ -2,8 +2,12 @@ name: Continuous integration
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -13,9 +17,32 @@ jobs:
         with:
           node-version: 16.x
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run headless test
+        uses: coactions/setup-xvfb@v1
+        with:
+          run: |
+            npm run compile
+            npm test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4.0.1
+        with:
+          node-version: 16.x
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Lint and build extension
         run: |
-          npm install
           npm run lint
           npm run package -- --out godot-tools.vsix
           ls -l godot-tools.vsix
