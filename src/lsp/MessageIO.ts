@@ -20,7 +20,6 @@ const log = createLogger("lsp.io");
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
-
 	reader: MessageIOReader = null;
 	writer: MessageIOWriter = null;
 
@@ -29,7 +28,7 @@ export class MessageIO extends EventEmitter {
 	}
 
 	protected on_message(chunk: Data) {
-		let message = chunk.toString();
+		const message = chunk.toString();
 		this.emit("data", message);
 	}
 
@@ -48,7 +47,6 @@ export class MessageIO extends EventEmitter {
 
 
 export class WebSocketMessageIO extends MessageIO {
-
 	private socket: WebSocket = null;
 
 	public send_message(message: string) {
@@ -117,7 +115,6 @@ export class TCPMessageIO extends MessageIO {
 }
 
 export class MessageIOReader extends AbstractMessageReader implements MessageReader {
-
 	private io: MessageIO;
 	private callback: DataCallback;
 	private buffer: MessageBuffer;
@@ -153,19 +150,19 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		return;
 	}
 
-	private onData(data: Buffer | String): void {
+	private onData(data: Buffer | string): void {
 		this.buffer.append(data);
 		while (true) {
 			if (this.nextMessageLength === -1) {
-				let headers = this.buffer.tryReadHeaders();
+				const headers = this.buffer.tryReadHeaders();
 				if (!headers) {
 					return;
 				}
-				let contentLength = headers["Content-Length"];
+				const contentLength = headers["Content-Length"];
 				if (!contentLength) {
 					throw new Error("Header must provide a Content-Length property.");
 				}
-				let length = parseInt(contentLength);
+				const length = parseInt(contentLength);
 				if (isNaN(length)) {
 					throw new Error("Content-Length value must be a number.");
 				}
@@ -216,7 +213,6 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 const ContentLength: string = "Content-Length: ";
 const CRLF = "\r\n";
 export class MessageIOWriter extends AbstractMessageWriter implements MessageWriter {
-
 	private io: MessageIO;
 	private encoding: BufferEncoding;
 	private errorCount: number;
@@ -239,10 +235,10 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 		if ((msg as RequestMessage).method === "didChangeWatchedFiles") {
 			return;
 		}
-		let json = JSON.stringify(msg);
-		let contentLength = Buffer.byteLength(json, this.encoding);
+		const json = JSON.stringify(msg);
+		const contentLength = Buffer.byteLength(json, this.encoding);
 
-		let headers: string[] = [
+		const headers: string[] = [
 			ContentLength, contentLength.toString(), CRLF,
 			CRLF
 		];
