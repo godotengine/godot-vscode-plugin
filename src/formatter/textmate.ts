@@ -90,7 +90,7 @@ function between(tokens: Token[], current: number) {
 	if (!prev) return "";
 
 	if (next === "#") return " ";
-	if (prevToken.skip) return "";
+	if (prevToken.skip && nextToken.skip) return "";
 
 	if (nextToken.param) {
 		if (next === "%") return " ";
