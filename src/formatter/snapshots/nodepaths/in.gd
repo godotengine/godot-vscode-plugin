@@ -14,6 +14,7 @@ func f():
 var a = $Child
 var a = $Child/   GrandChild
 var a = $Child/   GrandChild  /   GreatGrandChild
+var a = $Child/   Lots  /  Of / Grand / And / Great / Grand /  Children .  do_stuff()
 var a = $"../Sibling"
 var a = $'../Sibling'
 var a = $"../    Sibling    "
