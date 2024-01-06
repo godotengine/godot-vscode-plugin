@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate } from "./utils";
+import { attemptSettingsUpdate, get_extension_uri } from "./utils";
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
@@ -15,7 +15,6 @@ import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_tools";
 import { GodotDebugger } from "./debugger";
 import { FormattingProvider } from "./formatter";
-import { exec, execSync } from "child_process";
 import {
 	get_configuration,
 	find_file,
@@ -27,6 +26,7 @@ import {
 	verify_godot_version,
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
+import { killSubProcesses, subProcess } from "./utils/subspawn";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -157,7 +157,24 @@ async function open_workspace_with_editor() {
 
 	switch (result.status) {
 		case "SUCCESS": {
-			exec(`${godotPath} --path "${projectDir}" -e`);
+			let command = `${godotPath} --path "${projectDir}" -e`;
+			if (get_configuration("editor.verbose")) {
+				command += " -v";
+			}
+			const existingTerminal = vscode.window.terminals.find(t => t.name === "Godot Editor");
+			if (existingTerminal) {
+				existingTerminal.dispose();
+			}
+			const options: vscode.ExtensionTerminalOptions = {
+				name: "Godot Editor",
+				iconPath: get_extension_uri("resources/godot_icon.svg"),
+				pty: new GodotEditorTerminal(command),
+				isTransient: true,
+			};
+			const terminal = vscode.window.createTerminal(options);
+			if (get_configuration("editor.revealTerminal")) {
+				terminal.show();
+			}
 			break;
 		}
 		case "WRONG_VERSION": {
@@ -170,5 +187,41 @@ async function open_workspace_with_editor() {
 			prompt_for_godot_executable(message, settingName);
 			break;
 		}
+	}
+}
+
+class GodotEditorTerminal implements vscode.Pseudoterminal {
+	private writeEmitter = new vscode.EventEmitter<string>();
+	onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+	private closeEmitter = new vscode.EventEmitter<number>();
+	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
+
+	constructor(private command: string) { }
+
+	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
+		const proc = subProcess("GodotEditor", this.command, { shell: true, detached: true });
+		this.writeEmitter.fire("Starting Godot Editor process...\r\n");
+
+		proc.stdout.on("data", (data) => {
+			const out = data.toString().trim();
+			if (out) {
+				this.writeEmitter.fire(data + "\r\n");
+			}
+		});
+
+		proc.stderr.on("data", (data) => {
+			const out = data.toString().trim();
+			if (out) {
+				this.writeEmitter.fire(data + "\r\n");
+			}
+		});
+
+		proc.on("close", (code) => {
+			this.writeEmitter.fire(`Godot Editor stopped with exit code: ${code}\r\n`);
+		});
+	}
+
+	close(): void {
+		killSubProcesses("GodotEditor");
 	}
 }
