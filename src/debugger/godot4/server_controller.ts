@@ -393,8 +393,10 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
-
-				debug.activeDebugConsole.appendLine(command.parameters[0]);
+				const lines = command.parameters[0];
+				for (const line of lines) {
+					debug.activeDebugConsole.appendLine(line);
+				}
 				break;
 			}
 		}
