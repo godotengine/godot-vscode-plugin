@@ -394,9 +394,8 @@ export class ServerController {
 					// this.request_scene_tree();
 				}
 				const lines = command.parameters[0];
-				for (const line of lines){
+				for (const line of lines) {
 					debug.activeDebugConsole.appendLine(line);
-					
 				}
 				break;
 			}
