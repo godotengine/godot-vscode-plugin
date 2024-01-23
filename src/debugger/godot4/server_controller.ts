@@ -108,7 +108,8 @@ export class ServerController {
 		log.info(`Verifying version of '${godotPath}'`);
 		const result = verify_godot_version(godotPath, "4");
 
-		log.info("Got version string:", result);
+		log.info(`Verification result: ${result.status}, version: "${result.version}"`);
+
 		switch (result.status) {
 			case "WRONG_VERSION": {
 				const projectVersion = await get_project_version();
@@ -480,7 +481,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const commandArray: any[] = [command];
-		log.debug("send_command", this.connectedVersion);
+		// log.debug("send_command", this.connectedVersion);
 		if (this.connectedVersion[2] >= "2") {
 			commandArray.push(this.threadId);
 		}

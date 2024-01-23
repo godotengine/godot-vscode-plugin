@@ -107,7 +107,8 @@ export class ServerController {
 		log.info(`Verifying version of '${godotPath}'`);
 		const result = verify_godot_version(godotPath, "3");
 
-		log.info("Got version string:", result);
+		log.info(`Verification result: ${result.status}, version: "${result.version}"`);
+
 		switch (result.status) {
 			case "WRONG_VERSION": {
 				const projectVersion = await get_project_version();
