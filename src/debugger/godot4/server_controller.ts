@@ -108,7 +108,7 @@ export class ServerController {
 		if (args.editor_path) {
 			log.info("Using 'editor_path' variable from launch.json");
 
-			godotPath = args.editor_path;
+			godotPath = args.editor_path.replace(/^"/, "").replace(/"$/, "");
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "4");
@@ -135,7 +135,7 @@ export class ServerController {
 			log.info("Using 'editorPath.godot4' from settings");
 
 			const settingName = "editorPath.godot4";
-			godotPath = get_configuration(settingName);
+			godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "4");

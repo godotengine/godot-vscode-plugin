@@ -105,7 +105,7 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
-		const godotPath = get_configuration(settingName);
+		const godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
 
 		const result = verify_godot_version(godotPath, projectVersion[0]);
 		switch (result.status) {
@@ -142,7 +142,7 @@ export class ClientConnectionManager {
 		log.info(`starting headless LSP on port ${this.client.port}`);
 
 		const headlessFlags = "--headless --no-window";
-		const command = `${godotPath} --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
+		const command = `"${godotPath}" --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
 		const lspProcess = subProcess("LSP", command, { shell: true, detached: true });
 
 		const lspStdout = createLogger("lsp.stdout");
