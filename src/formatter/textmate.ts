@@ -30,7 +30,7 @@ const registry = new vsctm.Registry({
 		if (scopeName === "source.gdscript") {
 			return readFile(grammarPath).then(data => vsctm.parseRawGrammar(data.toString(), grammarPath));
 		}
-		console.log(`Unknown scope name: ${scopeName}`);
+		// console.log(`Unknown scope name: ${scopeName}`);
 		return null;
 	}
 });
