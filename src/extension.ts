@@ -157,7 +157,7 @@ async function open_workspace_with_editor() {
 
 	switch (result.status) {
 		case "SUCCESS": {
-			let command = `${godotPath} --path "${projectDir}" -e`;
+			let command = `"${godotPath}" --path "${projectDir}" -e`;
 			if (get_configuration("editor.verbose")) {
 				command += " -v";
 			}
