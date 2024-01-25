@@ -152,12 +152,12 @@ async function open_workspace_with_editor() {
 	const projectVersion = await get_project_version();
 
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const godotPath = get_configuration(settingName);
+	const godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
 	const result = verify_godot_version(godotPath, projectVersion[0]);
 
 	switch (result.status) {
 		case "SUCCESS": {
-			let command = `${godotPath} --path "${projectDir}" -e`;
+			let command = `"${godotPath}" --path "${projectDir}" -e`;
 			if (get_configuration("editor.verbose")) {
 				command += " -v";
 			}

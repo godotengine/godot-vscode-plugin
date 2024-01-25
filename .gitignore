@@ -3,3 +3,4 @@ node_modules
 *.vsix
 .vscode-test
 workspace.code-workspace
+.history

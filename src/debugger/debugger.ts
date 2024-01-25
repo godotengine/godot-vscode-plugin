@@ -138,6 +138,17 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				config.project = "${workspaceFolder}";
 			}
 		}
+
+		if (typeof config.port !== "number" || config.port < -1 || config.port > 65535) {
+			window.showErrorMessage("Can't launch debug session: 'port' must be a number between -1 and 65535.", "Ok");
+			return undefined;
+		}
+
+		if (config.address.includes("://")) {
+			window.showErrorMessage("Can't launch debug session: 'address' cannot include a protocol.", "Ok");
+			return undefined;
+		}
+
 		return config;
 	}
 

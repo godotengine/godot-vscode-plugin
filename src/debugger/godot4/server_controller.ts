@@ -102,26 +102,62 @@ export class ServerController {
 
 	private async start_game(args: LaunchRequestArguments) {
 		log.info("Starting game process");
-		const settingName = "editorPath.godot4";
-		const godotPath: string = get_configuration(settingName);
 
-		log.info(`Verifying version of '${godotPath}'`);
-		const result = verify_godot_version(godotPath, "4");
+		let godotPath: string;
+		let result;
+		if (args.editor_path) {
+			log.info("Using 'editor_path' variable from launch.json");
 
-		log.info("Got version string:", result);
-		switch (result.status) {
-			case "WRONG_VERSION": {
-				const projectVersion = await get_project_version();
-				const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
-				log.warn(message);
-				prompt_for_godot_executable(message, settingName);
-				return;
+			godotPath = args.editor_path.replace(/^"/, "").replace(/"$/, "");
+
+			log.info(`Verifying version of '${godotPath}'`);
+			result = verify_godot_version(godotPath, "4");
+
+			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
+			switch (result.status) {
+				case "WRONG_VERSION": {
+					const projectVersion = await get_project_version();
+					const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
+					log.warn(message);
+					window.showErrorMessage(message, "Ok");
+					this.abort();
+					return;
+				}
+				case "INVALID_EXE": {
+					const message = `Cannot launch debug session: '${godotPath}' is not a valid Godot executable`;
+					log.warn(message);
+					window.showErrorMessage(message, "Ok");
+					this.abort();
+					return;
+				}
 			}
-			case "INVALID_EXE": {
-				const message = `Cannot launch debug session: '${godotPath}' is not a valid Godot executable`;
-				log.warn(message);
-				prompt_for_godot_executable(message, settingName);
-				return;
+		} else {
+			log.info("Using 'editorPath.godot4' from settings");
+
+			const settingName = "editorPath.godot4";
+			godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
+
+			log.info(`Verifying version of '${godotPath}'`);
+			result = verify_godot_version(godotPath, "4");
+
+			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
+
+			switch (result.status) {
+				case "WRONG_VERSION": {
+					const projectVersion = await get_project_version();
+					const message = `Cannot launch debug session: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
+					log.warn(message);
+					prompt_for_godot_executable(message, settingName);
+					this.abort();
+					return;
+				}
+				case "INVALID_EXE": {
+					const message = `Cannot launch debug session: '${godotPath}' is not a valid Godot executable`;
+					log.warn(message);
+					prompt_for_godot_executable(message, settingName);
+					this.abort();
+					return;
+				}
 			}
 		}
 
@@ -482,7 +518,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const commandArray: any[] = [command];
-		log.debug("send_command", this.connectedVersion);
+		// log.debug("send_command", this.connectedVersion);
 		if (this.connectedVersion[2] >= "2") {
 			commandArray.push(this.threadId);
 		}

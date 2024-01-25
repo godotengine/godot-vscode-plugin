@@ -226,12 +226,12 @@
 				"godotTools.editorPath.godot3": {
 					"type": "string",
 					"default": "godot3",
-					"description": "The absolute path to the Godot 3 editor executable"
+					"description": "Path to the Godot 3 editor executable"
 				},
 				"godotTools.editorPath.godot4": {
 					"type": "string",
 					"default": "godot4",
-					"description": "The absolute path to the Godot 4 editor executable"
+					"description": "Path to the Godot 4 editor executable"
 				},
 				"godotTools.editor.verbose": {
 					"type": "boolean",
@@ -266,6 +266,8 @@
 				"godotTools.lsp.serverPort": {
 					"type": "number",
 					"default": 6008,
+					"minimum": 0,
+					"maximum": 65535,
 					"description": "The server port of the GDScript language server"
 				},
 				"godotTools.lsp.headless": {
