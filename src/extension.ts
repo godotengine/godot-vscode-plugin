@@ -202,7 +202,8 @@ async function open_workspace_with_editor() {
 async function get_godot_path() : Promise<string>{
 	const projectVersion = await get_project_version();
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const godotPath : string = get_configuration(settingName);//.replace(/^"/, "").replace(/"$/, "");?
+	// Cleans up any surrounding quotes the user might put into the path.
+	const godotPath : string = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
 	return godotPath;
 }
 
