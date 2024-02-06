@@ -68,6 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("copyResourcePath", copy_resource_path),
 		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
+		register_command("getGodotPath", get_godot_path),
 	);
 
 	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader",]);
@@ -77,6 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 		initial_setup();
 	});
 }
+
 
 async function initial_setup() {
 	const projectVersion = await get_project_version();
@@ -89,14 +91,14 @@ async function initial_setup() {
 			break;
 		}
 		case "WRONG_VERSION": {
-			const message = `The specified Godot executable, '${godotPath}' is the wrong version. 
+			const message = `The specified Godot executable, '${godotPath}' is the wrong version.
 				The current project uses Godot v${projectVersion}, but the specified executable is Godot v${result.version}.
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
 		}
 		case "INVALID_EXE": {
-			const message = `The specified Godot executable, '${godotPath}' is invalid. 
+			const message = `The specified Godot executable, '${godotPath}' is invalid.
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
@@ -188,6 +190,20 @@ async function open_workspace_with_editor() {
 			break;
 		}
 	}
+}
+
+/**
+ * Returns the executable path for Godot based on the current project's version.
+ * Created to allow other extensions to get the path without having to go
+ * through the steps of determining the version to get the proper configuration
+ * value (godotTools.editorPath.godot3/4).
+ * @returns
+ */
+async function get_godot_path() : Promise<string>{
+	const projectVersion = await get_project_version();
+	const settingName = `editorPath.godot${projectVersion[0]}`;
+	const godotPath : string = get_configuration(settingName);//.replace(/^"/, "").replace(/"$/, "");?
+	return godotPath;
 }
 
 class GodotEditorTerminal implements vscode.Pseudoterminal {
