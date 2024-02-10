@@ -79,7 +79,6 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 }
 
-
 async function initial_setup() {
 	const projectVersion = await get_project_version();
 	const settingName = `editorPath.godot${projectVersion[0]}`;
@@ -91,14 +90,14 @@ async function initial_setup() {
 			break;
 		}
 		case "WRONG_VERSION": {
-			const message = `The specified Godot executable, '${godotPath}' is the wrong version.
+			const message = `The specified Godot executable, '${godotPath}' is the wrong version. 
 				The current project uses Godot v${projectVersion}, but the specified executable is Godot v${result.version}.
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
 		}
 		case "INVALID_EXE": {
-			const message = `The specified Godot executable, '${godotPath}' is invalid.
+			const message = `The specified Godot executable, '${godotPath}' is invalid. 
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
