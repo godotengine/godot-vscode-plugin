@@ -34,13 +34,19 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		const text = document.getText();
 
 		if (document.fileName.endsWith(".gd")) {
-			const regex = /(^|\r?\n)[\t\s]*(@[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+([\w\d_]+)[\t\s]*:=/g;
+			await globals.lsp.client.onReady();
+
+			// for godot 3, no information on the symbol types
+			const regex = /((^|\r?\n)[\t\s]*([\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			for (const match of text.matchAll(regex)) {
 				const start = document.positionAt(match.index + match[0].length - 1);
-
+				const hoverPosition = document.positionAt(match.index + match[1].length);
 				const response = await globals.lsp.client.sendRequest("textDocument/hover", {
 					textDocument: { uri: document.uri.toString() },
-					position: document.positionAt(match.index + match[0].length - 3),
+					position: {
+						line: hoverPosition.line,
+						character: hoverPosition.character,
+					}
 				});
 				const fullLabel = response["contents"].value;
 				const labelRegex = /: ([\w\d_]+)/;
