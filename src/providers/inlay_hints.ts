@@ -63,15 +63,17 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			// TODO: use regex only on ranges provided by the LSP
 			// since the LSP doesn't know whether a variable is inferred or not,
-			// we still need to use regex to find inferred variables
-			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
+			// we still need to use regex to find inferred variables.
+
+			// matches variables
+			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
 				const start = document.positionAt(match.index + match[0].length - 1);
 				if (hasDetail) {
 					// godot 4.0+ automatically provides the "detail" field, allowing us to skip
 					// the extra hover request
-					const symbol = symbols.find((s: any) => s.name === match[5]);
+					const symbol = symbols.find((s: any) => s.name === match[6]);
 					if (symbol && symbol["detail"]) {
 						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
 						hints.push(hint);
