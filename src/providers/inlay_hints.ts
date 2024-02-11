@@ -11,6 +11,7 @@ import {
 } from "vscode";
 import { SceneParser } from "../scene_tools";
 import { createLogger } from "../utils";
+import { globals } from "../extension";
 
 const log = createLogger("providers.inlay_hints");
 
@@ -28,11 +29,30 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		);
 	}
 
-	provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): ProviderResult<InlayHint[]> {
-		const scene = this.parser.parse_scene(document);
+	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
+		const hints: InlayHint[] = [];
 		const text = document.getText();
 
-		const hints: InlayHint[] = [];
+		if (document.fileName.endsWith(".gd")) {
+			const regex = /(^|\r?\n)[\t\s]*(@[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+([\w\d_]+)[\t\s]*:=/g;
+			for (const match of text.matchAll(regex)) {
+				const start = document.positionAt(match.index + match[0].length - 1);
+
+				const response = await globals.lsp.client.sendRequest("textDocument/hover", {
+					textDocument: { uri: document.uri.toString() },
+					position: document.positionAt(match.index + match[0].length - 3),
+				});
+				const fullLabel = response["contents"].value;
+				const labelRegex = /: ([\w\d_]+)/;
+				const labelMatch = fullLabel.match(labelRegex);
+				const label = labelMatch ? labelMatch[1] : "unknown";
+				const hint = new InlayHint(start, ` ${label} `, InlayHintKind.Type);
+				hints.push(hint);
+			}
+			return hints;
+		}
+
+		const scene = this.parser.parse_scene(document);
 
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];
