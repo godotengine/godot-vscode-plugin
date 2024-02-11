@@ -303,6 +303,16 @@
 					],
 					"default": "sameFolder",
 					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
+				},
+				"godotTools.inlayHints.gdscript": {
+					"type": "object",
+					"properties": {
+						"enabled": {
+							"type": "boolean",
+							"default": false,
+							"description": "Whether to enable inlay variable hints for GDScript's inferred variables"
+						}
+					}
 				}
 			}
 		},

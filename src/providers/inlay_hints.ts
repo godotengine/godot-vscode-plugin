@@ -10,7 +10,7 @@ import {
 	ExtensionContext,
 } from "vscode";
 import { SceneParser } from "../scene_tools";
-import { createLogger } from "../utils";
+import { createLogger, get_configuration } from "../utils";
 import { globals } from "../extension";
 
 const log = createLogger("providers.inlay_hints");
@@ -56,6 +56,10 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		const text = document.getText();
 
 		if (document.fileName.endsWith(".gd")) {
+			if (!get_configuration("inlayHints.gdscript", true)) {
+				return hints;
+			}
+
 			await globals.lsp.client.onReady();
 
 			const symbolsRequest = await globals.lsp.client.sendRequest("textDocument/documentSymbol", {
@@ -74,7 +78,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			// TODO: use regex only on ranges provided by the LSP (textDocument/documentSymbol)
 
-			// since the LSP doesn't know whether a variable is inferred or not,
+			// since neither LSP or the grammar know whether a variable is inferred or not,
 			// we still need to use regex to find all inferred variable declarations.
 			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
