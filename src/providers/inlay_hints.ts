@@ -47,51 +47,27 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		if (document.fileName.endsWith(".gd")) {
 			await globals.lsp.client.onReady();
 
-			const symbolsRequest = await globals.lsp.client.sendRequest("textDocument/documentSymbol", {
-				textDocument: { uri: document.uri.toString() },
-			}) as unknown[];
-
-			if (symbolsRequest.length === 0) {
-				return hints;
-			}
-
-			const symbols = (typeof symbolsRequest[0] === "object" && "children" in symbolsRequest[0])
-				? (symbolsRequest[0].children as unknown[]) // godot 4.0+ returns an array of children
-				: symbolsRequest; // godot 3.2 and below returns an array of symbols
-
-			const hasDetail = symbols.some((s: any) => s.detail);
-
-			// TODO: use regex only on ranges provided by the LSP
+			// TODO: use regex only on ranges provided by the LSP (textDocument/documentSymbol)
 			// since the LSP doesn't know whether a variable is inferred or not,
 			// we still need to use regex to find inferred variables.
 
-			// matches variables
+			// matches all variable declarations
 			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
+				// until godot supports nested document symbols, we need to send
+				// a hover request for each variable declaration
 				const start = document.positionAt(match.index + match[0].length - 1);
-				if (hasDetail) {
-					// godot 4.0+ automatically provides the "detail" field, allowing us to skip
-					// the extra hover request
-					const symbol = symbols.find((s: any) => s.name === match[6]);
-					if (symbol && symbol["detail"]) {
-						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
-						hints.push(hint);
+				const hoverPosition = document.positionAt(match.index + match[1].length);
+				const response = await globals.lsp.client.sendRequest("textDocument/hover", {
+					textDocument: { uri: document.uri.toString() },
+					position: {
+						line: hoverPosition.line,
+						character: hoverPosition.character,
 					}
-				} else {
-					// godot 3.2 and below don't provide the "detail" field, so we need to
-					// make an extra hover request to get the type of the variable
-					const hoverPosition = document.positionAt(match.index + match[1].length);
-					const response = await globals.lsp.client.sendRequest("textDocument/hover", {
-						textDocument: { uri: document.uri.toString() },
-						position: {
-							line: hoverPosition.line,
-							character: hoverPosition.character,
-						}
-					});
-					const hint = new InlayHint(start, fromDetail(response["contents"].value), InlayHintKind.Type);
-					hints.push(hint);
-				}
+				});
+				const hint = new InlayHint(start, fromDetail(response["contents"].value), InlayHintKind.Type);
+				hints.push(hint);
 			}
 			return hints;
 		}
