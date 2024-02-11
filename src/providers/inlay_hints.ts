@@ -76,7 +76,8 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			const hasDetail = symbols.some((s: any) => s.detail);
 
-			// TODO: use regex only on ranges provided by the LSP (textDocument/documentSymbol)
+			// TODO: make sure godot reports the correct location for variable declaration symbols
+			// (allowing the use of regex only on ranges provided by the LSP (textDocument/documentSymbol))
 
 			// since neither LSP or the grammar know whether a variable is inferred or not,
 			// we still need to use regex to find all inferred variable declarations.
