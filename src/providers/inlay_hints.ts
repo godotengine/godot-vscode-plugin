@@ -15,6 +15,17 @@ import { globals } from "../extension";
 
 const log = createLogger("providers.inlay_hints");
 
+/**
+ * Returns a label from a detail string.
+ * E.g. `var a: int` gets parsed to ` int `.
+ */
+function fromDetail(detail: string): string {
+	const labelRegex = /: ([\w\d_]+)/;
+	const labelMatch = detail.match(labelRegex);
+	const label = labelMatch ? labelMatch[1] : "unknown";
+	return ` ${label} `;
+}
+
 export class GDInlayHintsProvider implements InlayHintsProvider {
 	public parser = new SceneParser();
 
@@ -36,24 +47,49 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		if (document.fileName.endsWith(".gd")) {
 			await globals.lsp.client.onReady();
 
-			// for godot 3, no information on the symbol types
-			const regex = /((^|\r?\n)[\t\s]*([\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
+			const symbolsRequest = await globals.lsp.client.sendRequest("textDocument/documentSymbol", {
+				textDocument: { uri: document.uri.toString() },
+			}) as unknown[];
+
+			if (symbolsRequest.length === 0) {
+				return hints;
+			}
+
+			const symbols = (typeof symbolsRequest[0] === "object" && "children" in symbolsRequest[0])
+				? (symbolsRequest[0].children as unknown[]) // godot 4.0+ returns an array of children
+				: symbolsRequest; // godot 3.2 and below returns an array of symbols
+
+			const hasDetail = symbols.some((s: any) => s.detail);
+
+			// TODO: use regex only on ranges provided by the LSP
+			// since the LSP doesn't know whether a variable is inferred or not,
+			// we still need to use regex to find inferred variables
+			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?var[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
+			
 			for (const match of text.matchAll(regex)) {
 				const start = document.positionAt(match.index + match[0].length - 1);
-				const hoverPosition = document.positionAt(match.index + match[1].length);
-				const response = await globals.lsp.client.sendRequest("textDocument/hover", {
-					textDocument: { uri: document.uri.toString() },
-					position: {
-						line: hoverPosition.line,
-						character: hoverPosition.character,
+				if (hasDetail) {
+					// godot 4.0+ automatically provides the "detail" field, allowing us to skip
+					// the extra hover request
+					const symbol = symbols.find((s: any) => s.name === match[5]);
+					if (symbol && symbol["detail"]) {
+						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
+						hints.push(hint);
 					}
-				});
-				const fullLabel = response["contents"].value;
-				const labelRegex = /: ([\w\d_]+)/;
-				const labelMatch = fullLabel.match(labelRegex);
-				const label = labelMatch ? labelMatch[1] : "unknown";
-				const hint = new InlayHint(start, ` ${label} `, InlayHintKind.Type);
-				hints.push(hint);
+				} else {
+					// godot 3.2 and below don't provide the "detail" field, so we need to
+					// make an extra hover request to get the type of the variable
+					const hoverPosition = document.positionAt(match.index + match[1].length);
+					const response = await globals.lsp.client.sendRequest("textDocument/hover", {
+						textDocument: { uri: document.uri.toString() },
+						position: {
+							line: hoverPosition.line,
+							character: hoverPosition.character,
+						}
+					});
+					const hint = new InlayHint(start, fromDetail(response["contents"].value), InlayHintKind.Type);
+					hints.push(hint);
+				}
 			}
 			return hints;
 		}
