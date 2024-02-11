@@ -53,7 +53,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
 		const hints: InlayHint[] = [];
-		const text = document.getText();
+		const text = document.getText(range);
 
 		if (document.fileName.endsWith(".gd")) {
 			if (!get_configuration("inlayHints.gdscript", true)) {
@@ -83,6 +83,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
+				if (token.isCancellationRequested) break;
 				// TODO: until godot supports nested document symbols, we need to send
 				// a hover request for each variable declaration that is nested
 				const start = document.positionAt(match.index + match[0].length - 1);
