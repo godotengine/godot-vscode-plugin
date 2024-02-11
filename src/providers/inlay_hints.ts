@@ -73,10 +73,9 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const hasDetail = symbols.some((s: any) => s.detail);
 
 			// TODO: use regex only on ranges provided by the LSP (textDocument/documentSymbol)
-			// since the LSP doesn't know whether a variable is inferred or not,
-			// we still need to use regex to find inferred variables.
 
-			// matches all variable declarations
+			// since the LSP doesn't know whether a variable is inferred or not,
+			// we still need to use regex to find all inferred variable declarations.
 			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
