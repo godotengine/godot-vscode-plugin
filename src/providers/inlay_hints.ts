@@ -77,10 +77,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			// we still need to use regex to find inferred variables.
 
 			// matches all variable declarations
-			const regex = hasDetail ?
-				/((^|\r?\n)[\t\s]+(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g :
-				/((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
-				// note the      ^ character
+			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
 				// TODO: until godot supports nested document symbols, we need to send
