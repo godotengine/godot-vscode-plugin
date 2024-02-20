@@ -81,7 +81,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			// since neither LSP or the grammar know whether a variable is inferred or not,
 			// we still need to use regex to find all inferred variable declarations.
-			const regex = /((^|\r?\n)\s*(@?[\w\d_"()\s,'])+\s*(var|const)\s+)([\w\d_]+)\s*:=/g;
+			const regex = /((var|const)\s+)([\w\d_]+)\s*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
 				if (token.isCancellationRequested) break;
@@ -91,7 +91,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 				const hoverPosition = document.positionAt(match.index + match[1].length);
 
 				if (hasDetail) {
-					const symbol = symbols.find((s: any) => s.name === match[6]);
+					const symbol = symbols.find((s: any) => s.name === match[3]);
 					if (symbol && symbol["detail"]) {
 						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
 						hints.push(hint);
