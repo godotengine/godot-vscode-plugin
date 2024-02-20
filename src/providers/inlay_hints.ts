@@ -26,7 +26,7 @@ function fromDetail(detail: string): string {
 	return ` ${label} `;
 }
 
-async function addByHover(document: TextDocument, hoverPosition: vscode.Position, start: vscode.Position): Promise<InlayHint> {
+async function addByHover(document: TextDocument, hoverPosition: vscode.Position, start: vscode.Position): Promise<InlayHint | undefined> {
 	const response = await globals.lsp.client.sendRequest("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
@@ -34,6 +34,12 @@ async function addByHover(document: TextDocument, hoverPosition: vscode.Position
 			character: hoverPosition.character,
 		}
 	});
+
+	// check if contents is an empty array; if it is, we have no hover information
+	if (Array.isArray(response["contents"]) && response["contents"].length === 0) {
+		return undefined;
+	}
+
 	return new InlayHint(start, fromDetail(response["contents"].value), InlayHintKind.Type);
 }
 
@@ -96,10 +102,16 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
 						hints.push(hint);
 					} else {
-						hints.push(await addByHover(document, hoverPosition, start));
+						const hint = await addByHover(document, hoverPosition, start);
+						if (hint) {
+							hints.push(hint);
+						}
 					}
 				} else {
-					hints.push(await addByHover(document, hoverPosition, start));
+					const hint = await addByHover(document, hoverPosition, start);
+					if (hint) {
+						hints.push(hint);
+					}
 				}
 			}
 			return hints;
