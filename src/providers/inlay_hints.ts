@@ -81,7 +81,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			// since neither LSP or the grammar know whether a variable is inferred or not,
 			// we still need to use regex to find all inferred variable declarations.
-			const regex = /((^|\r?\n)[\t\s]*(@?[\w\d_"()\t\s,']+([\t\s]|\r?\n)+)?(var|const)[\t\s]+)([\w\d_]+)[\t\s]*:=/g;
+			const regex = /((^|\r?\n)\s*(@?[\w\d_"()\s,'])+\s*(var|const)\s+)([\w\d_]+)\s*:=/g;
 			
 			for (const match of text.matchAll(regex)) {
 				if (token.isCancellationRequested) break;
