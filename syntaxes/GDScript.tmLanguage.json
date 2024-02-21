@@ -74,6 +74,7 @@
 				{ "include": "#function_call" },
 				{ "include": "#comment" },
 				{ "include": "#self" },
+				{ "include": "#func" },
 				{ "include": "#letter" },
 				{ "include": "#numbers" },
 				{ "include": "#builtin_classes" },
@@ -148,6 +149,10 @@
 		"self": {
 			"match": "\\bself\\b",
 			"name": "variable.language.gdscript"
+		},
+		"func": {
+			"match": "\\bfunc\\b",
+			"name": "keyword.language.gdscript"
 		},
 		"logic_operator": {
 			"match": "\\b(and|or|not|!)\\b",
