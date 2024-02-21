@@ -303,6 +303,16 @@
 					],
 					"default": "sameFolder",
 					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
+				},
+				"godotTools.inlayHints.gdscript": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to enable inlay hints in GDScript files (experimental)"
+				},
+				"godotTools.inlayHints.gdresource": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
 				}
 			}
 		},
