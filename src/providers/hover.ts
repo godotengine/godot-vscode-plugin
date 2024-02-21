@@ -55,11 +55,17 @@ export class GDHoverProvider implements HoverProvider {
 
 				const contents = new MarkdownString();
 				contents.appendMarkdown(links);
-				contents.appendMarkdown("---");
+				const uri = await convert_resource_path_to_uri(resource.path);
+				contents.appendMarkdown("\n---\n");
 				contents.appendCodeblock(definition, "gdresource");
+				if (resource.type === "Texture") {
+					contents.appendMarkdown("\n---\n");
+					contents.appendMarkdown(`<img src="${uri}" min-width=100px max-width=500px/>\n`);
+					contents.supportHtml = true;
+					contents.isTrusted = true;
+				}
 				if (resource.type === "Script") {
-					contents.appendMarkdown("---");
-					const uri = await convert_resource_path_to_uri(resource.path);
+					contents.appendMarkdown("\n---\n");
 					const text = (await vscode.workspace.openTextDocument(uri)).getText();
 					contents.appendCodeblock(text, "gdscript");
 				}
