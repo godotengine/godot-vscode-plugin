@@ -244,6 +244,14 @@
 			"end": "$|;",
 			"patterns": [
 				{
+					"match": "(:)?\\s*(set|get)\\s+=\\s+([a-zA-Z_]\\w*)",
+					"captures": {
+						"1": { "name": "punctuation.separator.annotation.gdscript" },
+						"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" },
+						"3": { "name": "entity.name.function.gdscript" }
+					}
+				},
+				{
 					"match": ":=|=(?!=)",
 					"name": "keyword.operator.assignment.gdscript"
 				},
