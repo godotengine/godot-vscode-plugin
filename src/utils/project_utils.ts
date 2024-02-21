@@ -3,19 +3,29 @@ import * as path from "path";
 import * as fs from "fs";
 import { execSync } from "child_process";
 
-let projectDir = undefined;
-let projectFile = undefined;
+let projectDir: string | undefined = undefined;
+let projectFile: string | undefined = undefined;
 
-export async function get_project_dir() {
+export async function get_project_dir(): Promise<string | undefined> {
 	let file = "";
 	if (vscode.workspace.workspaceFolders != undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot");
-		// if multiple project files, pick the top-most one
-		const best = files.reduce((a, b) => a.fsPath.length <= b.fsPath.length ? a : b);
-		if (best) {
-			file = best.fsPath;
+
+		if (files.length == 0) {
+			return undefined;
+		} else if (files.length == 1) {
+			file = files[0].fsPath;
 			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-				return;
+				return undefined;
+			}
+		} else if (files.length > 1) {
+			// if multiple project files, pick the top-most one
+			const best = files.reduce((a, b) => a.fsPath.length <= b.fsPath.length ? a : b);
+			if (best) {
+				file = best.fsPath;
+				if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
+					return undefined;
+				}
 			}
 		}
 	}
@@ -24,12 +34,17 @@ export async function get_project_dir() {
 	return projectDir;
 }
 
-let projectVersion = undefined;
+let projectVersion: string | undefined = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
 	if (projectDir === undefined || projectFile === undefined) {
 		await get_project_dir();
 	}
+
+	if (projectFile === undefined) {
+		return undefined;
+	}
+
 	let godotVersion = "3.x";
 	const document = await vscode.workspace.openTextDocument(projectFile);
 	const text = document.getText();
@@ -81,7 +96,7 @@ type VERIFY_RESULT = {
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
 	try {
 		const output = execSync(`"${godotPath}" -h`).toString().trim();
-		const pattern = /^Godot Engine v(([34])\.([0-9]+)(?:\.[0-9]+)?)/;
+		const pattern = /^Godot Engine v(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
 		const match = output.match(pattern);
 		if (!match) {
 			return { status: "INVALID_EXE" };
