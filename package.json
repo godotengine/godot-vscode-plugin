@@ -306,8 +306,8 @@
 				},
 				"godotTools.inlayHints.gdscript": {
 					"type": "boolean",
-					"default": true,
-					"description": "Whether to enable inlay hints in GDScript files"
+					"default": false,
+					"description": "Whether to enable inlay hints in GDScript files (experimental)"
 				},
 				"godotTools.inlayHints.gdresource": {
 					"type": "boolean",
