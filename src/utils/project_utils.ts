@@ -8,12 +8,13 @@ let projectFile: string | undefined = undefined;
 
 export async function get_project_dir(): Promise<string | undefined> {
 	let file = "";
-	if (vscode.workspace.workspaceFolders != undefined) {
+	if (vscode.workspace.workspaceFolders !== undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot");
 
-		if (files.length == 0) {
+		if (files.length === 0) {
 			return undefined;
-		} else if (files.length == 1) {
+		} 
+		if (files.length === 1) {
 			file = files[0].fsPath;
 			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
 				return undefined;
@@ -32,6 +33,13 @@ export async function get_project_dir(): Promise<string | undefined> {
 	projectFile = file;
 	projectDir = path.dirname(file);
 	return projectDir;
+}
+
+export async function get_project_file(): Promise<string | undefined> {
+	if (projectDir === undefined || projectFile === undefined) {
+		await get_project_dir();
+	}
+	return projectFile;
 }
 
 let projectVersion: string | undefined = undefined;
@@ -66,25 +74,30 @@ export function find_project_file(start: string, depth: number = 20) {
 	// TODO: rename this, it's actually more like "find_parent_project_file"
 	// This function appears to be fast enough, but if speed is ever an issue,
 	// memoizing the result should be straightforward
-	const folder = path.dirname(start);
-	if (start == folder) {
+	if (start === ".") {
+		if (fs.existsSync("project.godot") && fs.statSync("project.godot").isFile()) {
+			return "project.godot";
+		} 
 		return null;
 	}
-	const projectFile = path.join(folder, "project.godot");
-
-	if (fs.existsSync(projectFile) && fs.statSync(projectFile).isFile()) {
-		return projectFile;
-	} else {
-		if (depth === 0) {
-			return null;
-		}
-		return find_project_file(folder, depth - 1);
+	const folder = path.dirname(start);
+	if (start === folder) {
+		return null;
 	}
+	const projFile = path.join(folder, "project.godot");
+
+	if (fs.existsSync(projFile) && fs.statSync(projFile).isFile()) {
+		return projFile;
+	}
+	if (depth === 0) {
+		return null;
+	}
+	return find_project_file(folder, depth - 1);
 }
 
 export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
-	const dir = find_project_file(resPath).replace("project.godot", "");
-	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring(6));
+	const dir = await get_project_dir();
+	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring("res://".length));
 }
 
 type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
