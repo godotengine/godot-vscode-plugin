@@ -70,4 +70,13 @@ var warns_when_changed = "some value":
 		changed.emit(value)
 		warns_when_changed = value
 
+
+var inline_setter_getter: String = "test" : get = getter, set = setter
+
+func getter():
+	pass
+func setter(x):
+	pass
+
+
 # ------------------------------------------------------------------------------
