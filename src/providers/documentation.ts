@@ -44,13 +44,19 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 
 	public register_capabilities(message: NotificationMessage) {
 		for (const gdclass of (message.params as GodotCapabilities).native_classes) {
-			this.classInfo[gdclass.name] = gdclass;
+			this.classInfo.set(gdclass.name, gdclass);
 		}
-		for (const gdclass of (message.params as GodotCapabilities).native_classes) {
+		for (const gdclass of this.classInfo.values()) {
 			if (gdclass.inherits) {
-				const extended_classes = this.classInfo[gdclass.inherits].extended_classes || [];
+				if (!this.classInfo.has(gdclass.inherits)) {
+					this.classInfo.set(gdclass.inherits, {
+						name: gdclass.inherits,
+						inherits: "",
+					});
+				}
+				const extended_classes = this.classInfo.get(gdclass.inherits).extended_classes || [];
 				extended_classes.push(gdclass.name);
-				this.classInfo[gdclass.inherits].extended_classes = extended_classes;
+				this.classInfo.get(gdclass.inherits).extended_classes = extended_classes;
 			}
 		}
 		this.ready = true;
