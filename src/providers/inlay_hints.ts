@@ -117,6 +117,10 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			return hints;
 		}
 
+		if (!get_configuration("inlayHints.gdresource", true)) {
+			return hints;
+		}
+
 		const scene = this.parser.parse_scene(document);
 
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
