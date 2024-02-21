@@ -230,7 +230,7 @@
 				},
 				"godotTools.editorPath.godot4": {
 					"type": "string",
-					"default": "godot4",
+					"default": "godot",
 					"description": "Path to the Godot 4 editor executable"
 				},
 				"godotTools.editor.verbose": {
