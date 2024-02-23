@@ -64,7 +64,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 
 	public async list_native_classes() {
 		const classname = await vscode.window.showQuickPick(
-			Object.keys(this.classInfo).sort(),
+			[...this.classInfo.keys()].sort(),
 			{
 				placeHolder: "Type godot class name here",
 				canPickMany: false,
@@ -92,11 +92,9 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 			await new Promise(resolve => setTimeout(resolve, 100));
 		}
 
-		if (className in this.symbolDb) {
-			symbol = this.symbolDb[className];
-		}
+		symbol = this.symbolDb.get(className);
 
-		if (!symbol && className in this.classInfo) {
+		if (!symbol && this.classInfo.has(className)) {
 			const params: NativeSymbolInspectParams = {
 				native_class: className,
 				symbol_name: className,
@@ -105,13 +103,13 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 			const response = await globals.lsp.client.sendRequest("textDocument/nativeSymbol", params);
 
 			symbol = response as GodotNativeSymbol;
-			symbol.class_info = this.classInfo[symbol.name];
-			this.symbolDb[symbol.name] = symbol;
+			symbol.class_info = this.classInfo.get(symbol.name);
+			this.symbolDb.set(symbol.name, symbol);
 		}
 		if (!this.htmlDb.has(className)) {
-			this.htmlDb[className] = make_html_content(panel.webview, symbol, target);
+			this.htmlDb.set(className, make_html_content(panel.webview, symbol, target));
 		}
-		panel.webview.html = this.htmlDb[className];
+		panel.webview.html = this.htmlDb.get(className);
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
 		panel.webview.onDidReceiveMessage(msg => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {

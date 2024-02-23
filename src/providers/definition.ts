@@ -32,7 +32,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 			const range = document.getWordRangeAtPosition(position, /(\w+)/);
 			if (range) {
 				const word = document.getText(range);
-				if (globals.docsProvider.classInfo[word] !== undefined) {
+				if (globals.docsProvider.classInfo.has(word)) {
 					const uri = make_docs_uri(word);
 					return new Location(uri, new Position(0, 0));
 				} else {
@@ -45,7 +45,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 						match = line.text.match(/(?<=type)="(\w+)"/);
 					} while (!match && line.lineNumber > 0);
 
-					if (globals.docsProvider.classInfo[match[1]] !== undefined) {
+					if (globals.docsProvider.classInfo.has(match[1])) {
 						const uri = make_docs_uri(match[1], word);
 						return new Location(uri, new Position(0, 0));
 					}
