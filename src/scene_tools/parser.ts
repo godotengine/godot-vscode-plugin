@@ -84,12 +84,18 @@ export class SceneParser {
 		const nodes = {};
 		let lastNode = null;
 
-		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*"?([\w]+)"?\s*\))?\]/g;
+		const nodeRegex = /\[node.*/g;
 		for (const match of text.matchAll(nodeRegex)) {
-			const name = match[1];
-			const type = match[2] ? match[2] : "PackedScene";
-			let parent = match[3];
-			const instance = match[4] ? match[4] : 0;
+			const line = match[0];
+			const name = line.match(/name="([\w]+)"/)?.[1];
+			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
+			let parent = line.match(/parent="([\w\/.]+)"/)?.[1];
+			const instance = line.match(/instance=ExtResource\(\s*"?([\w]+)"?\s*\)/)?.[1];
+
+			// leaving this in case we have a reason to use these node paths in the future
+			// const rawNodePaths = line.match(/node_paths=PackedStringArray\(([\w",\s]*)\)/)?.[1];
+			// const nodePaths = rawNodePaths?.split(",").forEach(x => x.trim().replace("\"", ""));
+
 			let _path = "";
 			let relativePath = "";
 
