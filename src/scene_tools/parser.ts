@@ -12,6 +12,7 @@ export class SceneParser {
 
 	constructor() {
 		if (SceneParser.instance) {
+			// biome-ignore lint/correctness/noConstructorReturn: <explanation>
 			return SceneParser.instance;
 		}
 		SceneParser.instance = this;
