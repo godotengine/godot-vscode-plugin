@@ -98,11 +98,11 @@ export class SceneParser {
 			} else if (parent === ".") {
 				parent = root;
 				relativePath = name;
-				_path = parent + "/" + name;
+				_path = `${parent}/${name}`;
 			} else {
-				relativePath = parent + "/" + name;
-				parent = root + "/" + parent;
-				_path = parent + "/" + name;
+				relativePath = `${parent}/${name}`;
+				parent = `${root}/${parent}`;
+				_path = `${parent}/${name}`;
 			}
 			if (lastNode) {
 				lastNode.body = text.slice(lastNode.position, match.index);
