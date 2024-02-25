@@ -24,7 +24,7 @@ export class SceneParser {
 		if (this.scenes.has(path)) {
 			const scene = this.scenes.get(path);
 
-			if (scene.mtime == stats.mtimeMs) {
+			if (scene.mtime === stats.mtimeMs) {
 				return scene;
 			}
 		}
@@ -92,10 +92,10 @@ export class SceneParser {
 			let _path = "";
 			let relativePath = "";
 
-			if (parent == undefined) {
+			if (parent === undefined) {
 				root = name;
 				_path = name;
-			} else if (parent == ".") {
+			} else if (parent === ".") {
 				parent = root;
 				relativePath = name;
 				_path = parent + "/" + name;
@@ -136,7 +136,7 @@ export class SceneParser {
 				}
 				node.contextValue += "hasResourcePath";
 			}
-			if (_path == root) {
+			if (_path === root) {
 				scene.root = node;
 			}
 			if (parent in nodes) {
