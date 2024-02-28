@@ -39,3 +39,6 @@ func f():
 
 	var v = Vector2(  1  ,  -   1  )
 	var w = Vector2(1,10-1)
+
+	print( - 1  )
+	print( 1 - 1 )

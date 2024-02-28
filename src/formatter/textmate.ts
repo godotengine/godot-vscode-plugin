@@ -93,8 +93,13 @@ function between(tokens: Token[], current: number) {
 	if (prevToken.skip && nextToken.skip) return "";
 
 	if (nextToken.param) {
-		if (prev === "-" && tokens[current - 2]?.value === ",") {
+		if (next === "-" && prev === "(") {
 			return "";
+		}
+		if (prev === "-") {
+			if ([",", "("].includes(tokens[current - 2]?.value)) {
+				return "";
+			}
 		}
 		if (next === "%") return " ";
 		if (prev === "%") return " ";
