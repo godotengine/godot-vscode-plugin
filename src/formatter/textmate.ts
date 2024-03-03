@@ -92,10 +92,9 @@ function between(tokens: Token[], current: number) {
 	if (next === "#") return " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
+	if (prev === "(") return "";
+
 	if (nextToken.param) {
-		if (next === "-" && prev === "(") {
-			return "";
-		}
 		if (prev === "-") {
 			if ([",", "("].includes(tokens[current - 2]?.value)) {
 				return "";
