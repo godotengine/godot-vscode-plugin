@@ -21,6 +21,7 @@ export const keywords = [
 	"master",
 	"mastersync",
 	"match",
+	"when",
 	"not",
 	"onready",
 	"or",

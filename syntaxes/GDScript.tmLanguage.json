@@ -208,7 +208,7 @@
 			"name": "keyword.operator.assignment.gdscript"
 		},
 		"control_flow": {
-			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|yield|await)\\b",
+			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|when|yield|await)\\b",
 			"name": "keyword.control.gdscript"
 		},
 		"keywords": {
