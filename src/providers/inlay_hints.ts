@@ -121,7 +121,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			return hints;
 		}
 
-		const scene = this.parser.parse_scene(document);
+		const scene = await this.parser.parse_scene(document);
 
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];

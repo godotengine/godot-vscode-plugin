@@ -63,6 +63,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.pin", this.pin_preview.bind(this)),
 			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
 			register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this)),
+			register_command("scenePreview.copyOnReadyVariable", this.copy_on_ready_variable.bind(this)),
 			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
@@ -153,7 +154,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			}
 
 			const document = await vscode.workspace.openTextDocument(fileName);
-			this.scene = this.parser.parse_scene(document);
+			this.scene = await this.parser.parse_scene(document);
 
 			this.tree.message = this.scene.title;
 			this.currentScene = fileName;
@@ -179,6 +180,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
+	}
+
+	private copy_on_ready_variable(item: SceneNode) {
+		var var_name = item.label.split(/(?=[A-Z])/).map(function(item) {
+			return item.toLowerCase();
+		}).join("_");
+
+		vscode.env.clipboard.writeText(`@onready var ${var_name}: ${item.className} = $${item.relativePath}`);
 	}
 
 	private copy_resource_path(item: SceneNode) {

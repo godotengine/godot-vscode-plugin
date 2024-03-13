@@ -180,6 +180,11 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.copyOnReadyVariable",
+				"title": "Copy Variable Definition"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.copyResourcePath",
 				"title": "Copy Resource Path"
 			},
@@ -653,6 +658,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.copyOnReadyVariable",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.copyResourcePath",
 					"when": "false"
 				},
@@ -731,6 +740,10 @@
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "view == scenePreview"
+				},
+				{
+					"command": "godotTools.scenePreview.copyOnReadyVariable",
 					"when": "view == scenePreview"
 				},
 				{
