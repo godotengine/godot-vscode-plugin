@@ -86,8 +86,8 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
-		
-		var var_name = source[0].label.split(/(?=[A-Z])/).map(function(item) {
+
+		var var_name = source[0].label.split(/(?=[A-Z])/).map(function (item) {
 			return item.toLowerCase();
 		}).join("_");
 
@@ -101,7 +101,15 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 
 		if (path && className) {
 			if (document.languageId === "gdscript") {
-				return new vscode.DocumentDropEdit(`@onready var ${var_name}: ${className} = $${path}`);
+				const mode = get_configuration("scenePreview.dragDrop");
+
+				if (mode == "path") {
+					return new vscode.DocumentDropEdit(`$${path}`);
+				}
+
+				if (mode == "variableDefinition") {
+					return new vscode.DocumentDropEdit(`@onready var ${var_name}: ${className} = $${path}`);
+				}
 			}
 			if (document.languageId === "csharp") {
 				return new vscode.DocumentDropEdit(`GetNode<${className}>("${path}")`);
@@ -190,7 +198,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private copy_on_ready_variable(item: SceneNode) {
-		var var_name = item.label.split(/(?=[A-Z])/).map(function(item) {
+		var var_name = item.label.split(/(?=[A-Z])/).map(function (item) {
 			return item.toLowerCase();
 		}).join("_");
 
