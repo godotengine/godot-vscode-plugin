@@ -22,6 +22,10 @@ pre:has(code) {
 	border-radius: 8px;
 }
 
+pre code {
+	background-color: none !important;
+}
+
 pre:has(code[class*="language-"])::before {
 	position: absolute;
 	top: 0;
