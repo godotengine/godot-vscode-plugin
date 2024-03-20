@@ -243,7 +243,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 	}
 
 	if (symbol.kind == SymbolKind.Class) {
-		let doc = element("h2", `${symbol.name}`);
+		let doc = element("h2", `Class: ${symbol.name}`);
 		if (symbol.class_info.inherits) {
 			const inherits = make_link(symbol.class_info.inherits, undefined);
 			doc += element("p", `Inherits: ${inherits}`);
