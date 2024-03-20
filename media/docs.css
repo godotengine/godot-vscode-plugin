@@ -20,10 +20,13 @@ pre:has(code) {
 	background-color: var(--vscode-textPreformat-background);
 	padding: 2.5em 1.5em 1em 1.5em;
 	border-radius: 8px;
+	overflow-x: auto;
 }
 
 pre code {
-	background-color: none !important;
+	background-color: transparent !important;
+	padding-left: 0px;
+	padding-right: 0px;
 }
 
 pre:has(code[class*="language-"])::before {
