@@ -243,22 +243,12 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 	}
 
 	if (symbol.kind == SymbolKind.Class) {
-		let doc = element("h2", `Native class ${symbol.name}`);
-		const parts = /extends\s+([A-z0-9]+)/.exec(symbol.detail);
-		let inherits = parts && parts.length > 1 ? parts[1] : "";
-		if (inherits) {
-			let inherits_chain = "";
-			let base_class = symbol.class_info[inherits];
-			while (base_class) {
-				inherits_chain += `${inherits_chain ? " >" : ""} ${make_link(
-					base_class.name,
-					undefined
-				)}`;
-				base_class = symbol.class_info[base_class.inherits];
-			}
-			inherits = `Inherits: ${inherits_chain}`;
-			doc += element("p", inherits);
+		let doc = element("h2", `Class: ${symbol.name}`);
+		if (symbol.class_info.inherits) {
+			const inherits = make_link(symbol.class_info.inherits, undefined);
+			doc += element("p", `Inherits: ${inherits}`);
 		}
+
 		if (symbol.class_info && symbol.class_info.extended_classes) {
 			let inherited = "";
 			for (const c of symbol.class_info.extended_classes) {
@@ -266,6 +256,8 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			}
 			doc += element("p", `Inherited by:${inherited}`);
 		}
+
+		doc += element("p", format_documentation(symbol.documentation, symbol.native_class));
 
 		let constants = "";
 		let signals = "";
@@ -307,10 +299,6 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			}
 		};
 
-		doc += element(
-			"p",
-			format_documentation(symbol.documentation, symbol.native_class)
-		);
 		add_group("Properties", properties_index);
 		add_group("Constants", constants);
 		add_group("Signals", signals);
