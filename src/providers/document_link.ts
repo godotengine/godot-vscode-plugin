@@ -28,7 +28,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 	}
 
 	async provideDocumentLinks(document: TextDocument, token: CancellationToken): Promise<DocumentLink[]> {
-		const scene = this.parser.parse_scene(document);
+		const scene = await this.parser.parse_scene(document);
 		const text = document.getText();
 		const path = document.uri.fsPath;
 

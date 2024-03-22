@@ -41,7 +41,7 @@ export class GDHoverProvider implements HoverProvider {
 
 	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
 		if (["gdresource", "gdscene"].includes(document.languageId)) {
-			const scene = this.parser.parse_scene(document);
+			const scene = await this.parser.parse_scene(document);
 
 			const wordPattern = /(?:Ext|Sub)Resource\(\s?"?(\w+)\s?"?\)/;
 			const word = document.getText(document.getWordRangeAtPosition(position, wordPattern));

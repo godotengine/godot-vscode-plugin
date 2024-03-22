@@ -2,7 +2,7 @@ import { TextDocument, Uri } from "vscode";
 import { basename, extname } from "path";
 import * as fs from "fs";
 import { SceneNode, Scene } from "./types";
-import { createLogger } from "../utils";
+import { convert_resource_path_to_uri, createLogger } from "../utils";
 
 const log = createLogger("scenes.parser");
 
@@ -18,7 +18,7 @@ export class SceneParser {
 		SceneParser.instance = this;
 	}
 
-	public parse_scene(document: TextDocument) {
+	public async parse_scene(document: TextDocument) {
 		const path = document.uri.fsPath;
 		const stats = fs.statSync(path);
 
@@ -38,6 +38,7 @@ export class SceneParser {
 		this.scenes.set(path, scene);
 
 		const text = document.getText();
+		var codeType: string;
 
 		for (const match of text.matchAll(/\[ext_resource.*/g)) {
 			const line = match[0];
@@ -45,6 +46,13 @@ export class SceneParser {
 			const path = line.match(/path="([\w.:/]+)"/)?.[1];
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
 			const id = line.match(/ id="?([\w]+)"?/)?.[1];
+
+			if (type === "Script") {
+				const uri = await convert_resource_path_to_uri(path);
+
+				var contents = fs.readFileSync(uri.fsPath, "utf-8");
+				codeType = contents.match(/class_name.([\w]+)/)?.[1];
+			}
 
 			scene.externalResources[id] = {
 				body: line,
@@ -88,7 +96,7 @@ export class SceneParser {
 		for (const match of text.matchAll(nodeRegex)) {
 			const line = match[0];
 			const name = line.match(/name="([\w]+)"/)?.[1];
-			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
+			var type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
 			let parent = line.match(/parent="([\w\/.]+)"/)?.[1];
 			const instance = line.match(/instance=ExtResource\(\s*"?([\w]+)"?\s*\)/)?.[1];
 
@@ -102,6 +110,7 @@ export class SceneParser {
 			if (parent === undefined) {
 				root = name;
 				_path = name;
+				type = codeType ? codeType : type;
 			} else if (parent === ".") {
 				parent = root;
 				relativePath = name;
@@ -139,6 +148,25 @@ export class SceneParser {
 					node.resourcePath = scene.externalResources[instance].path;
 					if ([".tscn"].includes(extname(node.resourcePath))) {
 						node.contextValue += "openable";
+					}
+
+					// get code type
+					if (scene.externalResources[instance].path.includes(".tscn")) {
+						// get scene
+						const uri = await convert_resource_path_to_uri(scene.externalResources[instance].path);
+						var contents = fs.readFileSync(uri.fsPath, "utf-8");
+
+						// get script
+						var scriptPath = contents.match(/\[ext_resource type="Script" path="([\w.:/]+)"/)?.[1];
+						if (scriptPath) {
+							const scriptUri = await convert_resource_path_to_uri(scriptPath);
+							var scriptContents = fs.readFileSync(scriptUri.fsPath, "utf-8");
+							var scriptType = scriptContents.match(/class_name.([\w]+)/)?.[1];
+							if (scriptType) {
+								node.description = scriptType;
+								node.className = scriptType;
+							}
+						}
 					}
 				}
 				node.contextValue += "hasResourcePath";

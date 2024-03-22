@@ -180,6 +180,11 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.copyOnReadyVariable",
+				"title": "Copy Variable Definition"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.copyResourcePath",
 				"title": "Copy Resource Path"
 			},
@@ -303,6 +308,18 @@
 					],
 					"default": "sameFolder",
 					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
+				},
+				"godotTools.scenePreview.dragDrop": {
+					"enum": [
+						"path",
+						"variableDefinition"
+					],
+					"enumDescriptions": [
+						"Write item's path",
+						"Write variable definition."
+					],
+					"default": "path",
+					"description": "Controls the Scene Preview drag/drop functionality."
 				},
 				"godotTools.inlayHints.gdscript": {
 					"type": "boolean",
@@ -653,6 +670,10 @@
 					"when": "false"
 				},
 				{
+					"command": "godotTools.scenePreview.copyOnReadyVariable",
+					"when": "false"
+				},
+				{
 					"command": "godotTools.scenePreview.copyResourcePath",
 					"when": "false"
 				},
@@ -731,6 +752,10 @@
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "view == scenePreview"
+				},
+				{
+					"command": "godotTools.scenePreview.copyOnReadyVariable",
 					"when": "view == scenePreview"
 				},
 				{

@@ -63,6 +63,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.pin", this.pin_preview.bind(this)),
 			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
 			register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this)),
+			register_command("scenePreview.copyOnReadyVariable", this.copy_on_ready_variable.bind(this)),
 			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
@@ -85,15 +86,30 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
+
+		var var_name = source[0].label.split(/(?=[A-Z])/).map(function (item) {
+			return item.toLowerCase();
+		}).join("_");
+
+		data.set("godot/var_name", new vscode.DataTransferItem(var_name));
 	}
 
 	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
 		const path = dataTransfer.get("godot/path").value;
 		const className = dataTransfer.get("godot/class").value;
+		const var_name = dataTransfer.get("godot/var_name").value;
 
 		if (path && className) {
 			if (document.languageId === "gdscript") {
-				return new vscode.DocumentDropEdit(`$${path}`);
+				const mode = get_configuration("scenePreview.dragDrop");
+
+				if (mode == "path") {
+					return new vscode.DocumentDropEdit(`$${path}`);
+				}
+
+				if (mode == "variableDefinition") {
+					return new vscode.DocumentDropEdit(`@onready var ${var_name}: ${className} = $${path}`);
+				}
 			}
 			if (document.languageId === "csharp") {
 				return new vscode.DocumentDropEdit(`GetNode<${className}>("${path}")`);
@@ -153,7 +169,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			}
 
 			const document = await vscode.workspace.openTextDocument(fileName);
-			this.scene = this.parser.parse_scene(document);
+			this.scene = await this.parser.parse_scene(document);
 
 			this.tree.message = this.scene.title;
 			this.currentScene = fileName;
@@ -179,6 +195,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
+	}
+
+	private copy_on_ready_variable(item: SceneNode) {
+		var var_name = item.label.split(/(?=[A-Z])/).map(function (item) {
+			return item.toLowerCase();
+		}).join("_");
+
+		vscode.env.clipboard.writeText(`@onready var ${var_name}: ${item.className} = $${item.relativePath}`);
 	}
 
 	private copy_resource_path(item: SceneNode) {
