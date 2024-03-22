@@ -69,3 +69,6 @@ var a = $"%Child/GrandChild".some_method()
 var a = $Child.get_node('GrandChild').some_method()
 var a = $"Child".get_node('GrandChild').some_method()
 var a = $"%Child".get_node('GrandChild').some_method()
+
+func f():
+	$Child.add_child(%Unique)

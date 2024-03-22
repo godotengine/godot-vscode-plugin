@@ -57,9 +57,7 @@
 				{ "include": "#strings" },
 				{ "include": "#const_vars" },
 				{ "include": "#keywords" },
-				{ "include": "#logic_operator" },
-				{ "include": "#compare_operator" },
-				{ "include": "#arithmetic_operator" },
+				{ "include": "#operators" },
 				{ "include": "#lambda_declaration" },
 				{ "include": "#class_declaration" },
 				{ "include": "#variable_declaration" },
@@ -154,10 +152,6 @@
 			"match": "\\bfunc\\b",
 			"name": "keyword.language.gdscript"
 		},
-		"logic_operator": {
-			"match": "\\b(and|or|not|!)\\b",
-			"name": "keyword.operator.wordlike.gdscript"
-		},
 		"in_keyword": {
 			"patterns": [
 				{
@@ -180,12 +174,33 @@
 				}
 			]
 		},
+		"operators": {
+			"patterns": [
+				{ "include": "#wordlike_operator" },
+				{ "include": "#boolean_operator" },
+				{ "include": "#bitwise_operator" },
+				{ "include": "#compare_operator" },
+				{ "include": "#arithmetic_operator" }
+			]
+		},
+		"wordlike_operator": {
+			"match": "(and|or|not)",
+			"name": "keyword.operator.wordlike.gdscript"
+		},
+		"boolean_operator": {
+			"match": "(&&|\\|\\|)",
+			"name": "keyword.operator.boolean.gdscript"
+		},
+		"bitwise_operator": {
+			"match": "&|\\||<<|>>|\\^|~",
+			"name": "keyword.operator.bitwise.gdscript"
+		},
 		"compare_operator": {
-			"match": "<=|>=|==|<|>|!=",
+			"match": "<=|>=|==|<|>|!=|!",
 			"name": "keyword.operator.comparison.gdscript"
 		},
 		"arithmetic_operator": {
-			"match": "->|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*|/|%|\\+|-|<<|>>|&|\\||\\^|~|!",
+			"match": "->|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*\\*|\\*|/|%|\\+|-",
 			"name": "keyword.operator.arithmetic.gdscript"
 		},
 		"assignment_operator": {
@@ -193,7 +208,7 @@
 			"name": "keyword.operator.assignment.gdscript"
 		},
 		"control_flow": {
-			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|yield|await)\\b",
+			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|when|yield|await)\\b",
 			"name": "keyword.control.gdscript"
 		},
 		"keywords": {

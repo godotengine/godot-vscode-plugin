@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { get_extension_uri, createLogger } from "../utils";
+import { get_configuration, get_extension_uri, createLogger } from "../utils";
 
 const log = createLogger("formatter.tm");
 
@@ -92,9 +92,13 @@ function between(tokens: Token[], current: number) {
 	if (next === "#") return " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
+	if (prev === "(") return "";
+
 	if (nextToken.param) {
-		if (prev === "-" && tokens[current - 2]?.value === ",") {
-			return "";
+		if (prev === "-") {
+			if ([",", "("].includes(tokens[current - 2]?.value)) {
+				return "";
+			}
 		}
 		if (next === "%") return " ";
 		if (prev === "%") return " ";
@@ -166,8 +170,11 @@ export function format_document(document: TextDocument): TextEdit[] {
 	}
 	const edits: TextEdit[] = [];
 
+	const emptyLinesBetweenFunctions : "one" | "two" = get_configuration("formatter.emptyLinesBetweenFunctions");
+
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
+	let emptyLineCount = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
@@ -177,21 +184,31 @@ export function format_document(document: TextDocument): TextEdit[] {
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			} else {
-				// Limit the number of consecutive empty lines
-				const maxEmptyLines: number = 1;
-				if (maxEmptyLines === 1) {
-					if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
-						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
-					}
-				} else if (maxEmptyLines === 2) {
-					if (lineNum < document.lineCount - 2 && document.lineAt(lineNum + 1).isEmptyOrWhitespace && document.lineAt(lineNum + 2).isEmptyOrWhitespace) {
-						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
-					}
-				}
+				emptyLineCount++;
 			}
 			continue;
 		}
 		onlyEmptyLinesSoFar = false;
+
+		// delete consecutive empty lines
+		if (emptyLineCount) {
+			let maxEmptyLines = 1;
+
+			const start = line.text.trimStart();
+			if (emptyLinesBetweenFunctions === "two") {
+				if (start.startsWith("func")) {
+					maxEmptyLines++;
+				}
+			}
+			if (start.startsWith("class")) {
+				maxEmptyLines++;
+			}
+
+			for (let i = (emptyLineCount - maxEmptyLines); i; i--) {
+				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
+			}
+			emptyLineCount = 0;
+		}
 
 		// skip comments
 		if (line.text[line.firstNonWhitespaceCharacterIndex] === "#") {
