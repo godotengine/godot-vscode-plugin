@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import * as os from "os";
 import { execSync } from "child_process";
 
 let projectDir: string | undefined = undefined;
@@ -108,6 +109,10 @@ type VERIFY_RESULT = {
 
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
 	try {
+		if (os.platform() === 'darwin' && godotPath.endsWith('.app')) {
+			godotPath = path.join(godotPath, 'Contents', 'MacOS', 'Godot');
+		}
+
 		const output = execSync(`"${godotPath}" --version`).toString().trim();
 		const pattern = /^(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
 		const match = output.match(pattern);
