@@ -9,11 +9,11 @@ let projectFile: string | undefined = undefined;
 export async function get_project_dir(): Promise<string | undefined> {
 	let file = "";
 	if (vscode.workspace.workspaceFolders !== undefined) {
-		const files = await vscode.workspace.findFiles("**/project.godot");
+		const files = await vscode.workspace.findFiles("**/project.godot", null);
 
 		if (files.length === 0) {
 			return undefined;
-		} 
+		}
 		if (files.length === 1) {
 			file = files[0].fsPath;
 			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
@@ -77,7 +77,7 @@ export function find_project_file(start: string, depth: number = 20) {
 	if (start === ".") {
 		if (fs.existsSync("project.godot") && fs.statSync("project.godot").isFile()) {
 			return "project.godot";
-		} 
+		}
 		return null;
 	}
 	const folder = path.dirname(start);
