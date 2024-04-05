@@ -1,11 +1,3 @@
-.codeblock {
-	padding: 0.5em;
-	margin: .5em 0;
-	overflow: auto;
-	border-radius: 0.3em;
-	!background-color: #fdf6e3;
-}
-
 body {
 	margin-right: 200px;
 }
@@ -21,4 +13,35 @@ a {
 	width: 200px;
 	height: 100%;
 	z-index: 100;
+}
+
+pre:has(code) {
+	position: relative;
+	background-color: var(--vscode-textPreformat-background);
+	padding: 2.5em 1.5em 1em 1.5em;
+	border-radius: 8px;
+	overflow-x: auto;
+}
+
+pre code {
+	background-color: transparent !important;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+pre:has(code[class*="language-"])::before {
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding: 0.5em 1em;
+	color: var(--vscode-titlebar-activeForeground);
+	font-family: var(--vscode-font-family);
+}
+
+pre:has(code.language-gdscript)::before {
+	content: "GDScript";
+}
+
+pre:has(code.language-csharp)::before {
+	content: "C#";
 }
