@@ -184,7 +184,7 @@
 			]
 		},
 		"wordlike_operator": {
-			"match": "(and|or|not)",
+			"match": "\\b(and|or|not)\\b",
 			"name": "keyword.operator.wordlike.gdscript"
 		},
 		"boolean_operator": {
