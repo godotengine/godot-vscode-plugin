@@ -15,13 +15,13 @@ export function is_debug_mode(): boolean {
 export async function find_file(file: string): Promise<vscode.Uri | null> {
 	if (fs.existsSync(file)) {
 		return vscode.Uri.file(file);
-	} else {
-		const fileName = path.basename(file);
-		const results = await vscode.workspace.findFiles("**/" + fileName);
-		if (results.length == 1) {
-			return results[0];
-		}
 	}
+	const fileName = path.basename(file);
+	const results = await vscode.workspace.findFiles(`**/${fileName}`, null);
+	if (results.length === 1) {
+		return results[0];
+	}
+	
 	return null;
 }
 
@@ -38,7 +38,7 @@ export async function get_free_port(): Promise<number> {
 export function make_docs_uri(path: string, fragment?: string) {
 	return vscode.Uri.from({
 		scheme: "gddoc",
-		path: path + ".gddoc",
+		path: `${path}.gddoc`,
 		fragment: fragment,
 	});
 }
