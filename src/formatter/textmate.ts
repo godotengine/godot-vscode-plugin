@@ -65,6 +65,10 @@ function parse_token(token: Token) {
 		token.type = "symbol";
 		return;
 	}
+	// "preload" is highlighted as a keyword but it behaves like a function
+	if (token.value === "preload") {
+		return;
+	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
 		token.type = "keyword";
 		return;
