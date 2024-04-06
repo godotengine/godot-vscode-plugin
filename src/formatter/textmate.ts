@@ -190,6 +190,13 @@ export function format_document(document: TextDocument): TextEdit[] {
 			} else {
 				emptyLineCount++;
 			}
+
+			// delete empty lines at the end of the file
+			if (lineNum === document.lineCount - 1) {
+				for (let i = lineNum - emptyLineCount + 1; i < document.lineCount; i++) {
+					edits.push(TextEdit.delete(document.lineAt(i).rangeIncludingLineBreak));
+				}
+			}
 			continue;
 		}
 		onlyEmptyLinesSoFar = false;
