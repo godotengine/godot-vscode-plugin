@@ -262,6 +262,7 @@ export class ClientConnectionManager {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
+				this.reconnectionAttempts = 0;
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
 				if (!this.client.started) {
