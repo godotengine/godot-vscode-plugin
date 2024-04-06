@@ -17,7 +17,7 @@ export async function find_file(file: string): Promise<vscode.Uri | null> {
 		return vscode.Uri.file(file);
 	} else {
 		const fileName = path.basename(file);
-		const results = await vscode.workspace.findFiles("**/" + fileName);
+		const results = await vscode.workspace.findFiles("**/" + fileName, null);
 		if (results.length == 1) {
 			return results[0];
 		}
