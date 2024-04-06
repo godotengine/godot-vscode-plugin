@@ -21,7 +21,7 @@ export enum TargetLSP {
 const CUSTOM_MESSAGE = "gdscript_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
-	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") == "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") === "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
@@ -29,18 +29,18 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	public target: TargetLSP = TargetLSP.EDITOR;
 
-	public port: number = -1;
-	public lastPortTried: number = -1;
+	public port = -1;
+	public lastPortTried = -1;
 	public sentMessages = new Map();
-	public lastSymbolHovered: string = "";
+	public lastSymbolHovered = "";
 
-	private _started: boolean = false;
+	private _started = false;
 	public get started(): boolean { return this._started; }
 
 	private _status: ClientStatus;
 	public get status(): ClientStatus { return this._status; }
 	public set status(v: ClientStatus) {
-		if (this._status != v) {
+		if (this._status !== v) {
 			this._status = v;
 			for (const callback of this._status_changed_callbacks) {
 				callback(v);
@@ -49,7 +49,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	public watch_status(callback: (v: ClientStatus) => void) {
-		if (this._status_changed_callbacks.indexOf(callback) == -1) {
+		if (this._status_changed_callbacks.indexOf(callback) === -1) {
 			this._status_changed_callbacks.push(callback);
 		}
 	}
@@ -95,7 +95,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			port = this.port;
 		}
 
-		if (this.target == TargetLSP.EDITOR) {
+		if (this.target === TargetLSP.EDITOR) {
 			if (port === 6005 || port === 6008) {
 				port = 6005;
 			}
@@ -117,7 +117,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private on_send_message(message: RequestMessage) {
 		this.sentMessages.set(message.id, message);
 
-		if (message.method == "initialize") {
+		if (message.method === "initialize") {
 			this._initialize_request = message;
 		}
 	}
@@ -186,7 +186,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const contents = message["contents"];
 
 		let decl: string;
-		if (contents instanceof Array) {
+		if (Array.isArray(contents)) {
 			decl = contents[0];
 		} else {
 			decl = contents.value;
@@ -196,7 +196,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 		decl = decl.split("\n")[0].trim();
 
-		let match;
+		let match: RegExpMatchArray;
 		let result = undefined;
 		match = decl.match(/(?:func|const) (@?\w+)\.(\w+)/);
 		if (match) {
@@ -222,7 +222,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_disconnected() {
-		if (this.target == TargetLSP.EDITOR) {
+		if (this.target === TargetLSP.EDITOR) {
 			const host = get_configuration("lsp.serverHost");
 			let port = get_configuration("lsp.serverPort");
 
