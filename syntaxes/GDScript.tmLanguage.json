@@ -412,7 +412,7 @@
 			"name": "constant.language.gdscript"
 		},
 		"pascal_case_class": {
-			"match": "\\b([A-Z][a-z_0-9]*([A-Z]?[a-z_0-9]+)*[A-Z]?)\\b",
+			"match": "\\b([A-Z]+[a-z_0-9]*([A-Z]?[a-z_0-9]+)*[A-Z]?)\\b",
 			"name": "entity.name.type.class.gdscript"
 		},
 		"signal_declaration_bare": {
