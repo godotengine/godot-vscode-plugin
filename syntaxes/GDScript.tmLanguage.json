@@ -55,6 +55,7 @@
 				{ "include": "#nodepath_object" },
 				{ "include": "#nodepath_function" },
 				{ "include": "#strings" },
+				{ "include": "#builtin_classes" },
 				{ "include": "#const_vars" },
 				{ "include": "#keywords" },
 				{ "include": "#operators" },
@@ -75,7 +76,6 @@
 				{ "include": "#func" },
 				{ "include": "#letter" },
 				{ "include": "#numbers" },
-				{ "include": "#builtin_classes" },
 				{ "include": "#pascal_case_class" },
 				{ "include": "#line_continuation" }
 			]
