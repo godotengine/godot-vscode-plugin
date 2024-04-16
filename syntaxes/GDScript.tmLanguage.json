@@ -509,7 +509,7 @@
 			"beginCaptures": {
 				"1": { "name": "variable.parameter.function.language.gdscript" },
 				"2": { "name": "punctuation.separator.annotation.gdscript" },
-				"3": { "name": "entity.name.type.class.builtin.gdscript" }
+				"3": { "name": "entity.name.type.class.gdscript" }
 			},
 			"end": "(,)|(?=\\))",
 			"endCaptures": { "1": { "name": "punctuation.separator.parameters.gdscript" } },
