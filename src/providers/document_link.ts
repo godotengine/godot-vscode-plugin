@@ -62,7 +62,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 				links.push(link);
 			}
 		}
-		for (const match of text.matchAll(/res:\/\/[^"^']*/g)) {
+		for (const match of text.matchAll(/res:\/\/([^"'\n]*)/g)) {
 			const r = this.create_range(document, match);
 			const uri = await convert_resource_path_to_uri(match[0]);
 			if (uri instanceof Uri) {
