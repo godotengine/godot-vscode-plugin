@@ -100,6 +100,9 @@ function between(tokens: Token[], current: number) {
 
 	if (nextToken.param) {
 		if (prev === "-") {
+			if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+				return "";
+			}
 			if ([",", "("].includes(tokens[current - 2]?.value)) {
 				return "";
 			}
@@ -125,7 +128,10 @@ function between(tokens: Token[], current: number) {
 	if (prev === "@") return "";
 
 	if (prev === "-") {
-		if (tokens[current - 2]?.value === "(") {
+		if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+			return "";
+		}
+		if ([",", "("].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
 	}
