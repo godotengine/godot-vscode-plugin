@@ -10,7 +10,7 @@ const log = createLogger("formatter.tm");
 // Promisify readFile
 function readFile(path) {
 	return new Promise((resolve, reject) => {
-		fs.readFile(path, (error, data) => error ? reject(error) : resolve(data));
+		fs.readFile(path, (error, data) => (error ? reject(error) : resolve(data)));
 	});
 }
 
@@ -22,17 +22,21 @@ const wasmBin = fs.readFileSync(wasmPath).buffer;
 const registry = new vsctm.Registry({
 	onigLib: oniguruma.loadWASM(wasmBin).then(() => {
 		return {
-			createOnigScanner(patterns) { return new oniguruma.OnigScanner(patterns); },
-			createOnigString(s) { return new oniguruma.OnigString(s); }
+			createOnigScanner(patterns) {
+				return new oniguruma.OnigScanner(patterns);
+			},
+			createOnigString(s) {
+				return new oniguruma.OnigString(s);
+			},
 		};
 	}),
 	loadGrammar: (scopeName) => {
 		if (scopeName === "source.gdscript") {
-			return readFile(grammarPath).then(data => vsctm.parseRawGrammar(data.toString(), grammarPath));
+			return readFile(grammarPath).then((data) => vsctm.parseRawGrammar(data.toString(), grammarPath));
 		}
 		// console.log(`Unknown scope name: ${scopeName}`);
 		return null;
-	}
+	},
 });
 
 interface Token {
@@ -171,7 +175,9 @@ function between(tokens: Token[], current: number) {
 
 let grammar = null;
 
-registry.loadGrammar("source.gdscript").then(g => { grammar = g; });
+registry.loadGrammar("source.gdscript").then((g) => {
+	grammar = g;
+});
 
 export function format_document(document: TextDocument): TextEdit[] {
 	// quit early if grammar is not loaded
@@ -180,7 +186,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 	}
 	const edits: TextEdit[] = [];
 
-	const emptyLinesBetweenFunctions : "one" | "two" = get_configuration("formatter.emptyLinesBetweenFunctions");
+	const emptyLinesBetweenFunctions: "one" | "two" = get_configuration("formatter.emptyLinesBetweenFunctions");
 
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
@@ -221,7 +227,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 				maxEmptyLines++;
 			}
 
-			for (let i = (emptyLineCount - maxEmptyLines); i; i--) {
+			for (let i = emptyLineCount - maxEmptyLines; i; i--) {
 				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
