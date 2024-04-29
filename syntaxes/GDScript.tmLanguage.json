@@ -95,13 +95,36 @@
 					"name": "constant.character.escape.gdscript",
 					"match": "\\\\."
 				},
-				{ "include": "#string_formatting" }
+				{ "include": "#string_percent_placeholders" },
+				{ "include": "#string_bracket_placeholders" }
 			]
 		},
-		"string_formatting": {
+		"string_percent_placeholders": {
 			"name": "meta.format.percent.gdscript",
 			"match": "(?x)\n  (\n % (\\([\\w\\s]*\\))?\n [-+#0 ]*\n (\\d+|\\*)? (\\.(\\d+|\\*))?\n ([hlL])?\n [diouxXeEfFgGcrsab%]\n  )\n",
 			"captures": { "1": { "name": "constant.character.format.placeholder.other.gdscript" } }
+		},
+		"string_bracket_placeholders": {
+			"patterns": [
+				{
+					"name": "meta.format.brace.gdscript",
+					"match": "(?x)\n  (\n    {{ | }}\n    | (?:\n      {\n        \\w* (\\.[[:alpha:]_]\\w* | \\[[^\\]'\"]+\\])*\n        (![rsa])?\n        ( : \\w? [<>=^]? [-+ ]? \\#?\n          \\d* ,? (\\.\\d+)? [bcdeEfFgGnosxX%]? )?\n      })\n  )\n",
+					"captures": {
+						"1": { "name": "constant.character.format.placeholder.other.gdscript" },
+						"3": { "name": "storage.type.format.gdscript" },
+						"4": { "name": "storage.type.format.gdscript" }
+					}
+				},
+				{
+					"name": "meta.format.brace.gdscript",
+					"match": "(?x)\n  (\n    {\n      \\w* (\\.[[:alpha:]_]\\w* | \\[[^\\]'\"]+\\])*\n      (![rsa])?\n      (:)\n        [^'\"{}\\n]* (?:\n          \\{ [^'\"}\\n]*? \\} [^'\"{}\\n]*\n        )*\n    }\n  )\n",
+					"captures": {
+						"1": { "name": "constant.character.format.placeholder.other.gdscript" },
+						"3": { "name": "storage.type.format.gdscript" },
+						"4": { "name": "storage.type.format.gdscript" }
+					}
+				}
+			]
 		},
 		"nodepath_object": {
 			"name": "meta.literal.nodepath.gdscript",
