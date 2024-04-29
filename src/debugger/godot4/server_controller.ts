@@ -8,7 +8,7 @@ import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotVariable, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { get_configuration, get_free_port, createLogger, verify_godot_version, get_project_version } from "../../utils";
+import { get_configuration, get_free_port, createLogger, verify_godot_version, get_project_version, clean_godot_path } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
 import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
@@ -108,7 +108,7 @@ export class ServerController {
 		if (args.editor_path) {
 			log.info("Using 'editor_path' variable from launch.json");
 
-			godotPath = args.editor_path.replace(/^"/, "").replace(/"$/, "");
+			godotPath = clean_godot_path(args.editor_path);
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "4");
@@ -135,7 +135,7 @@ export class ServerController {
 			log.info("Using 'editorPath.godot4' from settings");
 
 			const settingName = "editorPath.godot4";
-			godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
+			godotPath = clean_godot_path(get_configuration(settingName));
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "4");
