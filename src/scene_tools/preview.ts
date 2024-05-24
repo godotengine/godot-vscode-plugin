@@ -26,6 +26,7 @@ import {
 	register_command,
 	createLogger,
 	make_docs_uri,
+	node_name_to_snake,
 } from "../utils";
 import { SceneParser } from "./parser";
 import { SceneNode, Scene } from "./types";
@@ -88,13 +89,16 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
-		const path = dataTransfer.get("godot/path").value;
-		const className = dataTransfer.get("godot/class").value;
-
+		const path: string = dataTransfer.get("godot/path").value;
+		const className: string = dataTransfer.get("godot/class").value;
+		
 		if (path && className) {
 			if (document.languageId === "gdscript") {
-				return new vscode.DocumentDropEdit(`$${path}`);
+				const fileName = path.split("/").pop();
+
+				return new vscode.DocumentDropEdit(`\r\n@onready var ${node_name_to_snake(fileName)}: ${className} = $${path}`);
 			}
+
 			if (document.languageId === "csharp") {
 				return new vscode.DocumentDropEdit(`GetNode<${className}>("${path}")`);
 			}
