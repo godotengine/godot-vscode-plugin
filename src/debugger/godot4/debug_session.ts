@@ -385,7 +385,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.append_variable(va);
 		});
 
-		this.add_to_inspections();
+		this.all_scopes.forEach(scope => this.add_to_inspections(scope?.sub_values));
 
 		if (this.ongoing_inspections.length === 0) {
 			this.previous_inspections = [];
@@ -421,8 +421,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	private add_to_inspections() {
-		this.all_scopes.forEach((va) => {
+	public add_to_inspections(variables: GodotVariable[]) {
+		variables?.forEach((va) => {
 			if (va && va.value instanceof ObjectId) {
 				if (
 					!this.ongoing_inspections.includes(va.value.id) &&
