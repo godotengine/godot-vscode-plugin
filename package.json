@@ -639,23 +639,11 @@
 					"when": "godotTools.context.connectedToLSP"
 				},
 				{
-					"command": "godotTools.scenePreview.refresh",
-					"when": "false"
-				},
-				{
 					"command": "godotTools.scenePreview.goToDefinition",
 					"when": "false"
 				},
 				{
 					"command": "godotTools.scenePreview.openDocumentation",
-					"when": "false"
-				},
-				{
-					"command": "godotTools.scenePreview.lock",
-					"when": "false"
-				},
-				{
-					"command": "godotTools.scenePreview.unlock",
 					"when": "false"
 				},
 				{
