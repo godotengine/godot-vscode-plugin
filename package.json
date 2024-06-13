@@ -157,6 +157,24 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openCurrentScene",
+				"title": "Open the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/PackedScene.svg",
+					"dark": "resources/godot_icons/dark/PackedScene.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openMainScript",
+				"title": "Open the main script of the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/Script.svg",
+					"dark": "resources/godot_icons/dark/Script.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.lock",
 				"title": "Lock Scene Preview",
 				"icon": {
@@ -704,6 +722,16 @@
 					"command": "godotTools.scenePreview.refresh",
 					"when": "view == scenePreview",
 					"group": "navigation@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openMainScript",
+					"when": "view == scenePreview",
+					"group": "navigation@3"
+				},
+				{
+					"command": "godotTools.scenePreview.openCurrentScene",
+					"when": "view == scenePreview",
+					"group": "navigation@4"
 				}
 			],
 			"view/item/context": [

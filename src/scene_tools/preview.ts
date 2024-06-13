@@ -68,6 +68,8 @@ export class ScenePreviewProvider
 			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
+			register_command("scenePreview.openCurrentScene", this.open_current_scene.bind(this)),
+			register_command("scenePreview.openCurrentScript", this.open_main_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
@@ -212,6 +214,26 @@ export class ScenePreviewProvider
 		}
 	}
 
+	private async open_current_scene() {
+		if (this.currentScene) {
+			const document = await vscode.workspace.openTextDocument(this.currentScene);
+			vscode.window.showTextDocument(document);
+		}
+	}
+
+	private async open_main_script() {
+		if (this.currentScene) {
+			const root = this.scene.root;
+			if (root?.hasScript) {
+				const path = this.scene.externalResources[root.scriptId].path;
+				const uri = await convert_resource_path_to_uri(path);
+				if (uri) {
+					vscode.window.showTextDocument(uri, { preview: true });
+				}
+			}
+		}
+	}
+
 	private async go_to_definition(item: SceneNode) {
 		const document = await vscode.workspace.openTextDocument(this.currentScene);
 		const start = document.positionAt(item.position);
@@ -237,9 +259,9 @@ export class ScenePreviewProvider
 			if (!this.scene?.root) {
 				return Promise.resolve([]);
 			}
-				return Promise.resolve([this.scene?.root]);
+			return Promise.resolve([this.scene?.root]);
 		}
-			return Promise.resolve(element.children);
+		return Promise.resolve(element.children);
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
