@@ -32,7 +32,9 @@ import { SceneNode, Scene } from "./types";
 
 const log = createLogger("scenes.preview");
 
-export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider {
+export class ScenePreviewProvider
+	implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider
+{
 	public dropMimeTypes = [];
 	public dragMimeTypes = [];
 	private tree: TreeView<SceneNode>;
@@ -52,7 +54,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	constructor(private context: ExtensionContext) {
 		this.tree = vscode.window.createTreeView("scenePreview", {
 			treeDataProvider: this,
-			dragAndDropController: this
+			dragAndDropController: this,
 		});
 
 		const selector = [
@@ -82,12 +84,21 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		this.refresh();
 	}
 
-	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
+	public handleDrag(
+		source: readonly SceneNode[],
+		data: vscode.DataTransfer,
+		token: vscode.CancellationToken,
+	): void | Thenable<void> {
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 	}
 
-	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
+	public provideDocumentDropEdits(
+		document: vscode.TextDocument,
+		position: vscode.Position,
+		dataTransfer: vscode.DataTransfer,
+		token: vscode.CancellationToken,
+	): vscode.ProviderResult<vscode.DocumentDropEdit> {
 		const path = dataTransfer.get("godot/path").value;
 		const className = dataTransfer.get("godot/class").value;
 
@@ -216,7 +227,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
 		// const item = event.selection[0];
 		// log(item.body);
-
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -254,7 +264,7 @@ class UniqueDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreviewProvider) {}
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
@@ -274,7 +284,7 @@ class ScriptDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreviewProvider) {}
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
