@@ -38,7 +38,7 @@ export class ScenePreviewProvider
 	public dropMimeTypes = [];
 	public dragMimeTypes = [];
 	private tree: TreeView<SceneNode>;
-	private scenePreviewPinned = false;
+	private scenePreviewLocked = false;
 	private currentScene = "";
 	public parser = new SceneParser();
 	public scene: Scene;
@@ -127,7 +127,7 @@ export class ScenePreviewProvider
 	}
 
 	public async refresh() {
-		if (this.scenePreviewPinned) {
+		if (this.scenePreviewLocked) {
 			return;
 		}
 
@@ -174,12 +174,12 @@ export class ScenePreviewProvider
 	}
 
 	private lock_preview() {
-		this.scenePreviewPinned = true;
+		this.scenePreviewLocked = true;
 		set_context("scenePreview.locked", true);
 	}
 
 	private unlock_preview() {
-		this.scenePreviewPinned = false;
+		this.scenePreviewLocked = false;
 		set_context("scenePreview.locked", false);
 		this.refresh();
 	}
