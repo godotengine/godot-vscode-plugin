@@ -149,7 +149,11 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.refresh",
-				"title": "Refresh Scene Preview"
+				"title": "Refresh Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
@@ -701,12 +705,17 @@
 				{
 					"command": "godotTools.scenePreview.lock",
 					"when": "view == scenePreview && !godotTools.context.scenePreview.locked",
-					"group": "navigation"
+					"group": "navigation@1"
 				},
 				{
 					"command": "godotTools.scenePreview.unlock",
 					"when": "view == scenePreview && godotTools.context.scenePreview.locked",
-					"group": "navigation"
+					"group": "navigation@1"
+				},
+				{
+					"command": "godotTools.scenePreview.refresh",
+					"when": "view == scenePreview",
+					"group": "navigation@2"
 				}
 			],
 			"view/item/context": [
