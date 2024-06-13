@@ -60,8 +60,8 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			{ language: "gdscript", scheme: "file" },
 		];
 		context.subscriptions.push(
-			register_command("scenePreview.pin", this.pin_preview.bind(this)),
-			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
+			register_command("scenePreview.lock", this.lock_preview.bind(this)),
+			register_command("scenePreview.unlock", this.unlock_preview.bind(this)),
 			register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this)),
 			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
@@ -162,14 +162,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		}
 	}
 
-	private pin_preview() {
+	private lock_preview() {
 		this.scenePreviewPinned = true;
-		set_context("scenePreview.pinned", true);
+		set_context("scenePreview.locked", true);
 	}
 
-	private unpin_preview() {
+	private unlock_preview() {
 		this.scenePreviewPinned = false;
-		set_context("scenePreview.pinned", false);
+		set_context("scenePreview.locked", false);
 		this.refresh();
 	}
 
