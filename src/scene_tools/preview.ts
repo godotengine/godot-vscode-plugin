@@ -1,23 +1,23 @@
 import * as vscode from "vscode";
 import {
-	TreeDataProvider,
-	TreeDragAndDropController,
-	ExtensionContext,
+	type TreeDataProvider,
+	type TreeDragAndDropController,
+	type ExtensionContext,
 	EventEmitter,
-	Event,
-	TreeView,
-	ProviderResult,
-	TreeItem,
+	type Event,
+	type TreeView,
+	type ProviderResult,
+	type TreeItem,
 	TreeItemCollapsibleState,
 	window,
 	languages,
-	Uri,
-	CancellationToken,
-	FileDecoration,
-	DocumentDropEditProvider,
+	type Uri,
+	type CancellationToken,
+	type FileDecoration,
+	type DocumentDropEditProvider,
 	workspace,
 } from "vscode";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import {
 	get_configuration,
 	find_file,
@@ -28,7 +28,7 @@ import {
 	make_docs_uri,
 } from "../utils";
 import { SceneParser } from "./parser";
-import { SceneNode, Scene } from "./types";
+import type { SceneNode, Scene } from "./types";
 
 const log = createLogger("scenes.preview");
 
@@ -117,7 +117,7 @@ export class ScenePreviewProvider
 			return;
 		}
 		setTimeout(async () => {
-			if (uri.fsPath == this.currentScene) {
+			if (uri.fsPath === this.currentScene) {
 				this.refresh();
 			} else {
 				const document = await vscode.workspace.openTextDocument(uri);
@@ -139,7 +139,7 @@ export class ScenePreviewProvider
 			if (!fileName.endsWith(".tscn")) {
 				const searchName = fileName.replace(".gd", ".tscn").replace(".cs", ".tscn");
 
-				if (mode == "anyFolder") {
+				if (mode === "anyFolder") {
 					const relatedScene = await find_file(searchName);
 					if (!relatedScene) {
 						return;
@@ -147,14 +147,14 @@ export class ScenePreviewProvider
 					fileName = relatedScene.fsPath;
 				}
 
-				if (mode == "sameFolder") {
+				if (mode === "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
 					} else {
 						return;
 					}
 				}
-				if (mode == "off") {
+				if (mode === "off") {
 					return;
 				}
 			}
@@ -186,7 +186,7 @@ export class ScenePreviewProvider
 
 	private copy_node_path(item: SceneNode) {
 		if (item.unique) {
-			vscode.env.clipboard.writeText("%" + item.label);
+			vscode.env.clipboard.writeText(`%${item.label}`);
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
@@ -236,12 +236,10 @@ export class ScenePreviewProvider
 		if (!element) {
 			if (!this.scene?.root) {
 				return Promise.resolve([]);
-			} else {
-				return Promise.resolve([this.scene?.root]);
 			}
-		} else {
-			return Promise.resolve(element.children);
+				return Promise.resolve([this.scene?.root]);
 		}
+			return Promise.resolve(element.children);
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
@@ -270,7 +268,7 @@ class UniqueDecorationProvider implements vscode.FileDecorationProvider {
 		if (uri.scheme !== "godot") return undefined;
 
 		const node = this.previewer.scene?.nodes.get(uri.path);
-		if (node && node.unique) {
+		if (node?.unique) {
 			return {
 				badge: "%",
 			};
@@ -290,7 +288,7 @@ class ScriptDecorationProvider implements vscode.FileDecorationProvider {
 		if (uri.scheme !== "godot") return undefined;
 
 		const node = this.previewer.scene?.nodes.get(uri.path);
-		if (node && node.hasScript) {
+		if (node?.hasScript) {
 			return {
 				badge: "S",
 			};
