@@ -10,7 +10,6 @@ import {
 	set_configuration,
 	createLogger,
 	verify_godot_version,
-	clean_godot_path,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
 import { subProcess, killSubProcesses } from "../utils/subspawn";
@@ -106,9 +105,11 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
-		const godotPath = clean_godot_path(get_configuration(settingName));
+		let godotPath = get_configuration(settingName);
 
 		const result = verify_godot_version(godotPath, projectVersion[0]);
+		godotPath = result.godotPath;
+
 		switch (result.status) {
 			case "WRONG_VERSION": {
 				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
