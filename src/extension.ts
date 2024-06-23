@@ -81,6 +81,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function initial_setup() {
 	const projectVersion = await get_project_version();
+	if (projectVersion === undefined) {
+		// TODO: actually handle this?
+		return;
+	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
 	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
 	const godotPath = result.godotPath;
