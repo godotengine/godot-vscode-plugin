@@ -284,6 +284,11 @@
 					"default": "two",
 					"description": "Number of blank lines to leave before functions."
 				},
+				"godotTools.formatter.denseFunctionDeclarations": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether extra space should be removed from function declarations"
+				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
 						"string"

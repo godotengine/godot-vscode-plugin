@@ -51,6 +51,16 @@ interface Token {
 	skip?: boolean;
 }
 
+class FormatterOptions {
+	emptyLinesBeforeFunctions: "one" | "two";
+	denseFunctionDeclarations: boolean;
+
+	constructor() {
+		this.emptyLinesBeforeFunctions = get_configuration("formatter.emptyLinesBeforeFunctions");
+		this.denseFunctionDeclarations = get_configuration("formatter.denseFunctionDeclarations");
+	}
+}
+
 function parse_token(token: Token) {
 	if (token.scopes.includes("string.quoted.gdscript")) {
 		token.string = true;
@@ -87,7 +97,7 @@ function parse_token(token: Token) {
 	}
 }
 
-function between(tokens: Token[], current: number) {
+function between(tokens: Token[], current: number, options: FormatterOptions) {
 	const nextToken = tokens[current];
 	const prevToken = tokens[current - 1];
 	const next = nextToken.value;
@@ -102,23 +112,25 @@ function between(tokens: Token[], current: number) {
 
 	if (prev === "(") return "";
 
-	if (nextToken.param) {
-		if (prev === "-") {
-			if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
-				return "";
+	if (options.denseFunctionDeclarations) {
+		if (nextToken.param) {
+			if (prev === "-") {
+				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+					return "";
+				}
+				if ([",", "("].includes(tokens[current - 2]?.value)) {
+					return "";
+				}
 			}
-			if ([",", "("].includes(tokens[current - 2]?.value)) {
-				return "";
-			}
+			if (next === "%") return " ";
+			if (prev === "%") return " ";
+			if (next === "=") return "";
+			if (prev === "=") return "";
+			if (next === ":=") return "";
+			if (prev === ":=") return "";
+			if (prevToken?.type === "symbol") return " ";
+			if (nextToken.type === "symbol") return " ";
 		}
-		if (next === "%") return " ";
-		if (prev === "%") return " ";
-		if (next === "=") return "";
-		if (prev === "=") return "";
-		if (next === ":=") return "";
-		if (prev === ":=") return "";
-		if (prevToken?.type === "symbol") return " ";
-		if (nextToken.type === "symbol") return " ";
 	}
 
 	if (next === ":") {
@@ -186,7 +198,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 	}
 	const edits: TextEdit[] = [];
 
-	const emptyLinesBetweenFunctions: "one" | "two" = get_configuration("formatter.emptyLinesBetweenFunctions");
+	const options = new FormatterOptions();
 
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
@@ -218,7 +230,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 			let maxEmptyLines = 1;
 
 			const start = line.text.trimStart();
-			if (emptyLinesBetweenFunctions === "two") {
+			if (options.emptyLinesBeforeFunctions === "two") {
 				if (start.startsWith("func")) {
 					maxEmptyLines++;
 				}
@@ -268,7 +280,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
 				nextLine += tokens[i].original;
 			} else {
-				nextLine += between(tokens, i) + tokens[i].value.trim();
+				nextLine += between(tokens, i, options) + tokens[i].value.trim();
 			}
 		}
 
