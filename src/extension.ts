@@ -1,4 +1,4 @@
-import * as path from "path";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./utils";
 import {
