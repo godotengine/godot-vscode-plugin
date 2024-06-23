@@ -286,7 +286,7 @@
 				},
 				"godotTools.formatter.denseFunctionDeclarations": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Whether extra space should be removed from function declarations"
 				},
 				"godotTools.lsp.serverProtocol": {
