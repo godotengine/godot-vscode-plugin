@@ -35,7 +35,7 @@ export class ClientConnectionManager {
 	private status: ManagerStatus = ManagerStatus.INITIALIZING;
 	private statusWidget: vscode.StatusBarItem = null;
 
-	private connectedVersion: string = "";
+	private connectedVersion = "";
 
 	constructor(private context: vscode.ExtensionContext) {
 		this.context = context;
@@ -105,9 +105,11 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
-		const godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
+		let godotPath = get_configuration(settingName);
 
 		const result = verify_godot_version(godotPath, projectVersion[0]);
+		godotPath = result.godotPath;
+
 		switch (result.status) {
 			case "WRONG_VERSION": {
 				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
@@ -125,11 +127,11 @@ export class ClientConnectionManager {
 		if (result.version[2] < minimumVersion) {
 			const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;
 			vscode.window.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore").then(item => {
-				if (item == "Select Godot executable") {
+				if (item === "Select Godot executable") {
 					select_godot_executable(settingName);
-				} else if (item == "Open Settings") {
+				} else if (item === "Open Settings") {
 					vscode.commands.executeCommand("workbench.action.openSettings", settingName);
-				} else if (item == "Disable Headless LSP") {
+				} else if (item === "Disable Headless LSP") {
 					set_configuration("lsp.headless", false);
 					prompt_for_reload();
 				}
@@ -192,7 +194,7 @@ export class ClientConnectionManager {
 				const message = `Connected to the GDScript language server at ${lspTarget}.`;
 
 				let options = ["Ok"];
-				if (this.target == TargetLSP.HEADLESS) {
+				if (this.target === TargetLSP.HEADLESS) {
 					options = ["Restart LSP", ...options];
 				}
 				vscode.window.showInformationMessage(message, ...options).then(item => {
@@ -262,6 +264,7 @@ export class ClientConnectionManager {
 				break;
 			case ClientStatus.CONNECTED:
 				this.retry = false;
+				this.reconnectionAttempts = 0;
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
 				if (!this.client.started) {
@@ -271,7 +274,7 @@ export class ClientConnectionManager {
 			case ClientStatus.DISCONNECTED:
 				set_context("connectedToLSP", false);
 				if (this.retry) {
-					if (this.client.port != -1) {
+					if (this.client.port !== -1) {
 						this.status = ManagerStatus.INITIALIZING_LSP;
 					} else {
 						this.status = ManagerStatus.RETRYING;
@@ -317,15 +320,15 @@ export class ClientConnectionManager {
 		const message = `Couldn't connect to the GDScript language server at ${lspTarget}. Is the Godot editor or language server running?`;
 
 		let options = ["Retry", "Ignore"];
-		if (this.target == TargetLSP.EDITOR) {
+		if (this.target === TargetLSP.EDITOR) {
 			options = ["Open workspace with Godot Editor", ...options];
 		}
 
 		vscode.window.showErrorMessage(message, ...options).then(item => {
-			if (item == "Retry") {
+			if (item === "Retry") {
 				this.connect_to_language_server();
 			}
-			if (item == "Open workspace with Godot Editor") {
+			if (item === "Open workspace with Godot Editor") {
 				vscode.commands.executeCommand("godotTools.openEditor");
 				this.connect_to_language_server();
 			}

@@ -28,7 +28,7 @@ export function killSubProcesses(owner: string) {
 				} else if (process.platform === "darwin") {
 					execSync(`kill -9 ${c.pid}`);
 				} else {
-					process.kill(c.pid);
+					process.kill(-c.pid);
 				}
 			}
 		} catch {

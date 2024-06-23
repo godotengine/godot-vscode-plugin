@@ -108,12 +108,11 @@ export class ServerController {
 		if (args.editor_path) {
 			log.info("Using 'editor_path' variable from launch.json");
 
-			godotPath = args.editor_path.replace(/^"/, "").replace(/"$/, "");
-
-			log.info(`Verifying version of '${godotPath}'`);
-			result = verify_godot_version(godotPath, "4");
-
+			log.info(`Verifying version of '${args.editor_path}'`);
+			result = verify_godot_version(args.editor_path, "4");
+			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
+
 			switch (result.status) {
 				case "WRONG_VERSION": {
 					const projectVersion = await get_project_version();
@@ -130,16 +129,19 @@ export class ServerController {
 					this.abort();
 					return;
 				}
+				default: {
+					break;
+				}
 			}
 		} else {
 			log.info("Using 'editorPath.godot4' from settings");
 
 			const settingName = "editorPath.godot4";
-			godotPath = get_configuration(settingName).replace(/^"/, "").replace(/"$/, "");
+			godotPath = get_configuration(settingName);
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "4");
-
+			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
 			switch (result.status) {
@@ -227,7 +229,7 @@ export class ServerController {
 		}
 
 		log.info(`Launching game process using command: '${command}'`);
-		const debugProcess = subProcess("debug", command, { shell: true });
+		const debugProcess = subProcess("debug", command, { shell: true, detached: true });
 
 		debugProcess.stdout.on("data", (data) => { });
 		debugProcess.stderr.on("data", (data) => { });

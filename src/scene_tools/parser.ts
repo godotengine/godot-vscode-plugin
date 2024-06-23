@@ -12,6 +12,7 @@ export class SceneParser {
 
 	constructor() {
 		if (SceneParser.instance) {
+			// biome-ignore lint/correctness/noConstructorReturn: <explanation>
 			return SceneParser.instance;
 		}
 		SceneParser.instance = this;
@@ -24,7 +25,7 @@ export class SceneParser {
 		if (this.scenes.has(path)) {
 			const scene = this.scenes.get(path);
 
-			if (scene.mtime == stats.mtimeMs) {
+			if (scene.mtime === stats.mtimeMs) {
 				return scene;
 			}
 		}
@@ -83,26 +84,32 @@ export class SceneParser {
 		const nodes = {};
 		let lastNode = null;
 
-		const nodeRegex = /\[node name="([\w]*)"(?: type="([\w]*)")?(?: parent="([\w\/.]*)")?(?: instance=ExtResource\(\s*"?([\w]+)"?\s*\))?\]/g;
+		const nodeRegex = /\[node.*/g;
 		for (const match of text.matchAll(nodeRegex)) {
-			const name = match[1];
-			const type = match[2] ? match[2] : "PackedScene";
-			let parent = match[3];
-			const instance = match[4] ? match[4] : 0;
+			const line = match[0];
+			const name = line.match(/name="([\w]+)"/)?.[1];
+			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
+			let parent = line.match(/parent="([\w\/.]+)"/)?.[1];
+			const instance = line.match(/instance=ExtResource\(\s*"?([\w]+)"?\s*\)/)?.[1];
+
+			// leaving this in case we have a reason to use these node paths in the future
+			// const rawNodePaths = line.match(/node_paths=PackedStringArray\(([\w",\s]*)\)/)?.[1];
+			// const nodePaths = rawNodePaths?.split(",").forEach(x => x.trim().replace("\"", ""));
+
 			let _path = "";
 			let relativePath = "";
 
-			if (parent == undefined) {
+			if (parent === undefined) {
 				root = name;
 				_path = name;
-			} else if (parent == ".") {
+			} else if (parent === ".") {
 				parent = root;
 				relativePath = name;
-				_path = parent + "/" + name;
+				_path = `${parent}/${name}`;
 			} else {
-				relativePath = parent + "/" + name;
-				parent = root + "/" + parent;
-				_path = parent + "/" + name;
+				relativePath = `${parent}/${name}`;
+				parent = `${root}/${parent}`;
+				_path = `${parent}/${name}`;
 			}
 			if (lastNode) {
 				lastNode.body = text.slice(lastNode.position, match.index);
@@ -136,7 +143,7 @@ export class SceneParser {
 				}
 				node.contextValue += "hasResourcePath";
 			}
-			if (_path == root) {
+			if (_path === root) {
 				scene.root = node;
 			}
 			if (parent in nodes) {
