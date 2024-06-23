@@ -227,7 +227,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 				maxEmptyLines++;
 			}
 
-			for (let i = emptyLineCount - maxEmptyLines; i; i--) {
+			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
 				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
