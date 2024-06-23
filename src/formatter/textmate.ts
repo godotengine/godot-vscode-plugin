@@ -112,8 +112,8 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === "(") return "";
 
-	if (options.denseFunctionDeclarations) {
-		if (nextToken.param) {
+	if (nextToken.param) {
+		if (options.denseFunctionDeclarations) {
 			if (prev === "-") {
 				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
 					return "";
@@ -124,18 +124,25 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 			}
 			if (next === "%") return " ";
 			if (prev === "%") return " ";
-			if (next === "=") return "";
-			if (prev === "=") return "";
-			if (next === ":=") return "";
-			if (prev === ":=") return "";
+			if (next === "=") {
+				if (tokens[current - 2]?.value === ":") return " ";
+				return "";
+			}
+			if (prev === "=") {
+				if (tokens[current - 3]?.value === ":") return " ";
+				return "";
+			}
 			if (prevToken?.type === "symbol") return " ";
 			if (nextToken.type === "symbol") return " ";
+		} else {
+			if (next === ":") {
+				if (tokens[current + 1]?.value === "=") return " ";
+			}
 		}
 	}
 
 	if (next === ":") {
 		if (["var", "const"].includes(tokens[current - 2]?.value)) {
-			if (tokens[current + 1]?.value !== "=") return "";
 			if (tokens[current + 1]?.value !== "=") return "";
 			return " ";
 		}
