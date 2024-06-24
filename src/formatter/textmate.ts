@@ -1,4 +1,4 @@
-import { Range, type TextDocument, TextEdit } from "vscode";
+import { Range, type TextDocument, TextEdit, TextLine } from "vscode";
 import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
@@ -200,6 +200,10 @@ registry.loadGrammar("source.gdscript").then((g) => {
 	grammar = g;
 });
 
+function is_comment(line: TextLine): boolean {
+	return line.text[line.firstNonWhitespaceCharacterIndex] === "#";
+}
+
 export function format_document(document: TextDocument): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
@@ -212,16 +216,22 @@ export function format_document(document: TextDocument): TextEdit[] {
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
+	let firstEmptyLine = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
-		if (line.isEmptyOrWhitespace) {
+		if (line.isEmptyOrWhitespace || is_comment(line)) {
 			// delete empty lines at the beginning of the file
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			} else {
-				emptyLineCount++;
+				if (emptyLineCount === 0) {
+					firstEmptyLine = lineNum;
+				}
+				if (!is_comment(line)) {
+					emptyLineCount++;
+				}
 			}
 
 			// delete empty lines at the end of the file
@@ -247,15 +257,21 @@ export function format_document(document: TextDocument): TextEdit[] {
 			if (start.startsWith("class")) {
 				maxEmptyLines++;
 			}
-
-			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
-				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
+			let i = 0;
+			let deletedLines = 0;
+			const linesToDelete = emptyLineCount - maxEmptyLines;
+			while (i < lineNum && deletedLines < linesToDelete) {
+				const candidate = document.lineAt(firstEmptyLine + i++);
+				if (candidate.isEmptyOrWhitespace) {
+					edits.push(TextEdit.delete(candidate.rangeIncludingLineBreak));
+					deletedLines++;
+				}
 			}
 			emptyLineCount = 0;
 		}
 
 		// skip comments
-		if (line.text[line.firstNonWhitespaceCharacterIndex] === "#") {
+		if (is_comment(line)) {
 			continue;
 		}
 
