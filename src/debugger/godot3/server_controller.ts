@@ -383,8 +383,9 @@ export class ServerController {
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
-				if(id < 0)
+				if (id < 0) {
 					id = id + BigInt(2) ** BigInt(64);
+				}
 
 				const rawObject = new RawObject(className);
 				properties.forEach((prop) => {
