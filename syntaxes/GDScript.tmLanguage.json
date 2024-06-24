@@ -201,9 +201,9 @@
 			"patterns": [
 				{ "include": "#wordlike_operator" },
 				{ "include": "#boolean_operator" },
-				{ "include": "#bitwise_operator" },
 				{ "include": "#compare_operator" },
-				{ "include": "#arithmetic_operator" }
+				{ "include": "#arithmetic_operator" },
+				{ "include": "#bitwise_operator" }
 			]
 		},
 		"wordlike_operator": {
@@ -223,7 +223,7 @@
 			"name": "keyword.operator.comparison.gdscript"
 		},
 		"arithmetic_operator": {
-			"match": "->|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*\\*|\\*|/|%|\\+|-",
+			"match": "->|\\+=|-=|\\*=|\\^=|/=|%=|&=|\\|=|\\*\\*|\\*|/|%|\\+|-",
 			"name": "keyword.operator.arithmetic.gdscript"
 		},
 		"assignment_operator": {
