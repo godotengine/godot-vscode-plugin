@@ -96,7 +96,12 @@ export class ScenePreviewProvider
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 	}
 
-	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
+	public provideDocumentDropEdits(
+		document: vscode.TextDocument,
+		position: vscode.Position,
+		dataTransfer: vscode.DataTransfer,
+		token: vscode.CancellationToken,
+	): vscode.ProviderResult<vscode.DocumentDropEdit> {
 		const path: string = dataTransfer.get("godot/path").value;
 		const fileName = path.split("/").pop();
 		const className: string = dataTransfer.get("godot/class").value;
@@ -105,7 +110,9 @@ export class ScenePreviewProvider
 		if (path && className) {
 			if (document.languageId === "gdscript") {
 				if (line.text === "") {
-					return new vscode.DocumentDropEdit(`@onready var ${node_name_to_snake(fileName)}: ${className} = $${path}`);
+					return new vscode.DocumentDropEdit(
+						`@onready var ${node_name_to_snake(fileName)}: ${className} = $${path}`,
+					);
 				}
 				return new vscode.DocumentDropEdit(`$${path}`);
 			}
