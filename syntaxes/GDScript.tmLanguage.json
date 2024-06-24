@@ -201,9 +201,9 @@
 			"patterns": [
 				{ "include": "#wordlike_operator" },
 				{ "include": "#boolean_operator" },
-				{ "include": "#compare_operator" },
 				{ "include": "#arithmetic_operator" },
-				{ "include": "#bitwise_operator" }
+				{ "include": "#bitwise_operator" },
+				{ "include": "#compare_operator" }
 			]
 		},
 		"wordlike_operator": {
