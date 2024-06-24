@@ -26,6 +26,9 @@ func f():
 	a = 1.0 * .2
 	a = 1.0 * 2.
 
+	a = 10 ** 10
+	a = min(10, 10 ** 10)
+
 	a = a % b
 	a = 1 % 2
 
@@ -36,3 +39,16 @@ func f():
 
 	var v = Vector2(1, -1)
 	var w = Vector2(1, 10 - 1)
+
+	print(-1)
+	print(1 - 1)
+
+	print(-1 + (1 - 1))
+	print(-1 + (-1 - 1))
+
+	if a > -1:
+		if a < -1:
+			if a == -1:
+				pass
+
+	return -1

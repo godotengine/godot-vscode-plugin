@@ -271,6 +271,24 @@
 					"default": true,
 					"description": "Whether to reveal the terminal when launching the Godot Editor"
 				},
+				"godotTools.formatter.emptyLinesBeforeFunctions": {
+					"type": "string",
+					"enum": [
+						"one",
+						"two"
+					],
+					"enumDescriptions": [
+						"One line before functions. A more compact style.",
+						"Two lines before functions. Conforms to the official GDScript style guide."
+					],
+					"default": "two",
+					"description": "Number of blank lines to leave before functions."
+				},
+				"godotTools.formatter.denseFunctionDeclarations": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether extra space should be removed from function declarations"
+				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
 						"string"
