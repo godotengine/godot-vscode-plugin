@@ -81,7 +81,7 @@
 			]
 		},
 		"comment": {
-			"match": "(#).*$\\n?",
+			"match": "(##|#).*$\\n?",
 			"name": "comment.line.number-sign.gdscript",
 			"captures": { "1": { "name": "punctuation.definition.comment.number-sign.gdscript" } }
 		},

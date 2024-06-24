@@ -107,6 +107,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (!prev) return "";
 
+	if (next === "##") return " ";
 	if (next === "#") return " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
@@ -171,6 +172,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "[" && nextToken.type === "symbol") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
+	if (prev === "##") return " ";
 	if (prev === "#") return " ";
 	if (next === "=") return " ";
 	if (prev === "=") return " ";
