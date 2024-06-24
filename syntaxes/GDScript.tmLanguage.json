@@ -215,7 +215,7 @@
 			"name": "keyword.operator.boolean.gdscript"
 		},
 		"bitwise_operator": {
-			"match": "&|\\||<<|>>|\\^|~",
+			"match": "&|\\||<<=|>>=|<<|>>|\\^|~",
 			"name": "keyword.operator.bitwise.gdscript"
 		},
 		"compare_operator": {
@@ -223,7 +223,7 @@
 			"name": "keyword.operator.comparison.gdscript"
 		},
 		"arithmetic_operator": {
-			"match": "->|\\+=|-=|\\*=|\\^=|/=|%=|&=|\\|=|\\*\\*|\\*|/|%|\\+|-",
+			"match": "->|\\+=|-=|\\*=|\\^=|/=|%=|&=|~=|\\|=|\\*\\*|\\*|/|%|\\+|-",
 			"name": "keyword.operator.arithmetic.gdscript"
 		},
 		"assignment_operator": {
