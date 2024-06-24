@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
-import { execSync } from "child_process";
-import { get_configuration } from "./vscode_utils";
+import * as path from "node:path";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import { execSync } from "node:child_process";
 
 let projectDir: string | undefined = undefined;
 let projectFile: string | undefined = undefined;
@@ -105,40 +104,46 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 type VERIFY_RESULT = {
 	status: VERIFY_STATUS;
+	godotPath: string;
 	version?: string;
 };
 
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
-	try {
-		if (os.platform() === 'darwin' && godotPath.endsWith('.app')) {
-			godotPath = path.join(godotPath, 'Contents', 'MacOS', 'Godot');
-		}
+	let target = clean_godot_path(godotPath);
 
-		const output = execSync(`"${godotPath}" --version`).toString().trim();
-		const pattern = /^(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
-		const match = output.match(pattern);
-		if (!match) {
-			return { status: "INVALID_EXE" };
-		}
-		if (match[2] !== expectedVersion) {
-			return { status: "WRONG_VERSION", version: match[1] };
-		}
-		return { status: "SUCCESS", version: match[1] };
+	let output = "";
+	try {
+		output = execSync(`"${target}" --version`).toString().trim();
 	} catch {
-		return { status: "INVALID_EXE" };
+		if (path.isAbsolute(target)) {
+			return { status: "INVALID_EXE", godotPath: target };
+		}
+		const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+		target = path.resolve(workspacePath, target);
+		try {
+			output = execSync(`"${target}" --version`).toString().trim();
+		} catch {
+			return { status: "INVALID_EXE", godotPath: target };
+		}
 	}
+
+	const pattern = /^(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
+	const match = output.match(pattern);
+	if (!match) {
+		return { status: "INVALID_EXE", godotPath: target };
+	}
+	if (match[2] !== expectedVersion) {
+		return { status: "WRONG_VERSION", godotPath: target, version: match[1] };
+	}
+	return { status: "SUCCESS", godotPath: target, version: match[1] };
 }
 
 export function clean_godot_path(godotPath: string): string {
-	const cleanPath = godotPath.replace(/^"/, "").replace(/"$/, "");
-	const resolvedPath = resolve_workspace_relative_path(cleanPath);
-	return resolvedPath;
-}
+	let target = godotPath.replace(/^"/, "").replace(/"$/, "");
 
-function resolve_workspace_relative_path(target: string) {
-	if (!fs.existsSync(target)) {
-		const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-		return path.resolve(workspacePath, target);
+	if (os.platform() === "darwin" && target.endsWith(".app")) {
+		target = path.join(target, "Contents", "MacOS", "Godot");
 	}
+
 	return target;
 }

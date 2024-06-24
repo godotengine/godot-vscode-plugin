@@ -149,19 +149,47 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.refresh",
-				"title": "Refresh Scene Preview"
+				"title": "Refresh Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.scenePreview.pin",
-				"title": "Pin Scene Preview",
-				"icon": "resources/pin_off.svg"
+				"command": "godotTools.scenePreview.openCurrentScene",
+				"title": "Open the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/PackedScene.svg",
+					"dark": "resources/godot_icons/dark/PackedScene.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.scenePreview.unpin",
-				"title": "Unpin Scene Preview",
-				"icon": "resources/pin_on.svg"
+				"command": "godotTools.scenePreview.openMainScript",
+				"title": "Open the main script of the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/Script.svg",
+					"dark": "resources/godot_icons/dark/Script.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.lock",
+				"title": "Lock Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Unlock.svg",
+					"dark": "resources/godot_icons/dark/Unlock.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.unlock",
+				"title": "Unlock Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Lock.svg",
+					"dark": "resources/godot_icons/dark/Lock.svg"
+				}
 			},
 			{
 				"category": "Godot Tools",
@@ -242,6 +270,24 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to reveal the terminal when launching the Godot Editor"
+				},
+				"godotTools.formatter.emptyLinesBeforeFunctions": {
+					"type": "string",
+					"enum": [
+						"one",
+						"two"
+					],
+					"enumDescriptions": [
+						"One line before functions. A more compact style.",
+						"Two lines before functions. Conforms to the official GDScript style guide."
+					],
+					"default": "two",
+					"description": "Number of blank lines to leave before functions."
+				},
+				"godotTools.formatter.denseFunctionDeclarations": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether extra space should be removed from function declarations"
 				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
@@ -629,23 +675,11 @@
 					"when": "godotTools.context.connectedToLSP"
 				},
 				{
-					"command": "godotTools.scenePreview.refresh",
-					"when": "false"
-				},
-				{
 					"command": "godotTools.scenePreview.goToDefinition",
 					"when": "false"
 				},
 				{
 					"command": "godotTools.scenePreview.openDocumentation",
-					"when": "false"
-				},
-				{
-					"command": "godotTools.scenePreview.pin",
-					"when": "false"
-				},
-				{
-					"command": "godotTools.scenePreview.unpin",
 					"when": "false"
 				},
 				{
@@ -693,14 +727,29 @@
 					"group": "navigation"
 				},
 				{
-					"command": "godotTools.scenePreview.pin",
-					"when": "view == scenePreview && !godotTools.context.scenePreview.pinned",
-					"group": "navigation"
+					"command": "godotTools.scenePreview.lock",
+					"when": "view == scenePreview && !godotTools.context.scenePreview.locked",
+					"group": "navigation@1"
 				},
 				{
-					"command": "godotTools.scenePreview.unpin",
-					"when": "view == scenePreview && godotTools.context.scenePreview.pinned",
-					"group": "navigation"
+					"command": "godotTools.scenePreview.unlock",
+					"when": "view == scenePreview && godotTools.context.scenePreview.locked",
+					"group": "navigation@1"
+				},
+				{
+					"command": "godotTools.scenePreview.refresh",
+					"when": "view == scenePreview",
+					"group": "navigation@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openMainScript",
+					"when": "view == scenePreview",
+					"group": "navigation@3"
+				},
+				{
+					"command": "godotTools.scenePreview.openCurrentScene",
+					"when": "view == scenePreview",
+					"group": "navigation@4"
 				}
 			],
 			"view/item/context": [
