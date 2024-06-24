@@ -116,6 +116,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (nextToken.param) {
 		if (options.denseFunctionDeclarations) {
 			if (prev === "-") {
+				if (tokens[current - 2]?.value === "=") return "";
 				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
 					return "";
 				}
@@ -155,7 +156,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
 			return "";
 		}
-		if ([",", "("].includes(tokens[current - 2]?.value)) {
+		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
 	}
