@@ -238,7 +238,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 
 			const start = line.text.trimStart();
 			if (options.emptyLinesBeforeFunctions === "two") {
-				if (start.startsWith("func")) {
+				if (start.startsWith("func") || start.startsWith("static func")) {
 					maxEmptyLines++;
 				}
 			}
