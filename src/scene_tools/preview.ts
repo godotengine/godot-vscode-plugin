@@ -1,23 +1,23 @@
 import * as vscode from "vscode";
 import {
-	TreeDataProvider,
-	TreeDragAndDropController,
-	ExtensionContext,
+	type TreeDataProvider,
+	type TreeDragAndDropController,
+	type ExtensionContext,
 	EventEmitter,
-	Event,
-	TreeView,
-	ProviderResult,
-	TreeItem,
+	type Event,
+	type TreeView,
+	type ProviderResult,
+	type TreeItem,
 	TreeItemCollapsibleState,
 	window,
 	languages,
-	Uri,
-	CancellationToken,
-	FileDecoration,
-	DocumentDropEditProvider,
+	type Uri,
+	type CancellationToken,
+	type FileDecoration,
+	type DocumentDropEditProvider,
 	workspace,
 } from "vscode";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import {
 	get_configuration,
 	find_file,
@@ -28,15 +28,17 @@ import {
 	make_docs_uri,
 } from "../utils";
 import { SceneParser } from "./parser";
-import { SceneNode, Scene } from "./types";
+import type { SceneNode, Scene } from "./types";
 
 const log = createLogger("scenes.preview");
 
-export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider {
+export class ScenePreviewProvider
+	implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider
+{
 	public dropMimeTypes = [];
 	public dragMimeTypes = [];
 	private tree: TreeView<SceneNode>;
-	private scenePreviewPinned = false;
+	private scenePreviewLocked = false;
 	private currentScene = "";
 	public parser = new SceneParser();
 	public scene: Scene;
@@ -52,7 +54,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	constructor(private context: ExtensionContext) {
 		this.tree = vscode.window.createTreeView("scenePreview", {
 			treeDataProvider: this,
-			dragAndDropController: this
+			dragAndDropController: this,
 		});
 
 		const selector = [
@@ -60,12 +62,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			{ language: "gdscript", scheme: "file" },
 		];
 		context.subscriptions.push(
-			register_command("scenePreview.pin", this.pin_preview.bind(this)),
-			register_command("scenePreview.unpin", this.unpin_preview.bind(this)),
+			register_command("scenePreview.lock", this.lock_preview.bind(this)),
+			register_command("scenePreview.unlock", this.unlock_preview.bind(this)),
 			register_command("scenePreview.copyNodePath", this.copy_node_path.bind(this)),
 			register_command("scenePreview.copyResourcePath", this.copy_resource_path.bind(this)),
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
+			register_command("scenePreview.openCurrentScene", this.open_current_scene.bind(this)),
+			register_command("scenePreview.openCurrentScript", this.open_main_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
@@ -82,12 +86,21 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		this.refresh();
 	}
 
-	public handleDrag(source: readonly SceneNode[], data: vscode.DataTransfer, token: vscode.CancellationToken): void | Thenable<void> {
+	public handleDrag(
+		source: readonly SceneNode[],
+		data: vscode.DataTransfer,
+		token: vscode.CancellationToken,
+	): void | Thenable<void> {
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 	}
 
-	public provideDocumentDropEdits(document: vscode.TextDocument, position: vscode.Position, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken): vscode.ProviderResult<vscode.DocumentDropEdit> {
+	public provideDocumentDropEdits(
+		document: vscode.TextDocument,
+		position: vscode.Position,
+		dataTransfer: vscode.DataTransfer,
+		token: vscode.CancellationToken,
+	): vscode.ProviderResult<vscode.DocumentDropEdit> {
 		const path = dataTransfer.get("godot/path").value;
 		const className = dataTransfer.get("godot/class").value;
 
@@ -106,7 +119,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			return;
 		}
 		setTimeout(async () => {
-			if (uri.fsPath == this.currentScene) {
+			if (uri.fsPath === this.currentScene) {
 				this.refresh();
 			} else {
 				const document = await vscode.workspace.openTextDocument(uri);
@@ -116,7 +129,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public async refresh() {
-		if (this.scenePreviewPinned) {
+		if (this.scenePreviewLocked) {
 			return;
 		}
 
@@ -128,7 +141,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			if (!fileName.endsWith(".tscn")) {
 				const searchName = fileName.replace(".gd", ".tscn").replace(".cs", ".tscn");
 
-				if (mode == "anyFolder") {
+				if (mode === "anyFolder") {
 					const relatedScene = await find_file(searchName);
 					if (!relatedScene) {
 						return;
@@ -136,14 +149,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 					fileName = relatedScene.fsPath;
 				}
 
-				if (mode == "sameFolder") {
+				if (mode === "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
 					} else {
 						return;
 					}
 				}
-				if (mode == "off") {
+				if (mode === "off") {
 					return;
 				}
 			}
@@ -162,20 +175,20 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		}
 	}
 
-	private pin_preview() {
-		this.scenePreviewPinned = true;
-		set_context("scenePreview.pinned", true);
+	private lock_preview() {
+		this.scenePreviewLocked = true;
+		set_context("scenePreview.locked", true);
 	}
 
-	private unpin_preview() {
-		this.scenePreviewPinned = false;
-		set_context("scenePreview.pinned", false);
+	private unlock_preview() {
+		this.scenePreviewLocked = false;
+		set_context("scenePreview.locked", false);
 		this.refresh();
 	}
 
 	private copy_node_path(item: SceneNode) {
 		if (item.unique) {
-			vscode.env.clipboard.writeText("%" + item.label);
+			vscode.env.clipboard.writeText(`%${item.label}`);
 			return;
 		}
 		vscode.env.clipboard.writeText(item.relativePath);
@@ -201,6 +214,26 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		}
 	}
 
+	private async open_current_scene() {
+		if (this.currentScene) {
+			const document = await vscode.workspace.openTextDocument(this.currentScene);
+			vscode.window.showTextDocument(document);
+		}
+	}
+
+	private async open_main_script() {
+		if (this.currentScene) {
+			const root = this.scene.root;
+			if (root?.hasScript) {
+				const path = this.scene.externalResources[root.scriptId].path;
+				const uri = await convert_resource_path_to_uri(path);
+				if (uri) {
+					vscode.window.showTextDocument(uri, { preview: true });
+				}
+			}
+		}
+	}
+
 	private async go_to_definition(item: SceneNode) {
 		const document = await vscode.workspace.openTextDocument(this.currentScene);
 		const start = document.positionAt(item.position);
@@ -216,7 +249,6 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
 		// const item = event.selection[0];
 		// log(item.body);
-
 		// const editor = vscode.window.activeTextEditor;
 		// const range = editor.document.getText()
 		// editor.revealRange(range)
@@ -226,12 +258,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		if (!element) {
 			if (!this.scene?.root) {
 				return Promise.resolve([]);
-			} else {
-				return Promise.resolve([this.scene?.root]);
 			}
-		} else {
-			return Promise.resolve(element.children);
+			return Promise.resolve([this.scene?.root]);
 		}
+		return Promise.resolve(element.children);
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
@@ -254,13 +284,13 @@ class UniqueDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreviewProvider) {}
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
 
 		const node = this.previewer.scene?.nodes.get(uri.path);
-		if (node && node.unique) {
+		if (node?.unique) {
 			return {
 				badge: "%",
 			};
@@ -274,13 +304,13 @@ class ScriptDecorationProvider implements vscode.FileDecorationProvider {
 		return this.changeDecorationsEvent.event;
 	}
 
-	constructor(private previewer: ScenePreviewProvider) { }
+	constructor(private previewer: ScenePreviewProvider) {}
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "godot") return undefined;
 
 		const node = this.previewer.scene?.nodes.get(uri.path);
-		if (node && node.hasScript) {
+		if (node?.hasScript) {
 			return {
 				badge: "S",
 			};
