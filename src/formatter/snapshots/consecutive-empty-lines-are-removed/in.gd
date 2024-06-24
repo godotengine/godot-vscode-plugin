@@ -18,3 +18,10 @@ func test():
 
 	pass
 
+
+
+
+# comments
+func with_comments():
+
+	pass
