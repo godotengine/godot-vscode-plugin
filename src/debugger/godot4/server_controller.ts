@@ -4,7 +4,7 @@ import { debug, window } from "vscode";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { VariantDecoder } from "./variables/variant_decoder";
-import { ObjectId, RawObject } from "./variables/variants";
+import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotVariable, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
 import { parse_next_scene_node, split_buffers } from "./helpers";
@@ -390,7 +390,7 @@ export class ServerController {
 					rawObject.set(prop[0], prop[5]);
 				});
 				const inspectedVariable = { name: "", value: rawObject };
-				this.build_sub_values(inspectedVariable);
+				ServerController.build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
 					this.session.inspect_callbacks.get(BigInt(id))(
 						inspectedVariable.name,
@@ -562,7 +562,7 @@ export class ServerController {
 		}
 
 		const variable: GodotVariable = { name, value, type };
-		this.build_sub_values(variable);
+		ServerController.build_sub_values(variable);
 
 		const scopeName = ["locals", "members", "globals"][scope];
 		this.partialStackVars[scopeName].push(variable);
@@ -573,63 +573,43 @@ export class ServerController {
 		}
 	}
 	
-	private build_sub_values(va: GodotVariable) {
+	private static build_sub_values(va: GodotVariable) {
 		const value = va.value;
 	
 		let subValues: GodotVariable[] = undefined;
 	
 		if (value && Array.isArray(value)) {
 			subValues = value.map((va, i) => {
-				const gd_var = {
+				return {
 					name: `${i}`,
 					value: va,
 				} as GodotVariable;
-	
-				if(gd_var.value instanceof ObjectId)
-					this.session.add_to_inspections([ gd_var ]);
-	
-				return gd_var;
 			});
 		} else if (value instanceof Map) {
 			subValues = Array.from(value.keys()).map((va) => {
 				if (typeof va["stringify_value"] === "function") {
-					const gd_var = {
+					return {
 						name: `${va.type_name()}${va.stringify_value()}`,
 						value: value.get(va),
 					} as GodotVariable;
-
-					if(gd_var.value instanceof ObjectId)
-						this.session.add_to_inspections([ gd_var ]);
-
-					return gd_var;
 				} else {
-					const gd_var = {
+					return {
 						name: `${va}`,
 						value: value.get(va),
 					} as GodotVariable;
-
-					if(gd_var.value instanceof ObjectId)
-						this.session.add_to_inspections([ gd_var ]);
-	
-					return gd_var;
 				}
 			});
 		} else if (value && typeof value["sub_values"] === "function") {
 			subValues = value.sub_values().map((sva) => {
-				const gd_var = {
+				return {
 					name: sva.name,
 					value: sva.value,
 				} as GodotVariable;
-	
-				if(gd_var.value instanceof ObjectId)
-					this.session.add_to_inspections([ gd_var ]);
-	
-				return gd_var;
 			});
 		}
 	
 		va.sub_values = subValues;
 	
-		subValues?.forEach(this.build_sub_values.bind(this));
+		subValues?.forEach(ServerController.build_sub_values.bind(this));
 	}
 }

@@ -311,8 +311,23 @@ export class GodotDebugSession extends LoggingDebugSession {
 			return;
 		}
 
-		const reference = this.all_scopes[args.variablesReference];
+		let reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
+
+		if (reference.value?.id !== undefined) {
+			const inspected_object: Subject = new Subject();
+
+			this.inspect_callbacks.set(
+				BigInt(reference.value.id),
+				(_class_name, _variable) => inspected_object.notify()
+			);
+
+			this.add_to_inspections([ reference ]);
+
+			await inspected_object.wait(2000);
+			
+			reference = this.all_scopes[args.variablesReference];
+		}
 
 		if (!reference.sub_values) {
 			variables = [];
@@ -385,12 +400,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			this.append_variable(va);
 		});
 
-		this.all_scopes.forEach(scope => this.add_to_inspections(scope?.sub_values));
-
-		if (this.ongoing_inspections.length === 0) {
-			this.previous_inspections = [];
-			this.got_scope.notify();
-		}
+		this.got_scope.notify();
 	}
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
@@ -412,8 +422,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 		);
 
 		this.previous_inspections.push(id);
-
-		// this.add_to_inspections();
 
 		if (this.ongoing_inspections.length === 0) {
 			this.previous_inspections = [];
@@ -543,7 +551,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		if (variable.sub_values) {
 			variable.sub_values.forEach((va, i) => {
 				va.scope_path = base_path;
-				this.append_variable(va, index ? index + i + 1 : undefined);
+				this.append_variable(va);
 			});
 		}
 	}
