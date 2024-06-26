@@ -71,6 +71,10 @@ function parse_token(token: Token) {
 	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
 		token.skip = true;
 	}
+	if (token.scopes.includes("keyword.control.flow.gdscript")) {
+		token.type = "keyword";
+		return;
+	}
 	if (keywords.includes(token.value)) {
 		token.type = "keyword";
 		return;

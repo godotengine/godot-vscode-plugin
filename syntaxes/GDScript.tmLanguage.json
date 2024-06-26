@@ -69,6 +69,7 @@
 				{ "include": "#assignment_operator" },
 				{ "include": "#in_keyword" },
 				{ "include": "#control_flow" },
+				{ "include": "#match_keyword" },
 				{ "include": "#round_braces" },
 				{ "include": "#function_call" },
 				{ "include": "#comment" },
@@ -234,8 +235,12 @@
 			"name": "keyword.operator.assignment.gdscript"
 		},
 		"control_flow": {
-			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|when|yield|await)\\b",
+			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|when|yield|await)\\b",
 			"name": "keyword.control.gdscript"
+		},
+		"match_keyword": {
+			"match": "^\n\\s*(match)",
+			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
 			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|preload|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
