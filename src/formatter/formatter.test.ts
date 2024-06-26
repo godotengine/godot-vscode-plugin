@@ -18,6 +18,7 @@ suite("GDScript Formatter Tests", () => {
 	const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
 	const testFolders = fs.readdirSync(snapshotsFolderPath);
 
+	// biome-ignore lint/complexity/noForEach: <explanation>
 	testFolders.forEach((testFolder) => {
 		const testFolderPath = path.join(snapshotsFolderPath, testFolder);
 		if (fs.statSync(testFolderPath).isDirectory()) {

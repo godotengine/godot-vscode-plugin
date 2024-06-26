@@ -1,4 +1,5 @@
-import { Range, type TextDocument, TextEdit, TextLine } from "vscode";
+import { TextEdit } from "vscode";
+import type { TextDocument, TextLine } from "vscode";
 import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
