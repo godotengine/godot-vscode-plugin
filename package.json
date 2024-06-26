@@ -278,10 +278,10 @@
 						"2"
 					],
 					"enumDescriptions": [
-						"One empty line. A more compact style.",
-						"Two empty lines. Conforms to the official GDScript style guide."
+						"1 empty line. A more compact style.",
+						"2 empty lines. Conforms to the official GDScript style guide."
 					],
-					"default": "two",
+					"default": "2",
 					"description": "Number of empty lines allowed anywhere in the file"
 				},
 				"godotTools.formatter.denseFunctionParameters": {
