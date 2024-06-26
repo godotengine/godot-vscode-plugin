@@ -222,7 +222,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
-		if (line.isEmptyOrWhitespace || is_comment(line)) {
+		if (line.isEmptyOrWhitespace) {
 			// delete empty lines at the beginning of the file
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
@@ -230,9 +230,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 				if (emptyLineCount === 0) {
 					firstEmptyLine = lineNum;
 				}
-				if (!is_comment(line)) {
-					emptyLineCount++;
-				}
+				emptyLineCount++;
 			}
 
 			// delete empty lines at the end of the file
@@ -248,25 +246,12 @@ export function format_document(document: TextDocument): TextEdit[] {
 		// delete consecutive empty lines
 		if (emptyLineCount) {
 			let maxEmptyLines = 1;
-
-			const start = line.text.trimStart();
 			if (options.emptyLinesBeforeFunctions === "two") {
-				if (start.startsWith("func") || start.startsWith("static func")) {
-					maxEmptyLines++;
-				}
+				maxEmptyLines = 2;
 			}
-			if (start.startsWith("class")) {
-				maxEmptyLines++;
-			}
-			let i = 0;
-			let deletedLines = 0;
-			const linesToDelete = emptyLineCount - maxEmptyLines;
-			while (i < lineNum && deletedLines < linesToDelete) {
-				const candidate = document.lineAt(firstEmptyLine + i++);
-				if (candidate.isEmptyOrWhitespace) {
-					edits.push(TextEdit.delete(candidate.rangeIncludingLineBreak));
-					deletedLines++;
-				}
+
+			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
+				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
 		}
