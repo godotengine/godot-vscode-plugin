@@ -52,12 +52,19 @@ interface Token {
 }
 
 class FormatterOptions {
-	emptyLinesBeforeFunctions: "one" | "two";
-	denseFunctionDeclarations: boolean;
+	maxEmptyLines: 1 | 2;
+	denseFunctionParameters: boolean;
 
 	constructor() {
-		this.emptyLinesBeforeFunctions = get_configuration("formatter.emptyLinesBeforeFunctions");
-		this.denseFunctionDeclarations = get_configuration("formatter.denseFunctionDeclarations");
+		switch (get_configuration("formatter.maxEmptyLines")) {
+			case "1":
+				this.maxEmptyLines = 1;
+				break;
+			case "2":
+				this.maxEmptyLines = 2;
+				break;
+		}
+		this.denseFunctionParameters = get_configuration("formatter.denseFunctionParameters");
 	}
 }
 
@@ -118,7 +125,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "(") return "";
 
 	if (nextToken.param) {
-		if (options.denseFunctionDeclarations) {
+		if (options.denseFunctionParameters) {
 			if (prev === "-") {
 				if (tokens[current - 2]?.value === "=") return "";
 				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
@@ -249,12 +256,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 
 		// delete consecutive empty lines
 		if (emptyLineCount) {
-			let maxEmptyLines = 1;
-			if (options.emptyLinesBeforeFunctions === "two") {
-				maxEmptyLines = 2;
-			}
-
-			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
+			for (let i = emptyLineCount - options.maxEmptyLines; i > 0; i--) {
 				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
