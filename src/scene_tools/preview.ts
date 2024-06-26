@@ -94,6 +94,7 @@ export class ScenePreviewProvider
 	): void | Thenable<void> {
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
+		data.set("godot/unique", new vscode.DataTransferItem(source[0].unique));
 	}
 
 	public provideDocumentDropEdits(
@@ -106,15 +107,27 @@ export class ScenePreviewProvider
 		const fileName = path.split("/").pop();
 		const className: string = dataTransfer.get("godot/class").value;
 		const line = document.lineAt(position.line);
+		const unique = dataTransfer.get("godot/unique").value === "true";
 
 		if (path && className) {
 			if (document.languageId === "gdscript") {
+				let fullPath = `$${path}`	
+				
+				if (unique) {
+					// For unique nodes, we can use the % syntax and drop the full path
+					fullPath = `%${path.split("/").pop()}`
+				}
+
 				if (line.text === "") {
+					// We assume that if the user is dropping a node in an empty line, they are at the top of
+					// the script and want to declare an onready variable
 					return new vscode.DocumentDropEdit(
-						`@onready var ${node_name_to_snake(fileName)}: ${className} = $${path}`,
+						`@onready var ${node_name_to_snake(fileName)}: ${className} = ${fullPath}`,
 					);
 				}
-				return new vscode.DocumentDropEdit(`$${path}`);
+
+				// In any other place, we assume the user wants to get a reference to the node itself
+				return new vscode.DocumentDropEdit(fullPath);
 			}
 
 			if (document.languageId === "csharp") {
