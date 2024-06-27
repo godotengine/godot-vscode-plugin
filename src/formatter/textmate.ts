@@ -229,7 +229,6 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
-	let firstEmptyLine = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
@@ -239,9 +238,6 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			} else {
-				if (emptyLineCount === 0) {
-					firstEmptyLine = lineNum;
-				}
 				emptyLineCount++;
 			}
 
