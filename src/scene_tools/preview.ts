@@ -105,7 +105,6 @@ export class ScenePreviewProvider
 		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.DocumentDropEdit> {
 		const path: string = dataTransfer.get("godot/path").value;
-		const fileName = path.split("/").pop();
 		const className: string = dataTransfer.get("godot/class").value;
 		const line = document.lineAt(position.line);
 		const unique = dataTransfer.get("godot/unique").value === "true";
