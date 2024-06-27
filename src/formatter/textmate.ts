@@ -52,21 +52,18 @@ interface Token {
 	skip?: boolean;
 }
 
-class FormatterOptions {
+export interface FormatterOptions {
 	maxEmptyLines: 1 | 2;
 	denseFunctionParameters: boolean;
+}
 
-	constructor() {
-		switch (get_configuration("formatter.maxEmptyLines")) {
-			case "1":
-				this.maxEmptyLines = 1;
-				break;
-			case "2":
-				this.maxEmptyLines = 2;
-				break;
-		}
-		this.denseFunctionParameters = get_configuration("formatter.denseFunctionParameters");
-	}
+function get_formatter_options() {
+	const options: FormatterOptions = {
+		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
+		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
+	};
+
+	return options;
 }
 
 function parse_token(token: Token) {
@@ -217,14 +214,17 @@ function is_comment(line: TextLine): boolean {
 	return line.text[line.firstNonWhitespaceCharacterIndex] === "#";
 }
 
-export function format_document(document: TextDocument): TextEdit[] {
+export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
 		return [];
 	}
 	const edits: TextEdit[] = [];
 
-	const options = new FormatterOptions();
+	let options = _options;
+	if (options === undefined) {
+		options = get_formatter_options();
+	}
 
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
