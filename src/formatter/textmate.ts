@@ -75,6 +75,8 @@ function parse_token(token: Token) {
 	}
 	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
 		token.skip = true;
+		token.type = "nodepath";
+		return;
 	}
 	if (token.scopes.includes("keyword.control.flow.gdscript")) {
 		token.type = "keyword";
@@ -180,6 +182,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === ")" && nextToken.type === "keyword") return " ";
 
 	if (prev === "[" && nextToken.type === "symbol") return "";
+	if (prev === "[" && nextToken.type === "nodepath") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
 	if (prev === "##") return " ";
