@@ -110,6 +110,11 @@ export class ScenePreviewProvider
 		const unique = dataTransfer.get("godot/unique").value === "true";
 		const label: string = dataTransfer.get("godot/label").value;
 
+		// TODO: compare the source scene to the target file
+		// What should happen when you drag a node into a script that isn't the
+		// "main" script for that scene?
+		// Attempt to calculate a relative path that resolves correctly?
+
 		if (className) {
 			// For the root node, the path is empty and needs to be replaced with the node name
 			const savePath = path || label;
