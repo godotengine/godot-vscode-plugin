@@ -70,6 +70,8 @@
 				{ "include": "#in_keyword" },
 				{ "include": "#control_flow" },
 				{ "include": "#match_keyword" },
+				{ "include": "#curly_braces" },
+				{ "include": "#square_braces" },
 				{ "include": "#round_braces" },
 				{ "include": "#function_call" },
 				{ "include": "#comment" },
@@ -550,6 +552,26 @@
 					"name": "keyword.operator.assignment.gdscript",
 					"match": "=(?!=)"
 				}
+			]
+		},
+		"curly_braces": {
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": { "0": { "name": "punctuation.definition.dict.begin.gdscript" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.dict.end.gdscript" } },
+			"patterns": [
+				{ "include": "#base_expression" },
+				{ "include": "#any_variable" }
+			]
+		},
+		"square_braces": {
+			"begin": "\\[",
+			"end": "\\]",
+			"beginCaptures": { "0": { "name": "punctuation.definition.list.begin.gdscript" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.list.end.gdscript" } },
+			"patterns": [
+				{ "include": "#base_expression" },
+				{ "include": "#any_variable" }
 			]
 		},
 		"round_braces": {
