@@ -221,11 +221,8 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 	}
 	const edits: TextEdit[] = [];
 
-	let options = _options;
-	if (options === undefined) {
-		options = get_formatter_options();
-	}
-
+	const options = _options ?? get_formatter_options();
+	
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
