@@ -116,11 +116,11 @@ export class ScenePreviewProvider
 			const savePath = path || label;
 
 			if (document.languageId === "gdscript") {
-				let qualifiedPath = `$${savePath}`	
-				
+				let qualifiedPath = `$${savePath}`;
+
 				if (unique) {
 					// For unique nodes, we can use the % syntax and drop the full path
-					qualifiedPath = `%${label}`
+					qualifiedPath = `%${label}`;
 				}
 
 				if (line.text === "") {
