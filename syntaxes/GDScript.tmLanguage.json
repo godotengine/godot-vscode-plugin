@@ -282,12 +282,10 @@
 		},
 		"variable_declaration": {
 			"name": "meta.variable.gdscript",
-			"begin": "\\b(?:(var)|(const))\\s+(?:(\\b[A-Z_][A-Z_0-9]*\\b)|([A-Za-z_]\\w*))\\s*",
+			"begin": "\\b(?:(var)|(const))\\b",
 			"beginCaptures": {
 				"1": { "name": "keyword.language.gdscript storage.type.var.gdscript" },
-				"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" },
-				"3": { "name": "constant.language.gdscript" },
-				"4": { "name": "variable.other.gdscript" }
+				"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" }
 			},
 			"end": "$|;",
 			"patterns": [
