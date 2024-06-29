@@ -1,0 +1,15 @@
+{
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineWidth": 120,
+		"lineEnding": "lf",
+		"include": ["src/**/*.ts"]
+	},
+	"files": {
+		"include": ["src/**/*.ts"],
+		"ignore": ["node_modules"]
+	}
+}

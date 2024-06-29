@@ -69,6 +69,9 @@
 				{ "include": "#assignment_operator" },
 				{ "include": "#in_keyword" },
 				{ "include": "#control_flow" },
+				{ "include": "#match_keyword" },
+				{ "include": "#curly_braces" },
+				{ "include": "#square_braces" },
 				{ "include": "#round_braces" },
 				{ "include": "#function_call" },
 				{ "include": "#comment" },
@@ -146,6 +149,8 @@
 			]
 		},
 		"nodepath_function": {
+			"name": "meta.function.gdscript",
+			"contentName": "meta.function.parameters.gdscript",
 			"begin": "(get_node_or_null|has_node|has_node_and_resource|find_node|get_node)\\s*(\\()",
 			"beginCaptures": {
 				"1": { "name": "entity.name.function.gdscript" },
@@ -164,7 +169,8 @@
 							"name": "keyword.control.flow"
 						}
 					]
-				}
+				},
+				{ "include": "#base_expression" }
 			]
 		},
 		"self": {
@@ -231,8 +237,12 @@
 			"name": "keyword.operator.assignment.gdscript"
 		},
 		"control_flow": {
-			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|match|when|yield|await)\\b",
+			"match": "\\b(?:if|elif|else|while|break|continue|pass|return|when|yield|await)\\b",
 			"name": "keyword.control.gdscript"
+		},
+		"match_keyword": {
+			"match": "^\n\\s*(match)",
+			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
 			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|preload|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
@@ -542,6 +552,26 @@
 					"name": "keyword.operator.assignment.gdscript",
 					"match": "=(?!=)"
 				}
+			]
+		},
+		"curly_braces": {
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": { "0": { "name": "punctuation.definition.dict.begin.gdscript" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.dict.end.gdscript" } },
+			"patterns": [
+				{ "include": "#base_expression" },
+				{ "include": "#any_variable" }
+			]
+		},
+		"square_braces": {
+			"begin": "\\[",
+			"end": "\\]",
+			"beginCaptures": { "0": { "name": "punctuation.definition.list.begin.gdscript" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.list.end.gdscript" } },
+			"patterns": [
+				{ "include": "#base_expression" },
+				{ "include": "#any_variable" }
 			]
 		},
 		"round_braces": {

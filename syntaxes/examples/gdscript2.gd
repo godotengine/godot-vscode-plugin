@@ -45,6 +45,12 @@ func f():
     super()
     super.some_function()
 
+	match param3:
+		3:
+			print("param3 is 3!")
+		_:
+			print("param3 is not 3!")
+
     for i in range(1): # `in` is a control keyword
         print(i in range(1)) # `in` is an operator keyword
 

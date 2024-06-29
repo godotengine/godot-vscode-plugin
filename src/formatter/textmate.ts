@@ -1,4 +1,5 @@
-import { Range, type TextDocument, TextEdit, TextLine } from "vscode";
+import { TextEdit } from "vscode";
+import type { TextDocument, TextLine } from "vscode";
 import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
@@ -51,14 +52,18 @@ interface Token {
 	skip?: boolean;
 }
 
-class FormatterOptions {
-	emptyLinesBeforeFunctions: "one" | "two";
-	denseFunctionDeclarations: boolean;
+export interface FormatterOptions {
+	maxEmptyLines: 1 | 2;
+	denseFunctionParameters: boolean;
+}
 
-	constructor() {
-		this.emptyLinesBeforeFunctions = get_configuration("formatter.emptyLinesBeforeFunctions");
-		this.denseFunctionDeclarations = get_configuration("formatter.denseFunctionDeclarations");
-	}
+function get_formatter_options() {
+	const options: FormatterOptions = {
+		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
+		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
+	};
+
+	return options;
 }
 
 function parse_token(token: Token) {
@@ -70,6 +75,12 @@ function parse_token(token: Token) {
 	}
 	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
 		token.skip = true;
+		token.type = "nodepath";
+		return;
+	}
+	if (token.scopes.includes("keyword.control.flow.gdscript")) {
+		token.type = "keyword";
+		return;
 	}
 	if (keywords.includes(token.value)) {
 		token.type = "keyword";
@@ -114,7 +125,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "(") return "";
 
 	if (nextToken.param) {
-		if (options.denseFunctionDeclarations) {
+		if (options.denseFunctionParameters) {
 			if (prev === "-") {
 				if (tokens[current - 2]?.value === "=") return "";
 				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
@@ -171,6 +182,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === ")" && nextToken.type === "keyword") return " ";
 
 	if (prev === "[" && nextToken.type === "symbol") return "";
+	if (prev === "[" && nextToken.type === "nodepath") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
 	if (prev === "##") return " ";
@@ -205,34 +217,28 @@ function is_comment(line: TextLine): boolean {
 	return line.text[line.firstNonWhitespaceCharacterIndex] === "#";
 }
 
-export function format_document(document: TextDocument): TextEdit[] {
+export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
 		return [];
 	}
 	const edits: TextEdit[] = [];
 
-	const options = new FormatterOptions();
-
+	const options = _options ?? get_formatter_options();
+	
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
-	let firstEmptyLine = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
-		if (line.isEmptyOrWhitespace || is_comment(line)) {
+		if (line.isEmptyOrWhitespace) {
 			// delete empty lines at the beginning of the file
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			} else {
-				if (emptyLineCount === 0) {
-					firstEmptyLine = lineNum;
-				}
-				if (!is_comment(line)) {
-					emptyLineCount++;
-				}
+				emptyLineCount++;
 			}
 
 			// delete empty lines at the end of the file
@@ -247,26 +253,8 @@ export function format_document(document: TextDocument): TextEdit[] {
 
 		// delete consecutive empty lines
 		if (emptyLineCount) {
-			let maxEmptyLines = 1;
-
-			const start = line.text.trimStart();
-			if (options.emptyLinesBeforeFunctions === "two") {
-				if (start.startsWith("func") || start.startsWith("static func")) {
-					maxEmptyLines++;
-				}
-			}
-			if (start.startsWith("class")) {
-				maxEmptyLines++;
-			}
-			let i = 0;
-			let deletedLines = 0;
-			const linesToDelete = emptyLineCount - maxEmptyLines;
-			while (i < lineNum && deletedLines < linesToDelete) {
-				const candidate = document.lineAt(firstEmptyLine + i++);
-				if (candidate.isEmptyOrWhitespace) {
-					edits.push(TextEdit.delete(candidate.rangeIncludingLineBreak));
-					deletedLines++;
-				}
+			for (let i = emptyLineCount - options.maxEmptyLines; i > 0; i--) {
+				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
 		}
