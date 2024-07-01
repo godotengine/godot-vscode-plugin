@@ -618,8 +618,7 @@
 		"function_call": {
 			"name": "meta.function-call.gdscript",
 			"comment": "Regular function call of the type \"name(args)\"",
-			"begin": "(?=\\b([a-zA-Z_]\\w*)\\b(\\())",
-			"beginCaptures": { "2": { "name": "punctuation.definition.arguments.begin.gdscript" } },
+			"begin": "(?=\\b[a-zA-Z_]\\w*\\b\\()",
 			"end": "(\\))",
 			"endCaptures": { "1": { "name": "punctuation.definition.arguments.end.gdscript" } },
 			"patterns": [
@@ -631,20 +630,20 @@
 			"patterns": [
 				{ "include": "#builtin_classes" },
 				{
-					"name": "keyword.language.gdscript",
-					"match": "\\b(preload)\\b"
+					"match": "\\b(preload)\\b",
+					"name": "keyword.language.gdscript"
 				},
 				{
 					"comment": "Some color schemas support meta.function-call.generic scope",
-					"name": "support.function.any-method.gdscript",
-					"match": "\\b([a-zA-Z_]\\w*)\\b"
+					"match": "\\b([a-zA-Z_]\\w*)\\b",
+					"name": "support.function.any-method.gdscript"
 				}
 			]
 		},
 		"function_arguments": {
 			"begin": "(\\()",
-			"end": "(?=\\))(?!\\)\\s*\\()",
 			"beginCaptures": { "1": { "name": "punctuation.definition.arguments.begin.gdscript" } },
+			"end": "(?=\\))(?!\\)\\s*\\()",
 			"contentName": "meta.function.parameters.gdscript",
 			"patterns": [
 				{
