@@ -885,7 +885,7 @@
 		"@typescript-eslint/parser": "^5.57.1",
 		"@vscode/test-cli": "^0.0.4",
 		"@vscode/test-electron": "^2.3.8",
-		"@vscode/vsce": "^2.21.0",
+		"@vscode/vsce": "^2.29.0",
 		"chai": "^4.3.10",
 		"esbuild": "^0.17.15",
 		"eslint": "^8.37.0",
@@ -907,7 +907,7 @@
 		"vscode-languageclient": "^7.0.0",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.0.0",
-		"ws": "^8.13.0",
+		"ws": "^8.17.1",
 		"ya-bbcode": "^4.0.0"
 	}
 }

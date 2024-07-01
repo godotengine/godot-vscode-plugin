@@ -245,7 +245,7 @@
 			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
-			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|preload|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
+			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
 			"name": "keyword.language.gdscript"
 		},
 		"letter": {
@@ -618,7 +618,7 @@
 		"function_call": {
 			"name": "meta.function-call.gdscript",
 			"comment": "Regular function call of the type \"name(args)\"",
-			"begin": "(?x)\n  \\b(?=\n    ([a-zA-Z_]\\w*) \\s* (\\()\n  )\n",
+			"begin": "(?=\\b([a-zA-Z_]\\w*)\\b(\\())",
 			"beginCaptures": { "2": { "name": "punctuation.definition.arguments.begin.gdscript" } },
 			"end": "(\\))",
 			"endCaptures": { "1": { "name": "punctuation.definition.arguments.end.gdscript" } },
@@ -631,9 +631,13 @@
 			"patterns": [
 				{ "include": "#builtin_classes" },
 				{
+					"name": "keyword.language.gdscript",
+					"match": "\\b(preload)\\b"
+				},
+				{
 					"comment": "Some color schemas support meta.function-call.generic scope",
 					"name": "support.function.any-method.gdscript",
-					"match": "(?x)\n  \\b ([a-zA-Z_]\\w*) \\b\n"
+					"match": "\\b([a-zA-Z_]\\w*)\\b"
 				}
 			]
 		},
