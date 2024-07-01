@@ -601,7 +601,7 @@
 		},
 		"any_method": {
 			"match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
-			"name": "support.function.any-method.gdscript"
+			"name": "entity.name.function.other.gdscript"
 		},
 		"any_variable": {
 			"match": "\\b(?<![@\\$#%])([A-Za-z_]\\w*)\\b(?![(])",
@@ -636,7 +636,7 @@
 				{
 					"comment": "Some color schemas support meta.function-call.generic scope",
 					"match": "\\b([a-zA-Z_]\\w*)\\b",
-					"name": "support.function.any-method.gdscript"
+					"name": "entity.name.function.gdscript"
 				}
 			]
 		},
