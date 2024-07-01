@@ -281,7 +281,7 @@
 			]
 		},
 		"variable_declaration": {
-			"name": "meta.variable.gdscript",
+			"name_": "meta.variable.gdscript",
 			"begin": "\\b(?:(var)|(const))\\b",
 			"beginCaptures": {
 				"1": { "name": "keyword.language.gdscript storage.type.var.gdscript" },
@@ -616,7 +616,7 @@
 			}
 		},
 		"function_call": {
-			"name": "meta.function-call.gdscript",
+			"name_": "meta.function-call.gdscript",
 			"comment": "Regular function call of the type \"name(args)\"",
 			"begin": "(?=\\b[a-zA-Z_]\\w*\\b\\()",
 			"end": "(\\))",
