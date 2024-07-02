@@ -245,7 +245,7 @@
 			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
-			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|preload|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
+			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
 			"name": "keyword.language.gdscript"
 		},
 		"letter": {
@@ -281,13 +281,11 @@
 			]
 		},
 		"variable_declaration": {
-			"name": "meta.variable.gdscript",
-			"begin": "\\b(?:(var)|(const))\\s+(?:(\\b[A-Z_][A-Z_0-9]*\\b)|([A-Za-z_]\\w*))\\s*",
+			"name": "meta.variable.declaration.gdscript",
+			"begin": "\\b(?:(var)|(const))\\b",
 			"beginCaptures": {
 				"1": { "name": "keyword.language.gdscript storage.type.var.gdscript" },
-				"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" },
-				"3": { "name": "constant.language.gdscript" },
-				"4": { "name": "variable.other.gdscript" }
+				"2": { "name": "keyword.language.gdscript storage.type.const.gdscript" }
 			},
 			"end": "$|;",
 			"patterns": [
@@ -603,7 +601,7 @@
 		},
 		"any_method": {
 			"match": "\\b([A-Za-z_]\\w*)\\b(?=\\s*(?:[(]))",
-			"name": "support.function.any-method.gdscript"
+			"name": "entity.name.function.other.gdscript"
 		},
 		"any_variable": {
 			"match": "\\b(?<![@\\$#%])([A-Za-z_]\\w*)\\b(?![(])",
@@ -620,8 +618,7 @@
 		"function_call": {
 			"name": "meta.function-call.gdscript",
 			"comment": "Regular function call of the type \"name(args)\"",
-			"begin": "(?x)\n  \\b(?=\n    ([a-zA-Z_]\\w*) \\s* (\\()\n  )\n",
-			"beginCaptures": { "2": { "name": "punctuation.definition.arguments.begin.gdscript" } },
+			"begin": "(?=\\b[a-zA-Z_]\\w*\\b\\()",
 			"end": "(\\))",
 			"endCaptures": { "1": { "name": "punctuation.definition.arguments.end.gdscript" } },
 			"patterns": [
@@ -633,16 +630,20 @@
 			"patterns": [
 				{ "include": "#builtin_classes" },
 				{
+					"match": "\\b(preload)\\b",
+					"name": "keyword.language.gdscript"
+				},
+				{
 					"comment": "Some color schemas support meta.function-call.generic scope",
-					"name": "support.function.any-method.gdscript",
-					"match": "(?x)\n  \\b ([a-zA-Z_]\\w*) \\b\n"
+					"match": "\\b([a-zA-Z_]\\w*)\\b",
+					"name": "entity.name.function.gdscript"
 				}
 			]
 		},
 		"function_arguments": {
 			"begin": "(\\()",
-			"end": "(?=\\))(?!\\)\\s*\\()",
 			"beginCaptures": { "1": { "name": "punctuation.definition.arguments.begin.gdscript" } },
+			"end": "(?=\\))(?!\\)\\s*\\()",
 			"contentName": "meta.function.parameters.gdscript",
 			"patterns": [
 				{
