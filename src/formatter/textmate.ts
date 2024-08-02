@@ -1,16 +1,17 @@
-import { Range, TextDocument, TextEdit } from "vscode";
-import * as fs from "fs";
+import { TextEdit } from "vscode";
+import type { TextDocument, TextLine } from "vscode";
+import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { get_extension_uri, createLogger } from "../utils";
+import { get_configuration, get_extension_uri, createLogger } from "../utils";
 
 const log = createLogger("formatter.tm");
 
 // Promisify readFile
 function readFile(path) {
 	return new Promise((resolve, reject) => {
-		fs.readFile(path, (error, data) => error ? reject(error) : resolve(data));
+		fs.readFile(path, (error, data) => (error ? reject(error) : resolve(data)));
 	});
 }
 
@@ -22,17 +23,21 @@ const wasmBin = fs.readFileSync(wasmPath).buffer;
 const registry = new vsctm.Registry({
 	onigLib: oniguruma.loadWASM(wasmBin).then(() => {
 		return {
-			createOnigScanner(patterns) { return new oniguruma.OnigScanner(patterns); },
-			createOnigString(s) { return new oniguruma.OnigString(s); }
+			createOnigScanner(patterns) {
+				return new oniguruma.OnigScanner(patterns);
+			},
+			createOnigString(s) {
+				return new oniguruma.OnigString(s);
+			},
 		};
 	}),
 	loadGrammar: (scopeName) => {
 		if (scopeName === "source.gdscript") {
-			return readFile(grammarPath).then(data => vsctm.parseRawGrammar(data.toString(), grammarPath));
+			return readFile(grammarPath).then((data) => vsctm.parseRawGrammar(data.toString(), grammarPath));
 		}
 		// console.log(`Unknown scope name: ${scopeName}`);
 		return null;
-	}
+	},
 });
 
 interface Token {
@@ -47,6 +52,20 @@ interface Token {
 	skip?: boolean;
 }
 
+export interface FormatterOptions {
+	maxEmptyLines: 1 | 2;
+	denseFunctionParameters: boolean;
+}
+
+function get_formatter_options() {
+	const options: FormatterOptions = {
+		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
+		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
+	};
+
+	return options;
+}
+
 function parse_token(token: Token) {
 	if (token.scopes.includes("string.quoted.gdscript")) {
 		token.string = true;
@@ -56,6 +75,12 @@ function parse_token(token: Token) {
 	}
 	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
 		token.skip = true;
+		token.type = "nodepath";
+		return;
+	}
+	if (token.scopes.includes("keyword.control.flow.gdscript")) {
+		token.type = "keyword";
+		return;
 	}
 	if (keywords.includes(token.value)) {
 		token.type = "keyword";
@@ -63,6 +88,10 @@ function parse_token(token: Token) {
 	}
 	if (symbols.includes(token.value)) {
 		token.type = "symbol";
+		return;
+	}
+	// "preload" is highlighted as a keyword but it behaves like a function
+	if (token.value === "preload") {
 		return;
 	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
@@ -79,7 +108,7 @@ function parse_token(token: Token) {
 	}
 }
 
-function between(tokens: Token[], current: number) {
+function between(tokens: Token[], current: number, options: FormatterOptions) {
 	const nextToken = tokens[current];
 	const prevToken = tokens[current - 1];
 	const next = nextToken.value;
@@ -89,26 +118,44 @@ function between(tokens: Token[], current: number) {
 
 	if (!prev) return "";
 
+	if (next === "##") return " ";
 	if (next === "#") return " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
+	if (prev === "(") return "";
+
 	if (nextToken.param) {
-		if (prev === "-" && tokens[current - 2]?.value === ",") {
-			return "";
+		if (options.denseFunctionParameters) {
+			if (prev === "-") {
+				if (tokens[current - 2]?.value === "=") return "";
+				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+					return "";
+				}
+				if ([",", "("].includes(tokens[current - 2]?.value)) {
+					return "";
+				}
+			}
+			if (next === "%") return " ";
+			if (prev === "%") return " ";
+			if (next === "=") {
+				if (tokens[current - 2]?.value === ":") return " ";
+				return "";
+			}
+			if (prev === "=") {
+				if (tokens[current - 3]?.value === ":") return " ";
+				return "";
+			}
+			if (prevToken?.type === "symbol") return " ";
+			if (nextToken.type === "symbol") return " ";
+		} else {
+			if (next === ":") {
+				if (tokens[current + 1]?.value === "=") return " ";
+			}
 		}
-		if (next === "%") return " ";
-		if (prev === "%") return " ";
-		if (next === "=") return "";
-		if (prev === "=") return "";
-		if (next === ":=") return "";
-		if (prev === ":=") return "";
-		if (prevToken?.type === "symbol") return " ";
-		if (nextToken.type === "symbol") return " ";
 	}
 
 	if (next === ":") {
 		if (["var", "const"].includes(tokens[current - 2]?.value)) {
-			if (tokens[current + 1]?.value !== "=") return "";
 			if (tokens[current + 1]?.value !== "=") return "";
 			return " ";
 		}
@@ -117,7 +164,10 @@ function between(tokens: Token[], current: number) {
 	if (prev === "@") return "";
 
 	if (prev === "-") {
-		if (tokens[current - 2]?.value === "(") {
+		if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+			return "";
+		}
+		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
 	}
@@ -132,8 +182,10 @@ function between(tokens: Token[], current: number) {
 	if (prev === ")" && nextToken.type === "keyword") return " ";
 
 	if (prev === "[" && nextToken.type === "symbol") return "";
+	if (prev === "[" && nextToken.type === "nodepath") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
+	if (prev === "##") return " ";
 	if (prev === "#") return " ";
 	if (next === "=") return " ";
 	if (prev === "=") return " ";
@@ -157,17 +209,26 @@ function between(tokens: Token[], current: number) {
 
 let grammar = null;
 
-registry.loadGrammar("source.gdscript").then(g => { grammar = g; });
+registry.loadGrammar("source.gdscript").then((g) => {
+	grammar = g;
+});
 
-export function format_document(document: TextDocument): TextEdit[] {
+function is_comment(line: TextLine): boolean {
+	return line.text[line.firstNonWhitespaceCharacterIndex] === "#";
+}
+
+export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
 		return [];
 	}
 	const edits: TextEdit[] = [];
 
+	const options = _options ?? get_formatter_options();
+	
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
+	let emptyLineCount = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
@@ -177,24 +238,29 @@ export function format_document(document: TextDocument): TextEdit[] {
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
 			} else {
-				// Limit the number of consecutive empty lines
-				const maxEmptyLines: number = 1;
-				if (maxEmptyLines === 1) {
-					if (lineNum < document.lineCount - 1 && document.lineAt(lineNum + 1).isEmptyOrWhitespace) {
-						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
-					}
-				} else if (maxEmptyLines === 2) {
-					if (lineNum < document.lineCount - 2 && document.lineAt(lineNum + 1).isEmptyOrWhitespace && document.lineAt(lineNum + 2).isEmptyOrWhitespace) {
-						edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
-					}
+				emptyLineCount++;
+			}
+
+			// delete empty lines at the end of the file
+			if (lineNum === document.lineCount - 1) {
+				for (let i = lineNum - emptyLineCount + 1; i < document.lineCount; i++) {
+					edits.push(TextEdit.delete(document.lineAt(i).rangeIncludingLineBreak));
 				}
 			}
 			continue;
 		}
 		onlyEmptyLinesSoFar = false;
 
+		// delete consecutive empty lines
+		if (emptyLineCount) {
+			for (let i = emptyLineCount - options.maxEmptyLines; i > 0; i--) {
+				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
+			}
+			emptyLineCount = 0;
+		}
+
 		// skip comments
-		if (line.text[line.firstNonWhitespaceCharacterIndex] === "#") {
+		if (is_comment(line)) {
 			continue;
 		}
 
@@ -228,7 +294,7 @@ export function format_document(document: TextDocument): TextEdit[] {
 			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
 				nextLine += tokens[i].original;
 			} else {
-				nextLine += between(tokens, i) + tokens[i].value.trim();
+				nextLine += between(tokens, i, options) + tokens[i].value.trim();
 			}
 		}
 

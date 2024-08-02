@@ -42,3 +42,22 @@ export function make_docs_uri(path: string, fragment?: string) {
 		fragment: fragment,
 	});
 }
+
+/**
+ * Can be used to convert a conventional node name to a snake_case variable name.
+ * 
+ * @example
+ * ```ts
+ * nodeNameToVar("MyNode") // my_node
+ * nodeNameToVar("Sprite2D") // sprite_2d
+ * nodeNameToVar("UI") // ui
+ * ```
+ */
+export function node_name_to_snake(name: string): string {
+    const snakeCase: string = name.replace(/([a-z])([A-Z0-9])/g, "$1_$2").toLowerCase();
+    
+    if (snakeCase.startsWith("_")) {
+        return snakeCase.substring(1);
+    }
+    return snakeCase;
+}

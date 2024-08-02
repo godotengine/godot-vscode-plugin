@@ -1,6 +1,0 @@
-
-
-func test():
-
-	pass
-

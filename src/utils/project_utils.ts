@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
-import { execSync } from "child_process";
+import * as path from "node:path";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import { execSync } from "node:child_process";
 
 let projectDir: string | undefined = undefined;
 let projectFile: string | undefined = undefined;
