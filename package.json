@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"description": "Tools for game development with Godot Engine and GDScript",
 	"repository": {
 		"type": "git",
@@ -270,6 +270,24 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to reveal the terminal when launching the Godot Editor"
+				},
+				"godotTools.formatter.maxEmptyLines": {
+					"type": "string",
+					"enum": [
+						"1",
+						"2"
+					],
+					"enumDescriptions": [
+						"1 empty line. A more compact style.",
+						"2 empty lines. Conforms to the official GDScript style guide."
+					],
+					"default": "2",
+					"description": "Number of empty lines allowed anywhere in the file"
+				},
+				"godotTools.formatter.denseFunctionParameters": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether extra space should be removed from function parameter lists"
 				},
 				"godotTools.lsp.serverProtocol": {
 					"type": [
@@ -867,7 +885,7 @@
 		"@typescript-eslint/parser": "^5.57.1",
 		"@vscode/test-cli": "^0.0.4",
 		"@vscode/test-electron": "^2.3.8",
-		"@vscode/vsce": "^2.21.0",
+		"@vscode/vsce": "^2.29.0",
 		"chai": "^4.3.10",
 		"esbuild": "^0.17.15",
 		"eslint": "^8.37.0",
@@ -889,7 +907,7 @@
 		"vscode-languageclient": "^7.0.0",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.0.0",
-		"ws": "^8.13.0",
+		"ws": "^8.17.1",
 		"ya-bbcode": "^4.0.0"
 	}
 }

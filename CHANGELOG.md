@@ -1,5 +1,26 @@
 # Changelog
 
+### 2.1.0
+
+- [Improve dragging items from Scene Preview into source code](https://github.com/godotengine/godot-vscode-plugin/pull/661)
+- [Improve macOS path resolution for app bundles](https://github.com/godotengine/godot-vscode-plugin/pull/632)
+- [Improve codeblock formatting in documentation](https://github.com/godotengine/godot-vscode-plugin/pull/629)
+- [Improve Scene Preview ergonomics](https://github.com/godotengine/godot-vscode-plugin/pull/665)
+  - "Pinning" in the scene preview is now referred to as "locking" to avoid confusion with pinning a scene as the debug/launch target.
+  - Added commands for opening the Scene Preview's target scene, and the "main script" of the target scene, if it exists.
+  - Added existing "refresh scene preview" command as a button.
+- [Prevent document links from accidentally being resolved to your entire document](https://github.com/godotengine/godot-vscode-plugin/pull/639)
+- [Fix poor documentation formatting of class titles and inheritance chain](https://github.com/godotengine/godot-vscode-plugin/pull/628)
+- [Fix bad formatting on several operators](https://github.com/godotengine/godot-vscode-plugin/pull/605)
+- [Fix various formatting issues](https://github.com/godotengine/godot-vscode-plugin/pull/672)
+- [Fix various syntax highlighting issues](https://github.com/godotengine/godot-vscode-plugin/pull/674)
+- [Fix Object ID decoded as wrong signedness](https://github.com/godotengine/godot-vscode-plugin/pull/670)
+- [Fix project not found when `project.godot` file is excluded](https://github.com/godotengine/godot-vscode-plugin/pull/635)
+- [Fix LSP connection attempts not resetting](https://github.com/godotengine/godot-vscode-plugin/pull/638)
+- [Fix child processes not being killed properly](https://github.com/godotengine/godot-vscode-plugin/pull/613)
+- [Fix broken scene file parser](https://github.com/godotengine/godot-vscode-plugin/pull/603)
+- [Fix debugged process not being terminated when debugging session closes on Linux](https://github.com/godotengine/godot-vscode-plugin/pull/620)
+
 ### 2.0.0
 
 - [**Rewrite debugger for Godot 4 support + improved maintainability**](https://github.com/godotengine/godot-vscode-plugin/pull/452)

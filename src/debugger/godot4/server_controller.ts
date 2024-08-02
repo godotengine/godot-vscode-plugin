@@ -380,10 +380,17 @@ export class ServerController {
 				const className: string = command.parameters[1];
 				const properties: any[] = command.parameters[2];
 
-				// scene:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
+				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
-				if(id < 0)
+				if (id < 0) {
 					id = id + BigInt(2) ** BigInt(64);
+				}
+
+				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
+				// thus we need to convert it to its equivalent unsigned value here.
+				if (id < 0) {
+					id = id + BigInt(2) ** BigInt(64);
+				}
 
 				const rawObject = new RawObject(className);
 				properties.forEach((prop) => {
