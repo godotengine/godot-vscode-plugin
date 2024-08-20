@@ -362,6 +362,8 @@ function make_codeblock(code: string, language: string) {
 }
 
 function format_documentation(bbcode: string, classname: string) {
+	// ya-bbcode doesn't parse [code skip-lint] as a [code] tag
+	bbcode = bbcode.replaceAll("[code skip-lint]", "[code]");
 	let html = parser.parse(bbcode.trim());
 
 	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
