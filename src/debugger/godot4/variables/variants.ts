@@ -53,6 +53,7 @@ export enum GDScriptTypes {
 
 export const ENCODE_FLAG_64 = 1 << 16;
 export const ENCODE_FLAG_OBJECT_AS_ID = 1 << 16;
+export const ENCODE_FIELD_TYPED_ARRAY_BUILTIN = 1 << 16;
 
 export interface BufferModel {
 	buffer: Buffer;

@@ -23,6 +23,7 @@ import {
 	Projection,
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
+	ENCODE_FIELD_TYPED_ARRAY_BUILTIN,
 	RID,
 	Callable,
 	Signal,
@@ -143,7 +144,11 @@ export class VariantDecoder {
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
-				return this.decode_Array(model);
+				if (type & ENCODE_FIELD_TYPED_ARRAY_BUILTIN) {
+					return this.decode_Array_typed_builtin(model);
+				} else {
+					return this.decode_Array(model);
+				}
 			case GDScriptTypes.PACKED_BYTE_ARRAY:
 				return this.decode_PackedByteArray(model);
 			case GDScriptTypes.PACKED_INT32_ARRAY:
@@ -210,6 +215,21 @@ export class VariantDecoder {
 	private decode_Array(model: BufferModel) {
 		const output: Array<any> = [];
 
+		const count = this.decode_UInt32(model);
+
+		for (let i = 0; i < count; i++) {
+			const value = this.decode_variant(model);
+			output.push(value);
+		}
+
+		return output;
+	}
+
+	private decode_Array_typed_builtin(model: BufferModel) {
+		const output: Array<any> = [];
+
+		// TODO: Implement typed arrays
+		const _ = this.decode_UInt32(model); // Ignore array type
 		const count = this.decode_UInt32(model);
 
 		for (let i = 0; i < count; i++) {
