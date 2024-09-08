@@ -11,6 +11,14 @@ func f():
 
 @onready var score := $HBoxContainer/Score as Label
 
+var a = $/root
+var a = $/root
+var a = $/root/Child
+var a = $/root/Child
+var a = $/root/Child/%Unique
+var a = $/root/Child/%Unique
+var a = $/root/Child/GrandChild
+
 var a = $Child
 var a = $Child/GrandChild
 var a = $Child/GrandChild/GreatGrandChild

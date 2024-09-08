@@ -400,20 +400,22 @@
 			]
 		},
 		"builtin_get_node_shorthand_bare": {
-			"name": "meta.literal.nodepath.gdscript",
-			"match": "(?<!/\\s*)(\\$|%|\\$%)([a-zA-Z_]\\w*)\\b(?!\\s*/)",
+			"name": "meta.literal.nodepath.bare.gdscript",
+			"match": "(?<!/\\s*)(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)\\b(?!\\s*/)",
 			"captures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
 				"2": { "name": "constant.character.escape.gdscript" },
-				"3": { "name": "constant.character.escape.gdscript" }
+				"3": { "name": "constant.character.escape.gdscript" },
+				"4": { "name": "constant.character.escape.gdscript" }
 			}
 		},
 		"builtin_get_node_shorthand_bare_multi": {
-			"name": "meta.literal.nodepath.gdscript",
-			"begin": "(\\$|%|\\$%)([a-zA-Z_]\\w*)",
+			"name": "meta.literal.nodepath.bare.gdscript",
+			"begin": "(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
-				"2": { "name": "constant.character.escape.gdscript" }
+				"2": { "name": "constant.character.escape.gdscript" },
+				"3": { "name": "constant.character.escape.gdscript" }
 			},
 			"end": "(?!\\s*/\\s*%?\\s*[a-zA-Z_]\\w*)",
 			"patterns": [

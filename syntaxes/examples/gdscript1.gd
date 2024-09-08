@@ -155,45 +155,53 @@ var CONSTANT_not
 
 # ------------------------------------------------------------------------------
 
-onready var node_a = $Child
-onready var node_b = $Child/GrandChild
-onready var node_bb = $Child/GrandChild/GreatGrandChild
-onready var node_bbb = $Child/GrandChild/GreatGrandChild/GreatGreatGrandChild
-onready var node_c = $"../Sibling"
-onready var node_cc = $'../Sibling'
-onready var node_d = $'..' # parent
-onready var node_e = $"../.." # grandparent
+var node_a = $Child
+var node_b = $Child/GrandChild
+var node_bb = $Child/GrandChild/GreatGrandChild
+var node_bbb = $Child/GrandChild/GreatGrandChild/GreatGreatGrandChild
+var node_c = $"../Sibling"
+var node_cc = $'../Sibling'
+var node_d = $'..' # parent
+var node_e = $"../.." # grandparent
 
-onready var node_f = get_node('Child')
-onready var node_g = get_node("Child/GrandChild")
-onready var node_h = get_node("../Sibling")
+var node_f = get_node('Child')
+var node_g = get_node("Child/GrandChild")
+var node_h = get_node("../Sibling")
 
 if has_node('Child') and get_node('Child').has_node('GrandChild'):
 	pass
 
-onready var unique_node_a = $%Unique
-onready var unique_node_b = $Child/%Unique
-onready var unique_node_c = $Child/GrandChild/%Unique
-onready var unique_node_d = $Child/%Unique/ChildOfUnique
-onready var unique_node_e = %Unique
-onready var unique_node_f = %Unique/Child
-onready var unique_node_g = %Unique/%UniqueChild
+var unique_node_a = $%Unique
+var unique_node_b = $Child/%Unique
+var unique_node_c = $Child/GrandChild/%Unique
+var unique_node_d = $Child/%Unique/ChildOfUnique
+var unique_node_e = %Unique
+var unique_node_f = %Unique/Child
+var unique_node_g = %Unique/%UniqueChild
 
-onready var node_i = $"%Unique"
-onready var node_ii = get_node("%Unique")
-onready var node_iii = NodePath("%Unique")
-onready var node_j = $'%Unique/Child'
-onready var node_jj = get_node('%Unique/Child')
-onready var node_jjj = NodePath('%Unique/Child')
-onready var node_k = $"%Unique/%UniqueChild"
-onready var node_kk = get_node("%Unique/%UniqueChild")
-onready var node_kkk = NodePath("%Unique/%UniqueChild")
+var a = $/root
+var a = $/ root
+var a = $/root/Child
+var a = $/ root/   Child
+var a = $/root/Child/%Unique
+var a = $ /  root /   Child/%Unique
+var a = $/root/Child/GrandChild
+
+var node_i = $"%Unique"
+var node_ii = get_node("%Unique")
+var node_iii = NodePath("%Unique")
+var node_j = $'%Unique/Child'
+var node_jj = get_node('%Unique/Child')
+var node_jjj = NodePath('%Unique/Child')
+var node_k = $"%Unique/%UniqueChild"
+var node_kk = get_node("%Unique/%UniqueChild")
+var node_kkk = NodePath("%Unique/%UniqueChild")
 
 if has_node('%Unique') and get_node('%Child').has_node('%GrandChild'):
 	pass
 
-onready var node_i = $badlyNamedChild
-onready var node_j = $badlyNamedChild/badly_named_grandchild
+var node_i = $badlyNamedChild
+var node_j = $badlyNamedChild/badly_named_grandchild
 
 var node_path_a = NodePath("Child")
 var node_path_b = NodePath('Child/GrandChild')

@@ -78,6 +78,11 @@ function parse_token(token: Token) {
 		token.type = "nodepath";
 		return;
 	}
+	if (token.scopes.includes("meta.literal.nodepath.bare.gdscript")) {
+		token.skip = true;
+		token.type = "bare_nodepath";
+		return;
+	}
 	if (token.scopes.includes("keyword.control.flow.gdscript")) {
 		token.type = "keyword";
 		return;
@@ -183,6 +188,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === "[" && nextToken.type === "symbol") return "";
 	if (prev === "[" && nextToken.type === "nodepath") return "";
+	if (prev === "[" && nextToken.type === "bare_nodepath") return "";
 	if (prev === ":") return " ";
 	if (prev === ";") return " ";
 	if (prev === "##") return " ";
@@ -225,7 +231,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 	const edits: TextEdit[] = [];
 
 	const options = _options ?? get_formatter_options();
-	
+
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
@@ -290,7 +296,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			tokens.push(token);
 		}
 		for (let i = 0; i < tokens.length; i++) {
-			// log.debug(i, tokens[i].value, tokens[i]);
+			log.debug(i, tokens[i].value, tokens[i]);
 			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
 				nextLine += tokens[i].original;
 			} else {
