@@ -23,6 +23,7 @@ import {
 	Projection,
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
+	ENCODE_FLAG_TYPED_ARRAY,
 	RID,
 	Callable,
 	Signal,
@@ -143,7 +144,11 @@ export class VariantDecoder {
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
-				return this.decode_Array(model);
+				if (type & ENCODE_FLAG_TYPED_ARRAY) {
+					return this.decode_TypedArray(model);
+				} else {
+					return this.decode_Array(model);
+				}
 			case GDScriptTypes.PACKED_BYTE_ARRAY:
 				return this.decode_PackedByteArray(model);
 			case GDScriptTypes.PACKED_INT32_ARRAY:
@@ -216,6 +221,23 @@ export class VariantDecoder {
 	private decode_Array(model: BufferModel) {
 		const output: Array<any> = [];
 
+		const count = this.decode_UInt32(model);
+
+		for (let i = 0; i < count; i++) {
+			const value = this.decode_variant(model);
+			output.push(value);
+		}
+
+		return output;
+	}
+
+	private decode_TypedArray(model: BufferModel) {
+		const output: Array<any> = [];
+
+		// TODO: the type information is currently discarded
+		// it needs to be decoded and then packed into the output somehow
+
+		const type = this.decode_UInt32(model);
 		const count = this.decode_UInt32(model);
 
 		for (let i = 0; i < count; i++) {
