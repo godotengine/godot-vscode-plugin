@@ -381,7 +381,7 @@
 					"gdscene"
 				],
 				"extensions": [
-					"tscn"
+					".tscn"
 				],
 				"configuration": "./configurations/gdresource.language-configuration.json"
 			},
@@ -392,11 +392,11 @@
 					"gdresource"
 				],
 				"extensions": [
-					"godot",
-					"tres",
-					"import",
-					"gdns",
-					"gdnlib"
+					".godot",
+					".tres",
+					".import",
+					".gdns",
+					".gdnlib"
 				],
 				"configuration": "./configurations/gdresource.language-configuration.json"
 			},
