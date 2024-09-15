@@ -168,6 +168,12 @@ export class VariantDecoder {
 				} else {
 					return this.decode_PackedVector3fArray(model);
 				}
+			case GDScriptTypes.PACKED_VECTOR4_ARRAY:
+				if (type & ENCODE_FLAG_OBJECT_AS_ID) {
+					return this.decode_PackedVector4dArray(model);
+				} else {
+					return this.decode_PackedVector4fArray(model);
+				}
 			case GDScriptTypes.PACKED_COLOR_ARRAY:
 				return this.decode_PackedColorArray(model);
 			default:
@@ -476,6 +482,16 @@ export class VariantDecoder {
 		return output;
 	}
 
+	private decode_PackedVector4fArray(model: BufferModel) {
+		const count = this.decode_UInt32(model);
+		const output: Vector4[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Vector4f(model));
+		}
+
+		return output;
+	}
+
 	private decode_PackedVector2dArray(model: BufferModel) {
 		const count = this.decode_UInt32(model);
 		const output: Vector2[] = [];
@@ -491,6 +507,16 @@ export class VariantDecoder {
 		const output: Vector3[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Vector3d(model));
+		}
+
+		return output;
+	}
+
+	private decode_PackedVector4dArray(model: BufferModel) {
+		const count = this.decode_UInt32(model);
+		const output: Vector4[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Vector4d(model));
 		}
 
 		return output;
