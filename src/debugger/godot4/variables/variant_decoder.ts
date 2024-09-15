@@ -1,6 +1,6 @@
 import {
 	GDScriptTypes,
-	BufferModel,
+	type BufferModel,
 	Vector3,
 	Vector2,
 	Basis,
@@ -23,6 +23,7 @@ import {
 	Projection,
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
+	ENCODE_FLAG_TYPED_ARRAY,
 	RID,
 	Callable,
 	Signal,
@@ -143,7 +144,11 @@ export class VariantDecoder {
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
-				return this.decode_Array(model);
+				if (type & ENCODE_FLAG_TYPED_ARRAY) {
+					return this.decode_TypedArray(model);
+				} else {
+					return this.decode_Array(model);
+				}
 			case GDScriptTypes.PACKED_BYTE_ARRAY:
 				return this.decode_PackedByteArray(model);
 			case GDScriptTypes.PACKED_INT32_ARRAY:
@@ -168,6 +173,12 @@ export class VariantDecoder {
 				} else {
 					return this.decode_PackedVector3fArray(model);
 				}
+			case GDScriptTypes.PACKED_VECTOR4_ARRAY:
+				if (type & ENCODE_FLAG_OBJECT_AS_ID) {
+					return this.decode_PackedVector4dArray(model);
+				} else {
+					return this.decode_PackedVector4fArray(model);
+				}
 			case GDScriptTypes.PACKED_COLOR_ARRAY:
 				return this.decode_PackedColorArray(model);
 			default:
@@ -177,7 +188,7 @@ export class VariantDecoder {
 
 	public get_dataset(buffer: Buffer) {
 		const len = buffer.readUInt32LE(0);
-		if (buffer.length != len + 4) {
+		if (buffer.length !== len + 4) {
 			return undefined;
 		}
 		const model: BufferModel = {
@@ -220,11 +231,28 @@ export class VariantDecoder {
 		return output;
 	}
 
+	private decode_TypedArray(model: BufferModel) {
+		const output: Array<any> = [];
+
+		// TODO: the type information is currently discarded
+		// it needs to be decoded and then packed into the output somehow
+
+		const type = this.decode_UInt32(model);
+		const count = this.decode_UInt32(model);
+
+		for (let i = 0; i < count; i++) {
+			const value = this.decode_variant(model);
+			output.push(value);
+		}
+
+		return output;
+	}
+
 	private decode_Basisf(model: BufferModel) {
 		return new Basis(
 			this.decode_Vector3f(model),
 			this.decode_Vector3f(model),
-			this.decode_Vector3f(model)
+			this.decode_Vector3f(model), //
 		);
 	}
 
@@ -232,7 +260,7 @@ export class VariantDecoder {
 		return new Basis(
 			this.decode_Vector3d(model),
 			this.decode_Vector3d(model),
-			this.decode_Vector3d(model)
+			this.decode_Vector3d(model), //
 		);
 	}
 
@@ -476,6 +504,16 @@ export class VariantDecoder {
 		return output;
 	}
 
+	private decode_PackedVector4fArray(model: BufferModel) {
+		const count = this.decode_UInt32(model);
+		const output: Vector4[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Vector4f(model));
+		}
+
+		return output;
+	}
+
 	private decode_PackedVector2dArray(model: BufferModel) {
 		const count = this.decode_UInt32(model);
 		const output: Vector2[] = [];
@@ -491,6 +529,16 @@ export class VariantDecoder {
 		const output: Vector3[] = [];
 		for (let i = 0; i < count; i++) {
 			output.push(this.decode_Vector3d(model));
+		}
+
+		return output;
+	}
+
+	private decode_PackedVector4dArray(model: BufferModel) {
+		const count = this.decode_UInt32(model);
+		const output: Vector4[] = [];
+		for (let i = 0; i < count; i++) {
+			output.push(this.decode_Vector4d(model));
 		}
 
 		return output;
@@ -555,18 +603,28 @@ export class VariantDecoder {
 	}
 
 	private decode_Projectionf(model: BufferModel) {
-		return new Projection(this.decode_Vector4f(model), this.decode_Vector4f(model), this.decode_Vector4f(model), this.decode_Vector4f(model));
+		return new Projection(
+			this.decode_Vector4f(model),
+			this.decode_Vector4f(model),
+			this.decode_Vector4f(model),
+			this.decode_Vector4f(model),
+		);
 	}
 
 	private decode_Projectiond(model: BufferModel) {
-		return new Projection(this.decode_Vector4d(model), this.decode_Vector4d(model), this.decode_Vector4d(model), this.decode_Vector4d(model));
+		return new Projection(
+			this.decode_Vector4d(model),
+			this.decode_Vector4d(model),
+			this.decode_Vector4d(model),
+			this.decode_Vector4d(model),
+		);
 	}
 
 	private decode_Transform2Df(model: BufferModel) {
 		return new Transform2D(
 			this.decode_Vector2f(model),
 			this.decode_Vector2f(model),
-			this.decode_Vector2f(model)
+			this.decode_Vector2f(model), //
 		);
 	}
 
@@ -574,7 +632,7 @@ export class VariantDecoder {
 		return new Transform2D(
 			this.decode_Vector2d(model),
 			this.decode_Vector2d(model),
-			this.decode_Vector2d(model)
+			this.decode_Vector2d(model), //
 		);
 	}
 

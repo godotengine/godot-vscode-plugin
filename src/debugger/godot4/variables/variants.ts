@@ -47,12 +47,14 @@ export enum GDScriptTypes {
 	PACKED_VECTOR2_ARRAY,
 	PACKED_VECTOR3_ARRAY,
 	PACKED_COLOR_ARRAY,
+	PACKED_VECTOR4_ARRAY,
 
 	VARIANT_MAX
 }
 
 export const ENCODE_FLAG_64 = 1 << 16;
 export const ENCODE_FLAG_OBJECT_AS_ID = 1 << 16;
+export const ENCODE_FLAG_TYPED_ARRAY = 1 << 16;
 
 export interface BufferModel {
 	buffer: Buffer;
