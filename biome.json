@@ -11,5 +11,12 @@
 	"files": {
 		"include": ["src/**/*.ts"],
 		"ignore": ["node_modules"]
+	},
+	"linter": {
+		"rules": {
+			"style": {
+				"noUselessElse": "off"
+			}
+		}
 	}
 }
