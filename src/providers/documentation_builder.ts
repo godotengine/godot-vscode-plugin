@@ -83,11 +83,11 @@ export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSy
 				${make_symbol_document(symbol)}
 			</main>
 
-			<canvas id='map'></canvas>
+			<canvas id='minimap'></canvas>
 			
 			<script src="${pagemapJsUri}"></script>
 			<script>
-				pagemap(document.querySelector('#map'), ${options});			
+				pagemap(document.querySelector('#minimap'), ${options});			
 				${initialFocus};
 
 				var vscode = acquireVsCodeApi();

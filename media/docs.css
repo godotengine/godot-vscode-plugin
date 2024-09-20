@@ -6,7 +6,7 @@ a {
 	text-decoration: none;
 }
 
-#map {
+#minimap {
 	position: fixed;
 	top: 0;
 	right: 0;
