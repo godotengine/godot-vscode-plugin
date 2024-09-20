@@ -78,7 +78,7 @@ export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSy
 
 			<title>${symbol.name}</title>
 		</head>
-		<body style="line-height: 16pt;">
+		<body style="line-height: scaleFactor%; font-size: scaleFactor%;">
 			<main>
 				${make_symbol_document(symbol)}
 			</main>

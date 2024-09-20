@@ -16,7 +16,7 @@ import type {
 	GodotCapabilities,
 } from "../lsp/gdscript.capabilities";
 import { make_html_content } from "./documentation_builder";
-import { createLogger, get_extension_uri, make_docs_uri } from "../utils";
+import { createLogger, get_configuration, get_extension_uri, make_docs_uri } from "../utils";
 import { globals } from "../extension";
 
 const log = createLogger("providers.docs");
@@ -112,7 +112,10 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 		if (!this.htmlDb.has(className)) {
 			this.htmlDb.set(className, make_html_content(panel.webview, symbol, target));
 		}
-		panel.webview.html = this.htmlDb.get(className);
+
+		const scaleFactor = get_configuration("documentation.pageScale");
+
+		panel.webview.html = this.htmlDb.get(className).replaceAll("scaleFactor", scaleFactor);
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
 		panel.webview.onDidReceiveMessage((msg) => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
