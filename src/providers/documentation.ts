@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import {
+import type {
 	CancellationToken,
 	CustomDocument,
 	CustomDocumentOpenContext,
@@ -8,8 +8,8 @@ import {
 	Uri,
 	WebviewPanel,
 } from "vscode";
-import { NotificationMessage } from "vscode-jsonrpc";
-import {
+import type { NotificationMessage } from "vscode-jsonrpc";
+import type {
 	NativeSymbolInspectParams,
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
