@@ -19,7 +19,7 @@ export default class MessageBuffer {
 		this.buffer = Buffer.allocUnsafe(DefaultSize);
 	}
 
-	public append(chunk: Buffer | String): void {
+	public append(chunk: Buffer | string): void {
 		let toAppend: Buffer = <Buffer>chunk;
 		if (typeof chunk === "string") {
 			const str = <string>chunk;
