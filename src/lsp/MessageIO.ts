@@ -1,16 +1,16 @@
 import {
 	AbstractMessageReader,
-	MessageReader,
-	DataCallback,
-	Disposable,
-	RequestMessage,
-	ResponseMessage,
-	NotificationMessage,
+	type MessageReader,
+	type DataCallback,
+	type Disposable,
+	type RequestMessage,
+	type ResponseMessage,
+	type NotificationMessage,
 	AbstractMessageWriter,
-	MessageWriter
+	type MessageWriter,
 } from "vscode-jsonrpc";
-import { EventEmitter } from "events";
-import { WebSocket, Data } from "ws";
+import { EventEmitter } from "node:events";
+import { WebSocket, type Data } from "ws";
 import { Socket } from "net";
 import MessageBuffer from "./MessageBuffer";
 import { createLogger } from "../utils";
@@ -45,7 +45,6 @@ export class MessageIO extends EventEmitter {
 	}
 }
 
-
 export class WebSocketMessageIO extends MessageIO {
 	private socket: WebSocket = null;
 
@@ -59,7 +58,10 @@ export class WebSocketMessageIO extends MessageIO {
 		return new Promise((resolve, reject) => {
 			this.socket = null;
 			const ws = new WebSocket(`ws://${host}:${port}`);
-			ws.on("open", () => { this.on_connected(ws); resolve(); });
+			ws.on("open", () => {
+				this.on_connected(ws);
+				resolve();
+			});
 			ws.on("message", this.on_message.bind(this));
 			ws.on("error", this.on_disconnected.bind(this));
 			ws.on("close", this.on_disconnected.bind(this));
@@ -91,7 +93,10 @@ export class TCPMessageIO extends MessageIO {
 			this.socket = null;
 			const socket = new Socket();
 			socket.connect(port, host);
-			socket.on("connect", () => { this.on_connected(socket); resolve(); });
+			socket.on("connect", () => {
+				this.on_connected(socket);
+				resolve();
+			});
 			socket.on("data", this.on_message.bind(this));
 			socket.on("end", this.on_disconnected.bind(this));
 			socket.on("close", this.on_disconnected.bind(this));
@@ -162,15 +167,15 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 				if (!contentLength) {
 					throw new Error("Header must provide a Content-Length property.");
 				}
-				const length = parseInt(contentLength);
-				if (isNaN(length)) {
+				const length = Number.parseInt(contentLength);
+				if (Number.isNaN(length)) {
 					throw new Error("Content-Length value must be a number.");
 				}
 				this.nextMessageLength = length;
 				// Take the encoding form the header. For compatibility
 				// treat both utf-8 and utf8 as node utf8
 			}
-			var msg = this.buffer.tryReadContent(this.nextMessageLength);
+			const msg = this.buffer.tryReadContent(this.nextMessageLength);
 			if (msg === null) {
 				/** We haven't received the full message yet. */
 				this.setPartialMessageTimer();
@@ -179,7 +184,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.clearPartialMessageTimer();
 			this.nextMessageLength = -1;
 			this.messageToken++;
-			var json = JSON.parse(msg);
+			const json = JSON.parse(msg);
 
 			log.debug("rx:", json);
 			this.callback(json);
@@ -200,13 +205,18 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		if (this._partialMessageTimeout <= 0) {
 			return;
 		}
-		this.partialMessageTimer = setTimeout((token, timeout) => {
-			this.partialMessageTimer = undefined;
-			if (token === this.messageToken) {
-				this.firePartialMessage({ messageToken: token, waitingTime: timeout });
-				this.setPartialMessageTimer();
-			}
-		}, this._partialMessageTimeout, this.messageToken, this._partialMessageTimeout);
+		this.partialMessageTimer = setTimeout(
+			(token, timeout) => {
+				this.partialMessageTimer = undefined;
+				if (token === this.messageToken) {
+					this.firePartialMessage({ messageToken: token, waitingTime: timeout });
+					this.setPartialMessageTimer();
+				}
+			},
+			this._partialMessageTimeout,
+			this.messageToken,
+			this._partialMessageTimeout,
+		);
 	}
 }
 
@@ -227,21 +237,20 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 		this.io.on("close", () => this.fireClose());
 	}
 
-	public end(): void {
-
-	}
+	public end(): void {}
 
 	public write(msg: Message): Promise<void> {
+        // discard outgoing messages that we know aren't supported
 		if ((msg as RequestMessage).method === "didChangeWatchedFiles") {
+			return;
+		}
+		if ((msg as RequestMessage).method === "workspace/symbol") {
 			return;
 		}
 		const json = JSON.stringify(msg);
 		const contentLength = Buffer.byteLength(json, this.encoding);
 
-		const headers: string[] = [
-			ContentLength, contentLength.toString(), CRLF,
-			CRLF
-		];
+		const headers: string[] = [ContentLength, contentLength.toString(), CRLF, CRLF];
 		try {
 			// callback
 			this.io.on_send_message(msg);

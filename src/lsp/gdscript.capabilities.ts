@@ -1,4 +1,4 @@
-import { DocumentSymbol, Range, SymbolKind } from "vscode-languageclient";
+import type { DocumentSymbol, Range, SymbolKind } from "vscode-languageclient";
 
 export interface NativeSymbolInspectParams {
 	native_class: string;
