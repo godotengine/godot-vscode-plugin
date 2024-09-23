@@ -240,7 +240,11 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	public end(): void {}
 
 	public write(msg: Message): Promise<void> {
+        // discard outgoing messages that we know aren't supported
 		if ((msg as RequestMessage).method === "didChangeWatchedFiles") {
+			return;
+		}
+		if ((msg as RequestMessage).method === "workspace/symbol") {
 			return;
 		}
 		const json = JSON.stringify(msg);
