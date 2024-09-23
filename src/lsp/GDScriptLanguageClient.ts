@@ -1,27 +1,40 @@
 import * as vscode from "vscode";
-import { LanguageClient, NotificationMessage, RequestMessage, ResponseMessage } from "vscode-languageclient/node";
-import { EventEmitter } from "events";
+import {
+	LanguageClient,
+	type NotificationMessage,
+	type RequestMessage,
+	type ResponseMessage,
+} from "vscode-languageclient/node";
+import { EventEmitter } from "node:events";
 import { get_configuration, createLogger } from "../utils";
-import { Message, MessageIO, MessageIOReader, MessageIOWriter, TCPMessageIO, WebSocketMessageIO } from "./MessageIO";
+import {
+	type Message,
+	type MessageIO,
+	MessageIOReader,
+	MessageIOWriter,
+	TCPMessageIO,
+	WebSocketMessageIO,
+} from "./MessageIO";
 import { globals } from "../extension";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
 
 export enum ClientStatus {
-	PENDING,
-	DISCONNECTED,
-	CONNECTED,
+	PENDING = 0,
+	DISCONNECTED = 1,
+	CONNECTED = 2,
 }
 
 export enum TargetLSP {
-	HEADLESS,
-	EDITOR,
+	HEADLESS = 0,
+	EDITOR = 1,
 }
 
 const CUSTOM_MESSAGE = "gdscript_client/";
 
 export default class GDScriptLanguageClient extends LanguageClient {
-	public readonly io: MessageIO = (get_configuration("lsp.serverProtocol") === "ws") ? new WebSocketMessageIO() : new TCPMessageIO();
+	public readonly io: MessageIO =
+		get_configuration("lsp.serverProtocol") === "ws" ? new WebSocketMessageIO() : new TCPMessageIO();
 
 	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
@@ -35,10 +48,14 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public lastSymbolHovered = "";
 
 	private _started = false;
-	public get started(): boolean { return this._started; }
+	public get started(): boolean {
+		return this._started;
+	}
 
 	private _status: ClientStatus;
-	public get status(): ClientStatus { return this._status; }
+	public get status(): ClientStatus {
+		return this._status;
+	}
 	public set status(v: ClientStatus) {
 		if (this._status !== v) {
 			this._status = v;
@@ -72,7 +89,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 					// Notify the server about file changes to '.gd files contain in the workspace
 					fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
 				},
-			}
+			},
 		);
 		this.status = ClientStatus.PENDING;
 		this.io.on("disconnected", this.on_disconnected.bind(this));
@@ -149,7 +166,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				let value: string = message.result["contents"]?.value;
 				if (value) {
 					// this is a dirty hack to fix language server sending us prerendered
-					// markdown but not correctly stripping leading #'s, leading to 
+					// markdown but not correctly stripping leading #'s, leading to
 					// docstrings being displayed as titles
 					value = value.replace(/\n[#]+/g, "\n");
 
@@ -216,7 +233,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			this.io.writer.write(this._initialize_request);
 		}
 		this.status = ClientStatus.CONNECTED;
-	
+
 		const host = get_configuration("lsp.serverHost");
 		log.info(`connected to LSP at ${host}:${this.lastPortTried}`);
 	}
@@ -260,12 +277,12 @@ class MessageHandler extends EventEmitter {
 
 	on_message(message: any) {
 		// FIXME: Hot fix VSCode 1.42 hover position
-		if (message && message.result && message.result.range && message.result.contents) {
+		if (message?.result?.range && message.result.contents) {
 			message.result.range = undefined;
 		}
 
 		// What does this do?
-		if (message && message.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
+		if (message?.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
 			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
 			if (this[method]) {
 				const ret = this[method](message.params);

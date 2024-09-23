@@ -17,13 +17,13 @@ import { subProcess, killSubProcesses } from "../utils/subspawn";
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
 enum ManagerStatus {
-	INITIALIZING,
-	INITIALIZING_LSP,
-	PENDING,
-	PENDING_LSP,
-	DISCONNECTED,
-	CONNECTED,
-	RETRYING,
+	INITIALIZING = 0,
+	INITIALIZING_LSP = 1,
+	PENDING = 2,
+	PENDING_LSP = 3,
+	DISCONNECTED = 4,
+	CONNECTED = 5,
+	RETRYING = 6,
 }
 
 export class ClientConnectionManager {
@@ -126,16 +126,18 @@ export class ClientConnectionManager {
 
 		if (result.version[2] < minimumVersion) {
 			const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;
-			vscode.window.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore").then(item => {
-				if (item === "Select Godot executable") {
-					select_godot_executable(settingName);
-				} else if (item === "Open Settings") {
-					vscode.commands.executeCommand("workbench.action.openSettings", settingName);
-				} else if (item === "Disable Headless LSP") {
-					set_configuration("lsp.headless", false);
-					prompt_for_reload();
-				}
-			});
+			vscode.window
+				.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore")
+				.then((item) => {
+					if (item === "Select Godot executable") {
+						select_godot_executable(settingName);
+					} else if (item === "Open Settings") {
+						vscode.commands.executeCommand("workbench.action.openSettings", settingName);
+					} else if (item === "Disable Headless LSP") {
+						set_configuration("lsp.headless", false);
+						prompt_for_reload();
+					}
+				});
 			return;
 		}
 
@@ -197,7 +199,7 @@ export class ClientConnectionManager {
 				if (this.target === TargetLSP.HEADLESS) {
 					options = ["Restart LSP", ...options];
 				}
-				vscode.window.showInformationMessage(message, ...options).then(item => {
+				vscode.window.showInformationMessage(message, ...options).then((item) => {
 					if (item === "Restart LSP") {
 						this.connect_to_language_server();
 					}
@@ -324,7 +326,7 @@ export class ClientConnectionManager {
 			options = ["Open workspace with Godot Editor", ...options];
 		}
 
-		vscode.window.showErrorMessage(message, ...options).then(item => {
+		vscode.window.showErrorMessage(message, ...options).then((item) => {
 			if (item === "Retry") {
 				this.connect_to_language_server();
 			}
