@@ -1,5 +1,13 @@
 # Changelog
 
+### 2.2.0
+
+- [Add partial debugger support for new types (such as typed arrays)](https://github.com/godotengine/godot-vscode-plugin/pull/715)
+- [Fix bare nodepaths referencing absolute/root paths](https://github.com/godotengine/godot-vscode-plugin/pull/712)
+- [Add `@export_custom` and `@export_storage` to syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/702)
+- [Fix format_documentation for `[code skip-lint]`](https://github.com/godotengine/godot-vscode-plugin/pull/700)
+- [Update Godot icons included in the extension](https://github.com/godotengine/godot-vscode-plugin/pull/711)
+
 ### 2.1.0
 
 - [Improve dragging items from Scene Preview into source code](https://github.com/godotengine/godot-vscode-plugin/pull/661)
