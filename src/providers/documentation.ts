@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import {
+import type {
 	CancellationToken,
 	CustomDocument,
 	CustomDocumentOpenContext,
@@ -8,15 +8,15 @@ import {
 	Uri,
 	WebviewPanel,
 } from "vscode";
-import { NotificationMessage } from "vscode-jsonrpc";
-import {
+import type { NotificationMessage } from "vscode-jsonrpc";
+import type {
 	NativeSymbolInspectParams,
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
 	GodotCapabilities,
 } from "../lsp/gdscript.capabilities";
 import { make_html_content } from "./documentation_builder";
-import { createLogger, get_extension_uri, make_docs_uri } from "../utils";
+import { createLogger, get_configuration, get_extension_uri, make_docs_uri } from "../utils";
 import { globals } from "../extension";
 
 const log = createLogger("providers.docs");
@@ -37,9 +37,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 			},
 			supportsMultipleEditorsPerDocument: true,
 		};
-		context.subscriptions.push(
-			vscode.window.registerCustomEditorProvider("gddoc", this, options),
-		);
+		context.subscriptions.push(vscode.window.registerCustomEditorProvider("gddoc", this, options));
 	}
 
 	public register_capabilities(message: NotificationMessage) {
@@ -63,23 +61,28 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 	}
 
 	public async list_native_classes() {
-		const classname = await vscode.window.showQuickPick(
-			[...this.classInfo.keys()].sort(),
-			{
-				placeHolder: "Type godot class name here",
-				canPickMany: false,
-			}
-		);
+		const classname = await vscode.window.showQuickPick([...this.classInfo.keys()].sort(), {
+			placeHolder: "Type godot class name here",
+			canPickMany: false,
+		});
 		if (classname) {
 			vscode.commands.executeCommand("vscode.open", make_docs_uri(classname));
 		}
 	}
 
-	public openCustomDocument(uri: Uri, openContext: CustomDocumentOpenContext, token: CancellationToken): CustomDocument {
-		return { uri: uri, dispose: () => { } };
+	public openCustomDocument(
+		uri: Uri,
+		openContext: CustomDocumentOpenContext,
+		token: CancellationToken,
+	): CustomDocument {
+		return { uri: uri, dispose: () => {} };
 	}
 
-	public async resolveCustomEditor(document: CustomDocument, panel: WebviewPanel, token: CancellationToken): Promise<void> {
+	public async resolveCustomEditor(
+		document: CustomDocument,
+		panel: WebviewPanel,
+		token: CancellationToken,
+	): Promise<void> {
 		const className = document.uri.path.split(".")[0];
 		const target = document.uri.fragment;
 		let symbol: GodotNativeSymbol = null;
@@ -89,7 +92,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 		};
 
 		while (!this.ready) {
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
 
 		symbol = this.symbolDb.get(className);
@@ -109,9 +112,12 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 		if (!this.htmlDb.has(className)) {
 			this.htmlDb.set(className, make_html_content(panel.webview, symbol, target));
 		}
-		panel.webview.html = this.htmlDb.get(className);
+
+		const scaleFactor = get_configuration("documentation.pageScale");
+
+		panel.webview.html = this.htmlDb.get(className).replaceAll("scaleFactor", scaleFactor);
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
-		panel.webview.onDidReceiveMessage(msg => {
+		panel.webview.onDidReceiveMessage((msg) => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
 				const uri = make_docs_uri(msg.data.native_class, msg.data.symbol_name);
 				vscode.commands.executeCommand("vscode.open", uri);

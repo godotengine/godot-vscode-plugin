@@ -2,11 +2,11 @@ import * as vscode from "vscode";
 import {
 	Uri,
 	Range,
-	TextDocument,
-	CancellationToken,
+	type TextDocument,
+	type CancellationToken,
 	DocumentLink,
-	DocumentLinkProvider,
-	ExtensionContext,
+	type DocumentLinkProvider,
+	type ExtensionContext,
 } from "vscode";
 import { SceneParser } from "../scene_tools";
 import { convert_resource_path_to_uri, createLogger } from "../utils";
