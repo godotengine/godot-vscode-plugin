@@ -198,6 +198,7 @@ see [CONTRIBUTING.md](CONTRIBUTING.md)
 - Make sure to open the project in the Godot editor first. If you opened
   the editor after opening VS Code, you can click the **Retry** button
   in the bottom-right corner in VS Code.
+- Starting the language server can take a few seconds. Try waiting a bit and give it a few more attempts.
 
 ### Why isn't IntelliSense displaying script members?
 
