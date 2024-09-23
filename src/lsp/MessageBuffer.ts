@@ -59,17 +59,17 @@ export default class MessageBuffer {
 		}
 		result = Object.create(null);
 		const headers = this.buffer.toString("ascii", 0, current).split(CRLF);
-		headers.forEach((header) => {
+        for (const header of headers) {
 			const index: number = header.indexOf(":");
 			if (index === -1) {
 				throw new Error("Message header must separate key and value using :");
 			}
-			let key = header.substr(0, index);
-			let value = header.substr(index + 1).trim();
+			const key = header.substr(0, index);
+			const value = header.substr(index + 1).trim();
 			result![key] = value;
-		});
+        }
 
-		let nextStart = current + 4;
+		const nextStart = current + 4;
 		this.buffer = this.buffer.slice(nextStart);
 		this.index = this.index - nextStart;
 		return result;
