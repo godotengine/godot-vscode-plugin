@@ -1,5 +1,11 @@
 # Changelog
 
+### 2.3.0
+
+- [Add documentation page scaling feature](https://github.com/godotengine/godot-vscode-plugin/pull/722)
+- [Suppress "workspace/symbol" not found error](https://github.com/godotengine/godot-vscode-plugin/pull/723)
+- [Capitalize the drive letter in Windows absolute paths](https://github.com/godotengine/godot-vscode-plugin/pull/727)
+
 ### 2.2.0
 
 - [Add partial debugger support for new types (such as typed arrays)](https://github.com/godotengine/godot-vscode-plugin/pull/715)
