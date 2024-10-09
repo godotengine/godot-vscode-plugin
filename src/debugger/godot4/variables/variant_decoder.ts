@@ -23,7 +23,10 @@ import {
 	Projection,
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
-	ENCODE_FLAG_TYPED_ARRAY,
+	ENCODE_FLAG_TYPED_ARRAY_MASK,
+	ENCODE_FLAG_TYPED_ARRAY_BUILTIN,
+	ENCODE_FLAG_TYPED_ARRAY_CLASS_NAME,
+	ENCODE_FLAG_TYPED_ARRAY_SCRIPT,
 	RID,
 	Callable,
 	Signal,
@@ -144,8 +147,10 @@ export class VariantDecoder {
 			case GDScriptTypes.DICTIONARY:
 				return this.decode_Dictionary(model);
 			case GDScriptTypes.ARRAY:
-				if (type & ENCODE_FLAG_TYPED_ARRAY) {
-					return this.decode_TypedArray(model);
+				if (type & ENCODE_FLAG_TYPED_ARRAY_MASK) {
+					const with_script_name = (type & ENCODE_FLAG_TYPED_ARRAY_CLASS_NAME) != 0;
+					const with_script_path = (type & ENCODE_FLAG_TYPED_ARRAY_SCRIPT) != 0;
+					return this.decode_TypedArray(model, with_script_name || with_script_path);
 				} else {
 					return this.decode_Array(model);
 				}
@@ -231,13 +236,12 @@ export class VariantDecoder {
 		return output;
 	}
 
-	private decode_TypedArray(model: BufferModel) {
+	private decode_TypedArray(model: BufferModel, with_scripts: boolean) {
 		const output: Array<any> = [];
 
 		// TODO: the type information is currently discarded
 		// it needs to be decoded and then packed into the output somehow
-
-		const type = this.decode_UInt32(model);
+		const type = with_scripts ? this.decode_String(model) : this.decode_UInt32(model);
 		const count = this.decode_UInt32(model);
 
 		for (let i = 0; i < count; i++) {
