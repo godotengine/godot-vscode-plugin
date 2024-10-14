@@ -34,40 +34,6 @@ export function is_variable_built_in_type(va: GodotVariable) {
 	return ["number", "bigint", "boolean", "string"].some(x => x == type);
 }
 
-export function build_sub_values(va: GodotVariable) {
-	const value = va.value;
-
-	let subValues: GodotVariable[] = undefined;
-
-	if (value && Array.isArray(value)) {
-		subValues = value.map((va, i) => {
-			return { name: `${i}`, value: va } as GodotVariable;
-		});
-	} else if (value instanceof Map) {
-		subValues = Array.from(value.keys()).map((va) => {
-			if (typeof va["stringify_value"] === "function") {
-				return {
-					name: `${va.type_name()}${va.stringify_value()}`,
-					value: value.get(va),
-				} as GodotVariable;
-			} else {
-				return {
-					name: `${va}`,
-					value: value.get(va),
-				} as GodotVariable;
-			}
-		});
-	} else if (value && typeof value["sub_values"] === "function") {
-		subValues = value.sub_values().map((sva) => {
-			return { name: sva.name, value: sva.value } as GodotVariable;
-		});
-	}
-
-	va.sub_values = subValues;
-
-	subValues?.forEach(build_sub_values);
-}
-
 export function parse_variable(va: GodotVariable, i?: number) {
 	const value = va.value;
 	let rendered_value = "";
