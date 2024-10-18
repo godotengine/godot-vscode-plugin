@@ -367,7 +367,7 @@
 			"match": "\\b([A-Z][a-zA-Z_0-9]*)\\.([A-Z_0-9]+)",
 			"captures": {
 				"1": { "name": "entity.name.type.class.gdscript" },
-				"2": { "name": "constant.language.gdscript" }
+				"2": { "name": "variable.other.enummember.gdscript" }
 			}
 		},
 		"class_name": {
@@ -442,7 +442,7 @@
 		},
 		"const_vars": {
 			"match": "\\b([A-Z_][A-Z_0-9]*)\\b",
-			"name": "constant.language.gdscript"
+			"name": "variable.other.constant.gdscript"
 		},
 		"pascal_case_class": {
 			"match": "\\b([A-Z]+[a-z_0-9]*([A-Z]?[a-z_0-9]+)*[A-Z]?)\\b",
