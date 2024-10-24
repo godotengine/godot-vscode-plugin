@@ -27,11 +27,10 @@
 			]
 		},
 		"extends_statement": {
-			"name": "entity.other.inherited-class.gdscript",
 			"match": "(extends)\\s+([a-zA-Z_]\\w*\\.[a-zA-Z_]\\w*)?",
 			"captures": {
-				"1": { "name": "entity.other.inherited-class.gdscript" },
-				"2": { "name": "keyword.language.gdscript" }
+				"1": { "name": "keyword.language.gdscript" },
+				"2": { "name": "entity.other.inherited-class.gdscript" }
 			}
 		},
 		"expression": {
@@ -44,7 +43,6 @@
 				{ "include": "#builtin_classes" },
 				{ "include": "#class_new" },
 				{ "include": "#class_is" },
-				{ "include": "#class_as" },
 				{ "include": "#class_enum" },
 				{ "include": "#any_method" },
 				{ "include": "#any_variable" },
@@ -76,12 +74,10 @@
 				{ "include": "#square_braces" },
 				{ "include": "#round_braces" },
 				{ "include": "#function_call" },
+				{ "include": "#comment" },
 				{ "include": "#self" },
 				{ "include": "#func" },
 				{ "include": "#letter" },
-				{ "include": "#region" },
-				{ "include": "#endregion" },
-				{ "include": "#comment" },
 				{ "include": "#numbers" },
 				{ "include": "#pascal_case_class" },
 				{ "include": "#line_continuation" }
@@ -194,7 +190,7 @@
 					"patterns": [
 						{
 							"match": "\\bin\\b",
-							"name": "keyword.control.in.gdscript"
+							"name": "keyword.control.gdscript"
 						},
 						{ "include": "#base_expression" },
 						{ "include": "#any_variable" },
@@ -254,15 +250,7 @@
 		},
 		"letter": {
 			"match": "\\b(?:true|false|null)\\b",
-			"name": "constant.language.boolean.gdscript"
-		},
-		"region": {
-			"match": "#region\\s+([a-zA-Z_]\\w*)",
-			"name": "keyword.preprocessor.region.gdscript"
-		},
-		"endregion": {
-			"match": "#endregion",
-			"name": "keyword.preprocessor.endregion.gdscript"
+			"name": "constant.language.gdscript"
 		},
 		"numbers": {
 			"patterns": [
@@ -314,10 +302,10 @@
 					"name": "keyword.operator.assignment.gdscript"
 				},
 				{
-					"match": "(:)\\s*\\b(int|float|bool)\\b",
+					"match": "(:)\\s*([a-zA-Z_]\\w*)?",
 					"captures": {
 						"1": { "name": "punctuation.separator.annotation.gdscript" },
-						"2": { "name": "entity.name.type.variable.gdscript" }
+						"2": { "name": "entity.name.type.class.gdscript" }
 					}
 				},
 				{
@@ -375,18 +363,11 @@
 				"2": { "name": "entity.name.type.class.gdscript" }
 			}
 		},
-		"class_as": {
-			"match": "\\s+(as)\\s+([a-zA-Z_]\\w*)",
-			"captures": {
-				"1": { "name": "storage.type.as.gdscript" },
-				"2": { "name": "entity.name.type.class.gdscript" }
-			}
-		},
 		"class_enum": {
 			"match": "\\b([A-Z][a-zA-Z_0-9]*)\\.([A-Z_0-9]+)",
 			"captures": {
 				"1": { "name": "entity.name.type.class.gdscript" },
-				"2": { "name": "constant.language.gdscript" }
+				"2": { "name": "variable.other.enummember.gdscript" }
 			}
 		},
 		"class_name": {
@@ -422,50 +403,46 @@
 			"name": "meta.literal.nodepath.bare.gdscript",
 			"match": "(?<!/\\s*)(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)\\b(?!\\s*/)",
 			"captures": {
-				"1": { "name": "keyword.control.flow.nodepath.gdscript" },
-				"2": { "name": "constant.character.escape.nodepath.gdscript" },
-				"3": { "name": "constant.character.escape.nodepath.gdscript" },
-				"4": { "name": "constant.character.escape.nodepath.gdscript" }
+				"1": { "name": "keyword.control.flow.gdscript" },
+				"2": { "name": "constant.character.escape.gdscript" },
+				"3": { "name": "constant.character.escape.gdscript" },
+				"4": { "name": "constant.character.escape.gdscript" }
 			}
 		},
 		"builtin_get_node_shorthand_bare_multi": {
 			"name": "meta.literal.nodepath.bare.gdscript",
 			"begin": "(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)",
 			"beginCaptures": {
-				"1": { "name": "keyword.control.flow.nodepath.gdscript" },
-				"2": { "name": "constant.character.escape.nodepath.gdscript" },
-				"3": { "name": "constant.character.escape.nodepath.gdscript" }
+				"1": { "name": "keyword.control.flow.gdscript" },
+				"2": { "name": "constant.character.escape.gdscript" },
+				"3": { "name": "constant.character.escape.gdscript" }
 			},
 			"end": "(?!\\s*/\\s*%?\\s*[a-zA-Z_]\\w*)",
 			"patterns": [
 				{
 					"match": "(/)\\s*(%)?\\s*([a-zA-Z_]\\w*)\\s*",
 					"captures": {
-						"1": { "name": "constant.character.escape.nodepath.gdscript" },
-						"2": { "name": "keyword.control.flow.nodepath.gdscript" },
-						"3": { "name": "constant.character.escape.nodepath.gdscript" }
+						"1": { "name": "constant.character.escape.gdscript" },
+						"2": { "name": "keyword.control.flow.gdscript" },
+						"3": { "name": "constant.character.escape.gdscript" }
 					}
 				}
 			]
 		},
 		"annotations": {
-			"match": "(@)(export|export_color_no_alpha|export_custom|export_category|export_dir|export_enum|export_exp_easing|export_file|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_global_dir|export_global_file|export_multiline|export_node_path|export_placeholder|export_range|export_storage|icon|onready|rpc|tool|warning_ignore|abstract)\\b",
+			"match": "(@)(export|export_color_no_alpha|export_custom|export_dir|export_enum|export_exp_easing|export_file|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_global_dir|export_global_file|export_multiline|export_node_path|export_placeholder|export_range|export_storage|icon|onready|rpc|tool|warning_ignore|abstract|static_unload)\\b",
 			"captures": {
 				"1": { "name": "entity.name.function.decorator.gdscript" },
 				"2": { "name": "entity.name.function.decorator.gdscript" }
 			}
 		},
 		"builtin_classes": {
-			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|StringName|Quaternion|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedColorArray|super)\\b",
+			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Vector4|Vector4i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|Signal|Callable|StringName|Quaternion|Projection|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedVector4Array|PackedColorArray|super)\\b",
 			"name": "entity.name.type.class.builtin.gdscript"
-		},
-		"keyword_type_float": {
-			"match": "(?<![^.]\\.|:)\\b(float)\\b",
-			"name": "keyword.type.float.gdscript"
 		},
 		"const_vars": {
 			"match": "\\b([A-Z_][A-Z_0-9]*)\\b",
-			"name": "constant.language.gdscript"
+			"name": "variable.other.constant.gdscript"
 		},
 		"pascal_case_class": {
 			"match": "\\b([A-Z]+[a-z_0-9]*([A-Z]?[a-z_0-9]+)*[A-Z]?)\\b",
