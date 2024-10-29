@@ -7,7 +7,7 @@ import { VariantDecoder } from "./variables/variant_decoder";
 import { RawObject } from "./variables/variants";
 import { GodotStackFrame, GodotVariable, GodotStackVars } from "../debug_runtime";
 import { GodotDebugSession } from "./debug_session";
-import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
+import { parse_next_scene_node, split_buffers } from "./helpers";
 import { get_configuration, get_free_port, createLogger, verify_godot_version, get_project_version } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { subProcess, killSubProcesses } from "../../utils/subspawn";
@@ -386,12 +386,18 @@ export class ServerController {
 					id = id + BigInt(2) ** BigInt(64);
 				}
 
+				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
+				// thus we need to convert it to its equivalent unsigned value here.
+				if (id < 0) {
+					id = id + BigInt(2) ** BigInt(64);
+				}
+
 				const rawObject = new RawObject(className);
 				properties.forEach((prop) => {
 					rawObject.set(prop[0], prop[5]);
 				});
 				const inspectedVariable = { name: "", value: rawObject };
-				build_sub_values(inspectedVariable);
+				ServerController.build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
 					this.session.inspect_callbacks.get(BigInt(id))(
 						inspectedVariable.name,
@@ -419,8 +425,12 @@ export class ServerController {
 				break;
 			}
 			case "stack_frame_vars": {
-				this.partialStackVars.reset(command.parameters[0]);
-				this.session.set_scopes(this.partialStackVars);
+				const stack_var_count = command.parameters[0];
+				this.partialStackVars.reset(stack_var_count);
+
+				if(stack_var_count <= 0)
+					this.session.set_scopes(this.partialStackVars);
+
 				break;
 			}
 			case "stack_frame_var": {
@@ -559,7 +569,7 @@ export class ServerController {
 		}
 
 		const variable: GodotVariable = { name, value, type };
-		build_sub_values(variable);
+		ServerController.build_sub_values(variable);
 
 		const scopeName = ["locals", "members", "globals"][scope];
 		this.partialStackVars[scopeName].push(variable);
@@ -568,5 +578,45 @@ export class ServerController {
 		if (this.partialStackVars.remaining === 0) {
 			this.session.set_scopes(this.partialStackVars);
 		}
+	}
+	
+	private static build_sub_values(va: GodotVariable) {
+		const value = va.value;
+	
+		let subValues: GodotVariable[] = undefined;
+	
+		if (value && Array.isArray(value)) {
+			subValues = value.map((va, i) => {
+				return {
+					name: `${i}`,
+					value: va,
+				} as GodotVariable;
+			});
+		} else if (value instanceof Map) {
+			subValues = Array.from(value.keys()).map((va) => {
+				if (typeof va["stringify_value"] === "function") {
+					return {
+						name: `${va.type_name()}${va.stringify_value()}`,
+						value: value.get(va),
+					} as GodotVariable;
+				} else {
+					return {
+						name: `${va}`,
+						value: value.get(va),
+					} as GodotVariable;
+				}
+			});
+		} else if (value && typeof value["sub_values"] === "function") {
+			subValues = value.sub_values().map((sva) => {
+				return {
+					name: sva.name,
+					value: sva.value,
+				} as GodotVariable;
+			});
+		}
+	
+		va.sub_values = subValues;
+	
+		subValues?.forEach(ServerController.build_sub_values.bind(this));
 	}
 }
