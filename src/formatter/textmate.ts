@@ -133,7 +133,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if (options.denseFunctionParameters) {
 			if (prev === "-") {
 				if (tokens[current - 2]?.value === "=") return "";
-				if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+				if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 					return "";
 				}
 				if ([",", "("].includes(tokens[current - 2]?.value)) {
@@ -169,7 +169,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "@") return "";
 
 	if (prev === "-") {
-		if (["keyword", "symbol"].includes(tokens[current - 2].type)) {
+		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 			return "";
 		}
 		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
