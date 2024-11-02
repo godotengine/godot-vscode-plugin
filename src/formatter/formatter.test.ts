@@ -10,6 +10,8 @@ const expect = chai.expect;
 const dots = ["..", "..", ".."];
 const basePath = path.join(__filename, ...dots);
 
+const normalizeLineEndings = (str, normalized = "\n") => str.replace(/\r?\n/g, normalized);
+
 const defaultOptions: FormatterOptions = {
 	maxEmptyLines: 2,
 	denseFunctionParameters: false,
@@ -50,7 +52,10 @@ suite("GDScript Formatter Tests", () => {
 			await vscode.workspace.applyEdit(workspaceEdit);
 
 			// Compare the result with the expected output
-			expect(documentIn.getText().replace("\r\n", "\n")).to.equal(documentOut.getText().replace("\r\n", "\n"));
+            
+            const actual = normalizeLineEndings(documentIn.getText());
+            const expected = normalizeLineEndings(documentOut.getText());
+			expect(actual).to.equal(expected);
 		});
 	}
 });
@@ -178,8 +183,8 @@ suite("GDScript Single File Formatter Tests", () => {
 				workspaceEdit.set(document.uri, edits);
 				await vscode.workspace.applyEdit(workspaceEdit);
 
-				const actual = document.getText().replace("\r\n", "\n");
-				const expected = test.out.replace("\r\n", "\n");
+				const actual = normalizeLineEndings(document.getText());
+				const expected = normalizeLineEndings(test.out);
 				expect(actual).to.equal(expected);
 			}
 		});
