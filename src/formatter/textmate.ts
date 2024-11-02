@@ -169,6 +169,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "@") return "";
 
 	if (prev === "-") {
+		if (current === 1) return "";
 		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 			return "";
 		}
