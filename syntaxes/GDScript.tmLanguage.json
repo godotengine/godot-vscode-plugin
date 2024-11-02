@@ -275,6 +275,11 @@
 					"name": "constant.numeric.float.gdscript"
 				},
 				{
+					"name": "constant.numeric.float.gdscript",
+					"match": "(?x)\n  (?<! \\w)(?:\n    (?:\n      \\.[0-9](?: _?[0-9] )*\n      |\n      [0-9](?: _?[0-9] )* \\. [0-9](?: _?[0-9] )*\n      |\n      [0-9](?: _?[0-9] )* \\.\n    ) (?: [eE][+-]?[0-9](?: _?[0-9] )* )?\n    |\n    [0-9](?: _?[0-9] )* (?: [eE][+-]?[0-9](?: _?[0-9] )* )\n  )([jJ])?\\b\n",
+					"captures": { "1": { "name": "storage.type.imaginary.number.gdscript" } }
+				},
+				{
 					"match": "[-]?[0-9][0-9_]*",
 					"name": "constant.numeric.integer.gdscript"
 				}
