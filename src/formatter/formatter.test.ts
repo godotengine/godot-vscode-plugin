@@ -1,16 +1,18 @@
-import * as vscode from "vscode";
-import * as path from "node:path";
 import * as fs from "node:fs";
+import * as path from "node:path";
+import * as vscode from "vscode";
 
 import { format_document, type FormatterOptions } from "./textmate";
 
-import * as chai from "chai";
-const expect = chai.expect;
+import { expect } from "chai";
 
 const dots = ["..", "..", ".."];
 const basePath = path.join(__filename, ...dots);
+const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
 
-const normalizeLineEndings = (str, normalized = "\n") => str.replace(/\r?\n/g, normalized);
+function normalizeLineEndings(str: string) {
+	return str.replace(/\r?\n/g, "\n");
+}
 
 const defaultOptions: FormatterOptions = {
 	maxEmptyLines: 2,
@@ -27,40 +29,7 @@ function get_options(folder: fs.Dirent) {
 	return defaultOptions;
 }
 
-suite("GDScript Formatter Tests", () => {
-	// Search for all folders in the snapshots folder and run a test for each
-	// comparing the output of the formatter with the expected output.
-	// To add a new test, create a new folder in the snapshots folder
-	// and add two files, `in.gd` and `out.gd` for the input and expected output.
-	const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
-	const testFolders = fs.readdirSync(snapshotsFolderPath, { withFileTypes: true, recursive: true });
-
-	for (const folder of testFolders.filter((f) => f.isDirectory())) {
-		test(`Snapshot Pair Test: ${folder.name}`, async () => {
-			const uriIn = vscode.Uri.file(path.join(folder.path, folder.name, "in.gd"));
-			const uriOut = vscode.Uri.file(path.join(folder.path, folder.name, "out.gd"));
-
-			const documentIn = await vscode.workspace.openTextDocument(uriIn);
-			const documentOut = await vscode.workspace.openTextDocument(uriOut);
-
-			const options = get_options(folder);
-			const edits = format_document(documentIn, options);
-
-			// Apply the formatting edits
-			const workspaceEdit = new vscode.WorkspaceEdit();
-			workspaceEdit.set(uriIn, edits);
-			await vscode.workspace.applyEdit(workspaceEdit);
-
-			// Compare the result with the expected output
-            
-            const actual = normalizeLineEndings(documentIn.getText());
-            const expected = normalizeLineEndings(documentOut.getText());
-			expect(actual).to.equal(expected);
-		});
-	}
-});
-
-function setContent(content: string) {
+function set_content(content: string) {
 	return vscode.workspace
 		.openTextDocument()
 		.then((doc) => vscode.window.showTextDocument(doc))
@@ -160,33 +129,69 @@ function parse_test_file(content: string): Test[] {
 	return tests;
 }
 
-suite("GDScript Single File Formatter Tests", () => {
-	const snapshotsFolderPath = path.join(basePath, "src/formatter/snapshots");
-	const testFiles = fs.readdirSync(snapshotsFolderPath, { withFileTypes: true });
+async function execute_snapshot_test(file: fs.Dirent) {
+	const uri = vscode.Uri.file(path.join(snapshotsFolderPath, file.name));
+	const inDoc = await vscode.workspace.openTextDocument(uri);
+	const text = inDoc.getText();
+
+	for (const test of parse_test_file(text)) {
+		const editor = await set_content(test.in);
+		const document = editor.document;
+
+		const edits = format_document(document, test.config);
+
+		// Apply the formatting edits
+		const workspaceEdit = new vscode.WorkspaceEdit();
+		workspaceEdit.set(document.uri, edits);
+		await vscode.workspace.applyEdit(workspaceEdit);
+
+		const actual = normalizeLineEndings(document.getText());
+		const expected = normalizeLineEndings(test.out);
+		expect(actual).to.equal(expected);
+	}
+}
+
+async function execute_pair_test(folder: fs.Dirent) {
+	const uriIn = vscode.Uri.file(path.join(folder.path, folder.name, "in.gd"));
+	const uriOut = vscode.Uri.file(path.join(folder.path, folder.name, "out.gd"));
+
+	const documentIn = await vscode.workspace.openTextDocument(uriIn);
+	const documentOut = await vscode.workspace.openTextDocument(uriOut);
+
+	const options = get_options(folder);
+	const edits = format_document(documentIn, options);
+
+	// Apply the formatting edits
+	const workspaceEdit = new vscode.WorkspaceEdit();
+	workspaceEdit.set(uriIn, edits);
+	await vscode.workspace.applyEdit(workspaceEdit);
+
+	// Compare the result with the expected output
+	const actual = normalizeLineEndings(documentIn.getText());
+	const expected = normalizeLineEndings(documentOut.getText());
+	expect(actual).to.equal(expected);
+}
+
+suite("GDScript Formatter Tests", () => {
+	const testFiles = fs.readdirSync(snapshotsFolderPath, { withFileTypes: true, recursive: true });
 
 	for (const file of testFiles.filter((f) => f.isFile())) {
+		if (["in.gd", "out.gd"].includes(file.name) || !file.name.endsWith(".gd")) {
+			continue;
+		}
 		test(`Snapshot Test: ${file.name}`, async () => {
-			const uri = vscode.Uri.file(path.join(snapshotsFolderPath, file.name));
-			const inDoc = await vscode.workspace.openTextDocument(uri);
-			const text = inDoc.getText();
+			execute_snapshot_test(file);
+		});
+	}
 
-			const tests = parse_test_file(text);
-
-			for (const test of tests) {
-				const editor = await setContent(test.in);
-				const document = editor.document;
-
-				const edits = format_document(document, test.config);
-
-				// Apply the formatting edits
-				const workspaceEdit = new vscode.WorkspaceEdit();
-				workspaceEdit.set(document.uri, edits);
-				await vscode.workspace.applyEdit(workspaceEdit);
-
-				const actual = normalizeLineEndings(document.getText());
-				const expected = normalizeLineEndings(test.out);
-				expect(actual).to.equal(expected);
-			}
+	for (const folder of testFiles.filter((f) => f.isDirectory())) {
+		const pathIn = path.join(folder.path, folder.name, "in.gd");
+		const pathOut = path.join(folder.path, folder.name, "out.gd");
+		if (!(fs.existsSync(pathIn) && fs.existsSync(pathOut))) {
+			continue;
+		}
+		test(`Snapshot Pair Test: ${folder.name}`, async () => {
+			execute_pair_test(folder);
 		});
 	}
 });
