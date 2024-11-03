@@ -312,7 +312,10 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 		}
 		for (let i = 0; i < tokens.length; i++) {
 			// log.debug(i, tokens[i].value, tokens[i]);
-			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
+			if (i === 0 && tokens[i].string) {
+                // leading whitespace is already accounted for
+				nextLine += tokens[i].original.trimStart();
+			} else if (i > 0 && tokens[i - 1].string && tokens[i].string) {
 				nextLine += tokens[i].original;
 			} else {
 				nextLine += between(tokens, i, options) + tokens[i].value.trim();
