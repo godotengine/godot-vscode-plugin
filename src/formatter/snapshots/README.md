@@ -1,5 +1,5 @@
 
-## An `IN` block is fed into the formatter and the output is compared to the `OUT` block:
+## An `IN` block is fed into the formatter and the output is compared to the `OUT` block
 
 ```
 # --- IN ---
@@ -8,7 +8,7 @@ var  a  =   10
 var a = 10
 ```
 
-## Trailing newlines in `IN` and `OUT` blocks is automatically removed:
+## Trailing newlines in `IN` and `OUT` blocks is automatically removed
 
 ```
 # --- IN ---
@@ -22,7 +22,20 @@ var  b  =   'ten'
 var b = 'ten'
 ```
 
-## Formatter and test harness options can be controlled with `CONFIG` blocks:
+## An `IN` block by itself will be reused at the `OUT` target
+
+Many test cases can simply be expressed as "do not change this":
+
+```
+# --- IN ---
+var a = """ {
+	level_file: '%s',
+	md5_hash: %s,
+}
+"""
+```
+
+## Formatter and test harness options can be controlled with `CONFIG` blocks
 
 This test will fail because `strictTrailingNewlines: true` disables trailing newline removal.
 
@@ -36,7 +49,7 @@ var a = 10
 
 ```
 
-## `CONFIG ALL` set the default options moving forward, and `END` blocks allow additional layout flexibility:
+## `CONFIG ALL` set the default options moving forward, and `END` blocks allow additional layout flexibility
 
 ```
 # --- CONFIG ALL ---
@@ -56,7 +69,7 @@ var  b  =   'ten'
 var b = 'ten'
 ```
 
-## `CONFIG` blocks override `CONFIG ALL`, and the configs are merged for a given test:
+## `CONFIG` blocks override `CONFIG ALL`, and the configs are merged for a given test
 
 This test will pass, because the second test has a `CONFIG` that overrides the `CONFIG ALL` at the top.
 
