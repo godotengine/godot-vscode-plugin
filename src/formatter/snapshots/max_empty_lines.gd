@@ -17,6 +17,25 @@ class Test:
 	func _ready():
 		pass
 
+# --- IN ---
+func test(): # with comment
+
+	pass
+# --- OUT ---
+func test(): # with comment
+	pass
+
+# --- IN ---
+class Test: # with comment
+
+	func _ready(): # with comment
+
+		pass
+# --- OUT ---
+class Test: # with comment
+	func _ready(): # with comment
+		pass
+
 # --- CONFIG ---
 {"maxEmptyLines": 1}
 # --- IN ---

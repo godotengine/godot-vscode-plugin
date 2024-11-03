@@ -111,6 +111,10 @@ function parse_token(token: Token) {
 		token.type = "variable";
 		return;
 	}
+	if (token.scopes.includes("comment.line.number-sign.gdscript")) {
+		token.type = "comment";
+		return;
+	}
 }
 
 function between(tokens: Token[], current: number, options: FormatterOptions) {
@@ -129,7 +133,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === "(") return "";
 	if (prev === ".") {
-        if (nextToken?.type === "symbol") return " ";
+		if (nextToken?.type === "symbol") return " ";
 		return "";
 	}
 	if (next === ".") return "";
@@ -313,7 +317,9 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			} else {
 				nextLine += between(tokens, i, options) + tokens[i].value.trim();
 			}
-			lastToken = tokens[i].value;
+			if (tokens[i].type !== "comment") {
+				lastToken = tokens[i].value;
+			}
 		}
 
 		edits.push(TextEdit.replace(line.range, nextLine));
