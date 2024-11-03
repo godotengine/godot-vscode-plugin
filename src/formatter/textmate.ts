@@ -311,7 +311,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			tokens.push(token);
 		}
 		for (let i = 0; i < tokens.length; i++) {
-			log.debug(i, tokens[i].value, tokens[i]);
+			// log.debug(i, tokens[i].value, tokens[i]);
 			if (i > 0 && tokens[i - 1].string === true && tokens[i].string === true) {
 				nextLine += tokens[i].original;
 			} else {
