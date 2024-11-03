@@ -69,6 +69,10 @@ class TestLines {
 			config: config,
 		};
 
+		if (test.out === "") {
+			test.out = this.in.join("\n");
+		}
+
 		if (!config.strictTrailingNewlines) {
 			test.in = test.in.trimEnd();
 			test.out = test.out.trimEnd();
@@ -103,9 +107,11 @@ function parse_test_file(content: string): Test[] {
 		const line = _line.trim();
 
 		if (MODES.includes(line)) {
-			if (test.out.length !== 0) {
-				tests.push(test.parse(defaultConfig));
-				test = new TestLines();
+			if (line === CONFIG || line === IN) {
+				if (test.in.length !== 0) {
+					tests.push(test.parse(defaultConfig));
+					test = new TestLines();
+				}
 			}
 
 			if (defaultConfigString.length !== 0) {
@@ -122,7 +128,7 @@ function parse_test_file(content: string): Test[] {
 		if (mode === OUT) test.out.push(line);
 	}
 
-	if (test.out.length !== 0) {
+	if (test.in.length !== 0) {
 		tests.push(test.parse(defaultConfig));
 	}
 
