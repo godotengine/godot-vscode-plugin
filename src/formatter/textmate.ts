@@ -53,7 +53,7 @@ interface Token {
 }
 
 export interface FormatterOptions {
-	maxEmptyLines: 1 | 2;
+	maxEmptyLines: 0 | 1 | 2;
 	denseFunctionParameters: boolean;
 }
 
@@ -233,6 +233,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 	const options = _options ?? get_formatter_options();
 
+	let lastToken = null;
 	let lineTokens: vsctm.ITokenizeLineResult = null;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
@@ -260,7 +261,11 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 		// delete consecutive empty lines
 		if (emptyLineCount) {
-			for (let i = emptyLineCount - options.maxEmptyLines; i > 0; i--) {
+			let maxEmptyLines = options.maxEmptyLines;
+			if (lastToken === ":") {
+				maxEmptyLines = 0;
+			}
+			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
 				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
 			}
 			emptyLineCount = 0;
@@ -303,6 +308,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			} else {
 				nextLine += between(tokens, i, options) + tokens[i].value.trim();
 			}
+			lastToken = tokens[i].value;
 		}
 
 		edits.push(TextEdit.replace(line.range, nextLine));

@@ -1,28 +1,53 @@
-# --- CONFIG ---
-{"maxEmptyLines": 1}
 # --- IN ---
 func test():
-
-
 
 	pass
 # --- OUT ---
 func test():
-
 	pass
-# --- END ---
+
+# --- IN ---
+class Test:
+
+	func _ready():
+
+		pass
+# --- OUT ---
+class Test:
+	func _ready():
+		pass
+
+# --- CONFIG ---
+{"maxEmptyLines": 1}
+# --- IN ---
+func a():
+	pass
+
+
+
+func b():
+	pass
+# --- OUT ---
+func a():
+	pass
+
+func b():
+	pass
 
 # --- CONFIG ---
 {"maxEmptyLines": 2}
 # --- IN ---
-func test():
+func a():
+	pass
 
 
 
+func b():
 	pass
 # --- OUT ---
-func test():
-
-
+func a():
 	pass
-# --- END ---
+
+
+func b():
+	pass
