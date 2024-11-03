@@ -155,8 +155,23 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			}
 		}
 
-		if ("method" in message && message.method === "gdscript/capabilities") {
-			globals.docsProvider.register_capabilities(message);
+		if ("method" in message) {
+			if (message.method === "gdscript/capabilities") {
+				globals.docsProvider.register_capabilities(message);
+			}
+
+			if (message.method === "textDocument/publishDiagnostics") {
+				for (const diagnostic of message.params.diagnostics) {
+					if (diagnostic.code === 6) {
+						log.debug("UNUSED_SIGNAL", diagnostic);
+                        return;
+					}
+					if (diagnostic.code === 2) {
+						log.debug("UNUSED_VARIABLE", diagnostic);
+                        return;
+					}
+				}
+			}
 		}
 
 		if ("id" in message) {
