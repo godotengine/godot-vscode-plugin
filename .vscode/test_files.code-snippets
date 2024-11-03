@@ -1,0 +1,48 @@
+{
+    "# --- IN ---": {
+        "scope": "gdscript",
+        "prefix": "#IN",
+        "body": [
+            "# --- IN ---"
+        ],
+        "description": "Snapshot Test #IN block"
+    },
+    "# --- OUT ---": {
+        "scope": "gdscript",
+        "prefix": "#OUT",
+        "body": [
+            "# --- OUT ---"
+        ],
+        "description": "Snapshot Test #OUT block"
+    },
+    "# --- END ---": {
+        "scope": "gdscript",
+        "prefix": "#END",
+        "body": [
+            "# --- END ---"
+        ],
+        "description": "Snapshot Test #END block"
+    },
+    "# --- CONFIG ---": {
+        "scope": "gdscript",
+        "prefix": [
+            "#CO",
+            "#CONFIG"
+        ],
+        "body": [
+            "# --- CONFIG ---"
+        ],
+        "description": "Snapshot Test #CONFIG block"
+    },
+    "# --- CONFIG ALL ---": {
+        "scope": "gdscript",
+        "prefix": [
+            "#CA",
+            "#CONFIG ALL"
+        ],
+        "body": [
+            "# --- CONFIG ALL ---"
+        ],
+        "description": "Snapshot Test #CONFIG ALL block"
+    },
+}
