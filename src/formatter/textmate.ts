@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { get_configuration, get_extension_uri, createLogger } from "../utils";
+import { get_configuration, get_extension_uri, createLogger, is_debug_mode } from "../utils";
 
 const log = createLogger("formatter.tm");
 
@@ -74,9 +74,9 @@ function parse_token(token: Token) {
 	if (token.scopes.includes("meta.function.parameters.gdscript")) {
 		token.param = true;
 	}
-    if (token.value.match(/[A-Za-z_]\w+/)){
-        token.identifier = true;
-    }
+	if (token.value.match(/[A-Za-z_]\w+/)) {
+		token.identifier = true;
+	}
 	if (token.scopes.includes("meta.literal.nodepath.gdscript")) {
 		token.skip = true;
 		token.type = "nodepath";
@@ -182,7 +182,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "@") return "";
 
 	if (prev === "-") {
-        if (nextToken.identifier) return " ";
+		if (nextToken.identifier) return " ";
 		if (current === 1) return "";
 		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 			return "";
@@ -316,9 +316,10 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			tokens.push(token);
 		}
 		for (let i = 0; i < tokens.length; i++) {
-			log.debug(i, tokens[i].value, tokens[i]);
+			if (is_debug_mode()) log.debug(i, tokens[i].value, tokens[i]);
+
 			if (i === 0 && tokens[i].string) {
-                // leading whitespace is already accounted for
+				// leading whitespace is already accounted for
 				nextLine += tokens[i].original.trimStart();
 			} else if (i > 0 && tokens[i - 1].string && tokens[i].string) {
 				nextLine += tokens[i].original;
