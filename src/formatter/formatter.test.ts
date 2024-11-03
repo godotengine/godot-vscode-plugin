@@ -50,9 +50,9 @@ function set_content(content: string) {
 function build_config(lines: string[]) {
 	try {
 		return JSON.parse(lines.join("\n"));
-	} catch (e) {}
-
-	return {};
+	} catch (e) {
+		return {};
+	}
 }
 
 class TestLines {
