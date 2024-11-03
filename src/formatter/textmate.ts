@@ -128,6 +128,11 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prevToken.skip && nextToken.skip) return "";
 
 	if (prev === "(") return "";
+	if (prev === ".") {
+        if (nextToken?.type === "symbol") return " ";
+		return "";
+	}
+	if (next === ".") return "";
 
 	if (nextToken.param) {
 		if (options.denseFunctionParameters) {
