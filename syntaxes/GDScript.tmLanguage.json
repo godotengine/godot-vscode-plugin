@@ -391,7 +391,7 @@
 		},
 		"builtin_get_node_shorthand_quoted": {
 			"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape.gdscript",
-			"begin": "(?:(\\$)|(&|\\^|@))(\"|')",
+			"begin": "(?:(\\$|%)|(&|\\^|@))(\"|')",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
 				"2": { "name": "variable.other.enummember.gdscript" }

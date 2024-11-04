@@ -44,6 +44,9 @@ var a = $Child/%Unique/ChildOfUnique
 var a = %Unique
 var a = %Unique/Child
 var a = %Unique/%UniqueChild
+var a = %"Unique"
+var a = %'Unique/Child'
+var a = %'Unique/%UniqueChild'
 
 var a = $"%Unique"
 var a = get_node("%Unique")
