@@ -49,7 +49,9 @@ export class WebSocketMessageIO extends MessageIO {
 	private socket: WebSocket = null;
 
 	public send_message(message: string) {
+		log.debug("io.send_message");
 		if (this.socket) {
+			log.debug("io.send_message (for real");
 			this.socket.send(message);
 		}
 	}
@@ -59,6 +61,7 @@ export class WebSocketMessageIO extends MessageIO {
 			this.socket = null;
 			const ws = new WebSocket(`ws://${host}:${port}`);
 			ws.on("open", () => {
+				log.debug("ws.open");
 				this.on_connected(ws);
 				resolve();
 			});
@@ -256,8 +259,8 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			this.io.on_send_message(msg);
 			// Header must be written in ASCII encoding
 			this.io.send_message(headers.join(""));
-			// Now write the content. This can be written in any encoding
 
+			// Now write the content. This can be written in any encoding
 			log.debug("tx:", msg);
 			this.io.send_message(json);
 			this.errorCount = 0;

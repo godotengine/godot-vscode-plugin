@@ -1,18 +1,20 @@
-import * as vscode from "vscode";
-import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
+import * as vscode from 'vscode';
+
 import {
-	get_configuration,
-	get_free_port,
-	get_project_dir,
-	get_project_version,
-	set_context,
-	register_command,
-	set_configuration,
-	createLogger,
-	verify_godot_version,
-} from "../utils";
-import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
-import { subProcess, killSubProcesses } from "../utils/subspawn";
+    createLogger,
+    get_configuration,
+    get_free_port,
+    get_project_dir,
+    get_project_version,
+    register_command,
+    set_configuration,
+    set_context,
+    verify_godot_version,
+} from '../utils';
+import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from '../utils/prompts';
+import { killSubProcesses, subProcess } from '../utils/subspawn';
+import GDScriptClient from './GDScriptClient';
+import GDScriptLanguageClient, { ClientStatus, TargetLSP } from './GDScriptLanguageClient';
 
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
@@ -28,6 +30,7 @@ enum ManagerStatus {
 
 export class ClientConnectionManager {
 	public client: GDScriptLanguageClient = null;
+	public client2: GDScriptClient = null;
 
 	private reconnectionAttempts = 0;
 
@@ -42,6 +45,8 @@ export class ClientConnectionManager {
 
 		this.client = new GDScriptLanguageClient(context);
 		this.client.watch_status(this.on_client_status_changed.bind(this));
+
+		this.client2 = new GDScriptClient(context);
 
 		setInterval(() => {
 			this.retry_callback();
@@ -82,6 +87,7 @@ export class ClientConnectionManager {
 
 		this.reconnectionAttempts = 0;
 		this.client.connect_to_server(this.target);
+		this.client2.connect();
 	}
 
 	private stop_language_server() {
