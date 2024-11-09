@@ -1,17 +1,27 @@
-import * as fs from "fs";
-import net = require("net");
-import { debug, window } from "vscode";
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { VariantEncoder } from "./variables/variant_encoder";
-import { VariantDecoder } from "./variables/variant_decoder";
-import { RawObject } from "./variables/variants";
-import { GodotStackFrame, GodotVariable, GodotStackVars } from "../debug_runtime";
-import { GodotDebugSession } from "./debug_session";
-import { parse_next_scene_node, split_buffers, build_sub_values } from "./helpers";
-import { get_configuration, get_free_port, createLogger, verify_godot_version, get_project_version } from "../../utils";
+import { DebugProtocol } from "@vscode/debugprotocol";
+import * as net from "net";
+import * as fs from "node:fs";
+import { debug, window } from "vscode";
+
+import {
+	ansi,
+	createLogger,
+	get_configuration,
+	get_free_port,
+	get_project_version,
+	verify_godot_version,
+	VERIFY_RESULT,
+} from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
-import { subProcess, killSubProcesses } from "../../utils/subspawn";
-import { LaunchRequestArguments, AttachRequestArguments, pinnedScene } from "../debugger";
+import { killSubProcesses, subProcess } from "../../utils/subspawn";
+import { GodotStackFrame, GodotStackVars, GodotVariable } from "../debug_runtime";
+import { AttachRequestArguments, LaunchRequestArguments, pinnedScene } from "../debugger";
+import { GodotDebugSession } from "./debug_session";
+import { build_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
+import { VariantDecoder } from "./variables/variant_decoder";
+import { VariantEncoder } from "./variables/variant_encoder";
+import { RawObject } from "./variables/variants";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -34,13 +44,11 @@ export class ServerController {
 	private server?: net.Server;
 	private socket?: net.Socket;
 	private steppingOut = false;
-	private didFirstOutput: boolean = false;
+	private didFirstOutput = false;
 	private partialStackVars = new GodotStackVars();
 	private connectedVersion = "";
 
-	public constructor(
-		public session: GodotDebugSession
-	) { }
+	public constructor(public session: GodotDebugSession) {}
 
 	public break() {
 		this.send_command("break");
@@ -88,12 +96,8 @@ export class ServerController {
 		this.send_command("get_stack_frame_vars", [frame_id]);
 	}
 
-	public set_object_property(objectId: bigint, label: string, newParsedValue: any) {
-		this.send_command("scene:set_object_property", [
-			objectId,
-			label,
-			newParsedValue,
-		]);
+	public set_object_property(objectId: bigint, label: string, newParsedValue) {
+		this.send_command("scene:set_object_property", [objectId, label, newParsedValue]);
 	}
 
 	public set_exception(exception: string) {
@@ -104,7 +108,7 @@ export class ServerController {
 		log.info("Starting game process");
 
 		let godotPath: string;
-		let result;
+		let result: VERIFY_RESULT;
 		if (args.editor_path) {
 			log.info("Using 'editor_path' variable from launch.json");
 
@@ -169,17 +173,17 @@ export class ServerController {
 		const address = args.address.replace("tcp://", "");
 		command += ` --remote-debug "tcp://${address}:${args.port}"`;
 
-		if (args.profiling) { command += " --profiling"; }
-		if (args.single_threaded_scene) { command += " --single-threaded-scene"; }
-		if (args.debug_collisions) { command += " --debug-collisions"; }
-		if (args.debug_paths) { command += " --debug-paths"; }
-		if (args.debug_navigation) { command += " --debug-navigation"; }
-		if (args.debug_avoidance) { command += " --debug-avoidance"; }
-		if (args.debug_stringnames) { command += " --debug-stringnames"; }
-		if (args.frame_delay) { command += ` --frame-delay ${args.frame_delay}`; }
-		if (args.time_scale) { command += ` --time-scale ${args.time_scale}`; }
-		if (args.disable_vsync) { command += " --disable-vsync"; }
-		if (args.fixed_fps) { command += ` --fixed-fps ${args.fixed_fps}`; }
+		if (args.profiling) command += " --profiling";
+		if (args.single_threaded_scene) command += " --single-threaded-scene";
+		if (args.debug_collisions) command += " --debug-collisions";
+		if (args.debug_paths) command += " --debug-paths";
+		if (args.debug_navigation) command += " --debug-navigation";
+		if (args.debug_avoidance) command += " --debug-avoidance";
+		if (args.debug_stringnames) command += " --debug-stringnames";
+		if (args.frame_delay) command += ` --frame-delay ${args.frame_delay}`;
+		if (args.time_scale) command += ` --time-scale ${args.time_scale}`;
+		if (args.disable_vsync) command += " --disable-vsync";
+		if (args.fixed_fps) command += ` --fixed-fps ${args.fixed_fps}`;
 
 		if (args.scene && args.scene !== "main") {
 			log.info(`Custom scene argument provided: ${args.scene}`);
@@ -225,15 +229,15 @@ export class ServerController {
 		command += this.session.debug_data.get_breakpoint_string();
 
 		if (args.additional_options) {
-			command += " " + args.additional_options;
+			command += ` ${args.additional_options}`;
 		}
 
 		log.info(`Launching game process using command: '${command}'`);
 		const debugProcess = subProcess("debug", command, { shell: true, detached: true });
 
-		debugProcess.stdout.on("data", (data) => { });
-		debugProcess.stderr.on("data", (data) => { });
-		debugProcess.on("close", (code) => { });
+		debugProcess.stdout.on("data", (data) => {});
+		debugProcess.stderr.on("data", (data) => {});
+		debugProcess.on("close", (code) => {});
 	}
 
 	private stash: Buffer;
@@ -336,7 +340,7 @@ export class ServerController {
 		this.server.listen(args.port, args.address);
 	}
 
-	private parse_message(dataset: any[]) {
+	private parse_message(dataset: []) {
 		const command = new Command();
 		let i = 0;
 		command.command = dataset[i++];
@@ -347,7 +351,7 @@ export class ServerController {
 		return command;
 	}
 
-	private handle_command(command: Command) {
+	async handle_command(command: Command) {
 		switch (command.command) {
 			case "debug_enter": {
 				const reason: string = command.parameters[1];
@@ -378,7 +382,7 @@ export class ServerController {
 			case "scene:inspect_object": {
 				let id = BigInt(command.parameters[0]);
 				const className: string = command.parameters[1];
-				const properties: any[] = command.parameters[2];
+				const properties: string[] = command.parameters[2];
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
@@ -387,16 +391,13 @@ export class ServerController {
 				}
 
 				const rawObject = new RawObject(className);
-				properties.forEach((prop) => {
+				for (const prop of properties) {
 					rawObject.set(prop[0], prop[5]);
-				});
+				}
 				const inspectedVariable = { name: "", value: rawObject };
 				build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
-					this.session.inspect_callbacks.get(BigInt(id))(
-						inspectedVariable.name,
-						inspectedVariable
-					);
+					this.session.inspect_callbacks.get(BigInt(id))(inspectedVariable.name, inspectedVariable);
 					this.session.inspect_callbacks.delete(BigInt(id));
 				}
 				this.session.set_inspection(id, inspectedVariable);
@@ -439,11 +440,84 @@ export class ServerController {
 				}
 				const lines = command.parameters[0];
 				for (const line of lines) {
-					debug.activeDebugConsole.appendLine(line);
+					debug.activeDebugConsole.appendLine(ansi.white + line);
 				}
 				break;
 			}
+			case "error": {
+				if (!this.didFirstOutput) {
+					this.didFirstOutput = true;
+				}
+
+				const params = command.parameters;
+				const e = {
+					hr: params[0],
+					min: params[1],
+					sec: params[2],
+					msec: params[3],
+					file: params[4] as string,
+					func: params[5] as string,
+					line: params[6],
+					error: params[7] as string,
+					desc: params[8] as string,
+					warning: params[9] as boolean,
+					stack: [],
+				};
+				const stackCount = params[10];
+				for (let i = 0; i < stackCount; i += 3) {
+					const line = params[10 + i];
+					const file = params[11 + i];
+					const func = params[12 + i];
+					e.stack.push(`${file}:${line} ${func}`);
+				}
+
+				const time = `${e.hr}:${e.min}:${e.sec}:${e.msec}`;
+				const location = `${e.file}:${e.line} ${e.func}`;
+				const color = e.warning ? "yellow" : "red";
+				const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
+
+				const extras = {
+					source: { name: e.file },
+					line: e.line,
+					group: "startCollapsed",
+				};
+				this.stderr(`${ansi.bright[color]}${time} | ${e.desc}`, extras);
+				this.stderr(`${ansi.dim[color]}<${lang} Error> ${ansi[color]}${e.error}`);
+				this.stderr(`${ansi.dim[color]}<${lang} Source> ${ansi[color]}${location}`);
+
+				if (stackCount !== 0) {
+					this.stderr(`${ansi[color]}<Stack Trace>`, { group: "start" });
+					for (const frame of e.stack) {
+						this.stderr(`${ansi[color]}${frame}`);
+					}
+					this.stderr("", { group: "end" });
+				}
+				this.stderr("", { group: "end" });
+				break;
+			}
 		}
+	}
+
+	stdout(output = "", extra = {}) {
+		this.session.sendEvent({
+			event: "output",
+			body: {
+				category: "stdout",
+				output: output + ansi.reset,
+				...extra,
+			},
+		} as DebugProtocol.OutputEvent);
+	}
+
+	stderr(output = "", extra = {}) {
+		this.session.sendEvent({
+			event: "output",
+			body: {
+				category: "stderr",
+				output: output + ansi.reset,
+				...extra,
+			},
+		} as DebugProtocol.OutputEvent);
 	}
 
 	public abort() {
@@ -480,19 +554,14 @@ export class ServerController {
 		const line = stackFrames[0].line;
 
 		if (this.steppingOut) {
-			const breakpoint = this.session.debug_data
-				.get_breakpoints(file)
-				.find((bp) => bp.line === line);
+			const breakpoint = this.session.debug_data.get_breakpoints(file).find((bp) => bp.line === line);
 			if (!breakpoint) {
 				if (this.session.debug_data.stack_count > 1) {
 					continueStepping = this.session.debug_data.stack_count === stackCount;
 				} else {
-					const fileSame =
-						stackFrames[0].file === this.session.debug_data.last_frame.file;
-					const funcSame =
-						stackFrames[0].function === this.session.debug_data.last_frame.function;
-					const lineGreater =
-						stackFrames[0].line >= this.session.debug_data.last_frame.line;
+					const fileSame = stackFrames[0].file === this.session.debug_data.last_frame.file;
+					const funcSame = stackFrames[0].function === this.session.debug_data.last_frame.function;
+					const lineGreater = stackFrames[0].line >= this.session.debug_data.last_frame.line;
 
 					continueStepping = fileSame && funcSame && lineGreater;
 				}
@@ -518,9 +587,7 @@ export class ServerController {
 			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 		} else {
 			this.session.set_exception(true);
-			this.session.sendEvent(
-				new StoppedEvent("exception", 0, this.exception)
-			);
+			this.session.sendEvent(new StoppedEvent("exception", 0, this.exception));
 		}
 	}
 
