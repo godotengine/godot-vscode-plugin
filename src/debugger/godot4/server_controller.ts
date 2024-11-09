@@ -466,31 +466,54 @@ export class ServerController {
 				};
 				const stackCount = params[10] ?? 0;
 				for (let i = 0; i < stackCount; i += 3) {
-					const line = params[10 + i];
 					const file = params[11 + i];
 					const func = params[12 + i];
-					e.stack.push(`${file}:${line} ${func}`);
+					const line = params[13 + i];
+					const msg = `${file.slice("res://".length)}:${line} @ ${func}()`;
+					const extras = {
+						source: { name: (await convert_resource_path_to_uri(file)).toString() },
+						line: line,
+					};
+					e.stack.push({ msg: msg, extras: extras });
 				}
 
-				const time = `${e.hr}:${e.min}:${e.sec}:${e.msec}`;
-				const location = `${e.file}:${e.line} ${e.func}`;
+				const time = `${e.hr}:${e.min}:${e.sec}.${e.msec}`;
+				let file = e.file;
+				if (file.startsWith("res://")) {
+					file = file.slice("res://".length);
+				}
+				const location = `${file}:${e.line}`;
 				const color = e.warning ? "yellow" : "red";
 				const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
 
-				// const name = await convert_resource_path_to_uri(e.file);
 				const extras = {
-					source: { name: e.file },
+					source: { name: (await convert_resource_path_to_uri(e.file)).toString() },
 					line: e.line,
-					group: "startCollapsed",
+					group: "start",
+					// group: "startCollapsed",
 				};
-				this.stderr(`${ansi.bright[color]}${time} | ${e.desc}`, extras);
-				this.stderr(`${ansi.dim[color]}<${lang} Error> ${ansi[color]}${e.error}`);
-				this.stderr(`${ansi.dim[color]}<${lang} Source> ${ansi[color]}${location}`);
+
+				if (e.warning) {
+					if (e.desc) {
+						this.stderr(`${ansi[color]}${time} | ${e.desc}`, extras);
+						this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.error}`);
+					} else {
+						this.stderr(`${ansi[color]}${time} | ${e.error}`, extras);
+					}
+				} else {
+					if (e.desc) {
+						this.stderr(`${ansi[color]}${time} | ${e.desc}`, extras);
+						this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.error}`);
+					} else {
+						this.stderr(`${ansi[color]}${time} | ${e.error}`, extras);
+					}
+				}
+				this.stderr(`${ansi.dim.white}<${lang} Source> ${ansi.white}${location}`);
 
 				if (stackCount !== 0) {
-					this.stderr(`${ansi[color]}<Stack Trace>`, { group: "start" });
+					this.stderr(`${ansi.dim.white}<Stack Trace>`, { group: "start" });
 					for (const frame of e.stack) {
-						this.stderr(`${ansi[color]}${frame}`);
+						this.stderr(`${ansi.white}${frame.msg}`, frame.extras);
 					}
 					this.stderr("", { group: "end" });
 				}

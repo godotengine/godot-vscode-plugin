@@ -444,41 +444,50 @@ export class ServerController {
 					min: params[1],
 					sec: params[2],
 					msec: params[3],
-					file: params[4] as string,
-					func: params[5] as string,
+					func: params[4] as string,
+					file: params[5] as string,
 					line: params[6],
-					error: params[7] as string,
-					desc: params[8] as string,
+					cond: params[7] as string,
+					msg: params[8] as string,
 					warning: params[9] as boolean,
 					stack: [],
 				};
-				const stackCount = params[10] ?? 0;
+				const stackCount = command.parameters[1];
 				for (let i = 0; i < stackCount; i += 3) {
-					const line = params[10 + i];
-					const file = params[11 + i];
-					const func = params[12 + i];
-					e.stack.push(`${file}:${line} ${func}`);
+					const file = command.parameters[i + 2];
+					const func = command.parameters[i + 3];
+					const line = command.parameters[i + 4];
+					const msg = `${file}:${line} @ ${func}()`;
+					const extras = {
+						source: { name: (await convert_resource_path_to_uri(file)).toString() },
+						line: line,
+					};
+					e.stack.push({ msg: msg, extras: extras });
 				}
 
-				const time = `${e.hr}:${e.min}:${e.sec}:${e.msec}`;
-				const location = `${e.file}:${e.line} ${e.func}`;
+				const time = `${e.hr}:${e.min}:${e.sec}.${e.msec}`;
+				const location = `${e.file}:${e.line} @ ${e.func}()`;
 				const color = e.warning ? "yellow" : "red";
 				const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
 
-				// const name = await convert_resource_path_to_uri(e.file);
 				const extras = {
-					source: { name: e.file },
+					source: { name: (await convert_resource_path_to_uri(e.file)).toString() },
 					line: e.line,
-					group: "startCollapsed",
+					group: "start",
+					// group: "startCollapsed",
 				};
-				this.stderr(`${ansi.bright[color]}${time} | ${e.desc}`, extras);
-				this.stderr(`${ansi.dim[color]}<${lang} Error> ${ansi[color]}${e.error}`);
-				this.stderr(`${ansi.dim[color]}<${lang} Source> ${ansi[color]}${location}`);
+				if (e.msg) {
+					this.stderr(`${ansi[color]}${time} | ${e.func}: ${e.msg}`, extras);
+					this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.cond}`);
+				} else {
+					this.stderr(`${ansi[color]}${time} | ${e.func}: ${e.cond}`, extras);
+				}
+				this.stderr(`${ansi.dim.white}<${lang} Source> ${ansi.white}${location}`);
 
 				if (stackCount !== 0) {
-					this.stderr(`${ansi[color]}<Stack Trace>`, { group: "start" });
+					this.stderr(`${ansi.dim.white}<Stack Trace>`, { group: "start" });
 					for (const frame of e.stack) {
-						this.stderr(`${ansi[color]}${frame}`);
+						this.stderr(`${ansi.white}${frame.msg}`, frame.extras);
 					}
 					this.stderr("", { group: "end" });
 				}
