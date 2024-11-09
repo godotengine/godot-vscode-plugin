@@ -21,6 +21,13 @@ import { ObjectId } from "./variables/variants";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
+interface Variable {
+	variable: GodotVariable;
+	index: number;
+	object_id: number;
+	error: string;
+}
+
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
 	public controller = new ServerController(this);
@@ -393,8 +400,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 		root: GodotVariable = null,
 		index = 0,
 		object_id: number = null,
-	): { variable: GodotVariable; index: number; object_id: number; error: string } {
-		let result: { variable: GodotVariable; index: number; object_id: number; error: string } = {
+	): Variable {
+		let result: Variable = {
 			variable: null,
 			index: null,
 			object_id: null,
@@ -498,8 +505,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 				)[1];
 				result.object_id = collection_items.get ? collection_items.get(key)?.id : collection_items[key]?.id;
 			} else {
-				const entries = Array.from(root.value.entries());
-				const item = entries.find(
+				const item = Array.from(root.value.entries()).find(
 					(x) => x && x[0].split("Members/").join("").split("Locals/").join("") === propertyName,
 				);
 				result.object_id = item?.[1].id;
