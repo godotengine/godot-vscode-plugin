@@ -473,8 +473,7 @@ export class ServerController {
 				const extras = {
 					source: { name: (await convert_resource_path_to_uri(e.file)).toString() },
 					line: e.line,
-					group: "start",
-					// group: "startCollapsed",
+					group: "startCollapsed",
 				};
 				if (e.msg) {
 					this.stderr(`${ansi[color]}${time} | ${e.func}: ${e.msg}`, extras);
