@@ -6,6 +6,7 @@ import { debug, window } from "vscode";
 
 import {
 	ansi,
+	convert_resource_path_to_uri,
 	createLogger,
 	get_configuration,
 	get_free_port,
@@ -95,7 +96,7 @@ export class ServerController {
 		this.send_command("get_stack_frame_vars", [frame_id]);
 	}
 
-	public set_object_property(objectId: bigint, label: string, newParsedValue: any) {
+	public set_object_property(objectId: bigint, label: string, newParsedValue) {
 		this.send_command("set_object_property", [objectId, label, newParsedValue]);
 	}
 
@@ -355,7 +356,7 @@ export class ServerController {
 		}
 	}
 
-	private handle_command(command: Command) {
+	private async handle_command(command: Command) {
 		switch (command.command) {
 			case "debug_enter": {
 				const reason: string = command.parameters[1];
@@ -383,7 +384,7 @@ export class ServerController {
 			case "message:inspect_object": {
 				let id = BigInt(command.parameters[0]);
 				const className: string = command.parameters[1];
-				const properties: any[] = command.parameters[2];
+				const properties: string[] = command.parameters[2];
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
@@ -392,9 +393,9 @@ export class ServerController {
 				}
 
 				const rawObject = new RawObject(className);
-				properties.forEach((prop) => {
+				for (const prop of properties) {
 					rawObject.set(prop[0], prop[5]);
-				});
+				}
 				const inspectedVariable = { name: "", value: rawObject };
 				build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
@@ -438,7 +439,6 @@ export class ServerController {
 				}
 
 				const params = command.parameters[0];
-
 				const e = {
 					hr: params[0],
 					min: params[1],
@@ -465,6 +465,7 @@ export class ServerController {
 				const color = e.warning ? "yellow" : "red";
 				const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
 
+				// const name = await convert_resource_path_to_uri(e.file);
 				const extras = {
 					source: { name: e.file },
 					line: e.line,

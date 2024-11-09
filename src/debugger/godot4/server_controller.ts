@@ -6,6 +6,7 @@ import { debug, window } from "vscode";
 
 import {
 	ansi,
+	convert_resource_path_to_uri,
 	createLogger,
 	get_configuration,
 	get_free_port,
@@ -351,7 +352,7 @@ export class ServerController {
 		return command;
 	}
 
-	async handle_command(command: Command) {
+	private async handle_command(command: Command) {
 		switch (command.command) {
 			case "debug_enter": {
 				const reason: string = command.parameters[1];
@@ -463,7 +464,7 @@ export class ServerController {
 					warning: params[9] as boolean,
 					stack: [],
 				};
-				const stackCount = params[10];
+				const stackCount = params[10] ?? 0;
 				for (let i = 0; i < stackCount; i += 3) {
 					const line = params[10 + i];
 					const file = params[11 + i];
@@ -476,6 +477,7 @@ export class ServerController {
 				const color = e.warning ? "yellow" : "red";
 				const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
 
+				// const name = await convert_resource_path_to_uri(e.file);
 				const extras = {
 					source: { name: e.file },
 					line: e.line,
@@ -593,7 +595,6 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const commandArray: any[] = [command];
-		// log.debug("send_command", this.connectedVersion);
 		if (this.connectedVersion[2] >= "2") {
 			commandArray.push(this.threadId);
 		}
