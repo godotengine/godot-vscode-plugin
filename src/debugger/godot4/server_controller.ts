@@ -1,7 +1,7 @@
 import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import * as net from "net";
 import * as fs from "node:fs";
+import * as net from "node:net";
 import { debug, window } from "vscode";
 
 import {
