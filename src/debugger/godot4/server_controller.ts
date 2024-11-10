@@ -497,21 +497,11 @@ export class ServerController {
 			line: e.line,
 			group: "startCollapsed",
 		};
-
-		if (e.warning) {
-			if (e.desc) {
-				this.stderr(`${ansi[color]}${time} | ${e.desc}`, extras);
-				this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.error}`);
-			} else {
-				this.stderr(`${ansi[color]}${time} | ${e.error}`, extras);
-			}
+		if (e.desc) {
+			this.stderr(`${ansi[color]}${time} | ${e.desc}`, extras);
+			this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.error}`);
 		} else {
-			if (e.desc) {
-				this.stderr(`${ansi[color]}${time} | ${e.desc}`, extras);
-				this.stderr(`${ansi.dim.white}<${lang} Error> ${ansi.white}${e.error}`);
-			} else {
-				this.stderr(`${ansi[color]}${time} | ${e.error}`, extras);
-			}
+			this.stderr(`${ansi[color]}${time} | ${e.error}`, extras);
 		}
 		this.stderr(`${ansi.dim.white}<${lang} Source> ${ansi.white}${location}`);
 
