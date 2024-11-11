@@ -134,7 +134,7 @@ function copy_resource_path(uri: vscode.Uri) {
 }
 
 async function list_classes() {
-	await globals.lsp.client.list_classes();
+	await globals.docsProvider.list_native_classes();
 }
 
 async function switch_scene_script() {

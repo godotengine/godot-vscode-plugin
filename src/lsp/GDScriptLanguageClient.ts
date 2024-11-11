@@ -81,10 +81,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.rxFilter = this.rxFilter.bind(this);
 	}
 
-	public async list_classes() {
-		await globals.docsProvider.list_native_classes();
-	}
-
 	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
 		this.target = target;
 		this.status = ClientStatus.PENDING;
