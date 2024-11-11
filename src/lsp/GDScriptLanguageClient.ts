@@ -1,15 +1,17 @@
+import EventEmitter from "node:events";
 import * as vscode from "vscode";
 import {
 	LanguageClient,
 	type LanguageClientOptions,
-	type ServerOptions,
 	type NotificationMessage,
 	type RequestMessage,
 	type ResponseMessage,
+	type ServerOptions,
 } from "vscode-languageclient/node";
-import { get_configuration, createLogger } from "../utils";
-import { type Message, MessageIO } from "./MessageIO";
+
 import { globals } from "../extension";
+import { createLogger, get_configuration } from "../utils";
+import { type Message, MessageIO } from "./MessageIO";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
 
@@ -27,33 +29,19 @@ export enum TargetLSP {
 export default class GDScriptLanguageClient extends LanguageClient {
 	public io: MessageIO = new MessageIO();
 
-	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
-	private _initialize_request: Message = null;
-
 	public target: TargetLSP = TargetLSP.EDITOR;
 
 	public port = -1;
 	public lastPortTried = -1;
 	public sentMessages = new Map();
-	public lastSymbolHovered = "";
+
+	events = new EventEmitter();
 
 	private _status: ClientStatus;
-	public get status(): ClientStatus {
-		return this._status;
-	}
-	public set status(v: ClientStatus) {
-		if (this._status !== v) {
-			this._status = v;
-			for (const callback of this._status_changed_callbacks) {
-				callback(v);
-			}
-		}
-	}
 
-	public watch_status(callback: (v: ClientStatus) => void) {
-		if (this._status_changed_callbacks.indexOf(callback) === -1) {
-			this._status_changed_callbacks.push(callback);
-		}
+	public set status(v: ClientStatus) {
+		this._status = v;
+		this.events.emit("status", this._status);
 	}
 
 	constructor(private context: vscode.ExtensionContext) {
@@ -212,9 +200,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_connected() {
-		if (this._initialize_request) {
-			this.io.writer.write(this._initialize_request);
-		}
 		this.status = ClientStatus.CONNECTED;
 
 		const host = get_configuration("lsp.serverHost");

@@ -42,7 +42,7 @@ export class ClientConnectionManager {
 		this.context = context;
 
 		this.client = new GDScriptLanguageClient(context);
-		this.client.watch_status(this.on_client_status_changed.bind(this));
+		this.client.events.on('status', this.on_client_status_changed.bind(this));
 
 		setInterval(() => {
 			this.retry_callback();
@@ -270,7 +270,7 @@ export class ClientConnectionManager {
 				this.reconnectionAttempts = 0;
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
-				if (!this.client.started) {
+				if (this.client.needsStart()) {
 					this.context.subscriptions.push(this.client.start());
 				}
 				break;
