@@ -39,9 +39,7 @@ export class ClientConnectionManager {
 	private connectedVersion = "";
 
 	constructor(private context: vscode.ExtensionContext) {
-		this.context = context;
-
-		this.client = new GDScriptLanguageClient(context);
+		this.client = new GDScriptLanguageClient();
 		this.client.events.on('status', this.on_client_status_changed.bind(this));
 
 		setInterval(() => {

@@ -44,7 +44,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.events.emit("status", this._status);
 	}
 
-	constructor(private context: vscode.ExtensionContext) {
+	constructor() {
 		const serverOptions: ServerOptions = () => {
 			return new Promise((resolve, reject) => {
 				resolve({ reader: this.io.reader, writer: this.io.writer });
