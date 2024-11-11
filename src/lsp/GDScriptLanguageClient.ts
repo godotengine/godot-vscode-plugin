@@ -11,7 +11,7 @@ import {
 
 import { globals } from "../extension";
 import { createLogger, get_configuration } from "../utils";
-import { type Message, MessageIO } from "./MessageIO";
+import { MessageIO } from "./MessageIO";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
 
