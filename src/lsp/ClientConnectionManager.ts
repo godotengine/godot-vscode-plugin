@@ -1,19 +1,19 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 import {
-    createLogger,
-    get_configuration,
-    get_free_port,
-    get_project_dir,
-    get_project_version,
-    register_command,
-    set_configuration,
-    set_context,
-    verify_godot_version,
-} from '../utils';
-import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from '../utils/prompts';
-import { killSubProcesses, subProcess } from '../utils/subspawn';
-import GDScriptLanguageClient, { ClientStatus, TargetLSP } from './GDScriptLanguageClient';
+	createLogger,
+	get_configuration,
+	get_free_port,
+	get_project_dir,
+	get_project_version,
+	register_command,
+	set_configuration,
+	set_context,
+	verify_godot_version,
+} from "../utils";
+import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
+import { killSubProcesses, subProcess } from "../utils/subspawn";
+import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
