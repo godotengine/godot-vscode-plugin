@@ -22,8 +22,8 @@ export class MessageIO extends EventEmitter {
 	reader = new MessageIOReader(this);
 	writer = new MessageIOWriter(this);
 
-	txHandler = (msg) => msg;
-	rxHandler = (msg) => msg;
+	txFilter = (msg) => msg;
+	rxFilter = (msg) => msg;
 
 	socket: Socket = null;
 	messageCache: string[] = [];
@@ -99,7 +99,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			}
 			const json = JSON.parse(msg);
 			// allow message to be modified
-			const modified = this.io.rxHandler(json);
+			const modified = this.io.rxFilter(json);
 
 			if (!modified) {
 				log.debug("rx [discarded]:", json);
@@ -119,7 +119,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 	}
 
 	write(msg: Message): Promise<void> {
-		const modified = this.io.txHandler(msg);
+		const modified = this.io.txFilter(msg);
 		if (!modified) {
 			log.debug("tx [discarded]:", msg);
 			return;

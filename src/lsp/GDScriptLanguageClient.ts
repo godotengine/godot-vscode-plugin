@@ -77,8 +77,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.status = ClientStatus.PENDING;
 		this.io.on("connected", this.on_connected.bind(this));
 		this.io.on("disconnected", this.on_disconnected.bind(this));
-		this.io.txHandler = this.on_tx.bind(this);
-		this.io.rxHandler = this.on_rx.bind(this);
+		this.io.txFilter = this.txFilter.bind(this);
+		this.io.rxFilter = this.rxFilter.bind(this);
 	}
 
 	public async list_classes() {
@@ -108,13 +108,21 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect(host, port);
 	}
 
-	private on_tx(message: RequestMessage): RequestMessage | null {
+	private txFilter(message: RequestMessage): RequestMessage | null {
 		this.sentMessages.set(message.id, message);
+
+		// discard outgoing messages that we know aren't supported
+		if (message.method === "didChangeWatchedFiles") {
+			return;
+		}
+		if (message.method === "workspace/symbol") {
+			return;
+		}
 
 		return message;
 	}
 
-	private on_rx(message: ResponseMessage | NotificationMessage): ResponseMessage | NotificationMessage | null {
+	private rxFilter(message: ResponseMessage | NotificationMessage): ResponseMessage | NotificationMessage | null {
 		const msgString = JSON.stringify(message);
 
 		// This is a dirty hack to fix the language server sending us
