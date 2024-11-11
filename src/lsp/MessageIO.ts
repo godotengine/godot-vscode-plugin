@@ -10,7 +10,6 @@ import {
 	type MessageWriter,
 } from "vscode-jsonrpc";
 import { EventEmitter } from "node:events";
-import { WebSocket, type Data } from "ws";
 import { Socket } from "net";
 import MessageBuffer from "./MessageBuffer";
 import { createLogger } from "../utils";
@@ -20,138 +19,77 @@ const log = createLogger("lsp.io", { output: "Godot LSP" });
 export type Message = RequestMessage | ResponseMessage | NotificationMessage;
 
 export class MessageIO extends EventEmitter {
-	reader: MessageIOReader = null;
-	writer: MessageIOWriter = null;
+	reader = new MessageIOReader(this);
+	writer = new MessageIOWriter(this);
 
-	public send_message(message: string) {
-		// virtual
-	}
+	txHandler = (msg) => msg;
+	rxHandler = (msg) => msg;
 
-	protected on_message(chunk: Data) {
-		const message = chunk.toString();
-		this.emit("data", message);
-	}
+	socket: Socket = null;
+	messageCache: string[] = [];
 
-	on_send_message(message: any) {
-		this.emit("send_message", message);
-	}
-
-	on_message_callback(message: any) {
-		this.emit("message", message);
-	}
-
-	async connect_to_language_server(host: string, port: number): Promise<void> {
-		// virtual
-	}
-}
-
-export class WebSocketMessageIO extends MessageIO {
-	private socket: WebSocket = null;
-
-	public send_message(message: string) {
-		log.debug("io.send_message");
-		if (this.socket) {
-			log.debug("io.send_message (for real");
-			this.socket.send(message);
-		}
-	}
-
-	async connect_to_language_server(host: string, port: number): Promise<void> {
+	async connect(host: string, port: number): Promise<void> {
+		log.debug(`connecting to ${host}:${port}`);
 		return new Promise((resolve, reject) => {
 			this.socket = null;
-			const ws = new WebSocket(`ws://${host}:${port}`);
-			ws.on("open", () => {
-				log.debug("ws.open");
-				this.on_connected(ws);
-				resolve();
-			});
-			ws.on("message", this.on_message.bind(this));
-			ws.on("error", this.on_disconnected.bind(this));
-			ws.on("close", this.on_disconnected.bind(this));
-		});
-	}
 
-	protected on_connected(socket: WebSocket) {
-		this.socket = socket;
-		this.emit("connected");
-	}
-
-	protected on_disconnected() {
-		this.socket = null;
-		this.emit("disconnected");
-	}
-}
-
-export class TCPMessageIO extends MessageIO {
-	private socket: Socket = null;
-
-	public send_message(message: string) {
-		if (this.socket) {
-			this.socket.write(message);
-		}
-	}
-
-	async connect_to_language_server(host: string, port: number): Promise<void> {
-		return new Promise((resolve, reject) => {
-			this.socket = null;
 			const socket = new Socket();
 			socket.connect(port, host);
+
 			socket.on("connect", () => {
-				this.on_connected(socket);
+				this.socket = socket;
+
+				while (this.messageCache.length > 0) {
+					const msg = this.messageCache.shift();
+					this.socket.write(msg);
+				}
+
+				this.emit("connected");
 				resolve();
 			});
-			socket.on("data", this.on_message.bind(this));
-			socket.on("end", this.on_disconnected.bind(this));
-			socket.on("close", this.on_disconnected.bind(this));
-			socket.on("error", this.on_error.bind(this));
+			socket.on("data", (chunk: Buffer) => {
+				this.emit("data", chunk.toString());
+			});
+			// socket.on("end", this.on_disconnected.bind(this));
+			socket.on("error", () => {
+				this.socket = null;
+				this.emit("disconnected");
+			});
+			socket.on("close", () => {
+				this.socket = null;
+				this.emit("disconnected");
+			});
 		});
 	}
 
-	protected on_connected(socket: Socket) {
-		this.socket = socket;
-		this.emit("connected");
-	}
-
-	protected on_disconnected() {
-		this.socket = null;
-		this.emit("disconnected");
-	}
-
-	protected on_error(error) {
-		// TODO: handle errors?
+	write(message: string) {
+		if (this.socket) {
+			this.socket.write(message);
+		} else {
+			this.messageCache.push(message);
+		}
 	}
 }
 
 export class MessageIOReader extends AbstractMessageReader implements MessageReader {
-	private io: MessageIO;
-	private callback: DataCallback;
-	private buffer: MessageBuffer;
+	callback: DataCallback;
+	private buffer = new MessageBuffer("utf8");
 	private nextMessageLength: number;
 	private messageToken: number;
 	private partialMessageTimer: NodeJS.Timeout | undefined;
-	private _partialMessageTimeout: number;
+	private _partialMessageTimeout = 10000;
 
-	public constructor(io: MessageIO, encoding: BufferEncoding = "utf8") {
+	constructor(public io: MessageIO) {
 		super();
-		this.io = io;
-		this.io.reader = this;
-		this.buffer = new MessageBuffer(encoding);
-		this._partialMessageTimeout = 10000;
 	}
 
-	public set partialMessageTimeout(timeout: number) {
-		this._partialMessageTimeout = timeout;
-	}
-
-	public get partialMessageTimeout(): number {
-		return this._partialMessageTimeout;
-	}
-
-	public listen(callback: DataCallback): Disposable {
+	listen(callback: DataCallback): Disposable {
 		this.nextMessageLength = -1;
 		this.messageToken = 0;
 		this.partialMessageTimer = undefined;
+
 		this.callback = callback;
+
 		this.io.on("data", this.onData.bind(this));
 		this.io.on("error", this.fireError.bind(this));
 		this.io.on("close", this.fireClose.bind(this));
@@ -168,19 +106,19 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 				}
 				const contentLength = headers["Content-Length"];
 				if (!contentLength) {
-					throw new Error("Header must provide a Content-Length property.");
+					log.warn("Header must provide a Content-Length property.");
+					return;
 				}
 				const length = Number.parseInt(contentLength);
 				if (Number.isNaN(length)) {
-					throw new Error("Content-Length value must be a number.");
+					log.warn("Content-Length value must be a number.");
+					return;
 				}
 				this.nextMessageLength = length;
-				// Take the encoding form the header. For compatibility
-				// treat both utf-8 and utf8 as node utf8
 			}
 			const msg = this.buffer.tryReadContent(this.nextMessageLength);
-			if (msg === null) {
-				/** We haven't received the full message yet. */
+			if (!msg) {
+				log.warn("haven't recieved full message");
 				this.setPartialMessageTimer();
 				return;
 			}
@@ -188,11 +126,15 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.nextMessageLength = -1;
 			this.messageToken++;
 			const json = JSON.parse(msg);
+			// allow message to be modified
+			const modified = this.io.rxHandler(json);
 
-			log.debug("rx:", json);
+			if (!modified) {
+				log.debug("rx [discarded]:", json);
+				return;
+			}
+			log.debug("rx:", modified);
 			this.callback(json);
-			// callback
-			this.io.on_message_callback(json);
 		}
 	}
 
@@ -202,7 +144,6 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			this.partialMessageTimer = undefined;
 		}
 	}
-
 	private setPartialMessageTimer(): void {
 		this.clearPartialMessageTimer();
 		if (this._partialMessageTimeout <= 0) {
@@ -223,52 +164,34 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	}
 }
 
-const ContentLength: string = "Content-Length: ";
-const CRLF = "\r\n";
 export class MessageIOWriter extends AbstractMessageWriter implements MessageWriter {
-	private io: MessageIO;
-	private encoding: BufferEncoding;
 	private errorCount: number;
 
-	public constructor(io: MessageIO, encoding: BufferEncoding = "utf8") {
+	constructor(public io: MessageIO) {
 		super();
-		this.io = io;
-		this.io.writer = this;
-		this.encoding = encoding as BufferEncoding;
-		this.errorCount = 0;
-		this.io.on("error", (error: any) => this.fireError(error));
-		this.io.on("close", () => this.fireClose());
 	}
 
-	public end(): void {}
-
-	public write(msg: Message): Promise<void> {
-        // discard outgoing messages that we know aren't supported
-		if ((msg as RequestMessage).method === "didChangeWatchedFiles") {
+	write(msg: Message): Promise<void> {
+		const modified = this.io.txHandler(msg);
+		if (!modified) {
+			log.debug("tx [discarded]:", msg);
 			return;
 		}
-		if ((msg as RequestMessage).method === "workspace/symbol") {
-			return;
-		}
-		const json = JSON.stringify(msg);
-		const contentLength = Buffer.byteLength(json, this.encoding);
+		log.debug("tx:", modified);
+		const json = JSON.stringify(modified);
 
-		const headers: string[] = [ContentLength, contentLength.toString(), CRLF, CRLF];
+		const contentLength = Buffer.byteLength(json, "utf-8").toString();
+		const message = `Content-Length: ${contentLength}\r\n\r\n${json}`;
 		try {
-			// callback
-			this.io.on_send_message(msg);
-			// Header must be written in ASCII encoding
-			this.io.send_message(headers.join(""));
-
-			// Now write the content. This can be written in any encoding
-			log.debug("tx:", msg);
-			this.io.send_message(json);
+			this.io.write(message);
 			this.errorCount = 0;
 		} catch (error) {
 			this.errorCount++;
-			this.fireError(error, msg, this.errorCount);
+			this.fireError(error, modified, this.errorCount);
 		}
 
 		return;
 	}
+
+	end(): void {}
 }

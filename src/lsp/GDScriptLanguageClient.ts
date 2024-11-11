@@ -1,20 +1,14 @@
 import * as vscode from "vscode";
 import {
 	LanguageClient,
+	type LanguageClientOptions,
+	type ServerOptions,
 	type NotificationMessage,
 	type RequestMessage,
 	type ResponseMessage,
 } from "vscode-languageclient/node";
-import { EventEmitter } from "node:events";
 import { get_configuration, createLogger } from "../utils";
-import {
-	type Message,
-	type MessageIO,
-	MessageIOReader,
-	MessageIOWriter,
-	TCPMessageIO,
-	WebSocketMessageIO,
-} from "./MessageIO";
+import { type Message, MessageIO, MessageIOReader, MessageIOWriter } from "./MessageIO";
 import { globals } from "../extension";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
@@ -30,15 +24,11 @@ export enum TargetLSP {
 	EDITOR = 1,
 }
 
-const CUSTOM_MESSAGE = "gdscript_client/";
-
 export default class GDScriptLanguageClient extends LanguageClient {
-	public readonly io: MessageIO =
-		get_configuration("lsp.serverProtocol") === "ws" ? new WebSocketMessageIO() : new TCPMessageIO();
+	public io: MessageIO = new MessageIO();
 
 	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
 	private _initialize_request: Message = null;
-	private messageHandler: MessageHandler = null;
 
 	public target: TargetLSP = TargetLSP.EDITOR;
 
@@ -46,11 +36,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public lastPortTried = -1;
 	public sentMessages = new Map();
 	public lastSymbolHovered = "";
-
-	private _started = false;
-	public get started(): boolean {
-		return this._started;
-	}
 
 	private _status: ClientStatus;
 	public get status(): ClientStatus {
@@ -72,31 +57,28 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	constructor(private context: vscode.ExtensionContext) {
-		super(
-			"GDScriptLanguageClient",
-			() => {
-				return new Promise((resolve, reject) => {
-					resolve({ reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io) });
-				});
+		const serverOptions: ServerOptions = () => {
+			return new Promise((resolve, reject) => {
+				resolve({ reader: this.io.reader, writer: this.io.writer });
+			});
+		};
+
+		const clientOptions: LanguageClientOptions = {
+			documentSelector: [
+				{ scheme: "file", language: "gdscript" },
+				{ scheme: "untitled", language: "gdscript" },
+			],
+			synchronize: {
+				fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
 			},
-			{
-				// Register the server for plain text documents
-				documentSelector: [
-					{ scheme: "file", language: "gdscript" },
-					{ scheme: "untitled", language: "gdscript" },
-				],
-				synchronize: {
-					// Notify the server about file changes to '.gd files contain in the workspace
-					fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
-				},
-			},
-		);
+		};
+
+		super("GDScriptLanguageClient", serverOptions, clientOptions);
 		this.status = ClientStatus.PENDING;
-		this.io.on("disconnected", this.on_disconnected.bind(this));
 		this.io.on("connected", this.on_connected.bind(this));
-		this.io.on("message", this.on_message.bind(this));
-		this.io.on("send_message", this.on_send_message.bind(this));
-		this.messageHandler = new MessageHandler(this.io);
+		this.io.on("disconnected", this.on_disconnected.bind(this));
+		this.io.txHandler = this.on_tx.bind(this);
+		this.io.rxHandler = this.on_rx.bind(this);
 	}
 
 	public async list_classes() {
@@ -123,23 +105,16 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const host = get_configuration("lsp.serverHost");
 		log.info(`attempting to connect to LSP at ${host}:${port}`);
 
-		this.io.connect_to_language_server(host, port);
+		this.io.connect(host, port);
 	}
 
-	start() {
-		this._started = true;
-		return super.start();
-	}
-
-	private on_send_message(message: RequestMessage) {
+	private on_tx(message: RequestMessage): RequestMessage | null {
 		this.sentMessages.set(message.id, message);
 
-		if (message.method === "initialize") {
-			this._initialize_request = message;
-		}
+		return message;
 	}
 
-	private on_message(message: ResponseMessage | NotificationMessage) {
+	private on_rx(message: ResponseMessage | NotificationMessage): ResponseMessage | NotificationMessage | null {
 		const msgString = JSON.stringify(message);
 
 		// This is a dirty hack to fix the language server sending us
@@ -164,11 +139,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			// 	for (const diagnostic of message.params.diagnostics) {
 			// 		if (diagnostic.code === 6) {
 			// 			log.debug("UNUSED_SIGNAL", diagnostic);
-            //             return;
+			//             return;
 			// 		}
 			// 		if (diagnostic.code === 2) {
 			// 			log.debug("UNUSED_VARIABLE", diagnostic);
-            //             return;
+			//             return;
 			// 		}
 			// 	}
 			// }
@@ -201,7 +176,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			}
 		}
 
-		this.messageHandler.on_message(message);
+		return message;
 	}
 
 	public async get_symbol_at_position(uri: vscode.Uri, position: vscode.Position) {
@@ -264,47 +239,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 					log.info(`attempting to connect to LSP at ${host}:${port}`);
 
 					this.lastPortTried = port;
-					this.io.connect_to_language_server(host, port);
+					this.io.connect(host, port);
 					return;
 				}
 			}
 		}
 		this.status = ClientStatus.DISCONNECTED;
-	}
-}
-
-class MessageHandler extends EventEmitter {
-	private io: MessageIO = null;
-
-	constructor(io: MessageIO) {
-		super();
-		this.io = io;
-	}
-
-	// changeWorkspace(params: { path: string }) {
-	// 	vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
-	// 		if (item == "Reload") {
-	// 			let folderUrl = vscode.Uri.file(params.path);
-	// 			vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
-	// 		}
-	// 	});
-	// }
-
-	on_message(message: any) {
-		// FIXME: Hot fix VSCode 1.42 hover position
-		if (message?.result?.range && message.result.contents) {
-			message.result.range = undefined;
-		}
-
-		// What does this do?
-		if (message?.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
-			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
-			if (this[method]) {
-				const ret = this[method](message.params);
-				if (ret) {
-					this.io.writer.write(ret);
-				}
-			}
-		}
 	}
 }
