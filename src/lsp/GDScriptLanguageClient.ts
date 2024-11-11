@@ -171,7 +171,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private parse_hover_response(message: ResponseMessage) {
-		const contents = message.contents;
+		const contents = message["contents"];
 
 		let decl: string;
 		if (Array.isArray(contents)) {
