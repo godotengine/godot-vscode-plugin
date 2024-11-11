@@ -73,20 +73,14 @@ export class MessageIO extends EventEmitter {
 
 export class MessageIOReader extends AbstractMessageReader implements MessageReader {
 	callback: DataCallback;
-	private buffer = new MessageBuffer("utf8");
-	private nextMessageLength: number;
-	private messageToken: number;
-	private partialMessageTimer: NodeJS.Timeout | undefined;
-	private _partialMessageTimeout = 10000;
+	private buffer = new MessageBuffer(this);
 
 	constructor(public io: MessageIO) {
 		super();
 	}
 
 	listen(callback: DataCallback): Disposable {
-		this.nextMessageLength = -1;
-		this.messageToken = 0;
-		this.partialMessageTimer = undefined;
+		this.buffer.reset();
 
 		this.callback = callback;
 
@@ -99,32 +93,10 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 	private onData(data: Buffer | string): void {
 		this.buffer.append(data);
 		while (true) {
-			if (this.nextMessageLength === -1) {
-				const headers = this.buffer.tryReadHeaders();
-				if (!headers) {
-					return;
-				}
-				const contentLength = headers["Content-Length"];
-				if (!contentLength) {
-					log.warn("Header must provide a Content-Length property.");
-					return;
-				}
-				const length = Number.parseInt(contentLength);
-				if (Number.isNaN(length)) {
-					log.warn("Content-Length value must be a number.");
-					return;
-				}
-				this.nextMessageLength = length;
-			}
-			const msg = this.buffer.tryReadContent(this.nextMessageLength);
+			const msg = this.buffer.ready();
 			if (!msg) {
-				log.warn("haven't recieved full message");
-				this.setPartialMessageTimer();
 				return;
 			}
-			this.clearPartialMessageTimer();
-			this.nextMessageLength = -1;
-			this.messageToken++;
 			const json = JSON.parse(msg);
 			// allow message to be modified
 			const modified = this.io.rxHandler(json);
@@ -136,31 +108,6 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			log.debug("rx:", modified);
 			this.callback(json);
 		}
-	}
-
-	private clearPartialMessageTimer(): void {
-		if (this.partialMessageTimer) {
-			clearTimeout(this.partialMessageTimer);
-			this.partialMessageTimer = undefined;
-		}
-	}
-	private setPartialMessageTimer(): void {
-		this.clearPartialMessageTimer();
-		if (this._partialMessageTimeout <= 0) {
-			return;
-		}
-		this.partialMessageTimer = setTimeout(
-			(token, timeout) => {
-				this.partialMessageTimer = undefined;
-				if (token === this.messageToken) {
-					this.firePartialMessage({ messageToken: token, waitingTime: timeout });
-					this.setPartialMessageTimer();
-				}
-			},
-			this._partialMessageTimeout,
-			this.messageToken,
-			this._partialMessageTimeout,
-		);
 	}
 }
 
