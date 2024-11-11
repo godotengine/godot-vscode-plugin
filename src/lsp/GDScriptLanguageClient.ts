@@ -8,7 +8,7 @@ import {
 	type ResponseMessage,
 } from "vscode-languageclient/node";
 import { get_configuration, createLogger } from "../utils";
-import { type Message, MessageIO, MessageIOReader, MessageIOWriter } from "./MessageIO";
+import { type Message, MessageIO } from "./MessageIO";
 import { globals } from "../extension";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
@@ -82,7 +82,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.notificationFilter = this.notification_filter.bind(this);
 	}
 
-	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
+	connect(target: TargetLSP = TargetLSP.EDITOR) {
 		this.target = target;
 		this.status = ClientStatus.PENDING;
 
@@ -177,13 +177,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response = await this.sendRequest("textDocument/hover", params);
+		const response: ResponseMessage = await this.sendRequest("textDocument/hover", params);
 
 		return this.parse_hover_response(response);
 	}
 
-	private parse_hover_response(message) {
-		const contents = message["contents"];
+	private parse_hover_response(message: ResponseMessage) {
+		const contents = message.contents;
 
 		let decl: string;
 		if (Array.isArray(contents)) {

@@ -61,7 +61,7 @@ export class ClientConnectionManager {
 				this.start_language_server();
 				this.reconnectionAttempts = 0;
 				this.target = TargetLSP.HEADLESS;
-				this.client.connect_to_server(this.target);
+				this.client.connect(this.target);
 			}),
 			register_command("stopLanguageServer", this.stop_language_server.bind(this)),
 			register_command("checkStatus", this.on_status_item_click.bind(this)),
@@ -82,7 +82,7 @@ export class ClientConnectionManager {
 		}
 
 		this.reconnectionAttempts = 0;
-		this.client.connect_to_server(this.target);
+		this.client.connect(this.target);
 	}
 
 	private stop_language_server() {
@@ -306,7 +306,7 @@ export class ClientConnectionManager {
 		const maxAttempts = get_configuration("lsp.autoReconnect.attempts");
 		if (autoRetry && this.reconnectionAttempts <= maxAttempts - 1) {
 			this.reconnectionAttempts++;
-			this.client.connect_to_server(this.target);
+			this.client.connect(this.target);
 			this.retry = true;
 			return;
 		}
