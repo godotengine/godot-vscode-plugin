@@ -12,6 +12,8 @@ const CR: number = Buffer.from("\r", "ascii")[0];
 const LF: number = Buffer.from("\n", "ascii")[0];
 const CRLF: string = "\r\n";
 
+type Headers = { [key: string]: string };
+
 export default class MessageBuffer {
 	private encoding: BufferEncoding = "utf8";
 	private index = 0;
@@ -46,8 +48,7 @@ export default class MessageBuffer {
 		this.index += toAppend.length;
 	}
 
-	public tryReadHeaders(): { [key: string]: string } | undefined {
-		let result: { [key: string]: string } | undefined = undefined;
+	public tryReadHeaders(): Headers | undefined {
 		let current = 0;
 		while (
 			current + 3 < this.index &&
@@ -60,9 +61,9 @@ export default class MessageBuffer {
 		}
 		// No header / body separator found (e.g CRLFCRLF)
 		if (current + 3 >= this.index) {
-			return result;
+			return undefined;
 		}
-		result = Object.create(null);
+		const result = Object.create(null);
 		const headers = this.buffer.toString("ascii", 0, current).split(CRLF);
 		for (const header of headers) {
 			const index: number = header.indexOf(":");
@@ -71,7 +72,7 @@ export default class MessageBuffer {
 			}
 			const key = header.substr(0, index);
 			const value = header.substr(index + 1).trim();
-			result![key] = value;
+			result[key] = value;
 		}
 
 		const nextStart = current + 4;
