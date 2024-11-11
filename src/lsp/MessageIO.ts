@@ -22,8 +22,9 @@ export class MessageIO extends EventEmitter {
 	reader = new MessageIOReader(this);
 	writer = new MessageIOWriter(this);
 
-	txFilter = (msg) => msg;
-	rxFilter = (msg) => msg;
+	requestFilter: (msg: RequestMessage) => RequestMessage = (msg) => msg;
+	responseFilter: (msg: ResponseMessage) => ResponseMessage = (msg) => msg;
+	notificationFilter: (msg: NotificationMessage) => NotificationMessage = (msg) => msg;
 
 	socket: Socket = null;
 	messageCache: string[] = [];
@@ -84,13 +85,13 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 
 		this.callback = callback;
 
-		this.io.on("data", this.onData.bind(this));
+		this.io.on("data", this.on_data.bind(this));
 		this.io.on("error", this.fireError.bind(this));
 		this.io.on("close", this.fireClose.bind(this));
 		return;
 	}
 
-	private onData(data: Buffer | string): void {
+	private on_data(data: Buffer | string): void {
 		this.buffer.append(data);
 		while (true) {
 			const msg = this.buffer.ready();
@@ -99,7 +100,14 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			}
 			const json = JSON.parse(msg);
 			// allow message to be modified
-			const modified = this.io.rxFilter(json);
+			let modified: ResponseMessage | NotificationMessage;
+			if ("id" in json) {
+				modified = this.io.responseFilter(json);
+			} else if ("method" in json) {
+				modified = this.io.notificationFilter(json);
+			} else {
+				log.warn("rx [unhandled]:", json);
+			}
 
 			if (!modified) {
 				log.debug("rx [discarded]:", json);
@@ -118,8 +126,8 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 		super();
 	}
 
-	write(msg: Message): Promise<void> {
-		const modified = this.io.txFilter(msg);
+	async write(msg: RequestMessage) {
+		const modified = this.io.requestFilter(msg);
 		if (!modified) {
 			log.debug("tx [discarded]:", msg);
 			return;
@@ -136,8 +144,6 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 			this.errorCount++;
 			this.fireError(error, modified, this.errorCount);
 		}
-
-		return;
 	}
 
 	end(): void {}

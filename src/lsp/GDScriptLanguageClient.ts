@@ -77,8 +77,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.status = ClientStatus.PENDING;
 		this.io.on("connected", this.on_connected.bind(this));
 		this.io.on("disconnected", this.on_disconnected.bind(this));
-		this.io.txFilter = this.txFilter.bind(this);
-		this.io.rxFilter = this.rxFilter.bind(this);
+		this.io.requestFilter = this.request_filter.bind(this);
+		this.io.responseFilter = this.response_filter.bind(this);
+		this.io.notificationFilter = this.notification_filter.bind(this);
 	}
 
 	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
@@ -104,7 +105,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect(host, port);
 	}
 
-	private txFilter(message: RequestMessage): RequestMessage | null {
+	private request_filter(message: RequestMessage) {
 		this.sentMessages.set(message.id, message);
 
 		// discard outgoing messages that we know aren't supported
@@ -118,67 +119,55 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		return message;
 	}
 
-	private rxFilter(message: ResponseMessage | NotificationMessage): ResponseMessage | NotificationMessage | null {
-		const msgString = JSON.stringify(message);
+	private response_filter(message: ResponseMessage) {
+		const sentMessage = this.sentMessages.get(message.id);
+		if (sentMessage && sentMessage.method === "textDocument/hover") {
+			// fix markdown contents
+			let value: string = message.result["contents"]?.value;
+			if (value) {
+				// this is a dirty hack to fix language server sending us prerendered
+				// markdown but not correctly stripping leading #'s, leading to
+				// docstrings being displayed as titles
+				value = value.replace(/\n[#]+/g, "\n");
 
-		// This is a dirty hack to fix the language server sending us
-		// invalid file URIs
-		// This should be forward-compatible, meaning that it will work
-		// with the current broken version, AND the fixed future version.
-		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
-		if (match) {
-			const count = (message["result"] as Array<object>).length;
-			for (let i = 0; i < count; i++) {
-				const x: string = message["result"][i]["target"];
-				message["result"][i]["target"] = x.replace("file://", "file:///");
+				// fix bbcode line breaks
+				value = value.replaceAll("`br`", "\n\n");
+
+				// fix bbcode code boxes
+				value = value.replace("`codeblocks`", "");
+				value = value.replace("`/codeblocks`", "");
+				value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
+				value = value.replace("`/gdscript`", "```");
+				value = value.replace("`csharp`", "\nC#:\n```csharp");
+				value = value.replace("`/csharp`", "```");
+
+				message.result["contents"].value = value;
 			}
 		}
 
-		if ("method" in message) {
-			if (message.method === "gdscript/capabilities") {
-				globals.docsProvider.register_capabilities(message);
-			}
+		return message;
+	}
 
-			// if (message.method === "textDocument/publishDiagnostics") {
-			// 	for (const diagnostic of message.params.diagnostics) {
-			// 		if (diagnostic.code === 6) {
-			// 			log.debug("UNUSED_SIGNAL", diagnostic);
-			//             return;
-			// 		}
-			// 		if (diagnostic.code === 2) {
-			// 			log.debug("UNUSED_VARIABLE", diagnostic);
-			//             return;
-			// 		}
-			// 	}
-			// }
+	private notification_filter(message: NotificationMessage) {
+		if (message.method === "gdscript_client/changeWorkspace") {
+			//
+		}
+		if (message.method === "gdscript/capabilities") {
+			globals.docsProvider.register_capabilities(message);
 		}
 
-		if ("id" in message) {
-			const sentMessage = this.sentMessages.get(message.id);
-			if (sentMessage && sentMessage.method === "textDocument/hover") {
-				// fix markdown contents
-				let value: string = message.result["contents"]?.value;
-				if (value) {
-					// this is a dirty hack to fix language server sending us prerendered
-					// markdown but not correctly stripping leading #'s, leading to
-					// docstrings being displayed as titles
-					value = value.replace(/\n[#]+/g, "\n");
-
-					// fix bbcode line breaks
-					value = value.replaceAll("`br`", "\n\n");
-
-					// fix bbcode code boxes
-					value = value.replace("`codeblocks`", "");
-					value = value.replace("`/codeblocks`", "");
-					value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
-					value = value.replace("`/gdscript`", "```");
-					value = value.replace("`csharp`", "\nC#:\n```csharp");
-					value = value.replace("`/csharp`", "```");
-
-					message.result["contents"].value = value;
-				}
-			}
-		}
+		// if (message.method === "textDocument/publishDiagnostics") {
+		// 	for (const diagnostic of message.params.diagnostics) {
+		// 		if (diagnostic.code === 6) {
+		// 			log.debug("UNUSED_SIGNAL", diagnostic);
+		//             return;
+		// 		}
+		// 		if (diagnostic.code === 2) {
+		// 			log.debug("UNUSED_VARIABLE", diagnostic);
+		//             return;
+		// 		}
+		// 	}
+		// }
 
 		return message;
 	}
