@@ -441,7 +441,7 @@ export class ServerController {
 				}
 				const lines = command.parameters[0];
 				for (const line of lines) {
-					debug.activeDebugConsole.appendLine(ansi.white + line);
+					debug.activeDebugConsole.appendLine(ansi.bright.blue + line);
 				}
 				break;
 			}
