@@ -135,9 +135,9 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private response_filter(message: ResponseMessage) {
 		const sentMessage = this.sentMessages.get(message.id);
-		if (sentMessage && sentMessage.method === "textDocument/hover") {
+		if (sentMessage?.method === "textDocument/hover") {
 			// fix markdown contents
-			let value: string = message.result["contents"]?.value;
+			let value: string = (message as HoverResponseMesssage).result.contents.value;
 			if (value) {
 				// this is a dirty hack to fix language server sending us prerendered
 				// markdown but not correctly stripping leading #'s, leading to
@@ -155,7 +155,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				value = value.replace("`csharp`", "\nC#:\n```csharp");
 				value = value.replace("`/csharp`", "```");
 
-				message.result["contents"].value = value;
+				(message as HoverResponseMesssage).result.contents.value = value;
 			}
 		}
 
