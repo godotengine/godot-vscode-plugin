@@ -31,25 +31,27 @@ export type Target = {
 	port: number;
 };
 
+type HoverResult = {
+	contents: {
+		kind: string;
+		value: string;
+	};
+	range: {
+		end: {
+			character: number;
+			line: number;
+		};
+		start: {
+			character: number;
+			line: number;
+		};
+	};
+};
+
 type HoverResponseMesssage = {
 	id: number;
 	jsonrpc: string;
-	result: {
-		contents: {
-			kind: string;
-			value: string;
-		};
-		range: {
-			end: {
-				character: number;
-				line: number;
-			};
-			start: {
-				character: number;
-				line: number;
-			};
-		};
-	};
+	result: HoverResult;
 };
 
 export default class GDScriptLanguageClient extends LanguageClient {
@@ -191,13 +193,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response: HoverResponseMesssage = await this.sendRequest("textDocument/hover", params);
+		const response: HoverResult = await this.sendRequest("textDocument/hover", params);
 
-		return this.parse_hover_response(response);
+		return this.parse_hover_result(response);
 	}
 
-	private parse_hover_response(message: HoverResponseMesssage) {
-		const contents = message["contents"];
+	private parse_hover_result(message: HoverResult) {
+		const contents = message.contents;
 
 		let decl: string;
 		if (Array.isArray(contents)) {
