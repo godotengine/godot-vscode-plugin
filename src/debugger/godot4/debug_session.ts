@@ -1,25 +1,32 @@
-import * as fs from "fs";
 import {
-	LoggingDebugSession,
-	InitializedEvent,
-	Thread,
-	Source,
 	Breakpoint,
-	StoppedEvent,
+	InitializedEvent,
+	LoggingDebugSession,
+	Source,
 	TerminatedEvent,
+	Thread,
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { debug } from "vscode";
 import { Subject } from "await-notify";
-import { GodotDebugData, GodotVariable, GodotStackVars } from "../debug_runtime";
-import { LaunchRequestArguments, AttachRequestArguments } from "../debugger";
-import { SceneTreeProvider } from "../scene_tree_provider";
-import { ObjectId } from "./variables/variants";
-import { parse_variable, is_variable_built_in_type } from "./helpers";
-import { ServerController } from "./server_controller";
+import * as fs from "node:fs";
+import { debug } from "vscode";
+
 import { createLogger } from "../../utils";
+import { GodotDebugData, GodotStackVars, GodotVariable } from "../debug_runtime";
+import { AttachRequestArguments, LaunchRequestArguments } from "../debugger";
+import { SceneTreeProvider } from "../scene_tree_provider";
+import { is_variable_built_in_type, parse_variable } from "./helpers";
+import { ServerController } from "./server_controller";
+import { ObjectId } from "./variables/variants";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
+
+interface Variable {
+	variable: GodotVariable;
+	index: number;
+	object_id: number;
+	error: string;
+}
 
 export class GodotDebugSession extends LoggingDebugSession {
 	private all_scopes: GodotVariable[];
@@ -32,10 +39,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	private previous_inspections: bigint[] = [];
 	private configuration_done: Subject = new Subject();
 	private mode: "launch" | "attach" | "" = "";
-	public inspect_callbacks: Map<
-		bigint,
-		(class_name: string, variable: GodotVariable) => void
-	> = new Map();
+	public inspect_callbacks: Map<bigint, (class_name: string, variable: GodotVariable) => void> = new Map();
 
 	public constructor() {
 		super();
@@ -50,7 +54,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected initializeRequest(
 		response: DebugProtocol.InitializeResponse,
-		args: DebugProtocol.InitializeRequestArguments
+		args: DebugProtocol.InitializeRequestArguments,
 	) {
 		response.body = response.body || {};
 
@@ -79,10 +83,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendEvent(new InitializedEvent());
 	}
 
-	protected async launchRequest(
-		response: DebugProtocol.LaunchResponse,
-		args: LaunchRequestArguments
-	) {
+	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
 		await this.configuration_done.wait(1000);
 
 		this.mode = "launch";
@@ -94,10 +95,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async attachRequest(
-		response: DebugProtocol.AttachResponse,
-		args: AttachRequestArguments
-	) {
+	protected async attachRequest(response: DebugProtocol.AttachResponse, args: AttachRequestArguments) {
 		await this.configuration_done.wait(1000);
 
 		this.mode = "attach";
@@ -110,16 +108,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	public configurationDoneRequest(
 		response: DebugProtocol.ConfigurationDoneResponse,
-		args: DebugProtocol.ConfigurationDoneArguments
+		args: DebugProtocol.ConfigurationDoneArguments,
 	) {
 		this.configuration_done.notify();
 		this.sendResponse(response);
 	}
 
-	protected continueRequest(
-		response: DebugProtocol.ContinueResponse,
-		args: DebugProtocol.ContinueArguments
-	) {
+	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments) {
 		if (!this.exception) {
 			response.body = { allThreadsContinued: true };
 			this.controller.continue();
@@ -127,20 +122,17 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected async evaluateRequest(
-		response: DebugProtocol.EvaluateResponse,
-		args: DebugProtocol.EvaluateArguments
-	) {
+	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 
 		if (this.all_scopes) {
-			var variable = this.get_variable(args.expression, null, null, null);
+			const variable = this.get_variable(args.expression, null, null, null);
 
 			if (variable.error == null) {
-				var parsed_variable = parse_variable(variable.variable);
+				const parsed_variable = parse_variable(variable.variable);
 				response.body = {
 					result: parsed_variable.value,
-					variablesReference: !is_variable_built_in_type(variable.variable) ? variable.index : 0
+					variablesReference: !is_variable_built_in_type(variable.variable) ? variable.index : 0,
 				};
 			} else {
 				response.success = false;
@@ -158,30 +150,21 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected nextRequest(
-		response: DebugProtocol.NextResponse,
-		args: DebugProtocol.NextArguments
-	) {
+	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
 		if (!this.exception) {
 			this.controller.next();
 			this.sendResponse(response);
 		}
 	}
 
-	protected pauseRequest(
-		response: DebugProtocol.PauseResponse,
-		args: DebugProtocol.PauseArguments
-	) {
+	protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments) {
 		if (!this.exception) {
 			this.controller.break();
 			this.sendResponse(response);
 		}
 	}
 
-	protected async scopesRequest(
-		response: DebugProtocol.ScopesResponse,
-		args: DebugProtocol.ScopesArguments
-	) {
+	protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments) {
 		this.controller.request_stack_frame_vars(args.frameId);
 		await this.got_scope.wait(2000);
 
@@ -197,7 +180,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected setBreakPointsRequest(
 		response: DebugProtocol.SetBreakpointsResponse,
-		args: DebugProtocol.SetBreakpointsArguments
+		args: DebugProtocol.SetBreakpointsArguments,
 	) {
 		const path = (args.source.path as string).replace(/\\/g, "/");
 		const client_lines = args.lines || [];
@@ -206,19 +189,19 @@ export class GodotDebugSession extends LoggingDebugSession {
 			let bps = this.debug_data.get_breakpoints(path);
 			const bp_lines = bps.map((bp) => bp.line);
 
-			bps.forEach((bp) => {
+			for (const bp of bps) {
 				if (client_lines.indexOf(bp.line) === -1) {
 					this.debug_data.remove_breakpoint(path, bp.line);
 				}
-			});
-			client_lines.forEach((l) => {
+			}
+			for (const l of client_lines) {
 				if (bp_lines.indexOf(l) === -1) {
-					const bp = args.breakpoints.find((bp_at_line) => (bp_at_line.line == l));
+					const bp = args.breakpoints.find((bp_at_line) => bp_at_line.line === l);
 					if (!bp.condition) {
 						this.debug_data.set_breakpoint(path, l);
 					}
 				}
-			});
+			}
 
 			bps = this.debug_data.get_breakpoints(path);
 			// Sort to ensure breakpoints aren't out-of-order, which would confuse VS Code.
@@ -226,12 +209,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 			response.body = {
 				breakpoints: bps.map((bp) => {
-					return new Breakpoint(
-						true,
-						bp.line,
-						1,
-						new Source(bp.file.split("/").reverse()[0], bp.file)
-					);
+					return new Breakpoint(true, bp.line, 1, new Source(bp.file.split("/").reverse()[0], bp.file));
 				}),
 			};
 
@@ -239,10 +217,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected stackTraceRequest(
-		response: DebugProtocol.StackTraceResponse,
-		args: DebugProtocol.StackTraceArguments
-	) {
+	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments) {
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -252,10 +227,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 						name: sf.function,
 						line: sf.line,
 						column: 1,
-						source: new Source(
-							sf.file,
-							`${this.debug_data.projectPath}/${sf.file.replace("res://", "")}`
-						),
+						source: new Source(sf.file, `${this.debug_data.projectPath}/${sf.file.replace("res://", "")}`),
 					};
 				}),
 			};
@@ -263,30 +235,21 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected stepInRequest(
-		response: DebugProtocol.StepInResponse,
-		args: DebugProtocol.StepInArguments
-	) {
+	protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments) {
 		if (!this.exception) {
 			this.controller.step();
 			this.sendResponse(response);
 		}
 	}
 
-	protected stepOutRequest(
-		response: DebugProtocol.StepOutResponse,
-		args: DebugProtocol.StepOutArguments
-	) {
+	protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
 		if (!this.exception) {
 			this.controller.step_out();
 			this.sendResponse(response);
 		}
 	}
 
-	protected terminateRequest(
-		response: DebugProtocol.TerminateResponse,
-		args: DebugProtocol.TerminateArguments
-	) {
+	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments) {
 		if (this.mode === "launch") {
 			this.controller.stop();
 			this.sendEvent(new TerminatedEvent());
@@ -301,11 +264,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected async variablesRequest(
 		response: DebugProtocol.VariablesResponse,
-		args: DebugProtocol.VariablesArguments
+		args: DebugProtocol.VariablesArguments,
 	) {
 		if (!this.all_scopes) {
 			response.body = {
-				variables: []
+				variables: [],
 			};
 			this.sendResponse(response);
 			return;
@@ -319,8 +282,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		} else {
 			variables = reference.sub_values.map((va) => {
 				const sva = this.all_scopes.find(
-					(sva) =>
-						sva && sva.scope_path === va.scope_path && sva.name === va.name
+					(sva) => sva && sva.scope_path === va.scope_path && sva.name === va.name,
 				);
 				if (sva) {
 					return parse_variable(
@@ -329,8 +291,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 							(va_idx) =>
 								va_idx &&
 								va_idx.scope_path === `${reference.scope_path}.${reference.name}` &&
-								va_idx.name === va.name
-						)
+								va_idx.name === va.name,
+						),
 					);
 				}
 			});
@@ -354,7 +316,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 				name: "local",
 				value: undefined,
 				sub_values: stackVars.locals,
-				scope_path: "@"
+				scope_path: "@",
 			},
 			{
 				name: "member",
@@ -370,20 +332,20 @@ export class GodotDebugSession extends LoggingDebugSession {
 			},
 		];
 
-		stackVars.locals.forEach((va) => {
+		for (const va of stackVars.locals) {
 			va.scope_path = "@.local";
 			this.append_variable(va);
-		});
+		}
 
-		stackVars.members.forEach((va) => {
+		for (const va of stackVars.members) {
 			va.scope_path = "@.member";
 			this.append_variable(va);
-		});
+		}
 
-		stackVars.globals.forEach((va) => {
+		for (const va of stackVars.globals) {
 			va.scope_path = "@.global";
 			this.append_variable(va);
-		});
+		}
 
 		this.add_to_inspections();
 
@@ -394,21 +356,19 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	public set_inspection(id: bigint, replacement: GodotVariable) {
-		const variables = this.all_scopes.filter(
-			(va) => va && va.value instanceof ObjectId && va.value.id === id
-		);
+		const variables = this.all_scopes.filter((va) => va && va.value instanceof ObjectId && va.value.id === id);
 
-		variables.forEach((va) => {
+		for (const va of variables) {
 			const index = this.all_scopes.findIndex((va_id) => va_id === va);
 			const old = this.all_scopes.splice(index, 1);
 			replacement.name = old[0].name;
 			replacement.scope_path = old[0].scope_path;
 			this.append_variable(replacement, index);
-		});
+		}
 
 		this.ongoing_inspections.splice(
 			this.ongoing_inspections.findIndex((va_id) => va_id === id),
-			1
+			1,
 		);
 
 		this.previous_inspections.push(id);
@@ -422,7 +382,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	private add_to_inspections() {
-		this.all_scopes.forEach((va) => {
+		for (const va of this.all_scopes) {
 			if (va && va.value instanceof ObjectId) {
 				if (
 					!this.ongoing_inspections.includes(va.value.id) &&
@@ -432,38 +392,58 @@ export class GodotDebugSession extends LoggingDebugSession {
 					this.ongoing_inspections.push(va.value.id);
 				}
 			}
-		});
+		}
 	}
 
-	protected get_variable(expression: string, root: GodotVariable = null, index: number = 0, object_id: number = null): { variable: GodotVariable, index: number, object_id: number, error: string } {
-		var result: { variable: GodotVariable, index: number, object_id: number, error: string } = { variable: null, index: null, object_id: null, error: null };
+	protected get_variable(
+		expression: string,
+		root: GodotVariable = null,
+		index = 0,
+		object_id: number = null,
+	): Variable {
+		let result: Variable = {
+			variable: null,
+			index: null,
+			object_id: null,
+			error: null,
+		};
 
 		if (!root) {
 			if (!expression.includes("self")) {
 				expression = "self." + expression;
 			}
 
-			root = this.all_scopes.find(x => x && x.name == "self");
-			object_id = this.all_scopes.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value;
+			root = this.all_scopes.find((x) => x && x.name === "self");
+			object_id = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self").value;
 		}
 
-		var items = expression.split(".");
-		var propertyName = items[index + 1];
-		var path = items.slice(0, index + 1).join(".")
-			.split("self.").join("")
-			.split("self").join("")
-			.split("[").join(".")
-			.split("]").join("");
+		const items = expression.split(".");
+		let propertyName = items[index + 1];
+		let path = items
+			.slice(0, index + 1)
+			.join(".")
+			.split("self.")
+			.join("")
+			.split("self")
+			.join("")
+			.split("[")
+			.join(".")
+			.split("]")
+			.join("");
 
-		if (items.length == 1 && items[0] == "self") {
+		if (items.length === 1 && items[0] === "self") {
 			propertyName = "self";
 		}
 
 		// Detect index/key
-		var key = (propertyName.match(/(?<=\[).*(?=\])/) || [null])[0];
+		let key = (propertyName.match(/(?<=\[).*(?=\])/) || [null])[0];
 		if (key) {
 			key = key.replace(/['"]+/g, "");
-			propertyName = propertyName.split(/(?<=\[).*(?=\])/).join("").split("\[\]").join("");
+			propertyName = propertyName
+				.split(/(?<=\[).*(?=\])/)
+				.join("")
+				.split("[]")
+				.join("");
 			if (path) path += ".";
 			path += propertyName;
 			propertyName = key;
@@ -474,49 +454,60 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		function sanitizeScopePath(scope_path: string) {
-			return scope_path.split("@.member.self.").join("")
-				.split("@.member.self").join("")
-				.split("@.member.").join("")
-				.split("@.member").join("")
-				.split("@.local.").join("")
-				.split("@.local").join("")
-				.split("Locals/").join("")
-				.split("Members/").join("")
-				.split("@").join("");
+			return scope_path
+				.split("@.member.self.")
+				.join("")
+				.split("@.member.self")
+				.join("")
+				.split("@.member.")
+				.join("")
+				.split("@.member")
+				.join("")
+				.split("@.local.")
+				.join("")
+				.split("@.local")
+				.join("")
+				.split("Locals/")
+				.join("")
+				.split("Members/")
+				.join("")
+				.split("@")
+				.join("");
 		}
 
-		var sanitized_all_scopes = this.all_scopes.filter(x => x).map(function (x) {
-			return {
+		const sanitized_all_scopes = this.all_scopes
+			.filter((x) => x)
+			.map((x) => ({
 				sanitized: {
 					name: sanitizeName(x.name),
-					scope_path: sanitizeScopePath(x.scope_path)
+					scope_path: sanitizeScopePath(x.scope_path),
 				},
-				real: x
-			};
-		});
+				real: x,
+			}));
 
-		result.variable = sanitized_all_scopes
-			.find(x => x.sanitized.name == propertyName && x.sanitized.scope_path == path)
-			?.real;
+		result.variable = sanitized_all_scopes.find(
+			(x) => x.sanitized.name === propertyName && x.sanitized.scope_path === path,
+		)?.real;
 		if (!result.variable) {
 			result.error = `Could not find: ${propertyName}`;
 			return result;
 		}
 
 		if (root.value.entries) {
-			if (result.variable.name == "self") {
-				result.object_id = this.all_scopes
-					.find(x => x && x.name == "id" && x.scope_path == "@.member.self").value;
+			if (result.variable.name === "self") {
+				result.object_id = this.all_scopes.find(
+					(x) => x && x.name === "id" && x.scope_path === "@.member.self",
+				).value;
 			} else if (key) {
-				var collection = path.split(".")[path.split(".").length - 1];
-				var collection_items = Array.from(root.value.entries())
-					.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == collection)[1];
-				result.object_id = collection_items.get
-					? collection_items.get(key)?.id
-					: collection_items[key]?.id;
+				const collection = path.split(".")[path.split(".").length - 1];
+				const collection_items = Array.from(root.value.entries()).find(
+					(x) => x && x[0].split("Members/").join("").split("Locals/").join("") === collection,
+				)[1];
+				result.object_id = collection_items.get ? collection_items.get(key)?.id : collection_items[key]?.id;
 			} else {
-				const entries = Array.from(root.value.entries());
-				const item = entries.find(x => x && x[0].split("Members/").join("").split("Locals/").join("") == propertyName);
+				const item = Array.from(root.value.entries()).find(
+					(x) => x && x[0].split("Members/").join("").split("Locals/").join("") === propertyName,
+				);
 				result.object_id = item?.[1].id;
 			}
 		}
@@ -525,7 +516,9 @@ export class GodotDebugSession extends LoggingDebugSession {
 			result.object_id = object_id;
 		}
 
-		result.index = this.all_scopes.findIndex(x => x && x.name == result.variable.name && x.scope_path == result.variable.scope_path);
+		result.index = this.all_scopes.findIndex(
+			(x) => x && x.name === result.variable.name && x.scope_path === result.variable.scope_path,
+		);
 
 		if (items.length > 2 && index < items.length - 2) {
 			result = this.get_variable(items.join("."), result.variable, index + 1, result.object_id);

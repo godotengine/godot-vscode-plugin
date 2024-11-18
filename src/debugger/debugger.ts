@@ -309,13 +309,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 						break;
 					case "number":
 						if (is_float) {
-							new_parsed_value = parseFloat(value);
-							if (isNaN(new_parsed_value)) {
+							new_parsed_value = Number.parseFloat(value);
+							if (Number.isNaN(new_parsed_value)) {
 								return;
 							}
 						} else {
-							new_parsed_value = parseInt(value);
-							if (isNaN(new_parsed_value)) {
+							new_parsed_value = Number.parseInt(value);
+							if (Number.isNaN(new_parsed_value)) {
 								return;
 							}
 						}

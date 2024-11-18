@@ -16,6 +16,10 @@
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
+			"skipFiles": [
+				"**/extensionHostProcess.js",
+				"<node_internals>/**/*.js"
+			],
 			"preLaunchTask": "npm: watch",
 			"env": {
 				"VSCODE_DEBUG_MODE": true
@@ -33,6 +37,10 @@
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
+			],
+			"skipFiles": [
+				"**/extensionHostProcess.js",
+				"<node_internals>/**/*.js"
 			],
 			"preLaunchTask": "npm: watch",
 			"env": {
