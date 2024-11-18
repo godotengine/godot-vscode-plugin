@@ -275,6 +275,11 @@
 					"name": "constant.numeric.float.gdscript"
 				},
 				{
+					"name": "constant.numeric.float.gdscript",
+					"match": "(?x)\n  (?<! \\w)(?:\n    (?:\n      \\.[0-9](?: _?[0-9] )*\n      |\n      [0-9](?: _?[0-9] )* \\. [0-9](?: _?[0-9] )*\n      |\n      [0-9](?: _?[0-9] )* \\.\n    ) (?: [eE][+-]?[0-9](?: _?[0-9] )* )?\n    |\n    [0-9](?: _?[0-9] )* (?: [eE][+-]?[0-9](?: _?[0-9] )* )\n  )([jJ])?\\b\n",
+					"captures": { "1": { "name": "storage.type.imaginary.number.gdscript" } }
+				},
+				{
 					"match": "[-]?[0-9][0-9_]*",
 					"name": "constant.numeric.integer.gdscript"
 				}
@@ -386,7 +391,7 @@
 		},
 		"builtin_get_node_shorthand_quoted": {
 			"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape.gdscript",
-			"begin": "(?:(\\$)|(&|\\^|@))(\"|')",
+			"begin": "(?:(\\$|%)|(&|\\^|@))(\"|')",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.flow.gdscript" },
 				"2": { "name": "variable.other.enummember.gdscript" }
@@ -498,13 +503,8 @@
 				"1": { "name": "keyword.language.gdscript storage.type.function.gdscript" },
 				"2": { "name": "entity.name.function.gdscript" }
 			},
-			"end": "(:|(?=[#'\"\\n]))",
-			"end2": "(\\s*(\\-\\>)\\s*(void\\w*)|([a-zA-Z_]\\w*)\\s*\\:)",
-			"endCaptures2": {
-				"1": { "name": "punctuation.separator.annotation.result.gdscript" },
-				"2": { "name": "keyword.language.void.gdscript" },
-				"3": { "name": "entity.name.type.class.gdscript markup.italic" }
-			},
+			"end": "(:)",
+			"endCaptures": { "1": { "name": "punctuation.section.function.begin.gdscript" } },
 			"patterns": [
 				{ "include": "#parameters" },
 				{ "include": "#line_continuation" },
