@@ -29,6 +29,7 @@ export enum TargetLSP {
 export type Target = {
 	host: string;
 	port: number;
+    type: TargetLSP;
 };
 
 type HoverResult = {

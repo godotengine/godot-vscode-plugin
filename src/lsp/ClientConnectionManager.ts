@@ -40,7 +40,7 @@ export class ClientConnectionManager {
 
 	constructor(private context: vscode.ExtensionContext) {
 		this.client = new GDScriptLanguageClient();
-		this.client.events.on('status', this.on_client_status_changed.bind(this));
+		this.client.events.on("status", this.on_client_status_changed.bind(this));
 
 		setInterval(() => {
 			this.retry_callback();
