@@ -26,6 +26,32 @@ export enum TargetLSP {
 	EDITOR = 1,
 }
 
+export type Target = {
+	host: string;
+	port: number;
+};
+
+type HoverResponseMesssage = {
+	id: number;
+	jsonrpc: string;
+	result: {
+		contents: {
+			kind: string;
+			value: string;
+		};
+		range: {
+			end: {
+				character: number;
+				line: number;
+			};
+			start: {
+				character: number;
+				line: number;
+			};
+		};
+	};
+};
+
 export default class GDScriptLanguageClient extends LanguageClient {
 	public io: MessageIO = new MessageIO();
 
@@ -165,12 +191,12 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response: ResponseMessage = await this.sendRequest("textDocument/hover", params);
+		const response: HoverResponseMesssage = await this.sendRequest("textDocument/hover", params);
 
 		return this.parse_hover_response(response);
 	}
 
-	private parse_hover_response(message: ResponseMessage) {
+	private parse_hover_response(message: HoverResponseMesssage) {
 		const contents = message["contents"];
 
 		let decl: string;
