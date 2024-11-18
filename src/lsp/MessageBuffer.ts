@@ -3,21 +3,28 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import { createLogger } from "../utils";
+
+const log = createLogger("lsp.buf");
+
 const DefaultSize: number = 8192;
 const CR: number = Buffer.from("\r", "ascii")[0];
 const LF: number = Buffer.from("\n", "ascii")[0];
 const CRLF: string = "\r\n";
 
-export default class MessageBuffer {
-	private encoding: BufferEncoding;
-	private index: number;
-	private buffer: Buffer;
+type Headers = { [key: string]: string };
 
-	constructor(encoding = "utf8") {
-		this.encoding = encoding as BufferEncoding;
-		this.index = 0;
-		this.buffer = Buffer.allocUnsafe(DefaultSize);
-	}
+export default class MessageBuffer {
+	private encoding: BufferEncoding = "utf8";
+	private index = 0;
+	private buffer: Buffer = Buffer.allocUnsafe(DefaultSize);
+
+	private nextMessageLength: number;
+	private messageToken: number;
+	private partialMessageTimer: NodeJS.Timeout | undefined;
+	private _partialMessageTimeout = 10000;
+
+	constructor(private reader) {}
 
 	public append(chunk: Buffer | string): void {
 		let toAppend: Buffer = <Buffer>chunk;
@@ -41,8 +48,7 @@ export default class MessageBuffer {
 		this.index += toAppend.length;
 	}
 
-	public tryReadHeaders(): { [key: string]: string } | undefined {
-		let result: { [key: string]: string } | undefined = undefined;
+	public tryReadHeaders(): Headers | undefined {
 		let current = 0;
 		while (
 			current + 3 < this.index &&
@@ -55,19 +61,19 @@ export default class MessageBuffer {
 		}
 		// No header / body separator found (e.g CRLFCRLF)
 		if (current + 3 >= this.index) {
-			return result;
+			return undefined;
 		}
-		result = Object.create(null);
+		const result = Object.create(null);
 		const headers = this.buffer.toString("ascii", 0, current).split(CRLF);
-        for (const header of headers) {
+		for (const header of headers) {
 			const index: number = header.indexOf(":");
 			if (index === -1) {
 				throw new Error("Message header must separate key and value using :");
 			}
 			const key = header.substr(0, index);
 			const value = header.substr(index + 1).trim();
-			result![key] = value;
-        }
+			result[key] = value;
+		}
 
 		const nextStart = current + 4;
 		this.buffer = this.buffer.slice(nextStart);
@@ -86,7 +92,66 @@ export default class MessageBuffer {
 		return result;
 	}
 
-	public get numberOfBytes(): number {
-		return this.index;
+	public ready() {
+		if (this.nextMessageLength === -1) {
+			const headers = this.tryReadHeaders();
+			if (!headers) {
+				return;
+			}
+			const contentLength = headers["Content-Length"];
+			if (!contentLength) {
+				log.warn("Header must provide a Content-Length property.");
+				return;
+			}
+			const length = Number.parseInt(contentLength);
+			if (Number.isNaN(length)) {
+				log.warn("Content-Length value must be a number.");
+				return;
+			}
+			this.nextMessageLength = length;
+		}
+		const msg = this.tryReadContent(this.nextMessageLength);
+		if (!msg) {
+			log.warn("haven't recieved full message");
+			this.setPartialMessageTimer();
+			return;
+		}
+		this.clearPartialMessageTimer();
+		this.nextMessageLength = -1;
+		this.messageToken++;
+
+		return msg;
+	}
+
+	public reset() {
+		this.nextMessageLength = -1;
+		this.messageToken = 0;
+		this.partialMessageTimer = undefined;
+	}
+
+	private clearPartialMessageTimer(): void {
+		if (this.partialMessageTimer) {
+			clearTimeout(this.partialMessageTimer);
+			this.partialMessageTimer = undefined;
+		}
+	}
+
+	private setPartialMessageTimer(): void {
+		this.clearPartialMessageTimer();
+		if (this._partialMessageTimeout <= 0) {
+			return;
+		}
+		this.partialMessageTimer = setTimeout(
+			(token, timeout) => {
+				this.partialMessageTimer = undefined;
+				if (token === this.messageToken) {
+					this.reader.firePartialMessage({ messageToken: token, waitingTime: timeout });
+					this.setPartialMessageTimer();
+				}
+			},
+			this._partialMessageTimeout,
+			this.messageToken,
+			this._partialMessageTimeout,
+		);
 	}
 }
