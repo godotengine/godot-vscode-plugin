@@ -296,21 +296,6 @@
 					"default": false,
 					"description": "Whether extra space should be removed from function parameter lists"
 				},
-				"godotTools.lsp.serverProtocol": {
-					"type": [
-						"string"
-					],
-					"enum": [
-						"ws",
-						"tcp"
-					],
-					"default": "tcp",
-					"enumDescriptions": [
-						"Use the WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
-						"Use the TCP protocol to connect to Godot 3.2.2 and newer versions"
-					],
-					"description": "The server protocol of the GDScript language server.\nYou must restart VSCode after changing this value."
-				},
 				"godotTools.lsp.serverHost": {
 					"type": "string",
 					"default": "127.0.0.1",

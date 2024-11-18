@@ -15,7 +15,8 @@
 	"linter": {
 		"rules": {
 			"style": {
-				"noUselessElse": "off"
+				"noUselessElse": "off",
+                "useImportType": "off"
 			}
 		}
 	}

@@ -14,7 +14,7 @@ import type {
 	GodotNativeSymbol,
 	GodotNativeClassInfo,
 	GodotCapabilities,
-} from "../lsp/gdscript.capabilities";
+} from "./documentation_types";
 import { make_html_content } from "./documentation_builder";
 import { createLogger, get_configuration, get_extension_uri, make_docs_uri } from "../utils";
 import { globals } from "../extension";

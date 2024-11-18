@@ -1,18 +1,19 @@
 import * as vscode from "vscode";
-import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
+
 import {
+	createLogger,
 	get_configuration,
 	get_free_port,
 	get_project_dir,
 	get_project_version,
-	set_context,
 	register_command,
 	set_configuration,
-	createLogger,
+	set_context,
 	verify_godot_version,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
-import { subProcess, killSubProcesses } from "../utils/subspawn";
+import { killSubProcesses, subProcess } from "../utils/subspawn";
+import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
@@ -38,10 +39,8 @@ export class ClientConnectionManager {
 	private connectedVersion = "";
 
 	constructor(private context: vscode.ExtensionContext) {
-		this.context = context;
-
-		this.client = new GDScriptLanguageClient(context);
-		this.client.watch_status(this.on_client_status_changed.bind(this));
+		this.client = new GDScriptLanguageClient();
+		this.client.events.on("status", this.on_client_status_changed.bind(this));
 
 		setInterval(() => {
 			this.retry_callback();
@@ -60,7 +59,7 @@ export class ClientConnectionManager {
 				this.start_language_server();
 				this.reconnectionAttempts = 0;
 				this.target = TargetLSP.HEADLESS;
-				this.client.connect_to_server(this.target);
+				this.client.connect(this.target);
 			}),
 			register_command("stopLanguageServer", this.stop_language_server.bind(this)),
 			register_command("checkStatus", this.on_status_item_click.bind(this)),
@@ -81,7 +80,7 @@ export class ClientConnectionManager {
 		}
 
 		this.reconnectionAttempts = 0;
-		this.client.connect_to_server(this.target);
+		this.client.connect(this.target);
 	}
 
 	private stop_language_server() {
@@ -269,7 +268,7 @@ export class ClientConnectionManager {
 				this.reconnectionAttempts = 0;
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
-				if (!this.client.started) {
+				if (this.client.needsStart()) {
 					this.context.subscriptions.push(this.client.start());
 				}
 				break;
@@ -305,7 +304,7 @@ export class ClientConnectionManager {
 		const maxAttempts = get_configuration("lsp.autoReconnect.attempts");
 		if (autoRetry && this.reconnectionAttempts <= maxAttempts - 1) {
 			this.reconnectionAttempts++;
-			this.client.connect_to_server(this.target);
+			this.client.connect(this.target);
 			this.retry = true;
 			return;
 		}

@@ -3,7 +3,7 @@ import { SymbolKind } from "vscode-languageclient";
 import * as Prism from "prismjs";
 import * as csharp from "prismjs/components/prism-csharp";
 import { marked } from "marked";
-import type { GodotNativeSymbol } from "../lsp/gdscript.capabilities";
+import type { GodotNativeSymbol } from "./documentation_types";
 import { get_extension_uri } from "../utils";
 import yabbcode = require("ya-bbcode");
 
