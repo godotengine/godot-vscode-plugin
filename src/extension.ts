@@ -6,6 +6,7 @@ import {
 	GDHoverProvider,
 	GDDocumentLinkProvider,
 	GDSemanticTokensProvider,
+    GDDocumentDropEditProvider,
 	GDCompletionItemProvider,
 	GDDocumentationProvider,
 	GDDefinitionProvider,
@@ -34,6 +35,7 @@ interface Extension {
 	debug?: GodotDebugger;
 	scenePreviewProvider?: ScenePreviewProvider;
 	linkProvider?: GDDocumentLinkProvider;
+	dropsProvider?: GDDocumentDropEditProvider;
 	hoverProvider?: GDHoverProvider;
 	inlayProvider?: GDInlayHintsProvider;
 	formattingProvider?: FormattingProvider;
@@ -59,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.formattingProvider = new FormattingProvider(context);
 	globals.docsProvider = new GDDocumentationProvider(context);
 	globals.definitionProvider = new GDDefinitionProvider(context);
+	globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
 	// globals.completionProvider = new GDCompletionItemProvider(context);
 	// globals.tasksProvider = new GDTaskProvider(context);
