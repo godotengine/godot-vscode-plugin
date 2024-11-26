@@ -1,21 +1,17 @@
+import EventEmitter from "node:events";
 import * as vscode from "vscode";
 import {
 	LanguageClient,
+	type LanguageClientOptions,
 	type NotificationMessage,
 	type RequestMessage,
 	type ResponseMessage,
+	type ServerOptions,
 } from "vscode-languageclient/node";
-import { EventEmitter } from "node:events";
-import { get_configuration, createLogger } from "../utils";
-import {
-	type Message,
-	type MessageIO,
-	MessageIOReader,
-	MessageIOWriter,
-	TCPMessageIO,
-	WebSocketMessageIO,
-} from "./MessageIO";
+
 import { globals } from "../extension";
+import { createLogger, get_configuration } from "../utils";
+import { MessageIO } from "./MessageIO";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
 
@@ -30,80 +26,80 @@ export enum TargetLSP {
 	EDITOR = 1,
 }
 
-const CUSTOM_MESSAGE = "gdscript_client/";
+export type Target = {
+	host: string;
+	port: number;
+    type: TargetLSP;
+};
+
+type HoverResult = {
+	contents: {
+		kind: string;
+		value: string;
+	};
+	range: {
+		end: {
+			character: number;
+			line: number;
+		};
+		start: {
+			character: number;
+			line: number;
+		};
+	};
+};
+
+type HoverResponseMesssage = {
+	id: number;
+	jsonrpc: string;
+	result: HoverResult;
+};
 
 export default class GDScriptLanguageClient extends LanguageClient {
-	public readonly io: MessageIO =
-		get_configuration("lsp.serverProtocol") === "ws" ? new WebSocketMessageIO() : new TCPMessageIO();
-
-	private _status_changed_callbacks: ((v: ClientStatus) => void)[] = [];
-	private _initialize_request: Message = null;
-	private messageHandler: MessageHandler = null;
+	public io: MessageIO = new MessageIO();
 
 	public target: TargetLSP = TargetLSP.EDITOR;
 
 	public port = -1;
 	public lastPortTried = -1;
 	public sentMessages = new Map();
-	public lastSymbolHovered = "";
 
-	private _started = false;
-	public get started(): boolean {
-		return this._started;
-	}
+	events = new EventEmitter();
 
 	private _status: ClientStatus;
-	public get status(): ClientStatus {
-		return this._status;
-	}
+
 	public set status(v: ClientStatus) {
-		if (this._status !== v) {
-			this._status = v;
-			for (const callback of this._status_changed_callbacks) {
-				callback(v);
-			}
-		}
+		this._status = v;
+		this.events.emit("status", this._status);
 	}
 
-	public watch_status(callback: (v: ClientStatus) => void) {
-		if (this._status_changed_callbacks.indexOf(callback) === -1) {
-			this._status_changed_callbacks.push(callback);
-		}
-	}
+	constructor() {
+		const serverOptions: ServerOptions = () => {
+			return new Promise((resolve, reject) => {
+				resolve({ reader: this.io.reader, writer: this.io.writer });
+			});
+		};
 
-	constructor(private context: vscode.ExtensionContext) {
-		super(
-			"GDScriptLanguageClient",
-			() => {
-				return new Promise((resolve, reject) => {
-					resolve({ reader: new MessageIOReader(this.io), writer: new MessageIOWriter(this.io) });
-				});
+		const clientOptions: LanguageClientOptions = {
+			documentSelector: [
+				{ scheme: "file", language: "gdscript" },
+				{ scheme: "untitled", language: "gdscript" },
+			],
+			synchronize: {
+				fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
 			},
-			{
-				// Register the server for plain text documents
-				documentSelector: [
-					{ scheme: "file", language: "gdscript" },
-					{ scheme: "untitled", language: "gdscript" },
-				],
-				synchronize: {
-					// Notify the server about file changes to '.gd files contain in the workspace
-					fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
-				},
-			},
-		);
+		};
+
+		super("GDScriptLanguageClient", serverOptions, clientOptions);
 		this.status = ClientStatus.PENDING;
-		this.io.on("disconnected", this.on_disconnected.bind(this));
 		this.io.on("connected", this.on_connected.bind(this));
-		this.io.on("message", this.on_message.bind(this));
-		this.io.on("send_message", this.on_send_message.bind(this));
-		this.messageHandler = new MessageHandler(this.io);
+		this.io.on("disconnected", this.on_disconnected.bind(this));
+		this.io.requestFilter = this.request_filter.bind(this);
+		this.io.responseFilter = this.response_filter.bind(this);
+		this.io.notificationFilter = this.notification_filter.bind(this);
 	}
 
-	public async list_classes() {
-		await globals.docsProvider.list_native_classes();
-	}
-
-	connect_to_server(target: TargetLSP = TargetLSP.EDITOR) {
+	connect(target: TargetLSP = TargetLSP.EDITOR) {
 		this.target = target;
 		this.status = ClientStatus.PENDING;
 
@@ -123,70 +119,74 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		const host = get_configuration("lsp.serverHost");
 		log.info(`attempting to connect to LSP at ${host}:${port}`);
 
-		this.io.connect_to_language_server(host, port);
+		this.io.connect(host, port);
 	}
 
-	start() {
-		this._started = true;
-		return super.start();
-	}
-
-	private on_send_message(message: RequestMessage) {
+	private request_filter(message: RequestMessage) {
 		this.sentMessages.set(message.id, message);
 
-		if (message.method === "initialize") {
-			this._initialize_request = message;
+		// discard outgoing messages that we know aren't supported
+		if (message.method === "didChangeWatchedFiles") {
+			return;
 		}
+		if (message.method === "workspace/symbol") {
+			return;
+		}
+
+		return message;
 	}
 
-	private on_message(message: ResponseMessage | NotificationMessage) {
-		const msgString = JSON.stringify(message);
+	private response_filter(message: ResponseMessage) {
+		const sentMessage = this.sentMessages.get(message.id);
+		if (sentMessage?.method === "textDocument/hover") {
+			// fix markdown contents
+			let value: string = (message as HoverResponseMesssage).result.contents.value;
+			if (value) {
+				// this is a dirty hack to fix language server sending us prerendered
+				// markdown but not correctly stripping leading #'s, leading to
+				// docstrings being displayed as titles
+				value = value.replace(/\n[#]+/g, "\n");
 
-		// This is a dirty hack to fix the language server sending us
-		// invalid file URIs
-		// This should be forward-compatible, meaning that it will work
-		// with the current broken version, AND the fixed future version.
-		const match = msgString.match(/"target":"file:\/\/[^\/][^"]*"/);
-		if (match) {
-			const count = (message["result"] as Array<object>).length;
-			for (let i = 0; i < count; i++) {
-				const x: string = message["result"][i]["target"];
-				message["result"][i]["target"] = x.replace("file://", "file:///");
+				// fix bbcode line breaks
+				value = value.replaceAll("`br`", "\n\n");
+
+				// fix bbcode code boxes
+				value = value.replace("`codeblocks`", "");
+				value = value.replace("`/codeblocks`", "");
+				value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
+				value = value.replace("`/gdscript`", "```");
+				value = value.replace("`csharp`", "\nC#:\n```csharp");
+				value = value.replace("`/csharp`", "```");
+
+				(message as HoverResponseMesssage).result.contents.value = value;
 			}
 		}
 
-		if ("method" in message && message.method === "gdscript/capabilities") {
+		return message;
+	}
+
+	private notification_filter(message: NotificationMessage) {
+		if (message.method === "gdscript_client/changeWorkspace") {
+			//
+		}
+		if (message.method === "gdscript/capabilities") {
 			globals.docsProvider.register_capabilities(message);
 		}
 
-		if ("id" in message) {
-			const sentMessage = this.sentMessages.get(message.id);
-			if (sentMessage && sentMessage.method === "textDocument/hover") {
-				// fix markdown contents
-				let value: string = message.result["contents"]?.value;
-				if (value) {
-					// this is a dirty hack to fix language server sending us prerendered
-					// markdown but not correctly stripping leading #'s, leading to
-					// docstrings being displayed as titles
-					value = value.replace(/\n[#]+/g, "\n");
+		// if (message.method === "textDocument/publishDiagnostics") {
+		// 	for (const diagnostic of message.params.diagnostics) {
+		// 		if (diagnostic.code === 6) {
+		// 			log.debug("UNUSED_SIGNAL", diagnostic);
+		//             return;
+		// 		}
+		// 		if (diagnostic.code === 2) {
+		// 			log.debug("UNUSED_VARIABLE", diagnostic);
+		//             return;
+		// 		}
+		// 	}
+		// }
 
-					// fix bbcode line breaks
-					value = value.replaceAll("`br`", "\n\n");
-
-					// fix bbcode code boxes
-					value = value.replace("`codeblocks`", "");
-					value = value.replace("`/codeblocks`", "");
-					value = value.replace("`gdscript`", "\nGDScript:\n```gdscript");
-					value = value.replace("`/gdscript`", "```");
-					value = value.replace("`csharp`", "\nC#:\n```csharp");
-					value = value.replace("`/csharp`", "```");
-
-					message.result["contents"].value = value;
-				}
-			}
-		}
-
-		this.messageHandler.on_message(message);
+		return message;
 	}
 
 	public async get_symbol_at_position(uri: vscode.Uri, position: vscode.Position) {
@@ -194,13 +194,13 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response = await this.sendRequest("textDocument/hover", params);
+		const response: HoverResult = await this.sendRequest("textDocument/hover", params);
 
-		return this.parse_hover_response(response);
+		return this.parse_hover_result(response);
 	}
 
-	private parse_hover_response(message) {
-		const contents = message["contents"];
+	private parse_hover_result(message: HoverResult) {
+		const contents = message.contents;
 
 		let decl: string;
 		if (Array.isArray(contents)) {
@@ -229,9 +229,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	private on_connected() {
-		if (this._initialize_request) {
-			this.io.writer.write(this._initialize_request);
-		}
 		this.status = ClientStatus.CONNECTED;
 
 		const host = get_configuration("lsp.serverHost");
@@ -249,47 +246,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 					log.info(`attempting to connect to LSP at ${host}:${port}`);
 
 					this.lastPortTried = port;
-					this.io.connect_to_language_server(host, port);
+					this.io.connect(host, port);
 					return;
 				}
 			}
 		}
 		this.status = ClientStatus.DISCONNECTED;
-	}
-}
-
-class MessageHandler extends EventEmitter {
-	private io: MessageIO = null;
-
-	constructor(io: MessageIO) {
-		super();
-		this.io = io;
-	}
-
-	// changeWorkspace(params: { path: string }) {
-	// 	vscode.window.showErrorMessage("The GDScript language server can't work properly!\nThe open workspace is different from the editor's.", 'Reload', 'Ignore').then(item => {
-	// 		if (item == "Reload") {
-	// 			let folderUrl = vscode.Uri.file(params.path);
-	// 			vscode.commands.executeCommand('vscode.openFolder', folderUrl, false);
-	// 		}
-	// 	});
-	// }
-
-	on_message(message: any) {
-		// FIXME: Hot fix VSCode 1.42 hover position
-		if (message?.result?.range && message.result.contents) {
-			message.result.range = undefined;
-		}
-
-		// What does this do?
-		if (message?.method && (message.method as string).startsWith(CUSTOM_MESSAGE)) {
-			const method = (message.method as string).substring(CUSTOM_MESSAGE.length, message.method.length);
-			if (this[method]) {
-				const ret = this[method](message.params);
-				if (ret) {
-					this.io.writer.write(ret);
-				}
-			}
-		}
 	}
 }

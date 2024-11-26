@@ -3,7 +3,7 @@ import { SymbolKind } from "vscode-languageclient";
 import * as Prism from "prismjs";
 import * as csharp from "prismjs/components/prism-csharp";
 import { marked } from "marked";
-import type { GodotNativeSymbol } from "../lsp/gdscript.capabilities";
+import type { GodotNativeSymbol } from "./documentation_types";
 import { get_extension_uri } from "../utils";
 import yabbcode = require("ya-bbcode");
 
@@ -128,7 +128,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 		const ret_type = make_link(parts[2] || "void", undefined);
 		let args = (parts[1] || "").replace(
 			/\:\s([A-z0-9_]+)(\,\s*)?/g,
-			": <a href=\"\" onclick=\"inspect('$1')\">$1</a>$2",
+			': <a href="" onclick="inspect(\'$1\')">$1</a>$2',
 		);
 		args = args.replace(/\s=\s(.*?)[\,\)]/g, "");
 		return `${ret_type} ${with_class ? `${classlink}.` : ""}${element("a", s.name, {
@@ -180,7 +180,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				}
 				const args = (parts[2] || "").replace(
 					/\:\s([A-z0-9_]+)(\,\s*)?/g,
-					": <a href=\"\" onclick=\"inspect('$1')\">$1</a>$2",
+					': <a href="" onclick="inspect(\'$1\')">$1</a>$2',
 				);
 				const title = element(
 					"p",
@@ -233,28 +233,30 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 		let propertyies = "";
 		let others = "";
 
-		for (const s of symbol.children as GodotNativeSymbol[]) {
-			const elements = make_symbol_elements(s);
-			switch (s.kind) {
-				case SymbolKind.Property:
-				case SymbolKind.Variable:
-					properties_index += element("li", elements.index);
-					propertyies += element("li", elements.body, { id: s.name });
-					break;
-				case SymbolKind.Constant:
-					constants += element("li", elements.body, { id: s.name });
-					break;
-				case SymbolKind.Event:
-					signals += element("li", elements.body, { id: s.name });
-					break;
-				case SymbolKind.Method:
-				case SymbolKind.Function:
-					methods_index += element("li", elements.index);
-					methods += element("li", elements.body, { id: s.name });
-					break;
-				default:
-					others += element("li", elements.body, { id: s.name });
-					break;
+		if (symbol.children) {
+			for (const s of symbol.children as GodotNativeSymbol[]) {
+				const elements = make_symbol_elements(s);
+				switch (s.kind) {
+					case SymbolKind.Property:
+					case SymbolKind.Variable:
+						properties_index += element("li", elements.index);
+						propertyies += element("li", elements.body, { id: s.name });
+						break;
+					case SymbolKind.Constant:
+						constants += element("li", elements.body, { id: s.name });
+						break;
+					case SymbolKind.Event:
+						signals += element("li", elements.body, { id: s.name });
+						break;
+					case SymbolKind.Method:
+					case SymbolKind.Function:
+						methods_index += element("li", elements.index);
+						methods += element("li", elements.body, { id: s.name });
+						break;
+					default:
+						others += element("li", elements.body, { id: s.name });
+						break;
+				}
 			}
 		}
 
@@ -330,7 +332,7 @@ function format_documentation(bbcode: string, classname: string) {
 	let html = parser.parse(bbcode.trim());
 
 	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
-	html = html.replaceAll("&quot;", "\"");
+	html = html.replaceAll("&quot;", '"');
 
 	for (const match of html.matchAll(/\[codeblock].*?\[\/codeblock]/gs)) {
 		let block = match[0];

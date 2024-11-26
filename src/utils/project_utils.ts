@@ -105,8 +105,8 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring("res://".length));
 }
 
-type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
-type VERIFY_RESULT = {
+export type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
+export type VERIFY_RESULT = {
 	status: VERIFY_STATUS;
 	godotPath: string;
 	version?: string;

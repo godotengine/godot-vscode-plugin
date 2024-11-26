@@ -1,6 +1,7 @@
-import { SceneTreeProvider } from "./scene_tree_provider";
-import path = require("path");
+import * as path from "node:path";
+
 import { createLogger } from "../utils";
+import { SceneTreeProvider } from "./scene_tree_provider";
 
 const log = createLogger("debugger.runtime");
 
@@ -24,9 +25,9 @@ export class GodotStackVars {
 		public locals: GodotVariable[] = [],
 		public members: GodotVariable[] = [],
 		public globals: GodotVariable[] = [],
-	) { }
+	) {}
 
-	public reset(count: number = 0) {
+	public reset(count = 0) {
 		this.locals = [];
 		this.members = [];
 		this.globals = [];
@@ -62,7 +63,7 @@ export class RawObject extends Map<any, any> {
 }
 
 export class ObjectId implements GDObject {
-	constructor(public id: bigint) { }
+	constructor(public id: bigint) {}
 
 	public stringify_value(): string {
 		return `<${this.id}>`;
@@ -85,7 +86,7 @@ export class GodotDebugData {
 	public last_frames: GodotStackFrame[] = [];
 	public projectPath: string;
 	public scene_tree?: SceneTreeProvider;
-	public stack_count: number = 0;
+	public stack_count = 0;
 	public stack_files: string[] = [];
 	public session;
 
@@ -126,19 +127,16 @@ export class GodotDebugData {
 				bps.splice(index, 1);
 				this.breakpoints.set(pathTo, bps);
 				const file = `res://${path.relative(this.projectPath, bp.file)}`;
-				this.session?.controller.remove_breakpoint(
-					file.replace(/\\/g, "/"),
-					bp.line,
-				);
+				this.session?.controller.remove_breakpoint(file.replace(/\\/g, "/"), bp.line);
 			}
 		}
 	}
 
 	public get_all_breakpoints(): GodotBreakpoint[] {
 		const output: GodotBreakpoint[] = [];
-		Array.from(this.breakpoints.values()).forEach((bp_array) => {
+		for (const bp_array of Array.from(this.breakpoints.values())) {
 			output.push(...bp_array);
-		});
+		}
 		return output;
 	}
 
@@ -150,14 +148,14 @@ export class GodotDebugData {
 		const breakpoints = this.get_all_breakpoints();
 		let output = "";
 		if (breakpoints.length > 0) {
-			output += " --breakpoints \"";
+			output += ' --breakpoints "';
 			breakpoints.forEach((bp, i) => {
 				output += `${this.get_breakpoint_path(bp.file)}:${bp.line}`;
 				if (i < breakpoints.length - 1) {
 					output += ",";
 				}
 			});
-			output += "\"";
+			output += '"';
 		}
 		return output;
 	}
