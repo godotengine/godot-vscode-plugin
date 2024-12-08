@@ -24,9 +24,8 @@ import {
 	ENCODE_FLAG_64,
 	ENCODE_FLAG_OBJECT_AS_ID,
 	ENCODE_FLAG_TYPED_ARRAY_MASK,
-	ENCODE_FLAG_TYPED_ARRAY_BUILTIN,
-	ENCODE_FLAG_TYPED_ARRAY_CLASS_NAME,
-	ENCODE_FLAG_TYPED_ARRAY_SCRIPT,
+	ENCODE_FLAG_TYPED_DICT_MASK,
+	ContainerTypeFlags,
 	RID,
 	Callable,
 	Signal,
@@ -145,15 +144,9 @@ export class VariantDecoder {
 			case GDScriptTypes.SIGNAL:
 				return this.decode_Signal(model);
 			case GDScriptTypes.DICTIONARY:
-				return this.decode_Dictionary(model);
+				return this.decode_Dictionary(model, type);
 			case GDScriptTypes.ARRAY:
-				if (type & ENCODE_FLAG_TYPED_ARRAY_MASK) {
-					const with_script_name = (type & ENCODE_FLAG_TYPED_ARRAY_CLASS_NAME) != 0;
-					const with_script_path = (type & ENCODE_FLAG_TYPED_ARRAY_SCRIPT) != 0;
-					return this.decode_TypedArray(model, with_script_name || with_script_path);
-				} else {
-					return this.decode_Array(model);
-				}
+				return this.decode_Array(model, type);
 			case GDScriptTypes.PACKED_BYTE_ARRAY:
 				return this.decode_PackedByteArray(model);
 			case GDScriptTypes.PACKED_INT32_ARRAY:
@@ -215,6 +208,15 @@ export class VariantDecoder {
 		return output;
 	}
 
+	private decode_ContainerTypeFlag(model: BufferModel, type: GDScriptTypes, bitOffset: number) {
+		const shiftedType = (type >> bitOffset) & 0b11;
+		if (shiftedType === ContainerTypeFlags.BUILTIN) {
+			return this.decode_UInt32(model);
+		} else {
+			return this.decode_String(model);
+		}
+	}
+
 	private decode_AABBf(model: BufferModel) {
 		return new AABB(this.decode_Vector3f(model), this.decode_Vector3f(model));
 	}
@@ -223,25 +225,16 @@ export class VariantDecoder {
 		return new AABB(this.decode_Vector3d(model), this.decode_Vector3d(model));
 	}
 
-	private decode_Array(model: BufferModel) {
+	private decode_Array(model: BufferModel, type: GDScriptTypes) {
 		const output: Array<any> = [];
 
-		const count = this.decode_UInt32(model);
-
-		for (let i = 0; i < count; i++) {
-			const value = this.decode_variant(model);
-			output.push(value);
+		let arrayType = null;
+		if (type & ENCODE_FLAG_TYPED_ARRAY_MASK) {
+			arrayType = this.decode_ContainerTypeFlag(model, type, 16);
 		}
-
-		return output;
-	}
-
-	private decode_TypedArray(model: BufferModel, with_scripts: boolean) {
-		const output: Array<any> = [];
-
 		// TODO: the type information is currently discarded
 		// it needs to be decoded and then packed into the output somehow
-		const type = with_scripts ? this.decode_String(model) : this.decode_UInt32(model);
+
 		const count = this.decode_UInt32(model);
 
 		for (let i = 0; i < count; i++) {
@@ -275,8 +268,20 @@ export class VariantDecoder {
 		return new Color(rgb.x, rgb.y, rgb.z, a);
 	}
 
-	private decode_Dictionary(model: BufferModel) {
+	private decode_Dictionary(model: BufferModel, type: GDScriptTypes) {
 		const output = new Map<any, any>();
+
+		let keyType = null;
+		let valueType = null;
+		if (type & ENCODE_FLAG_TYPED_DICT_MASK) {
+			keyType = this.decode_ContainerTypeFlag(model, type, 16);
+			valueType = this.decode_ContainerTypeFlag(model, type, 18);
+
+			console.log("type:", (type >> 16) & 0b11, "keyType:", keyType);
+			console.log("type:", type >> 18, "valueType:", valueType);
+		}
+		// TODO: the type information is currently discarded
+		// it needs to be decoded and then packed into the output somehow
 
 		const count = this.decode_UInt32(model);
 		for (let i = 0; i < count; i++) {
