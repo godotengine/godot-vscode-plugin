@@ -1,23 +1,13 @@
-import {
-	TreeDataProvider,
-	EventEmitter,
-	Event,
-	ProviderResult,
-	TreeItem,
-	TreeItemCollapsibleState,
-} from "vscode";
+import { TreeDataProvider, EventEmitter, Event, ProviderResult, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { GodotVariable, RawObject, ObjectId } from "./debug_runtime";
 
 export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
-	private _on_did_change_tree_data: EventEmitter<
+	private _on_did_change_tree_data: EventEmitter<RemoteProperty | undefined> = new EventEmitter<
 		RemoteProperty | undefined
-	> = new EventEmitter<RemoteProperty | undefined>();
+	>();
 	private tree: RemoteProperty | undefined;
 
-	public readonly onDidChangeTreeData: Event<RemoteProperty> | undefined = this
-		._on_did_change_tree_data.event;
-
-	constructor() {}
+	public readonly onDidChangeTreeData: Event<RemoteProperty> | undefined = this._on_did_change_tree_data.event;
 
 	public clean_up() {
 		if (this.tree) {
@@ -26,12 +16,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		}
 	}
 
-	public fill_tree(
-		element_name: string,
-		class_name: string,
-		object_id: number,
-		variable: GodotVariable
-	) {
+	public fill_tree(element_name: string, class_name: string, object_id: number, variable: GodotVariable) {
 		this.tree = this.parse_variable(variable, object_id);
 		this.tree.label = element_name;
 		this.tree.collapsibleState = TreeItemCollapsibleState.Expanded;
@@ -39,9 +24,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		this._on_did_change_tree_data.fire(undefined);
 	}
 
-	public getChildren(
-		element?: RemoteProperty
-	): ProviderResult<RemoteProperty[]> {
+	public getChildren(element?: RemoteProperty): ProviderResult<RemoteProperty[]> {
 		if (!this.tree) {
 			return Promise.resolve([]);
 		}
@@ -57,15 +40,11 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		return element;
 	}
 
-	public get_changed_value(
-		parents: RemoteProperty[],
-		property: RemoteProperty,
-		new_parsed_value: any
-	) {
+	public get_changed_value(parents: RemoteProperty[], property: RemoteProperty, new_parsed_value: any) {
 		const idx = parents.length - 1;
 		const value = parents[idx].value;
 		if (Array.isArray(value)) {
-			const idx = parseInt(property.label);
+			const idx = Number.parseInt(property.label);
 			if (idx < value.length) {
 				value[idx] = new_parsed_value;
 			}
@@ -104,13 +83,9 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 			if (Number.isInteger(value)) {
 				rendered_value = `${value}`;
 			} else {
-				rendered_value = `${parseFloat(value.toFixed(5))}`;
+				rendered_value = `${Number.parseFloat(value.toFixed(5))}`;
 			}
-		} else if (
-			typeof value === "bigint" ||
-			typeof value === "boolean" ||
-			typeof value === "string"
-		) {
+		} else if (typeof value === "bigint" || typeof value === "boolean" || typeof value === "string") {
 			rendered_value = `${value}`;
 		} else if (typeof value === "undefined") {
 			rendered_value = "null";
@@ -131,25 +106,21 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		let child_props: RemoteProperty[] = [];
 
 		if (value) {
-			const sub_variables =
-				typeof value["sub_values"] === "function" &&
-				value instanceof ObjectId === false
-					? value.sub_values()
-					: Array.isArray(value)
-					? value.map((va, i) => {
-							return { name: `${i}`, value: va };
-					})
-					: value instanceof Map
-					? Array.from(value.keys()).map((va) => {
-							const name =
-								typeof va["rendered_value"] === "function"
-									? va.rendered_value()
-									: `${va}`;
-							const map_value = value.get(va);
+			let sub_variables = [];
+			if (typeof value.sub_values === "function" && value instanceof ObjectId === false) {
+				sub_variables = value.sub_values();
+			} else if (Array.isArray(value)) {
+				sub_variables = value.map((va, i) => {
+					return { name: `${i}`, value: va };
+				});
+			} else if (value instanceof Map) {
+				sub_variables = Array.from(value.keys()).map((va) => {
+					const name = typeof va.rendered_value === "function" ? va.rendered_value() : `${va}`;
+					const map_value = value.get(va);
+					return { name: name, value: map_value };
+				});
+			}
 
-							return { name: name, value: map_value };
-					})
-					: [];
 			child_props = sub_variables?.map((va) => {
 				return this.parse_variable(va, object_id);
 			});
@@ -160,14 +131,12 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 			value,
 			object_id,
 			child_props,
-			child_props.length === 0
-				? TreeItemCollapsibleState.None
-				: TreeItemCollapsibleState.Collapsed
+			child_props.length === 0 ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Collapsed,
 		);
 		out_prop.description = rendered_value;
-		out_prop.properties.forEach((prop) => {
+		for (const prop of out_prop.properties) {
 			prop.parent = out_prop;
-		});
+		}
 		out_prop.description = rendered_value;
 
 		if (value instanceof ObjectId) {
@@ -180,11 +149,10 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 			typeof value === "string"
 		) {
 			out_prop.contextValue = "editable_value";
-		} else if (
-			Array.isArray(value) ||
-			(value instanceof Map && value instanceof RawObject === false)
-		) {
-			out_prop.properties.forEach((prop) => (prop.changes_parent = true));
+		} else if (Array.isArray(value) || (value instanceof Map && value instanceof RawObject === false)) {
+			for (const prop of out_prop.properties) {
+				prop.parent = out_prop;
+			}
 		}
 
 		return out_prop;
@@ -200,7 +168,7 @@ export class RemoteProperty extends TreeItem {
 		public value: any,
 		public object_id: number,
 		public properties: RemoteProperty[],
-		public collapsibleState?: TreeItemCollapsibleState
+		public collapsibleState?: TreeItemCollapsibleState,
 	) {
 		super(label, collapsibleState);
 	}
