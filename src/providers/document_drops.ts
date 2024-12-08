@@ -12,7 +12,7 @@ import {
 	TextDocument,
 	Uri,
 } from "vscode";
-import { createLogger, node_name_to_snake } from "../utils";
+import { createLogger, node_name_to_snake, projectVersion } from "../utils";
 
 const log = createLogger("providers.drops");
 
@@ -64,7 +64,12 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 					// the script and want to declare an onready variable
 
 					const snippet = new vscode.SnippetString();
-					snippet.appendText("@onready var ");
+
+					if (projectVersion?.startsWith("3")) {
+						snippet.appendText("onready var ");
+					} else {
+						snippet.appendText("@onready var ");
+					}
 					snippet.appendPlaceholder(node_name_to_snake(label));
 					snippet.appendText(`: ${className} = ${qualifiedPath}`);
 					return new vscode.DocumentDropEdit(snippet);

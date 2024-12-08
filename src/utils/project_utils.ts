@@ -47,7 +47,7 @@ export async function get_project_file(): Promise<string | undefined> {
 	return projectFile;
 }
 
-let projectVersion: string | undefined = undefined;
+export let projectVersion: string | undefined = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
 	if (projectDir === undefined || projectFile === undefined) {
