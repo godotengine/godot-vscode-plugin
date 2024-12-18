@@ -12,5 +12,6 @@ func dump() -> String:
 		preview_texture: %s,
 		explorer_layer: %s,
 		connections: %s,
+		test {test},
 	}
 	"""

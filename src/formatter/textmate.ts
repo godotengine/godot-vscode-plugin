@@ -74,6 +74,10 @@ function parse_token(token: Token) {
 	if (token.scopes.includes("meta.function.parameters.gdscript")) {
 		token.param = true;
 	}
+	if (token.scopes[0].includes("constant.numeric")) {
+		token.type = "literal";
+		return;
+	}
 	if (token.value.match(/[A-Za-z_]\w+/)) {
 		token.identifier = true;
 	}
@@ -144,7 +148,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (nextToken.param) {
 		if (options.denseFunctionParameters) {
-			if (prev === "-") {
+			if (prev === "-" || prev === "+") {
 				if (tokens[current - 2]?.value === "=") return "";
 				if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 					return "";
@@ -181,8 +185,9 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	}
 	if (prev === "@") return "";
 
-	if (prev === "-") {
+	if (prev === "-" || prev === "+") {
 		if (nextToken.identifier) return " ";
+		if (next === "(") return " ";
 		if (current === 1) return "";
 		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 			return "";
@@ -304,7 +309,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 		const tokens: Token[] = [];
 		for (const t of lineTokens.tokens) {
 			const token: Token = {
-				scopes: t.scopes,
+				scopes: [t.scopes.join(" "), ...t.scopes],
 				original: line.text.slice(t.startIndex, t.endIndex),
 				value: line.text.slice(t.startIndex, t.endIndex).trim(),
 			};
