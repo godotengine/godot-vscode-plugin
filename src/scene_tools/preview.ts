@@ -131,7 +131,7 @@ export class ScenePreviewProvider
 					// We assume that if the user is dropping a node in an empty line, they are at the top of
 					// the script and want to declare an onready variable
 					return new vscode.DocumentDropEdit(
-						`@onready var ${node_name_to_snake(label)}: ${className} = ${qualifiedPath}`,
+						`@onready var ${node_name_to_snake(label)}: ${className} = ${qualifiedPath}\n`,
 					);
 				}
 
