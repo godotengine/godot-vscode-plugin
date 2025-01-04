@@ -226,7 +226,7 @@ export class VariantDecoder {
 	}
 
 	private decode_Array(model: BufferModel, type: GDScriptTypes) {
-		const output: Array<any> = [];
+		const output = [];
 
 		let arrayType = null;
 		if (type & ENCODE_FLAG_TYPED_ARRAY_MASK) {
@@ -269,7 +269,7 @@ export class VariantDecoder {
 	}
 
 	private decode_Dictionary(model: BufferModel, type: GDScriptTypes) {
-		const output = new Map<any, any>();
+		const output = new Map();
 
 		let keyType = null;
 		let valueType = null;
