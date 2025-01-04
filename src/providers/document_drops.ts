@@ -65,11 +65,10 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 
 					const snippet = new vscode.SnippetString();
 
-					if (projectVersion?.startsWith("3")) {
-						snippet.appendText("onready var ");
-					} else {
-						snippet.appendText("@onready var ");
+					if (projectVersion?.startsWith("4")) {
+						snippet.appendText("@");
 					}
+					snippet.appendText("onready var ");
 					snippet.appendPlaceholder(node_name_to_snake(label));
 					snippet.appendText(`: ${className} = ${qualifiedPath}`);
 					return new vscode.DocumentDropEdit(snippet);
