@@ -277,8 +277,8 @@ export class VariantDecoder {
 			keyType = this.decode_ContainerTypeFlag(model, type, 16);
 			valueType = this.decode_ContainerTypeFlag(model, type, 18);
 
-			console.log("type:", (type >> 16) & 0b11, "keyType:", keyType);
-			console.log("type:", type >> 18, "valueType:", valueType);
+			// console.log("type:", (type >> 16) & 0b11, "keyType:", keyType);
+			// console.log("type:", type >> 18, "valueType:", valueType);
 		}
 		// TODO: the type information is currently discarded
 		// it needs to be decoded and then packed into the output somehow
