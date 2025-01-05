@@ -97,6 +97,12 @@ You can set VS Code as your default script editor for Godot by following these s
     * On macOS, this executable is typically located at: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
 5. Fill **Exec Flags** with `{project} --goto {file}:{line}:{col}`
 
+You can make Godot seamlessly reload VSCode-edited scripts by changing some additional settings. More details about each are available when hovering over the description in the Settings window: 
+
+- **Editor Settings > Text Editor > Behavior > Files > Auto Reload Scripts on External Change**
+- **Editor Settings > Interface > Editor > Save on Focus Loss**
+- **Editor Settings > Interface > Editor > Import Resources When Unfocused**
+
 ### VS Code
 
 You can use the following settings to configure Godot Tools:
@@ -198,6 +204,8 @@ see [CONTRIBUTING.md](CONTRIBUTING.md)
 - Make sure to open the project in the Godot editor first. If you opened
   the editor after opening VS Code, you can click the **Retry** button
   in the bottom-right corner in VS Code.
+- Make sure the LSP Server port is the same in Godot's Editor Settings and
+  in VSCode.
 
 ### Why isn't IntelliSense displaying script members?
 
@@ -205,3 +213,11 @@ see [CONTRIBUTING.md](CONTRIBUTING.md)
   infer all variable types.
 - To increase the number of results displayed, open the **Editor Settings**,
   go to the **Language Server** section then check **Enable Smart Resolve**.
+
+### Can Godot/VSCode load in my script changes automatically instead of showing a confirmation window?
+
+Godot has some Editor Settings that can help you if your workflow involves changing files in both editors:
+
+- **Editor Settings > Text Editor > Behavior > Files > Auto Reload Scripts on External Change**
+- **Editor Settings > Interface > Editor > Save on Focus Loss**
+- **Editor Settings > Interface > Editor > Import Resources When Unfocused**
