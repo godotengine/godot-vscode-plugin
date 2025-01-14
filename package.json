@@ -166,7 +166,7 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.scenePreview.openMainScript",
+				"command": "godotTools.scenePreview.openCurrentScript",
 				"title": "Open the main script of the Scene Preview's current scene",
 				"icon": {
 					"light": "resources/godot_icons/light/Script.svg",
@@ -734,7 +734,7 @@
 					"group": "navigation@2"
 				},
 				{
-					"command": "godotTools.scenePreview.openMainScript",
+					"command": "godotTools.scenePreview.openCurrentScript",
 					"when": "view == scenePreview",
 					"group": "navigation@3"
 				},
