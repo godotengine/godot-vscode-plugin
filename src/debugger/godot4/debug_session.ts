@@ -126,17 +126,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 
 		if (this.all_scopes) {
-			const variable = this.get_variable(args.expression, null, null, null);
-
-			if (variable.error == null) {
+			try {
+				const variable = this.get_variable(args.expression, null, null, null);
 				const parsed_variable = parse_variable(variable.variable);
 				response.body = {
 					result: parsed_variable.value,
 					variablesReference: !is_variable_built_in_type(variable.variable) ? variable.index : 0,
 				};
-			} else {
+			} catch (error) {
 				response.success = false;
-				response.message = variable.error;
+				response.message = error.toString();
 			}
 		}
 
@@ -489,8 +488,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			(x) => x.sanitized.name === propertyName && x.sanitized.scope_path === path,
 		)?.real;
 		if (!result.variable) {
-			result.error = `Could not find: ${propertyName}`;
-			return result;
+			throw new Error(`Could not find: ${propertyName}`);
 		}
 
 		if (root.value.entries) {
