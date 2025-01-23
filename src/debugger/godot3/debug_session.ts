@@ -25,7 +25,6 @@ interface Variable {
 	variable: GodotVariable;
 	index: number;
 	object_id: number;
-	error: string;
 }
 
 export class GodotDebugSession extends LoggingDebugSession {
@@ -404,7 +403,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 			variable: null,
 			index: null,
 			object_id: null,
-			error: null,
 		};
 
 		if (!root) {
