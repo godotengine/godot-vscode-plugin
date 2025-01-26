@@ -245,7 +245,7 @@
 			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
-			"match": "\\b(?:class|class_name|abstract|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace)\\b",
+			"match": "\\b(?:class|class_name|abstract|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super)\\b",
 			"name": "keyword.language.gdscript"
 		},
 		"letter": {
@@ -437,7 +437,7 @@
 			}
 		},
 		"builtin_classes": {
-			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Vector4|Vector4i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|Signal|Callable|StringName|Quaternion|Projection|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedVector4Array|PackedColorArray|super)\\b",
+			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Vector4|Vector4i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|Signal|Callable|StringName|Quaternion|Projection|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedVector4Array|PackedColorArray)\\b",
 			"name": "entity.name.type.class.builtin.gdscript"
 		},
 		"const_vars": {
