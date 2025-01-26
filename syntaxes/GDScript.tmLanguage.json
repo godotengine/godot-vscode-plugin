@@ -170,7 +170,7 @@
 						}
 					]
 				},
-				{ "include": "#base_expression" }
+				{ "include": "#expression" }
 			]
 		},
 		"self": {
