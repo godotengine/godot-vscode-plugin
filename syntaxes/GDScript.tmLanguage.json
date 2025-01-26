@@ -229,7 +229,7 @@
 			"name": "keyword.operator.comparison.gdscript"
 		},
 		"arithmetic_operator": {
-			"match": "->|\\+=|-=|\\*=|\\^=|/=|%=|&=|~=|\\|=|\\*\\*|\\*|/|%|\\+|-",
+			"match": "->|\\+=|-=|\\*\\*=|\\*=|\\^=|/=|%=|&=|~=|\\|=|\\*\\*|\\*|/|%|\\+|-",
 			"name": "keyword.operator.arithmetic.gdscript"
 		},
 		"assignment_operator": {
