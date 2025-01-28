@@ -78,12 +78,12 @@ export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSy
 
 			<title>${symbol.name}</title>
 		</head>
-		<body style="line-height: scaleFactor%; font-size: scaleFactor%;">
+		<body style="line-height: scaleFactor%; font-size: scaleFactor%; margin-right: bodyMargin">
 			<main>
 				${make_symbol_document(symbol)}
 			</main>
 
-			<canvas id='minimap'></canvas>
+			<canvas id='minimap' style="display: displayMinimap"></canvas>
 			
 			<script src="${pagemapJsUri}"></script>
 			<script>
