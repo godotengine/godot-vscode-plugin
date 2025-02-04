@@ -401,11 +401,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 				!this.ongoing_inspections.includes(va.value.id) &&
 				!this.previous_inspections.includes(va.value.id)
 			) {
-				console.log(`[add_to_inspections] adding '${va.value.id}' to ongoing_inspections`);
 				this.controller.request_inspect_object(va.value.id);
 				this.ongoing_inspections.push(va.value.id);
-			} else {
-				console.log(`[add_to_inspections] skipping '${va.value.id}' already in ongoing_inspections or previous_inspections`);
 			}
 		}
 	}
@@ -416,7 +413,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 		index = 0,
 		object_id: number = null,
 	): Variable {
-		console.log(`[get_variable] '${expression}' this.all_scopes.length: ${this.all_scopes.length}`);
 		let result: Variable = {
 			variable: null,
 			index: null,
@@ -429,16 +425,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 
 			root = this.all_scopes.find((x) => x && x.name === "self");
-			if (root === undefined) {
-				root = this.all_scopes.find((x) => x && x.name =="member").sub_values.find((x) => x && x.name =="self");
-			}
-
-			var self_scope = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self");
-			if (self_scope === undefined) {
-				// self_scope = this.all_scopes.find((x) => x && x.name =="member").sub_values.find((x) => x && x.name =="self").value
-				self_scope = root.sub_values.find((x) => x && x.name =="id");
-			}
-			object_id = self_scope.value;
+			object_id = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self").value;
 		}
 
 		const items = expression.split(".");
@@ -547,7 +534,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 			result = this.get_variable(items.join("."), result.variable, index + 1, result.object_id);
 		}
 
-		console.log(`[get_variable] ${expression}`, result);
 		return result;
 	}
 
