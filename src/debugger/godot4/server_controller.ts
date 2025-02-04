@@ -397,7 +397,7 @@ export class ServerController {
 				}
 				const sub_values = get_sub_values(rawObject);
 				
-				const inspect_callback = this.session.inspect_callbacks.get(BigInt(id))
+				const inspect_callback = this.session.inspect_callbacks.get(BigInt(id));
 				if (inspect_callback !== undefined) {
 					const inspectedVariable = { name: "", value: rawObject, sub_values: sub_values } as GodotVariable;
 					inspect_callback(inspectedVariable.name, inspectedVariable);

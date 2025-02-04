@@ -369,7 +369,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 				continue;
 			}
 			const old = this.all_scopes.splice(index, 1);
-			 // GodotVariable instance will be different for different variables, even if the referenced object id is the same:
+			// GodotVariable instance will be different for different variables, even if the referenced object id is the same:
 			const replacement = {value: rawObject, sub_values: sub_values } as GodotVariable;
 			replacement.name = old[0].name;
 			replacement.scope_path = old[0].scope_path;

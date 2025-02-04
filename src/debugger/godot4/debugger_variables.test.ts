@@ -1,26 +1,16 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { DebugProtocol } from "@vscode/debugprotocol";
 import chai from "chai";
 import chaiSubset from "chai-subset";
 
 chai.use(chaiSubset);
 const { expect } = chai;
 
-// Explicitly declare expect type
-declare global {
-  namespace Chai {
-      interface Assertion {
-          containSubset(expected: any): Assertion;
-      }
-  }
-}
-
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve,  ms));
 }
-
 
 /**
  * Given a path to a script, returns an object where each key is the name of a
@@ -35,14 +25,13 @@ async function getBreakpointLocations(scriptPath: string) {
   const breakpoints: { [key: string]: vscode.Location } = {};
   const breakpointRegex = /\b(breakpoint::.*)\b/g;
   let match: RegExpExecArray | null;
-  console.log(`Script_content`, script_content);
   while ((match = breakpointRegex.exec(script_content)) !== null) {
     const breakpointName = match[1];
     const line = match.index ? script_content.substring(0, match.index).split("\n").length : 1;
     breakpoints[breakpointName] = new vscode.Location(vscode.Uri.file(scriptPath), new vscode.Position(line - 1, 0));
   }
   return breakpoints;
-};
+}
 
 async function waitForActiveItemStackChange(ms: number = 10000): Promise<vscode.DebugThread | vscode.DebugStackFrame | undefined> {
   const res = await new Promise<vscode.DebugThread | vscode.DebugStackFrame | undefined>((resolve, reject) => {
@@ -140,7 +129,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(scopes[2].name).to.equal(VariableScope[VariableScope.Globals], "Expected Globals scope");
     expect(scopes[2].variablesReference).to.equal(VariableScope.Globals, "Expected Globals variablesReference");
 
-    await vscode.debug.stopDebugging()
+    await vscode.debug.stopDebugging();
     await sleep(2000);
   })?.timeout(5000);
 
@@ -153,13 +142,13 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await waitForBreakpoint(breakpoint);
     
     // TODO: current DAP needs a delay before it will return variables
-    console.log(`Sleeping for 2 seconds`);
+    console.log("Sleeping for 2 seconds");
     await sleep(2000);
 
     const variables = await getVariablesForScope(VariableScope.Globals);
     expect(variables).to.containSubset([{name: "GlobalScript"}]);
     
-    await vscode.debug.stopDebugging()
+    await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
   test("should return local variables", async () => {
@@ -171,7 +160,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await waitForBreakpoint(breakpoint);
 
     // TODO: current DAP needs a delay before it will return variables
-    console.log(`Sleeping for 2 seconds`);
+    console.log("Sleeping for 2 seconds");
     await sleep(2000);
 
     const variables = await getVariablesForScope(VariableScope.Locals);
@@ -179,7 +168,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(variables).to.containSubset([{name: "local1"}]);
     expect(variables).to.containSubset([{name: "local2"}]);
     
-    await vscode.debug.stopDebugging()
+    await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
   test("should return member variables", async () => {
@@ -191,15 +180,15 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await waitForBreakpoint(breakpoint);
 
     // TODO: current DAP needs a delay before it will return variables
-    console.log(`Sleeping for 2 seconds`);
+    console.log("Sleeping for 2 seconds");
     await sleep(2000);
 
     const variables = await getVariablesForScope(VariableScope.Members);
     expect(variables.length).to.equal(2);
-    expect(variables).to.containSubset([{name: "self"}])
-    expect(variables).to.containSubset([{name: "member1"}])
+    expect(variables).to.containSubset([{name: "self"}]);
+    expect(variables).to.containSubset([{name: "member1"}]);
 
-    await vscode.debug.stopDebugging()
+    await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
   test("should retrieve all built-in types correctly", async () => {
@@ -211,7 +200,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await waitForBreakpoint(breakpoint);
     
     // TODO: current DAP needs a delay before it will return variables
-    console.log(`Sleeping for 2 seconds`);
+    console.log("Sleeping for 2 seconds");
     await sleep(2000);
     
     const variables = await getVariablesForScope(VariableScope.Locals);
@@ -240,7 +229,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(variables).to.containSubset([{ name: "callable_var", value: "Callable()" }]);
     expect(variables).to.containSubset([{ name: "signal_var" }]);
     const signal_var = variables.find((v: any) => v.name === "signal_var");
-    expect(signal_var.value).to.match(/Signal\(member_signal\, <\d+>\)/, "Should be in format of 'Signal(member_signal, <28236055815>)'")
+    expect(signal_var.value).to.match(/Signal\(member_signal\, <\d+>\)/, "Should be in format of 'Signal(member_signal, <28236055815>)'");
   })?.timeout(50000);
 
   test("should retrieve all complex variables correctly", async () => {
@@ -252,19 +241,16 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await waitForBreakpoint(breakpoint);
 
     // TODO: current DAP needs a delay before it will return variables
-    console.log(`Sleeping for 2 seconds`);
+    console.log("Sleeping for 2 seconds");
     await sleep(2000);
 
-    console.log(`getVariablesForScope(VariableScope.Members)`);
     const memberVariables = await getVariablesForScope(VariableScope.Members);
     
     expect(memberVariables.length).to.equal(3);
     expect(memberVariables).to.containSubset([{name: "self"}]);
     expect(memberVariables).to.containSubset([{name: "self_var"}]);
     
-    console.log(`getVariablesForScope(VariableScope.Locals)`);
     const localVariables = await getVariablesForScope(VariableScope.Locals);
-    console.log(`Done`);
     expect(localVariables.length).to.equal(4);
     expect(localVariables).to.containSubset([
       { name: "local_label", value: "Label" },
@@ -273,7 +259,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
       { name: "local_classB", value: "RefCounted" }
     ]);
     
-    await vscode.debug.stopDebugging()
+    await vscode.debug.stopDebugging();
   })?.timeout(15000);
 
   // test("Same Object Referenced by Different Variables", async () => {
