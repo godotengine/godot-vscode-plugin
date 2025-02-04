@@ -2,6 +2,7 @@ import {
 	TreeItem,
 	TreeItemCollapsibleState,
 	MarkdownString,
+	Uri
 } from "vscode";
 import * as path from "path";
 import { get_extension_uri } from "../utils";
@@ -31,8 +32,8 @@ export class SceneNode extends TreeItem {
 		const iconName = className + ".svg";
 
 		this.iconPath = {
-			light: path.join(iconDir, "light", iconName),
-			dark: path.join(iconDir, "dark", iconName),
+			light: Uri.file(path.join(iconDir, "light", iconName)),
+			dark: Uri.file(path.join(iconDir, "dark", iconName)),
 		};
 	}
 

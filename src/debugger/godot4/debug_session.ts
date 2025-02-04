@@ -17,7 +17,7 @@ import { AttachRequestArguments, LaunchRequestArguments } from "../debugger";
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { is_variable_built_in_type, parse_variable } from "./helpers";
 import { ServerController } from "./server_controller";
-import { ObjectId } from "./variables/variants";
+import { ObjectId, RawObject } from "./variables/variants";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
@@ -347,48 +347,65 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.add_to_inspections();
 
-		if (this.ongoing_inspections.length === 0) {
+		if (this.ongoing_inspections.length === 0  && stackVars.remaining == 0) {
+			// in case if stackVars are empty, the this.ongoing_inspections will be empty also
+			// godot 4.3 generates empty stackVars with remaining > 0 on a breakpoint stop
+			// godot will continue sending `stack_frame_vars` until all `stackVars.remaining` are sent
+			// at this moment `stack_frame_vars` will call `set_scopes` again with cumulated stackVars
+			// TODO: godot won't send the recursive variable, see related https://github.com/godotengine/godot/issues/76019
+			//   in that case the vscode extension fails to call this.got_scope.notify();
+			//   hence the extension needs to be refactored to handle missing `stack_frame_vars` messages
 			this.previous_inspections = [];
 			this.got_scope.notify();
 		}
 	}
 
-	public set_inspection(id: bigint, replacement: GodotVariable) {
+	public set_inspection(id: bigint, rawObject: RawObject, sub_values: GodotVariable[]) {
 		const variables = this.all_scopes.filter((va) => va && va.value instanceof ObjectId && va.value.id === id);
 
 		for (const va of variables) {
 			const index = this.all_scopes.findIndex((va_id) => va_id === va);
+			if (index < 0) {
+				continue;
+			}
 			const old = this.all_scopes.splice(index, 1);
-			replacement.name = old[0].name;
-			replacement.scope_path = old[0].scope_path;
-			this.append_variable(replacement, index);
+			 // GodotVariable instance will be different for different variables, even if the referenced object id is the same:
+			const clonedReplacement = {value: rawObject, sub_values: sub_values } as GodotVariable;
+			clonedReplacement.name = old[0].name;
+			clonedReplacement.scope_path = old[0].scope_path;
+			this.append_variable(clonedReplacement, index);
 		}
 
-		this.ongoing_inspections.splice(
-			this.ongoing_inspections.findIndex((va_id) => va_id === id),
-			1,
-		);
+		const ongoing_inspections_index = this.ongoing_inspections.findIndex((va_id) => va_id === id);
+		if (ongoing_inspections_index >= 0) {
+			this.ongoing_inspections.splice(ongoing_inspections_index, 1);
+		}
+		
 
 		this.previous_inspections.push(id);
 
 		// this.add_to_inspections();
 
 		if (this.ongoing_inspections.length === 0) {
+			// the `ongoing_inspections` is not empty, until all scopes are fully resolved
+			// once last inspection is resolved: Notify that we got full scope
 			this.previous_inspections = [];
 			this.got_scope.notify();
 		}
 	}
 
 	private add_to_inspections() {
-		for (const va of this.all_scopes) {
-			if (va && va.value instanceof ObjectId) {
-				if (
-					!this.ongoing_inspections.includes(va.value.id) &&
-					!this.previous_inspections.includes(va.value.id)
-				) {
-					this.controller.request_inspect_object(va.value.id);
-					this.ongoing_inspections.push(va.value.id);
-				}
+		const scopes_to_check = this.all_scopes.filter((va) => va && va.value instanceof ObjectId);
+		for (const va of scopes_to_check) {
+			if (
+				!this.ongoing_inspections.includes(va.value.id) &&
+				!this.previous_inspections.includes(va.value.id)
+			) {
+				console.log(`[add_to_inspections] adding '${va.value.id}' to ongoing_inspections`);
+				this.controller.request_inspect_object(va.value.id);
+				this.ongoing_inspections.push(va.value.id);
+			} else {
+				console.log(`[add_to_inspections] skipping '${va.value.id}' already in ongoing_inspections or previous_inspections`);
 			}
 		}
 	}
@@ -399,6 +416,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		index = 0,
 		object_id: number = null,
 	): Variable {
+		console.log(`[get_variable] '${expression}' this.all_scopes.length: ${this.all_scopes.length}`);
 		let result: Variable = {
 			variable: null,
 			index: null,
@@ -411,7 +429,16 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 
 			root = this.all_scopes.find((x) => x && x.name === "self");
-			object_id = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self").value;
+			if (root === undefined) {
+				root = this.all_scopes.find((x) => x && x.name =="member").sub_values.find((x) => x && x.name =="self");
+			}
+
+			var self_scope = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self");
+			if (self_scope === undefined) {
+				// self_scope = this.all_scopes.find((x) => x && x.name =="member").sub_values.find((x) => x && x.name =="self").value
+				self_scope = root.sub_values.find((x) => x && x.name =="id");
+			}
+			object_id = self_scope.value;
 		}
 
 		const items = expression.split(".");
@@ -520,6 +547,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 			result = this.get_variable(items.join("."), result.variable, index + 1, result.object_id);
 		}
 
+		console.log(`[get_variable] ${expression}`, result);
 		return result;
 	}
 
