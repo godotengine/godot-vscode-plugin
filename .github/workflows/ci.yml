@@ -45,7 +45,7 @@ jobs:
         run: npm install
 
       - name: Godot init project
-        run: godot --import test_projects/test-dap-project-godot4/project.godot --rendering-driver opengl3
+        run: godot --import test_projects/test-dap-project-godot4/project.godot --headless
 
       - name: Run headless test
         uses: coactions/setup-xvfb@v1
