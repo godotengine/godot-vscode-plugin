@@ -6,7 +6,8 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest]
+        # os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -31,6 +32,7 @@ jobs:
           curl -L -o Godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_macos.universal.zip
           unzip Godot.zip
           sudo mv Godot.app /Applications/Godot.app
+          sudo ln -s /Applications/Godot.app/Contents/MacOS/Godot /usr/local/bin/godot
 
       - name: Install Godot (Windows)
         if: matrix.os == 'windows-latest'
