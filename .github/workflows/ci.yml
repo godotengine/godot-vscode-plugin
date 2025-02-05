@@ -6,7 +6,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [macos-latest]
         # os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
