@@ -10,7 +10,6 @@ class ClassA:
 class ClassB:
   var member_classA
 
-
 func _ready() -> void:
   var local_label := label
   var local_self_var_through_label := label.parent_var
