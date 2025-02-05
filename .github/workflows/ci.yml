@@ -39,9 +39,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip" -OutFile "Godot.zip"
           Expand-Archive -Path "Godot.zip" -DestinationPath "C:\Godot43"
-          $env:Path+=";C:\Godot43"
-          "C:\Godot\Godot_v4.3-stable_win64.exe %*" | Out-File -Encoding ascii -FilePath "C:\Godot43\godot.cmd"
-
+          "C:\Godot\Godot_v4.3-stable_win64.exe %*" | Out-File -Encoding ascii -FilePath ([Environment]::SystemDirectory+"\godot.cmd")
 
       - name: Install dependencies
         run: npm install
