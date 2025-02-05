@@ -103,7 +103,8 @@ async function startDebugging(scene: "ScopeVars.tscn" | "ExtensiveVars.tscn" | "
     type: "godot",
     request: "launch",
     name: "Godot Debug",
-    scene: scene
+    scene: scene,
+    additional_options: "--headless"
   };
   const res = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], debugConfig);
   if (!res) {
