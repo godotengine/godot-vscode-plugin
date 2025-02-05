@@ -44,6 +44,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install and setup Wayland (weston)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y weston xvfb
+          Xvfb :99 -screen 0 1024x768x16 &
+          export DISPLAY=:99
+          weston --backend=headless-backend.so &
+
       - name: Godot init project
         run: godot --import test_projects/test-dap-project-godot4/project.godot
         # run: godot --import test_projects/test-dap-project-godot4/project.godot --headless # that works
