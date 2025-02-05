@@ -20,7 +20,7 @@ jobs:
       - name: Install Godot (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          wget https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_linux.x86_64.zip
+          wget https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
           unzip Godot_v4.3-stable_linux.x86_64.zip
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           chmod +x /usr/local/bin/godot
@@ -28,16 +28,17 @@ jobs:
       - name: Install Godot (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          curl -L -o Godot.zip https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_macos.universal.zip
+          curl -L -o Godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_macos.universal.zip
           unzip Godot.zip
           sudo mv Godot.app /Applications/Godot.app
 
       - name: Install Godot (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          Invoke-WebRequest -Uri "https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_win64.exe.zip" -OutFile "Godot.zip"
+          Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip" -OutFile "Godot.zip"
           Expand-Archive -Path "Godot.zip" -DestinationPath "C:\Godot"
           echo "C:\Godot" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
 
       - name: Install dependencies
         run: npm install
