@@ -45,7 +45,8 @@ jobs:
         run: npm install
 
       - name: Godot init project
-        run: godot --import test_projects/test-dap-project-godot4/project.godot --headless
+        run: godot --import test_projects/test-dap-project-godot4/project.godot
+        # run: godot --import test_projects/test-dap-project-godot4/project.godot --headless # that works
 
       - name: Run headless test
         uses: coactions/setup-xvfb@v1
