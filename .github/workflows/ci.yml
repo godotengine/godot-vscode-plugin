@@ -38,8 +38,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip" -OutFile "Godot.zip"
-          Expand-Archive -Path "Godot.zip" -DestinationPath "C:\Godot"
-          echo "C:\Godot" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Expand-Archive -Path "Godot.zip" -DestinationPath "C:\Godot43"
+          $env:Path+=";C:\Godot43"
+          "C:\Godot\Godot_v4.3-stable_win64.exe %*" | Out-File -Encoding ascii -FilePath "C:\Godot43\godot.cmd"
 
 
       - name: Install dependencies
