@@ -67,9 +67,9 @@ async function getStackFrames(threadId: number = 1): Promise<DebugProtocol.Stack
 }
 
 async function waitForBreakpoint(breakpoint: vscode.SourceBreakpoint, ms: number): Promise<void> {
-  console.log("Wating for breakpoint", breakpoint);
+  console.log("Waiting for breakpoint", `${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`);
   const res = await waitForActiveStackItemChange(ms);
-  console.log("Wating for breakpoint completed", breakpoint);
+  console.log("Waiting for breakpoint completed", `${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`);
   const stackFrames = await getStackFrames();
   if (stackFrames[0].source.path !== breakpoint.location.uri.fsPath || stackFrames[0].line != breakpoint.location.range.start.line+1) {
     throw new Error(`Wrong breakpoint was hit. Expected: ${breakpoint.location.uri.fsPath}:${breakpoint.location.range.start.line+1}, Got: ${stackFrames[0].source.path}:${stackFrames[0].line}`);
@@ -127,7 +127,8 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     }
   });
 
-  setup(async () => {
+  setup(async function() {
+    console.log(`➤ Test '${this?.currentTest.title}' starting`);
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     if (vscode.debug.breakpoints) {
       await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
@@ -135,12 +136,13 @@ suite("DAP Integration Tests - Variable Scopes", () => {
   });
 
 
-  teardown(async () => {
+  teardown(async function() {
     await sleep(1000);
     if (vscode.debug.activeDebugSession !== undefined) {
       console.log("Closing debug session");
       await vscode.debug.stopDebugging();
     }
+    console.log(`⬛ Test '${this.currentTest.title}' result: ${this.currentTest.state}`);
   });
   
   test("should return correct scopes", async () => {
