@@ -66,7 +66,7 @@ async function getStackFrames(threadId: number = 1): Promise<DebugProtocol.Stack
   return stackTraceResponse.stackFrames || [];
 }
 
-async function waitForBreakpoint(breakpoint?: vscode.SourceBreakpoint, ms?: number): Promise<void> {
+async function waitForBreakpoint(breakpoint: vscode.SourceBreakpoint, ms: number): Promise<void> {
   const res = await waitForActiveStackItemChange(ms);
   const stackFrames = await getStackFrames();
   if (stackFrames[0].source.path !== breakpoint.location.uri.fsPath || stackFrames[0].line != breakpoint.location.range.start.line+1) {
@@ -146,6 +146,10 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
     await startDebugging("ScopeVars.tscn");
     await waitForBreakpoint(breakpoint, 2000);
+
+    // TODO: current DAP needs a delay before it will return variables
+    console.log("Sleeping for 2 seconds");
+    await sleep(2000);
 
     // corresponds to file://./debug_session.ts async scopesRequest
     const res_scopes = await vscode.debug.activeDebugSession.customRequest("scopes", {frameId: 1});
