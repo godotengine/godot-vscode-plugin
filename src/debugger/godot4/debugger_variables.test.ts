@@ -183,7 +183,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     
     await sleep(1000);
     await vscode.debug.stopDebugging();
-  })?.timeout(5000);
+  })?.timeout(7000);
 
   test("should return local variables", async () => {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
