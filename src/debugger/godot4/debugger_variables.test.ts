@@ -66,10 +66,12 @@ async function getStackFrames(threadId: number = 1): Promise<DebugProtocol.Stack
   return stackTraceResponse.stackFrames || [];
 }
 
-async function waitForBreakpoint(breakpoint: vscode.SourceBreakpoint, ms: number): Promise<void> {
-  console.log("Waiting for breakpoint", `${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`);
-  const res = await waitForActiveStackItemChange(ms);
-  console.log("Waiting for breakpoint completed", `${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`);
+async function waitForBreakpoint(breakpoint: vscode.SourceBreakpoint, timeoutMs: number, ctx?: Mocha.Context): Promise<void> {
+  const t0 = performance.now();
+  console.log(fmt(`Waiting for breakpoint ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`));
+  const res = await waitForActiveStackItemChange(timeoutMs);
+  const t1 = performance.now();
+  console.log(fmt(`Waiting for breakpoint completed ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}, took ${t1 - t0}ms`));
   const stackFrames = await getStackFrames();
   if (stackFrames[0].source.path !== breakpoint.location.uri.fsPath || stackFrames[0].line != breakpoint.location.range.start.line+1) {
     throw new Error(`Wrong breakpoint was hit. Expected: ${breakpoint.location.uri.fsPath}:${breakpoint.location.range.start.line+1}, Got: ${stackFrames[0].source.path}:${stackFrames[0].line}`);
@@ -100,7 +102,20 @@ async function evaluateRequest(scope: VariableScope, expression: string, context
   return evaluateResponse.body;
 }
 
+function formatMs(ms: number): string {
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${(Math.round(ms) % 1000).toString().padStart(3, "0")}`;
+}
+
+function formatMessage(this: Mocha.Context, msg: string): string {
+  return `[${formatMs(performance.now()-this.testStart)}] ${msg}`;
+}
+
+var fmt: (msg: string) => string; // formatMessage bound to Mocha.Context
+
 async function startDebugging(scene: "ScopeVars.tscn" | "ExtensiveVars.tscn" | "BuiltInTypes.tscn" = "ScopeVars.tscn"): Promise<void> {
+  const t0 = performance.now();
   const debugConfig: vscode.DebugConfiguration = {
     type: "godot",
     request: "launch",
@@ -108,11 +123,12 @@ async function startDebugging(scene: "ScopeVars.tscn" | "ExtensiveVars.tscn" | "
     scene: scene,
     additional_options: "--headless"
   };
-  console.log(`Starting debugger for scene ${scene}`);
+  console.log(fmt(`Starting debugger for scene ${scene}`));
   const res = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], debugConfig);
-  console.log(`Starting debugger for scene ${scene} completed`);
+  const t1 = performance.now();
+  console.log(fmt(`Starting debugger for scene ${scene} completed, took ${t1 - t0}ms`));
   if (!res) {
-    throw new Error("Failed to start debugging");
+    throw new Error(`Failed to start debugging for scene ${scene}`);
   }
 }
 
@@ -133,6 +149,8 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     if (vscode.debug.breakpoints) {
       await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
     }
+    this.testStart = performance.now();
+    fmt = formatMessage.bind(this);
   });
 
 
@@ -142,10 +160,17 @@ suite("DAP Integration Tests - Variable Scopes", () => {
       console.log("Closing debug session");
       await vscode.debug.stopDebugging();
     }
-    console.log(`⬛ Test '${this.currentTest.title}' result: ${this.currentTest.state}`);
+    console.log(`⬛ Test '${this.currentTest.title}' result: ${this.currentTest.state}, duration: ${performance.now() - this.testStart}ms`);
   });
+
+
+  test("sample test", async function() {
+    // await sleep(1000);
+    await startDebugging("ScopeVars.tscn");
+  });
+
   
-  test("should return correct scopes", async () => {
+  test("should return correct scopes", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
@@ -176,7 +201,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
-  test("should return global variables", async () => {
+  test("should return global variables", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
@@ -195,7 +220,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await vscode.debug.stopDebugging();
   })?.timeout(7000);
 
-  test("should return local variables", async () => {
+  test("should return local variables", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
@@ -216,7 +241,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
-  test("should return member variables", async () => {
+  test("should return member variables", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
@@ -237,7 +262,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
-  test("should retrieve all built-in types correctly", async () => {
+  test("should retrieve all built-in types correctly", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "BuiltInTypes.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::BuiltInTypes::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
@@ -281,7 +306,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     await vscode.debug.stopDebugging();
   })?.timeout(5000);
 
-  test("should retrieve all complex variables correctly", async () => {
+  test("should retrieve all complex variables correctly", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ExtensiveVars.gd"));
     const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ExtensiveVars::_ready"]);
     vscode.debug.addBreakpoints([breakpoint]);
