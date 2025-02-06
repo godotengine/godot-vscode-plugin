@@ -67,7 +67,9 @@ async function getStackFrames(threadId: number = 1): Promise<DebugProtocol.Stack
 }
 
 async function waitForBreakpoint(breakpoint: vscode.SourceBreakpoint, ms: number): Promise<void> {
+  console.log("Wating for breakpoint", breakpoint);
   const res = await waitForActiveStackItemChange(ms);
+  console.log("Wating for breakpoint completed", breakpoint);
   const stackFrames = await getStackFrames();
   if (stackFrames[0].source.path !== breakpoint.location.uri.fsPath || stackFrames[0].line != breakpoint.location.range.start.line+1) {
     throw new Error(`Wrong breakpoint was hit. Expected: ${breakpoint.location.uri.fsPath}:${breakpoint.location.range.start.line+1}, Got: ${stackFrames[0].source.path}:${stackFrames[0].line}`);
@@ -106,7 +108,9 @@ async function startDebugging(scene: "ScopeVars.tscn" | "ExtensiveVars.tscn" | "
     scene: scene,
     additional_options: "--headless"
   };
+  console.log(`Starting debugger for scene ${scene}`);
   const res = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], debugConfig);
+  console.log(`Starting debugger for scene ${scene} completed`);
   if (!res) {
     throw new Error("Failed to start debugging");
   }
