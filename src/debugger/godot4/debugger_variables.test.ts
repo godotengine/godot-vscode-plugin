@@ -172,7 +172,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     vscode.debug.addBreakpoints([breakpoint]);
 
     await startDebugging("ScopeVars.tscn");
-    await waitForBreakpoint(breakpoint);
+    await waitForBreakpoint(breakpoint, 2000);
     
     // TODO: current DAP needs a delay before it will return variables
     console.log("Sleeping for 2 seconds");
@@ -191,7 +191,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     vscode.debug.addBreakpoints([breakpoint]);
 
     await startDebugging("ScopeVars.tscn");
-    await waitForBreakpoint(breakpoint);
+    await waitForBreakpoint(breakpoint, 2000);
 
     // TODO: current DAP needs a delay before it will return variables
     console.log("Sleeping for 2 seconds");
@@ -212,7 +212,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     vscode.debug.addBreakpoints([breakpoint]);
 
     await startDebugging("ScopeVars.tscn");
-    await waitForBreakpoint(breakpoint);
+    await waitForBreakpoint(breakpoint, 2000);
 
     // TODO: current DAP needs a delay before it will return variables
     console.log("Sleeping for 2 seconds");
@@ -233,7 +233,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     vscode.debug.addBreakpoints([breakpoint]);
 
     await startDebugging("BuiltInTypes.tscn");
-    await waitForBreakpoint(breakpoint);
+    await waitForBreakpoint(breakpoint, 2000);
     
     // TODO: current DAP needs a delay before it will return variables
     console.log("Sleeping for 2 seconds");
@@ -277,7 +277,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     vscode.debug.addBreakpoints([breakpoint]);
 
     await startDebugging("ExtensiveVars.tscn");
-    await waitForBreakpoint(breakpoint);
+    await waitForBreakpoint(breakpoint, 2000);
 
     // TODO: current DAP needs a delay before it will return variables
     console.log("Sleeping for 2 seconds");
