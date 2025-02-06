@@ -20,7 +20,7 @@ async function sleep(ms) {
  * @param scriptPath The path to the script to scan.
  * @returns An object of breakpoint names to line numbers.
  */
-async function getBreakpointLocations(scriptPath: string) {
+async function getBreakpointLocations(scriptPath: string): Promise<{ [key: string]: vscode.Location }> {
   const script_content = await fs.readFile(scriptPath, "utf-8");
   const breakpoints: { [key: string]: vscode.Location } = {};
   const breakpointRegex = /\b(breakpoint::.*)\b/g;
