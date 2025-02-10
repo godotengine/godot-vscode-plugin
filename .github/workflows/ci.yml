@@ -5,9 +5,9 @@ jobs:
   test:
     name: Test
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
