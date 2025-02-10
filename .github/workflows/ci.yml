@@ -5,6 +5,7 @@ jobs:
   test:
     name: Test
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -17,8 +18,34 @@ jobs:
         with:
           node-version: 16.x
 
+      - name: Install Godot (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          wget https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+
+      - name: Install Godot (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          curl -L -o Godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_macos.universal.zip
+          unzip Godot.zip
+          sudo mv Godot.app /Applications/Godot.app
+          sudo ln -s /Applications/Godot.app/Contents/MacOS/Godot /usr/local/bin/godot
+
+      - name: Install Godot (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip" -OutFile "Godot.zip"
+          Expand-Archive -Path "Godot.zip" -DestinationPath "C:\Godot43"
+          "C:\Godot43\Godot_v4.3-stable_win64.exe %*" | Out-File -Encoding ascii -FilePath ([Environment]::SystemDirectory+"\godot.cmd")
+
       - name: Install dependencies
         run: npm install
+
+      - name: Godot init project
+        run: godot --import test_projects/test-dap-project-godot4/project.godot --headless
 
       - name: Run headless test
         uses: coactions/setup-xvfb@v1
