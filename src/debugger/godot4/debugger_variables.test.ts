@@ -5,6 +5,10 @@ import { DebugProtocol } from "@vscode/debugprotocol";
 import chai from "chai";
 import chaiSubset from "chai-subset";
 
+import { promisify } from "util";
+import { execFile } from "child_process";
+const execFileAsync = promisify(execFile);
+
 chai.use(chaiSubset);
 const { expect } = chai;
 
@@ -136,11 +140,24 @@ suite("DAP Integration Tests - Variable Scopes", () => {
   // workspaceFolder should match `.vscode-test.js`::workspaceFolder
   const workspaceFolder = path.resolve(__dirname, "../../../test_projects/test-dap-project-godot4");
 
-  suiteSetup(() => {
+  suiteSetup(async function() {
+    this.timeout(20000); // enough time to do `godot --import`
     console.log("Environment Variables:");
     for (const [key, value] of Object.entries(process.env)) {
       console.log(`${key}: ${value}`);
     }
+
+    // init the godot project by importing it in godot engine:
+    const config = vscode.workspace.getConfiguration("godotTools");
+    var godot4_path = config.get<string>("editorPath.godot4");
+    // get the path for currently opened project in vscode test instance:
+    var project_path = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+    console.log("Executing", [godot4_path, "--headless", "--import", project_path]);
+    const exec_res = await execFileAsync(godot4_path, ["--headless", "--import", project_path], {shell: true, cwd: project_path});
+    if (exec_res.stderr !== "") {
+      throw new Error(exec_res.stderr);
+    }
+    console.log(exec_res.stdout);
   });
 
   setup(async function() {
