@@ -106,7 +106,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info(`Project version identified as ${projectVersion}`);
 
 		if (projectVersion.startsWith("4")) {
-			this.session = new Godot4DebugSession();
+			this.session = new Godot4DebugSession(projectVersion);
 		} else {
 			this.session = new Godot3DebugSession();
 		}
