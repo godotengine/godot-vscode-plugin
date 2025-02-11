@@ -471,7 +471,7 @@ export class Signal implements GDObject {
 	constructor(public name: string, public oid: ObjectId) {}
 
 	public stringify_value(): string {
-		return `${this.name}() ${this.oid.stringify_value()}`;
+		return `(${this.name}, ${this.oid.stringify_value()})`;
 	}
 
 	public sub_values(): GodotVariable[] {
