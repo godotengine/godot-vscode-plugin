@@ -23,9 +23,12 @@ import { build_sub_values, parse_next_scene_node, split_buffers } from "./helper
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
+import BBCodeToAnsi from 'bbcode-to-ansi';
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
+//initialize bbcodeParser and set default output color to grey
+const bbcodeParser = new BBCodeToAnsi("\u001b[38;2;211;211;211m");
 
 class Command {
 	public command: string = "";
@@ -439,9 +442,8 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
-				const lines = command.parameters[0];
-				for (const line of lines) {
-					debug.activeDebugConsole.appendLine(ansi.bright.blue + line);
+				for (var output in command.parameters[0]){
+					command.parameters[0][output].split("\n").forEach(line => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)))
 				}
 				break;
 			}
