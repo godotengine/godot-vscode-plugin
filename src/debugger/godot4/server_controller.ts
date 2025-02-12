@@ -445,7 +445,7 @@ export class ServerController {
 					// this.request_scene_tree();
 				}
 				for (var output in command.parameters[0]){
-					command.parameters[0][output].split("\n").forEach(line => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)))
+					command.parameters[0][output].split("\n").forEach(line => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
 				}
 				break;
 			}
