@@ -886,7 +886,7 @@
 		"@vscode/vsce": "^2.29.0",
 		"chai": "^4.3.10",
 		"chai-subset": "^1.6.0",
-		"esbuild": "^0.17.15",
+		"esbuild": "^0.25.0",
 		"eslint": "^8.37.0",
 		"mocha": "^10.2.0",
 		"ts-node": "^10.9.1",
