@@ -535,7 +535,7 @@
 			"end": "(,)|(?=\\))",
 			"beginCaptures": { "1": { "name": "keyword.operator.gdscript" } },
 			"endCaptures": { "1": { "name": "punctuation.separator.parameters.gdscript" } },
-			"patterns": [ { "include": "#base_expression" } ]
+			"patterns": [ { "include": "#expression" } ]
 		},
 		"annotated_parameter": {
 			"begin": "(?x)\n \\s* ([a-zA-Z_]\\w*) \\s* (:)\\s* ([a-zA-Z_]\\w*)? \n",
@@ -547,7 +547,7 @@
 			"end": "(,)|(?=\\))",
 			"endCaptures": { "1": { "name": "punctuation.separator.parameters.gdscript" } },
 			"patterns": [
-				{ "include": "#base_expression" },
+				{ "include": "#expression" },
 				{
 					"name": "keyword.operator.assignment.gdscript",
 					"match": "=(?!=)"
