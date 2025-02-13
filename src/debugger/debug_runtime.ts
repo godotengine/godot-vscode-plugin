@@ -46,7 +46,7 @@ export interface GodotVariable {
 	scope_path?: string;
 	sub_values?: GodotVariable[];
 	value: any;
-	type?: bigint;
+	type?: number;
 	id?: bigint;
 }
 

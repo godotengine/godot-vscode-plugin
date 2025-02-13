@@ -5,7 +5,6 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-		
 		{
 			"name": "Run Extension",
 			"type": "extensionHost",

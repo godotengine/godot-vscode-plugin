@@ -17,8 +17,11 @@ func _ready() -> void:
   var simple_array = [1, 2, 3]
   var nested_dict = {
       "nested_key": "Nested Value",
-      "sub_dict": {"sub_key": 99}
-  }  
+      "sub_dict": {"sub_key": 99},
+  }
+  var mixed_dict = {
+    "nested_array": [1,2, {"nested_dict": [3,4,5]}]
+  }
   var byte_array = PackedByteArray([0, 1, 2, 255])
   var int32_array = PackedInt32Array([100, 200, 300])
   var color_var = Color(1, 0, 0, 1) # Red color
