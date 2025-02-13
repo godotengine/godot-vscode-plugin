@@ -24,15 +24,15 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		this._on_did_change_tree_data.fire(undefined);
 	}
 
-	public getChildren(element?: RemoteProperty): ProviderResult<RemoteProperty[]> {
+	public getChildren(element?: RemoteProperty): RemoteProperty[] {
 		if (!this.tree) {
-			return Promise.resolve([]);
+			return [];
 		}
 
 		if (!element) {
-			return Promise.resolve([this.tree]);
+			return [this.tree];
 		} else {
-			return Promise.resolve(element.properties);
+			return element.properties;
 		}
 	}
 

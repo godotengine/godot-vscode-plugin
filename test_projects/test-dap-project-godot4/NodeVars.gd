@@ -5,5 +5,6 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+  var local_node_1 = node_1;
   print("breakpoint::NodeVars::_ready")
   pass
