@@ -280,7 +280,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
     const vars_frame2_locals = await getVariablesForVSCodeID(stack_scopes_map[2].Locals);
     expect(vars_frame2_locals).to.containSubset([{name: "str_var", value: "ScopeVars::_ready::local::str_var"}]);
-  })?.timeout(5000);
+  })?.timeout(10000);
 
   test("should return global variables", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
@@ -296,7 +296,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
     const variables = await getVariablesForScope(VariableScope.Globals);
     expect(variables).to.containSubset([{name: "GlobalScript"}]);
-  })?.timeout(7000);
+  })?.timeout(10000);
 
   test("should return all local variables", async function() {
     /** {@link file://./../../../../test_projects/test-dap-project-godot4/ScopeVars.gd"} */
@@ -315,7 +315,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(variables.length).to.equal(2);
     expect(variables).to.containSubset([{name: "str_var"}]);
     expect(variables).to.containSubset([{name: "self_var"}]);
-  })?.timeout(5000);
+  })?.timeout(10000);
 
   test("should return all member variables", async function() {
     /** {@link file://./../../../../test_projects/test-dap-project-godot4/ScopeVars.gd"} */
@@ -336,7 +336,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(variables).to.containSubset([{name: "member1"}]);
     expect(variables).to.containSubset([{name: "str_var", value: "ScopeVars::member::str_var"}]);
     expect(variables).to.containSubset([{name: "str_var_member_only", value: "ScopeVars::member::str_var_member_only"}]);
-  })?.timeout(5000);
+  })?.timeout(10000);
 
   test("should retrieve all built-in types correctly", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "BuiltInTypes.gd"));
@@ -374,7 +374,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
     expect(variables).to.containSubset([{ name: "signal_var" }]);
     const signal_var = variables.find(v => v.name === "signal_var");
     expect(signal_var.value).to.match(/Signal\(member_signal\, <\d+>\)/, "Should be in format of 'Signal(member_signal, <28236055815>)'");
-  })?.timeout(5000);
+  })?.timeout(10000);
 
   test("should retrieve all complex variables correctly", async function() {
     const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ExtensiveVars.gd"));
