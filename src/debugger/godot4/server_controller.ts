@@ -19,7 +19,7 @@ import { killSubProcesses, subProcess } from "../../utils/subspawn";
 import { GodotStackFrame, GodotStackVars, GodotVariable } from "../debug_runtime";
 import { AttachRequestArguments, LaunchRequestArguments, pinnedScene } from "../debugger";
 import { GodotDebugSession } from "./debug_session";
-import { build_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
+import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
@@ -395,13 +395,15 @@ export class ServerController {
 				for (const prop of properties) {
 					rawObject.set(prop[0], prop[5]);
 				}
-				const inspectedVariable = { name: "", value: rawObject };
-				build_sub_values(inspectedVariable);
-				if (this.session.inspect_callbacks.has(BigInt(id))) {
-					this.session.inspect_callbacks.get(BigInt(id))(inspectedVariable.name, inspectedVariable);
+				const sub_values = get_sub_values(rawObject);
+				
+				const inspect_callback = this.session.inspect_callbacks.get(BigInt(id));
+				if (inspect_callback !== undefined) {
+					const inspectedVariable = { name: "", value: rawObject, sub_values: sub_values } as GodotVariable;
+					inspect_callback(inspectedVariable.name, inspectedVariable);
 					this.session.inspect_callbacks.delete(BigInt(id));
 				}
-				this.session.set_inspection(id, inspectedVariable);
+				this.session.set_inspection(id, rawObject, sub_values);
 				break;
 			}
 			case "stack_dump": {
@@ -641,8 +643,8 @@ export class ServerController {
 			throw new Error("More stack frame variables were sent than expected.");
 		}
 
-		const variable: GodotVariable = { name, value, type };
-		build_sub_values(variable);
+		const sub_values = get_sub_values(value);
+		const variable = { name, value, type, sub_values } as GodotVariable;
 
 		const scopeName = ["locals", "members", "globals"][scope];
 		this.partialStackVars[scopeName].push(variable);
