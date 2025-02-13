@@ -1,223 +1,285 @@
 {
-	"Inner class": {
-		"prefix": "class",
-		"body": [
-			"class $1 extends ${2:Reference}",
-			"\t$3"
-		]
-	},
-
-	"Print messages to console": {
-		"prefix": "pr",
-		"body": [
-			"print($1)"
-		]
-	},
-
-	"_ready method of Node": {
-		"prefix": "ready",
-		"body": [
-			"func _ready():",
-			"\t${1:pass}"
-		]
-	},
-
-	"_init method of Object": {
-		"prefix": "init",
-		"body": [
-			"func _init():",
-			"\t${1:pass}"
-		]
-	},
-
-	"_process method of Node": {
-		"prefix": "process",
-		"body": [
-      "func _process(delta):",
-      "\t${1:pass}"
-    ]
-	},
-	
-	"_physics_process method of Node": {
-		"prefix": "physics",
-		"body": [
-      "func _physics_process(delta):",
-      "\t${1:pass}"
-    ]
-	},
-
-	"_input method of Node": {
-		"prefix": "input",
-		"body": [
-      "func _input(event):",
-      "\t${1:pass}"
-    ]
-	},
-
-  "_input_event method of Node": {
-		"prefix": "inpute",
-		"body": [
-      "func _input_event(event):",
-      "\t${1:pass}"
-    ]
-  },
-
-  "_unhandled_input method of Node": {
-	  "prefix": "uinput",
-	  "body": [
-	"func _unhandled_input(event):",
-	"\t${1:pass}"
-  ]
-  },
-
-    "_draw method of Node": {
-      "prefix": "draw",
-      "body": [
-        "func _draw():",
-        "\t${1:pass}"
-      ]
+    "Inner class": {
+        "prefix": "class",
+        "body": [
+            "class $1 extends ${2:Reference}",
+            "\t$3"
+        ]
     },
-
-  "_gui_input method of Node": {
-    "prefix": "guii",
-    "body": [
-      "func _gui_input(event):",
-      "\t${1:pass}"
-    ]
-  },
-
-	"for loop": {
-		"prefix": "for",
-		"body": [
-      "for $1 in $2:",
-      "\t${3:pass}"
-    ]
-	},
-
-  "for range loop": {
-		"prefix": "for",
-		"body": [
-      "for $1 in range(${2:start}{$3:,end}):",
-      "\t${4:pass}"
-    ]
-	},
-
-  "if elif else": {
-    "prefix": "if",
-		"body": [
-      "if ${1:condition}:",
-      "\t${3:pass}",
-      "elif ${2:condition}:",
-      "\t${4:pass}",
-      "else:",
-      "\t${5:pass}"
-    ]
-  },
-
-  "if else": {
-    "prefix": "if",
-		"body": [
-      "if ${1:condition}:",
-      "\t${2:pass}",
-      "else:",
-      "\t${3:pass}"
-    ]
-  },
-
-  "if": {
-    "prefix": "if",
-		"body": [
-      "if ${1:condition}:",
-      "\t${2:pass}"
-    ]
-  },
-
-  "while": {
-    "prefix": "while",
-		"body": [
-      "while ${1:condition}:",
-      "\t${2:pass}"
-    ]
-  },
-
-  "function define": {
-    "prefix": "func",
-		"body": [
-      "func ${1:method}(${2:args}):",
-      "\t${3:pass}"
-    ]
-  },
-
-  "match": {
-    "prefix": "match",
-    "body": [
-      "match ${1:expression}:\n\t${2:pattern}:\n\t\t${3}\n\t_:\n\t\t${0:default}"
-    ]
-  },
-
-  "signal declaration": {
-    "prefix": "signal",
-		"body": [
-      "signal ${1:signalname}(${2:args})"
-    ]
-  },
-
-  "export variables": {
-    "prefix": "export",
-		"body": [
-      "export(${1:type}${2:,other_configs}) var ${3:name}${4: = default}${5: setget }"
-    ]
-  },
-
-  "define variables": {
-    "prefix": "var",
-		"body": [
-      "var ${1:name}${2: = default}${3: setget }"
-    ]
-  },
-
-  "define onready variables": {
-    "prefix": "onready",
-		"body": [
-      "onready var ${1:name} = get_node($2)"
-    ]
-  },
-
-  "Is instance of a class or script": {
-    "prefix": "is",
-    "body": [
-      "${1:instance} is ${2:class}"
-    ]
-  },
-
-  "element in array": {
-    "prefix": "in",
-		"body": [
-      "${1:element} in ${$2:array}"
-    ]
-  },
-
-  "GDScript template": {
-    "prefix": "gdscript",
-		"body": [
-      "extends ${1:BaseClass}",
-      "",
-      "# class member variables go here, for example:",
-      "# var a = 2",
-      "# var b = \"textvar\"",
-      "",
-      "func _ready():",
-      "\t# Called every time the node is added to the scene.",
-      "\t# Initialization here",
-      "\tpass",
-      ""
-    ]
-  },
-
-  "pass statement": {
-    "prefix": "pass",
-    "body": [
-      "pass"
-    ]
-  }
+    "Print messages to console": {
+        "prefix": "pr",
+        "body": [
+            "print($1)"
+        ]
+    },
+    "_ready method of Node": {
+        "prefix": "ready",
+        "body": [
+            "func _ready():",
+            "\t${1:pass}"
+        ]
+    },
+    "_init method of Object": {
+        "prefix": "init",
+        "body": [
+            "func _init():",
+            "\t${1:pass}"
+        ]
+    },
+    "_process method of Node": {
+        "prefix": "process",
+        "body": [
+            "func _process(delta):",
+            "\t${1:pass}"
+        ]
+    },
+    "_physics_process method of Node": {
+        "prefix": "physics",
+        "body": [
+            "func _physics_process(delta):",
+            "\t${1:pass}"
+        ]
+    },
+    "_input method of Node": {
+        "prefix": "input",
+        "body": [
+            "func _input(event):",
+            "\t${1:pass}"
+        ]
+    },
+    "_input_event method of Node": {
+        "prefix": "inpute",
+        "body": [
+            "func _input_event(event):",
+            "\t${1:pass}"
+        ]
+    },
+    "_unhandled_input method of Node": {
+        "prefix": "uinput",
+        "body": [
+            "func _unhandled_input(event):",
+            "\t${1:pass}"
+        ]
+    },
+    "_draw method of Node": {
+        "prefix": "draw",
+        "body": [
+            "func _draw():",
+            "\t${1:pass}"
+        ]
+    },
+    "_gui_input method of Node": {
+        "prefix": "guii",
+        "body": [
+            "func _gui_input(event):",
+            "\t${1:pass}"
+        ]
+    },
+    "for loop": {
+        "prefix": "for",
+        "body": [
+            "for $1 in $2:",
+            "\t${3:pass}"
+        ]
+    },
+    "for range loop": {
+        "prefix": "for",
+        "body": [
+            "for $1 in range(${2:start}{$3:,end}):",
+            "\t${4:pass}"
+        ]
+    },
+    "if elif else": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition}:",
+            "\t${3:pass}",
+            "elif ${2:condition}:",
+            "\t${4:pass}",
+            "else:",
+            "\t${5:pass}"
+        ]
+    },
+    "if else": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition}:",
+            "\t${2:pass}",
+            "else:",
+            "\t${3:pass}"
+        ]
+    },
+    "if": {
+        "prefix": "if",
+        "body": [
+            "if ${1:condition}:",
+            "\t${2:pass}"
+        ]
+    },
+    "while": {
+        "prefix": "while",
+        "body": [
+            "while ${1:condition}:",
+            "\t${2:pass}"
+        ]
+    },
+    "function define": {
+        "prefix": "func",
+        "body": [
+            "func ${1:method}(${2:args}):",
+            "\t${3:pass}"
+        ]
+    },
+    "match": {
+        "prefix": "match",
+        "body": [
+            "match ${1:expression}:\n\t${2:pattern}:\n\t\t${3}\n\t_:\n\t\t${0:default}"
+        ]
+    },
+    "signal declaration": {
+        "prefix": "signal",
+        "body": [
+            "signal ${1:signalname}(${2:args})"
+        ]
+    },
+    "export variables": {
+        "prefix": "export",
+        "body": [
+            "export(${1:type}${2:,other_configs}) var ${3:name}${4: = default}${5: setget }"
+        ]
+    },
+    "define variables": {
+        "prefix": "var",
+        "body": [
+            "var ${1:name}${2: = default}${3: setget }"
+        ]
+    },
+    "define onready variables": {
+        "prefix": "onready",
+        "body": [
+            "onready var ${1:name} = get_node($2)"
+        ]
+    },
+    "Is instance of a class or script": {
+        "prefix": "is",
+        "body": [
+            "${1:instance} is ${2:class}"
+        ]
+    },
+    "element in array": {
+        "prefix": "in",
+        "body": [
+            "${1:element} in ${$2:array}"
+        ]
+    },
+    "GDScript template": {
+        "prefix": "gdscript",
+        "body": [
+            "extends ${1:BaseClass}",
+            "",
+            "# class member variables go here, for example:",
+            "# var a = 2",
+            "# var b = \"textvar\"",
+            "",
+            "func _ready():",
+            "\t# Called every time the node is added to the scene.",
+            "\t# Initialization here",
+            "\tpass",
+            ""
+        ]
+    },
+    "pass statement": {
+        "prefix": "pass",
+        "body": [
+            "pass"
+        ]
+    },
+    "GDScript Void": {
+        "prefix": [
+            "void"
+        ],
+        "body": [
+            "func ${1:function_name}($2) -> void:",
+            "\t${3:pass}"
+        ],
+        "description": "Void function"
+    },
+    "GDScript Load Resource": {
+        "prefix": [
+            "loadres",
+            "ld"
+        ],
+        "body": [
+            "load(\"res://${1:resource_path}\")$0"
+        ],
+        "description": "Quickly load a resource with the 'res://' prefix"
+    },
+    "GDScript Preload Resource": {
+        "prefix": [
+            "preloadres",
+            "pl"
+        ],
+        "body": [
+            "preload(\"res://${1:resource_path}\")$0"
+        ],
+        "description": "Quickly preload a resource with the 'res://' prefix"
+    },
+    "GDScript Variable with Getter and Setter": {
+        "prefix": [
+            "gs",
+            "vargetset"
+        ],
+        "body": [
+            "var ${1:variable_name}:",
+            "\tget:",
+            "\t\treturn ${1:variable_name}",
+            "\tset(value):",
+            "\t\t${1:variable_name} = value"
+        ],
+        "description": "Creates a variable with getter and setter functions in GDScript"
+    },
+    "GDScript Variable with Getter and Setter (typed)": {
+        "prefix": [
+            "gst",
+            "vargetsettyped"
+        ],
+        "body": [
+            "var ${1:variable_name}: ${2:String}:",
+            "\tget:",
+            "\t\treturn ${1:variable_name}",
+            "\tset(value):",
+            "\t\t${1:variable_name} = value"
+        ],
+        "description": "Creates a typed variable with getter and setter functions in GDScript"
+    },
+    "GDScript export var": {
+        "prefix": [
+            "exportvar",
+            "xp"
+        ],
+        "body": [
+            "export var ${1:variable_name}: ${2:String} = ${3:default_value}"
+        ],
+        "description": "Creates an exported (typed) variable in GDScript"
+    },
+    "GDScript tween": {
+        "prefix": [
+            "tween",
+            "tw"
+        ],
+        "body": [
+            "var tween := create_tween()"
+        ],
+        "description": "Creates a tween object"
+    },
+    "GDScript wait": {
+        "prefix": [
+            "wait",
+            "timer"
+        ],
+        "body": [
+            "await get_tree().create_timer($1).timeout"
+        ],
+        "description": "Waits for a given amount of seconds"
+    }
 }
