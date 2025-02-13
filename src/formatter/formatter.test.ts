@@ -138,6 +138,10 @@ function parse_test_file(content: string): Test[] {
 suite("GDScript Formatter Tests", () => {
 	const testFiles = fs.readdirSync(snapshotsFolderPath, { withFileTypes: true, recursive: true });
 
+	teardown(async () => {
+		await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+	});
+
 	for (const file of testFiles.filter((f) => f.isFile())) {
 		if (["in.gd", "out.gd"].includes(file.name) || !file.name.endsWith(".gd")) {
 			continue;

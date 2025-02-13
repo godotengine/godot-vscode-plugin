@@ -17,7 +17,7 @@ import { AttachRequestArguments, LaunchRequestArguments } from "../debugger";
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { is_variable_built_in_type, parse_variable } from "./helpers";
 import { ServerController } from "./server_controller";
-import { ObjectId } from "./variables/variants";
+import { ObjectId, RawObject } from "./variables/variants";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
@@ -57,6 +57,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.InitializeResponse,
 		args: DebugProtocol.InitializeRequestArguments,
 	) {
+		log.info("initializeRequest", args);
 		response.body = response.body || {};
 
 		response.body.supportsConfigurationDoneRequest = true;
@@ -85,6 +86,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
+		log.info("launchRequest", args);
 		await this.configuration_done.wait(1000);
 
 		this.mode = "launch";
@@ -97,6 +99,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async attachRequest(response: DebugProtocol.AttachResponse, args: AttachRequestArguments) {
+		log.info("attachRequest", args);
 		await this.configuration_done.wait(1000);
 
 		this.mode = "attach";
@@ -112,11 +115,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.ConfigurationDoneResponse,
 		args: DebugProtocol.ConfigurationDoneArguments,
 	) {
+		log.info("configurationDoneRequest", args);
 		this.configuration_done.notify();
 		this.sendResponse(response);
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments) {
+		log.info("continueRequest", args);
 		if (!this.exception) {
 			response.body = { allThreadsContinued: true };
 			this.controller.continue();
@@ -125,6 +130,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
+		log.info("evaluateRequest", args);
 		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
 
 		if (this.all_scopes) {
@@ -152,6 +158,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
+		log.info("nextRequest", args);
 		if (!this.exception) {
 			this.controller.next();
 			this.sendResponse(response);
@@ -159,6 +166,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments) {
+		log.info("pauseRequest", args);
 		if (!this.exception) {
 			this.controller.break();
 			this.sendResponse(response);
@@ -166,6 +174,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments) {
+		log.info("scopesRequest", args);
 		this.controller.request_stack_frame_vars(args.frameId);
 		await this.got_scope.wait(2000);
 
@@ -183,6 +192,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.SetBreakpointsResponse,
 		args: DebugProtocol.SetBreakpointsArguments,
 	) {
+		log.info("setBreakPointsRequest", args);
 		const path = (args.source.path as string).replace(/\\/g, "/");
 		const client_lines = args.lines || [];
 
@@ -219,6 +229,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments) {
+		log.info("stackTraceRequest", args);
 		if (this.debug_data.last_frame) {
 			response.body = {
 				totalFrames: this.debug_data.last_frames.length,
@@ -237,6 +248,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments) {
+		log.info("stepInRequest", args);
 		if (!this.exception) {
 			this.controller.step();
 			this.sendResponse(response);
@@ -244,6 +256,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
+		log.info("stepOutRequest", args);
 		if (!this.exception) {
 			this.controller.step_out();
 			this.sendResponse(response);
@@ -251,6 +264,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments) {
+		log.info("terminateRequest", args);
 		if (this.mode === "launch") {
 			this.controller.stop();
 			this.sendEvent(new TerminatedEvent());
@@ -259,6 +273,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse) {
+		log.info("threadsRequest");
 		response.body = { threads: [new Thread(0, "thread_1")] };
 		this.sendResponse(response);
 	}
@@ -267,6 +282,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.VariablesResponse,
 		args: DebugProtocol.VariablesArguments,
 	) {
+		log.info("variablesRequest", args);
 		if (!this.all_scopes) {
 			response.body = {
 				variables: [],
@@ -350,48 +366,62 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.add_to_inspections();
 
-		if (this.ongoing_inspections.length === 0) {
+		if (this.ongoing_inspections.length === 0  && stackVars.remaining == 0) {
+			// in case if stackVars are empty, the this.ongoing_inspections will be empty also
+			// godot 4.3 generates empty stackVars with remaining > 0 on a breakpoint stop
+			// godot will continue sending `stack_frame_vars` until all `stackVars.remaining` are sent
+			// at this moment `stack_frame_vars` will call `set_scopes` again with cumulated stackVars
+			// TODO: godot won't send the recursive variable, see related https://github.com/godotengine/godot/issues/76019
+			//   in that case the vscode extension fails to call this.got_scope.notify();
+			//   hence the extension needs to be refactored to handle missing `stack_frame_vars` messages
 			this.previous_inspections = [];
 			this.got_scope.notify();
 		}
 	}
 
-	public set_inspection(id: bigint, replacement: GodotVariable) {
+	public set_inspection(id: bigint, rawObject: RawObject, sub_values: GodotVariable[]) {
 		const variables = this.all_scopes.filter((va) => va && va.value instanceof ObjectId && va.value.id === id);
 
 		for (const va of variables) {
 			const index = this.all_scopes.findIndex((va_id) => va_id === va);
+			if (index < 0) {
+				continue;
+			}
 			const old = this.all_scopes.splice(index, 1);
+			// GodotVariable instance will be different for different variables, even if the referenced object id is the same:
+			const replacement = {value: rawObject, sub_values: sub_values } as GodotVariable;
 			replacement.name = old[0].name;
 			replacement.scope_path = old[0].scope_path;
 			this.append_variable(replacement, index);
 		}
 
-		this.ongoing_inspections.splice(
-			this.ongoing_inspections.findIndex((va_id) => va_id === id),
-			1,
-		);
+		const ongoing_inspections_index = this.ongoing_inspections.findIndex((va_id) => va_id === id);
+		if (ongoing_inspections_index >= 0) {
+			this.ongoing_inspections.splice(ongoing_inspections_index, 1);
+		}
+		
 
 		this.previous_inspections.push(id);
 
 		// this.add_to_inspections();
 
 		if (this.ongoing_inspections.length === 0) {
+			// the `ongoing_inspections` is not empty, until all scopes are fully resolved
+			// once last inspection is resolved: Notify that we got full scope
 			this.previous_inspections = [];
 			this.got_scope.notify();
 		}
 	}
 
 	private add_to_inspections() {
-		for (const va of this.all_scopes) {
-			if (va && va.value instanceof ObjectId) {
-				if (
-					!this.ongoing_inspections.includes(va.value.id) &&
-					!this.previous_inspections.includes(va.value.id)
-				) {
-					this.controller.request_inspect_object(va.value.id);
-					this.ongoing_inspections.push(va.value.id);
-				}
+		const scopes_to_check = this.all_scopes.filter((va) => va && va.value instanceof ObjectId);
+		for (const va of scopes_to_check) {
+			if (
+				!this.ongoing_inspections.includes(va.value.id) &&
+				!this.previous_inspections.includes(va.value.id)
+			) {
+				this.controller.request_inspect_object(va.value.id);
+				this.ongoing_inspections.push(va.value.id);
 			}
 		}
 	}
