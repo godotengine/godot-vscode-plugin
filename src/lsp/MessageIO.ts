@@ -49,7 +49,7 @@ export class MessageIO extends EventEmitter {
 				resolve();
 			});
 			socket.on("data", (chunk: Buffer) => {
-				this.emit("data", chunk.toString());
+				this.emit("data", chunk);
 			});
 			// socket.on("end", this.on_disconnected.bind(this));
 			socket.on("error", () => {
