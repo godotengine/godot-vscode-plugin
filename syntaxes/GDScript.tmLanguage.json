@@ -74,6 +74,7 @@
 				{ "include": "#square_braces" },
 				{ "include": "#round_braces" },
 				{ "include": "#function_call" },
+				{ "include": "#region"},
 				{ "include": "#comment" },
 				{ "include": "#self" },
 				{ "include": "#func" },
@@ -82,6 +83,10 @@
 				{ "include": "#pascal_case_class" },
 				{ "include": "#line_continuation" }
 			]
+		},
+		"region": {
+			"match": "#(end)?region.*$\\n?",
+			"name": "keyword.language.region.gdscript"
 		},
 		"comment": {
 			"match": "(##|#).*$\\n?",
