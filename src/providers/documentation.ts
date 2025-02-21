@@ -114,8 +114,17 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 		}
 
 		const scaleFactor = get_configuration("documentation.pageScale");
-
 		panel.webview.html = this.htmlDb.get(className).replaceAll("scaleFactor", scaleFactor);
+
+		const displayMinimap = get_configuration("documentation.displayMinimap");
+		if (displayMinimap) {
+			panel.webview.html = this.htmlDb.get(className).replace("displayMinimap", "initial;");
+			panel.webview.html = this.htmlDb.get(className).replace("bodyMargin", "200px;");
+		} else {
+			panel.webview.html = this.htmlDb.get(className).replace("bodyMargin", "0px;");
+			panel.webview.html = this.htmlDb.get(className).replace("displayMinimap", "none;");
+		}
+
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");
 		panel.webview.onDidReceiveMessage((msg) => {
 			if (msg.type === "INSPECT_NATIVE_SYMBOL") {
