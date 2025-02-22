@@ -901,6 +901,7 @@
 		"@vscode/debugadapter": "^1.68.0",
 		"@vscode/debugprotocol": "^1.68.0",
 		"await-notify": "^1.0.1",
+		"bbcode-to-ansi": "^1.0.0",
 		"global": "^4.4.0",
 		"marked": "^4.0.11",
 		"net": "^1.0.2",
