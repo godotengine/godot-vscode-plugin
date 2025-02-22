@@ -283,7 +283,7 @@ export class ObjectId implements GDObject {
 	}
 
 	public type_name(): string {
-		return "Object";
+		return "ObjectId";
 	}
 }
 
