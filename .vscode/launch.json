@@ -47,5 +47,27 @@
 				"VSCODE_DEBUG_MODE": "true"
 			}
 		},
+		{
+			"name": "Run Extension with local workspace file",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--profile=temp",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${workspaceFolder}/workspace.code-workspace"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			],
+			"skipFiles": [
+				"**/extensionHostProcess.js",
+				"<node_internals>/**/*.js"
+			],
+			"preLaunchTask": "npm: watch",
+			"env": {
+				"VSCODE_DEBUG_MODE": "true"
+			}
+		},
 	]
 }
