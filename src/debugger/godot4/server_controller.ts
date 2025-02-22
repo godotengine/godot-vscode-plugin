@@ -75,9 +75,18 @@ export class ServerController {
 	private steppingOut = false;
 	private didFirstOutput = false;
 	private partialStackVars: GodotPartialStackVars;
-	private connectedVersion = "";
+	private projectVersionMajor: number;
+	private projectVersionMinor : number;
+	private projectVersionPoint : number;
 
 	public constructor(public session: GodotDebugSession) {}
+
+	public setProjectVersion(projectVersion: string) {
+		const versionParts = projectVersion.split('.').map(Number);
+		this.projectVersionMajor = versionParts[0] || 0;
+		this.projectVersionMinor = versionParts[1] || 0;
+		this.projectVersionPoint = versionParts[2] || 0;
+	}
 
 	public break() {
 		this.send_command("break");
@@ -204,7 +213,7 @@ export class ServerController {
 			}
 		}
 
-		this.connectedVersion = result.version;
+		this.setProjectVersion(result.version);
 
 		let command = `"${godotPath}" --path "${args.project}"`;
 		const address = args.address.replace("tcp://", "");
@@ -381,7 +390,7 @@ export class ServerController {
 		const command = new Command();
 		let i = 0;
 		command.command = dataset[i++];
-		if (this.connectedVersion[2] >= "2") {
+		if (this.projectVersionMinor >= 2) {
 			command.threadId = dataset[i++];
 		}
 		command.parameters = dataset[i++];
@@ -691,7 +700,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const commandArray: any[] = [command];
-		if (this.connectedVersion[2] >= "2") {
+		if (this.projectVersionMinor >= 2) {
 			commandArray.push(this.threadId);
 		}
 		commandArray.push(parameters ?? []);

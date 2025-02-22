@@ -29,11 +29,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	public variables_manager: VariablesManager;
 
-	public constructor() {
+	public constructor(projectVersion : string) {
 		super();
 
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
+
+		this.controller.setProjectVersion(projectVersion);
 	}
 
 	public dispose() {
@@ -91,6 +93,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		this.mode = "attach";
 
+		this.debug_data.projectPath = args.project;
 		this.exception = false;
 		await this.controller.attach(args);
 
