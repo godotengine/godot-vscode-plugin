@@ -204,7 +204,7 @@ see [CONTRIBUTING.md](CONTRIBUTING.md)
 - Make sure to open the project in the Godot editor first. If you opened
   the editor after opening VS Code, you can click the **Retry** button
   in the bottom-right corner in VS Code.
-- Make sure the LSP Server port is the same in Godot's Editor Settings and
+- Reset the LSP Server port to the default values in both Godot's Editor Settings and
   in VSCode.
 
 ### Why isn't IntelliSense displaying script members?
