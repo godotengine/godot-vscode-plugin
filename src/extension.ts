@@ -22,6 +22,7 @@ import {
 	find_project_file,
 	register_command,
 	set_context,
+	get_editor_data_dir,
 	get_project_dir,
 	get_project_version,
 	verify_godot_version,
@@ -197,23 +198,36 @@ async function open_workspace_with_editor() {
 	}
 }
 
-function open_godot_editor_settings() {
-	// from: https://stackoverflow.com/a/26227660
-	const appdata =
-		process.env.APPDATA ||
-		(process.platform === "darwin"
-			? `${process.env.HOME}/Library/Preferences`
-			: `${process.env.HOME}/.local/share`);
+async function open_godot_editor_settings() {
+	const dir = get_editor_data_dir();
+	const files = fs.readdirSync(dir).filter((v) => v.endsWith(".tres"));
 
-	const dir = path.join(appdata, "Godot");
-	const choices = fs.readdirSync(dir).filter((v) => v.endsWith(".tres"));
+	const ver = await get_project_version();
 
-	vscode.window.showQuickPick(choices).then((value) => {
-        if (value === undefined) {
-            return;
-        }
-        const _path = path.join(dir, value);
-        vscode.workspace.openTextDocument(_path).then(doc => vscode.window.showTextDocument(doc));
+	for (const file of files) {
+		if (file.includes(ver)) {
+			files.unshift(files.splice(files.indexOf(file), 1)[0]);
+			break;
+		}
+	}
+
+	const choices: vscode.QuickPickItem[] = [];
+	for (const file of files) {
+        const pick: vscode.QuickPickItem = {
+			label: file,
+			description: path.join(dir, file),
+		}
+		choices.push(pick);
+	}
+
+	vscode.window.showQuickPick(choices).then(async (item) => {
+		if (item === undefined) {
+			return;
+		}
+
+		const _path = path.join(dir, item.label);
+		const doc = await vscode.workspace.openTextDocument(_path);
+		vscode.window.showTextDocument(doc);
 	});
 }
 
