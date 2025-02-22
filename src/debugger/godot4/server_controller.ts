@@ -16,13 +16,14 @@ import {
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { killSubProcesses, subProcess } from "../../utils/subspawn";
-import { GodotStackFrame, GodotStackVars, GodotVariable } from "../debug_runtime";
+import { GodotStackFrame, GodotVariable } from "../debug_runtime";
 import { AttachRequestArguments, LaunchRequestArguments, pinnedScene } from "../debugger";
 import { GodotDebugSession } from "./debug_session";
 import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers";
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
+import { VariablesManager } from "./variables/variables_manager";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -33,6 +34,33 @@ class Command {
 	public parameters: any[] = [];
 	public complete: boolean = false;
 	public threadId: number = 0;
+}
+
+class GodotPartialStackVars {
+	Locals: GodotVariable[] = [];
+	Members: GodotVariable[] = [];
+	Globals: GodotVariable [] = [];
+	public remaining: number;
+	public stack_frame_id: number;
+	constructor(stack_frame_id: number) {
+		this.stack_frame_id = stack_frame_id;
+	}
+
+	public reset(remaining: number) {
+		this.remaining = remaining;
+		this.Locals = [];
+		this.Members = [];
+		this.Globals = [];
+	}
+
+	public append(name: string, godotScopeIndex: 0|1|2, type: number, value: any, sub_values?: GodotVariable[]) {
+		const scopeName = ["Locals", "Members", "Globals"][godotScopeIndex];
+		const scope = this[scopeName];
+		// const objectId = value instanceof ObjectId ? value : undefined; // won't work, unless the value is re-created through new ObjectId(godot_id)
+		const godot_id = type === 24 ? value.id : undefined;
+		scope.push({ id: godot_id, name, value, type, sub_values } as GodotVariable);
+		this.remaining--;
+	}
 }
 
 export class ServerController {
@@ -46,11 +74,10 @@ export class ServerController {
 	private socket?: net.Socket;
 	private steppingOut = false;
 	private didFirstOutput = false;
-	private partialStackVars = new GodotStackVars();
+	private partialStackVars: GodotPartialStackVars;
 	private projectVersionMajor: number;
 	private projectVersionMinor : number;
 	private projectVersionPoint : number;
-
 
 	public constructor(public session: GodotDebugSession) {}
 
@@ -103,8 +130,16 @@ export class ServerController {
 		this.send_command("get_stack_dump");
 	}
 
-	public request_stack_frame_vars(frame_id: number) {
-		this.send_command("get_stack_frame_vars", [frame_id]);
+	public request_stack_frame_vars(stack_frame_id: number) {
+		if (this.partialStackVars !== undefined) {
+			log.warn("Partial stack frames have been requested, while existing request hasn't been completed yet." +
+							`Remaining stack_frames: ${this.partialStackVars.remaining}` +
+							`Current stack_frame_id: ${this.partialStackVars.stack_frame_id}` + 
+							`Requested stack_frame_id: ${stack_frame_id}`
+						);
+		}
+		this.partialStackVars = new GodotPartialStackVars(stack_frame_id);
+		this.send_command("get_stack_frame_vars", [stack_frame_id]);
 	}
 
 	public set_object_property(objectId: bigint, label: string, newParsedValue) {
@@ -269,7 +304,7 @@ export class ServerController {
 				return;
 			}
 
-			socketLog.debug("rx:", data[0]);
+			socketLog.debug("rx:", data[0], data[0][2]);
 			const command = this.parse_message(data[0]);
 			this.handle_command(command);
 		}
@@ -372,9 +407,11 @@ export class ServerController {
 					this.set_exception("");
 				}
 				this.request_stack_dump();
+				this.session.variables_manager = new VariablesManager(this);
 				break;
 			}
 			case "debug_exit":
+				this.session.variables_manager = undefined;
 				break;
 			case "message:click_ctrl":
 				// TODO: what is this?
@@ -391,14 +428,14 @@ export class ServerController {
 				break;
 			}
 			case "scene:inspect_object": {
-				let id = BigInt(command.parameters[0]);
+				let godot_id = BigInt(command.parameters[0]);
 				const className: string = command.parameters[1];
 				const properties: string[] = command.parameters[2];
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
-				if (id < 0) {
-					id = id + BigInt(2) ** BigInt(64);
+				if (godot_id < 0) {
+					godot_id = godot_id + BigInt(2) ** BigInt(64);
 				}
 
 				const rawObject = new RawObject(className);
@@ -406,14 +443,19 @@ export class ServerController {
 					rawObject.set(prop[0], prop[5]);
 				}
 				const sub_values = get_sub_values(rawObject);
-				
-				const inspect_callback = this.session.inspect_callbacks.get(BigInt(id));
-				if (inspect_callback !== undefined) {
-					const inspectedVariable = { name: "", value: rawObject, sub_values: sub_values } as GodotVariable;
-					inspect_callback(inspectedVariable.name, inspectedVariable);
-					this.session.inspect_callbacks.delete(BigInt(id));
+
+				// race condition here:
+				// 0. DebuggerStop1 happens
+				// 1. the DA may have sent the "inspect_object" message
+				// 2. the vscode hit "continue"
+				// 3. new breakpoint hit, DebuggerStop2 happens
+				// 4. the godot server will return response for `1.` with "scene:inspect_object"
+				// at this moment there is no way to tell if "scene:inspect_object" is for DebuggerStop1 or DebuggerStop2
+				try {
+					this.session.variables_manager?.resolve_variable(godot_id, className, sub_values);
+				} catch (error) {
+					log.error("Race condition error error in scene:inspect_object", error);
 				}
-				this.session.set_inspection(id, rawObject, sub_values);
 				break;
 			}
 			case "stack_dump": {
@@ -433,17 +475,53 @@ export class ServerController {
 				break;
 			}
 			case "stack_frame_vars": {
-				this.partialStackVars.reset(command.parameters[0]);
-				this.session.set_scopes(this.partialStackVars);
+				/** first response to {@link request_stack_frame_vars} */
+				if (this.partialStackVars !== undefined) {
+					log.warn("'stack_frame_vars' received again from godot engine before all partial 'stack_frame_var' are received");
+				}
+				const remaining = command.parameters[0];
+				// init this.partialStackVars, which will be filled with "stack_frame_var" responses data
+				this.partialStackVars.reset(remaining);
 				break;
 			}
 			case "stack_frame_var": {
-				this.do_stack_frame_var(
-					command.parameters[0],
-					command.parameters[1],
-					command.parameters[2],
-					command.parameters[3],
-				);
+				if (this.partialStackVars === undefined) {
+					log.error("Unexpected 'stack_frame_var' received. Should have received 'stack_frame_vars' first.");
+					return;
+				}
+				if (typeof command.parameters[0] !== "string") {
+					log.error("Unexpected parameter type for 'stack_frame_var'. Expected string for name, got " + typeof command.parameters[0]);
+					return;
+				}
+				if (typeof command.parameters[1] !== "number" || command.parameters[1] !== 0 && command.parameters[1] !== 1 && command.parameters[1] !== 2) {
+					log.error("Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got " + typeof command.parameters[1]);
+					return;
+				}
+				if (typeof command.parameters[2] !== "number") {
+					log.error("Unexpected parameter type for 'stack_frame_var'. Expected number for type, got " + typeof command.parameters[2]);
+					return;
+				}
+				var name: string = command.parameters[0];
+				var scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
+				var type: number = command.parameters[2];
+				var value: any = command.parameters[3];
+				var subValues: GodotVariable[] = get_sub_values(value);
+				this.partialStackVars.append(name, scope, type, value, subValues);
+
+				if (this.partialStackVars.remaining === 0) {
+					const stackVars = this.partialStackVars;
+					this.partialStackVars = undefined;
+					log.info("All partial 'stack_frame_var' are received.");
+					// godot server doesn't send the frame_id for the stack_vars, assume the remembered stack_frame_id:
+					const frame_id = BigInt(stackVars.stack_frame_id);
+					const local_scopes_godot_id = -frame_id*3n-1n;
+					const member_scopes_godot_id = -frame_id*3n-2n;
+					const global_scopes_godot_id = -frame_id*3n-3n;
+	
+					this.session.variables_manager.resolve_variable(local_scopes_godot_id, "Locals", stackVars.Locals);
+					this.session.variables_manager.resolve_variable(member_scopes_godot_id, "Members", stackVars.Members);
+					this.session.variables_manager.resolve_variable(global_scopes_godot_id, "Globals", stackVars.Globals);
+				}
 				break;
 			}
 			case "output": {
@@ -626,7 +704,7 @@ export class ServerController {
 			commandArray.push(this.threadId);
 		}
 		commandArray.push(parameters ?? []);
-		socketLog.debug("tx:", commandArray);
+		socketLog.debug("tx:", commandArray, commandArray[2]);
 		const buffer = this.encoder.encode_variant(commandArray);
 		this.commandBuffer.push(buffer);
 		this.send_buffer();
@@ -640,28 +718,6 @@ export class ServerController {
 		while (!this.draining && this.commandBuffer.length > 0) {
 			const command = this.commandBuffer.shift();
 			this.draining = !this.socket.write(command);
-		}
-	}
-
-	private do_stack_frame_var(
-		name: string,
-		scope: 0 | 1 | 2, // 0 = locals, 1 = members, 2 = globals
-		type: bigint,
-		value: any,
-	) {
-		if (this.partialStackVars.remaining === 0) {
-			throw new Error("More stack frame variables were sent than expected.");
-		}
-
-		const sub_values = get_sub_values(value);
-		const variable = { name, value, type, sub_values } as GodotVariable;
-
-		const scopeName = ["locals", "members", "globals"][scope];
-		this.partialStackVars[scopeName].push(variable);
-		this.partialStackVars.remaining--;
-
-		if (this.partialStackVars.remaining === 0) {
-			this.session.set_scopes(this.partialStackVars);
 		}
 	}
 }
