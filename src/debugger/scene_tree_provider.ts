@@ -5,6 +5,7 @@ import {
 	ProviderResult,
 	TreeItem,
 	TreeItemCollapsibleState,
+	Uri
 } from "vscode";
 import path = require("path");
 import { get_extension_uri } from "../utils";
@@ -27,15 +28,15 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 		this._on_did_change_tree_data.fire(undefined);
 	}
 
-	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
+	public getChildren(element?: SceneNode): SceneNode[] {
 		if (!this.tree) {
-			return Promise.resolve([]);
+			return [];
 		}
 
 		if (!element) {
-			return Promise.resolve([this.tree]);
+			return [this.tree];
 		} else {
-			return Promise.resolve(element.children);
+			return element.children;
 		}
 	}
 
@@ -81,8 +82,8 @@ export class SceneNode extends TreeItem {
 		const iconName = class_name + ".svg";
 
 		this.iconPath = {
-			light: path.join(iconDir, "light", iconName),
-			dark: path.join(iconDir, "dark", iconName),
+			light: Uri.file(path.join(iconDir, "light", iconName)),
+			dark: Uri.file(path.join(iconDir, "dark", iconName)),
 		};
 	}
 }

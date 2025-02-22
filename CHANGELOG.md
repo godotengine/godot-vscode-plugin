@@ -1,5 +1,31 @@
 # Changelog
 
+### 2.4.0
+
+- [**Implement warnings and errors in debug console**](https://github.com/godotengine/godot-vscode-plugin/pull/749)
+  - The items are expandable/collapsible, and the links on the right side of the panel work for any file inside the user's project
+- [**Improve GDScript formatter**](https://github.com/godotengine/godot-vscode-plugin/pull/746)
+  - Add new style of formatter snapshot tests
+  - Add many new test cases
+  - Fix several issues ([#728](https://github.com/godotengine/godot-vscode-plugin/pull/728), [#624](https://github.com/godotengine/godot-vscode-plugin/pull/624), [#657](https://github.com/godotengine/godot-vscode-plugin/pull/657), [#717](https://github.com/godotengine/godot-vscode-plugin/pull/717), [#734](https://github.com/godotengine/godot-vscode-plugin/pull/734), likely more)
+- [**Add debugger support for typed Dictionaries**](https://github.com/godotengine/godot-vscode-plugin/pull/764)
+- [Add some useful GDScript snippets for Godot 4](https://github.com/godotengine/godot-vscode-plugin/pull/794)
+- [Add setting to enable/disable documentation minimap](https://github.com/godotengine/godot-vscode-plugin/pull/786)
+- [Add newline when dropping nodes into editor](https://github.com/godotengine/godot-vscode-plugin/pull/754)
+- [Add `@static_unload` annotation and Godot 4.3 Variant types to syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/738)
+- [Overhaul LSP client](https://github.com/godotengine/godot-vscode-plugin/pull/752)
+  - Simplify LSP client internals
+  - Streamline control flow between Client, IO, and Buffer classes
+  - Create canonical, obvious place to implement filters on incoming and outgoing LSP messages
+  - Remove legacy WebSockets-based LSP support
+- [Update float syntax rules and formatting to better support complex cases](https://github.com/godotengine/godot-vscode-plugin/pull/756)
+- [Implement Godot-in-the-loop test suite and fix debugger errors](https://github.com/godotengine/godot-vscode-plugin/pull/788)
+- [Remove OS, GDScript and Object from the list of builtins in syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/739)
+- [Fix typed arrays of scripts not being decoded properly](https://github.com/godotengine/godot-vscode-plugin/pull/731)
+- [Fix debugger watch window freeze caused by missing responses](https://github.com/godotengine/godot-vscode-plugin/pull/781)
+- [Fix the TextMate grammar erroneously tagging enum members and const variables as language constants](https://github.com/godotengine/godot-vscode-plugin/pull/737)
+- [Fix VBoxContainer and HBoxContainer documentation not opening](https://github.com/godotengine/godot-vscode-plugin/pull/755)
+
 ### 2.3.0
 
 - [Add documentation page scaling feature](https://github.com/godotengine/godot-vscode-plugin/pull/722)

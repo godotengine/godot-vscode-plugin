@@ -14,7 +14,8 @@
 		"rootDir": "src",
 		"strict": false,
 		"skipLibCheck": true,
-		"allowJs": true
+		"allowJs": true,
+		"strictBindCallApply": true
 	},
 	"exclude": [
 		"node_modules",

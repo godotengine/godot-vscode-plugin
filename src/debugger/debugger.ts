@@ -25,6 +25,9 @@ import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session"
 import { register_command, set_context, createLogger, get_project_version } from "../utils";
 import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
+import { GodotVariable, RawObject } from "./debug_runtime";
+import { GodotObject, GodotObjectPromise } from "./godot4/variables/godot_object_promise";
+import { InvalidatedEvent } from "@vscode/debugadapter";
 
 const log = createLogger("debugger", { output: "Godot Debugger" });
 
@@ -106,7 +109,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info(`Project version identified as ${projectVersion}`);
 
 		if (projectVersion.startsWith("4")) {
-			this.session = new Godot4DebugSession();
+			this.session = new Godot4DebugSession(projectVersion);
 		} else {
 			this.session = new Godot3DebugSession();
 		}
@@ -256,38 +259,34 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 	}
 
-	public inspect_node(element: SceneNode | RemoteProperty) {
-		this.session?.controller.request_inspect_object(BigInt(element.object_id));
-		this.session?.inspect_callbacks.set(
-			BigInt(element.object_id),
-			(class_name, variable) => {
-				this.inspectorProvider.fill_tree(
-					element.label,
-					class_name,
-					element.object_id,
-					variable
-				);
+	public async inspect_node(element: SceneNode | RemoteProperty) {
+		await this.fill_provider_tree(element.label, BigInt(element.object_id));
+	}
+
+	private create_godot_variable(godot_object: GodotObject): GodotVariable {
+		return {
+			value: {
+				type_name: function() { return godot_object.type; },
+				stringify_value: function() { return `<${godot_object.godot_id}>`; },
+				sub_values: function() {return godot_object.sub_values; },
 			},
-		);
+		} as GodotVariable;
 	}
 
-	public refresh_scene_tree() {
-		this.session?.controller.request_scene_tree();
-	}
-
-	public refresh_inspector() {
-		if (this.inspectorProvider.has_tree()) {
-			const name = this.inspectorProvider.get_top_name();
-			const id = this.inspectorProvider.get_top_id();
-
-			this.session?.controller.request_inspect_object(BigInt(id));
+	private async fill_provider_tree(label: string, godot_id: bigint, force_refresh = false) {
+		if (this.session instanceof Godot4DebugSession) {
+			const godot_object = await this.session.variables_manager.get_godot_object(BigInt(godot_id), force_refresh);
+			const va = this.create_godot_variable(godot_object);
+			this.inspectorProvider.fill_tree(label, godot_object.type, Number(godot_object.godot_id), va);
+		} else {
+			this.session?.controller.request_inspect_object(BigInt(godot_id));
 			this.session?.inspect_callbacks.set(
-				BigInt(id),
+				BigInt(godot_id),
 				(class_name, variable) => {
 					this.inspectorProvider.fill_tree(
-						name,
+						label,
 						class_name,
-						id,
+						Number(godot_id),
 						variable
 					);
 				},
@@ -295,82 +294,83 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 	}
 
-	public edit_value(property: RemoteProperty) {
+	public refresh_scene_tree() {
+		this.session?.controller.request_scene_tree();
+	}
+
+	public async refresh_inspector() {
+		if (this.inspectorProvider.has_tree()) {
+			const label = this.inspectorProvider.get_top_name();
+			const id = this.inspectorProvider.get_top_id();
+			await this.fill_provider_tree(label, BigInt(id), /*force_refresh*/ true);
+		}
+	}
+
+	public async edit_value(property: RemoteProperty) {
 		const previous_value = property.value;
 		const type = typeof previous_value;
 		const is_float = type === "number" && !Number.isInteger(previous_value);
-		window
-			.showInputBox({ value: `${property.description}` })
-			.then((value) => {
-				let new_parsed_value: any;
-				switch (type) {
-					case "string":
-						new_parsed_value = value;
-						break;
-					case "number":
-						if (is_float) {
-							new_parsed_value = Number.parseFloat(value);
-							if (Number.isNaN(new_parsed_value)) {
-								return;
-							}
-						} else {
-							new_parsed_value = Number.parseInt(value);
-							if (Number.isNaN(new_parsed_value)) {
-								return;
-							}
-						}
-						break;
-					case "boolean":
-						if (
-							value.toLowerCase() === "true" ||
-							value.toLowerCase() === "false"
-						) {
-							new_parsed_value = value.toLowerCase() === "true";
-						} else if (value === "0" || value === "1") {
-							new_parsed_value = value === "1";
-						} else {
-							return;
-						}
-				}
-				if (property.changes_parent) {
-					const parents = [property.parent];
-					let idx = 0;
-					while (parents[idx].changes_parent) {
-						parents.push(parents[idx++].parent);
+		const value = await window.showInputBox({ value: `${property.description}` });
+		let new_parsed_value: any;
+		switch (type) {
+			case "string":
+				new_parsed_value = value;
+				break;
+			case "number":
+				if (is_float) {
+					new_parsed_value = Number.parseFloat(value);
+					if (Number.isNaN(new_parsed_value)) {
+						return;
 					}
-					const changed_value = this.inspectorProvider.get_changed_value(
-						parents,
-						property,
-						new_parsed_value
-					);
-					this.session?.controller.set_object_property(
-						BigInt(property.object_id),
-						parents[idx].label,
-						changed_value,
-					);
 				} else {
-					this.session?.controller.set_object_property(
-						BigInt(property.object_id),
-						property.label,
-						new_parsed_value,
-					);
+					new_parsed_value = Number.parseInt(value);
+					if (Number.isNaN(new_parsed_value)) {
+						return;
+					}
 				}
+				break;
+			case "boolean":
+				if (
+					value.toLowerCase() === "true" ||
+					value.toLowerCase() === "false"
+				) {
+					new_parsed_value = value.toLowerCase() === "true";
+				} else if (value === "0" || value === "1") {
+					new_parsed_value = value === "1";
+				} else {
+					return;
+				}
+		}
+		if (property.changes_parent) {
+			const parents = [property.parent];
+			let idx = 0;
+			while (parents[idx].changes_parent) {
+				parents.push(parents[idx++].parent);
+			}
+			const changed_value = this.inspectorProvider.get_changed_value(
+				parents,
+				property,
+				new_parsed_value
+			);
+			this.session?.controller.set_object_property(
+				BigInt(property.object_id),
+				parents[idx].label,
+				changed_value,
+			);
+		} else {
+			this.session?.controller.set_object_property(
+				BigInt(property.object_id),
+				property.label,
+				new_parsed_value,
+			);
+		}
 
-				const name = this.inspectorProvider.get_top_name();
-				const id = this.inspectorProvider.get_top_id();
+		const label = this.inspectorProvider.get_top_name();
+		const godot_id = BigInt(this.inspectorProvider.get_top_id());
 
-				this.session?.controller.request_inspect_object(BigInt(id));
-				this.session?.inspect_callbacks.set(
-					BigInt(id),
-					(class_name, variable) => {
-						this.inspectorProvider.fill_tree(
-							name,
-							class_name,
-							id,
-							variable
-						);
-					},
-				);
-			});
+		await this.fill_provider_tree(label, godot_id, /*force_refresh*/ true);
+		// const res = await debug.activeDebugSession?.customRequest("refreshVariables"); // refresh vscode.debug variables
+		this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		console.log("foo");
 	}
 }

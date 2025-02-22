@@ -1,0 +1,40 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    {
+        "name": "GDScript: Launch ScopeVars.tscn",
+        "type": "godot",
+        "request": "launch",
+        "project": "${workspaceFolder}",
+        "scene": "ScopeVars.tscn"
+        // "debug_collisions": false,
+        // "debug_paths": false,
+        // "debug_navigation": false,
+        // "additional_options": ""
+    },
+    {
+        "name": "GDScript: Launch ExtensiveVars.tscn",
+        "type": "godot",
+        "request": "launch",
+        "project": "${workspaceFolder}",
+        "scene": "ExtensiveVars.tscn"
+    },
+    {
+        "name": "GDScript: Launch BuiltInTypes.tscn",
+        "type": "godot",
+        "request": "launch",
+        "project": "${workspaceFolder}",
+        "scene": "BuiltInTypes.tscn"
+    },
+    {
+        "name": "GDScript: Launch NodeVars.tscn",
+        "type": "godot",
+        "request": "launch",
+        "project": "${workspaceFolder}",
+        "scene": "NodeVars.tscn"
+    }
+    ]
+}

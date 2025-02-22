@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0ovhv6f38jj4"]
+
+[ext_resource type="Script" path="res://BuiltInTypes.gd" id="1_2dpge"]
+
+[node name="BuiltInTypes" type="Node"]
+script = ExtResource("1_2dpge")
+
+[node name="Label" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Built-in types"
