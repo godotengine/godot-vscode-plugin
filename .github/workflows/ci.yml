@@ -16,7 +16,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4.2.0
         with:
-          node-version: 16.x
+          node-version: 22.x
 
       - name: Install Godot (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
