@@ -62,6 +62,11 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.openEditorSettings",
+				"title": "Open EditorSettings File"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.startLanguageServer",
 				"title": "Start the GDScript Language Server for this workspace"
 			},

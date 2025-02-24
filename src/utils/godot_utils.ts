@@ -4,6 +4,17 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import { execSync } from "node:child_process";
 
+export function get_editor_data_dir(): string {
+	// from: https://stackoverflow.com/a/26227660
+	const appdata =
+		process.env.APPDATA ||
+		(process.platform === "darwin"
+			? `${process.env.HOME}/Library/Preferences`
+			: `${process.env.HOME}/.local/share`);
+
+	return path.join(appdata, "Godot");
+}
+
 let projectDir: string | undefined = undefined;
 let projectFile: string | undefined = undefined;
 
@@ -33,10 +44,10 @@ export async function get_project_dir(): Promise<string | undefined> {
 	}
 	projectFile = file;
 	projectDir = path.dirname(file);
-    if (os.platform() === "win32") {
-        // capitalize the drive letter in windows absolute paths
-        projectDir = projectDir[0].toUpperCase() + projectDir.slice(1);
-    }
+	if (os.platform() === "win32") {
+		// capitalize the drive letter in windows absolute paths
+		projectDir = projectDir[0].toUpperCase() + projectDir.slice(1);
+	}
 	return projectDir;
 }
 
