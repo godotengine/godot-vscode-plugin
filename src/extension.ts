@@ -216,7 +216,7 @@ async function open_godot_editor_settings() {
         const pick: vscode.QuickPickItem = {
 			label: file,
 			description: path.join(dir, file),
-		}
+		};
 		choices.push(pick);
 	}
 
