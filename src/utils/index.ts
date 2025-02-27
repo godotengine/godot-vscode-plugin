@@ -4,7 +4,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 
 export * from "./logger";
-export * from "./project_utils";
+export * from "./godot_utils";
 export * from "./settings_updater";
 export * from "./vscode_utils";
 

@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./utils";
@@ -21,6 +22,7 @@ import {
 	find_project_file,
 	register_command,
 	set_context,
+	get_editor_data_dir,
 	get_project_dir,
 	get_project_version,
 	verify_godot_version,
@@ -65,13 +67,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		register_command("openEditor", open_workspace_with_editor),
+		register_command("openEditorSettings", open_godot_editor_settings),
 		register_command("copyResourcePath", copy_resource_path),
 		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 		register_command("getGodotPath", get_godot_path),
 	);
 
-	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader",]);
+	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader"]);
 	set_context("sceneLikeFiles", ["gdscript", "gdscene"]);
 
 	get_project_version().then(async () => {
@@ -166,7 +169,7 @@ async function open_workspace_with_editor() {
 			if (get_configuration("editor.verbose")) {
 				command += " -v";
 			}
-			const existingTerminal = vscode.window.terminals.find(t => t.name === "Godot Editor");
+			const existingTerminal = vscode.window.terminals.find((t) => t.name === "Godot Editor");
 			if (existingTerminal) {
 				existingTerminal.dispose();
 			}
@@ -195,6 +198,39 @@ async function open_workspace_with_editor() {
 	}
 }
 
+async function open_godot_editor_settings() {
+	const dir = get_editor_data_dir();
+	const files = fs.readdirSync(dir).filter((v) => v.endsWith(".tres"));
+
+	const ver = await get_project_version();
+
+	for (const file of files) {
+		if (file.includes(ver)) {
+			files.unshift(files.splice(files.indexOf(file), 1)[0]);
+			break;
+		}
+	}
+
+	const choices: vscode.QuickPickItem[] = [];
+	for (const file of files) {
+        const pick: vscode.QuickPickItem = {
+			label: file,
+			description: path.join(dir, file),
+		};
+		choices.push(pick);
+	}
+
+	vscode.window.showQuickPick(choices).then(async (item) => {
+		if (item === undefined) {
+			return;
+		}
+
+		const _path = path.join(dir, item.label);
+		const doc = await vscode.workspace.openTextDocument(_path);
+		vscode.window.showTextDocument(doc);
+	});
+}
+
 /**
  * Returns the executable path for Godot based on the current project's version.
  * Created to allow other extensions to get the path without having to go
@@ -202,7 +238,7 @@ async function open_workspace_with_editor() {
  * value (godotTools.editorPath.godot3/4).
  * @returns
  */
-async function get_godot_path(): Promise<string|undefined> {
+async function get_godot_path(): Promise<string | undefined> {
 	const projectVersion = await get_project_version();
 	if (projectVersion === undefined) {
 		return undefined;
@@ -217,7 +253,7 @@ class GodotEditorTerminal implements vscode.Pseudoterminal {
 	private closeEmitter = new vscode.EventEmitter<number>();
 	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
 
-	constructor(private command: string) { }
+	constructor(private command: string) {}
 
 	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
 		const proc = subProcess("GodotEditor", this.command, { shell: true, detached: true });
