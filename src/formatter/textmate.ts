@@ -186,6 +186,10 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "@") return "";
 
 	if (prev === "-" || prev === "+") {
+		// check whether these are unary operators
+		if (current < 2 || (!tokens[current - 2].identifier && tokens[current - 2].value != ")")) {
+			return "";
+		}
 		if (nextToken.identifier) return " ";
 		if (next === "(") return " ";
 		if (current === 1) return "";

@@ -263,7 +263,7 @@
 					"maximum": 200,
 					"description": "Scale factor (%) to apply to the Godot documentation viewer."
 				},
-				"godotTools.documentation.displayMinimap":{
+				"godotTools.documentation.displayMinimap": {
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to display the minimap for the Godot documentation viewer."
