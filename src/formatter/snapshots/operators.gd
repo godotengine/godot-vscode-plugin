@@ -27,3 +27,6 @@ func f():
 	print(x == 1)
 	print(x <= 1)
 	print(x >= 1)
+
+	var ij := 1
+	var k := -ij + 1

@@ -186,12 +186,12 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	if (prev === "@") return "";
 
 	if (prev === "-" || prev === "+") {
-		if (nextToken.identifier) return " ";
-		if (next === "(") return " ";
+        if (next === "(") return " ";
 		if (current === 1) return "";
 		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
-			return "";
+            return "";
 		}
+        if (nextToken.identifier) return " ";
 		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
