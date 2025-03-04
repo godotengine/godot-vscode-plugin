@@ -30,3 +30,4 @@ func f():
 
 	var ij := 1
 	var k := -ij + 1
+	var m := 0 + -ij
