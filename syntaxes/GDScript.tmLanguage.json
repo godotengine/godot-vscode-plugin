@@ -272,7 +272,11 @@
 					"name": "constant.numeric.float.gdscript"
 				},
 				{
-					"match": "([0-9][0-9_]*)?\\.[0-9_]*([eE][+-]?[0-9_]+)?",
+					"match": "([0-9][0-9_]*)\\.[0-9_]*([eE][+-]?[0-9_]+)?",
+					"name": "constant.numeric.float.gdscript"
+				},
+				{
+					"match": "([0-9][0-9_]*)?\\.[0-9_]*([eE][+-]?[0-9_]+)",
 					"name": "constant.numeric.float.gdscript"
 				},
 				{
