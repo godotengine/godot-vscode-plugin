@@ -187,7 +187,6 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === "-" || prev === "+") {
 		if (next === "(") return " ";
-		if (current === 1) return "";
 		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
 			return "";
 		}
@@ -195,6 +194,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 			return "";
 		}
 		if (nextToken.identifier) return " ";
+		if (current === 1) return "";
 	}
 
 	if (prev === ":" && next === "=") return "";
