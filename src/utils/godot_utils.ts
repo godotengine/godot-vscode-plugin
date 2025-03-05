@@ -116,6 +116,17 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring("res://".length));
 }
 
+export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<string | null> {
+	const project_dir = path.dirname(find_project_file(uri.fsPath));
+	if (project_dir === null) {
+		return;
+	}
+
+	let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));
+	relative_path = relative_path.split(path.sep).join(path.posix.sep);
+	return `res://${relative_path}`;
+}
+
 export type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 export type VERIFY_RESULT = {
 	status: VERIFY_STATUS;
