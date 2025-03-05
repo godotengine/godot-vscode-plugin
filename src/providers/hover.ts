@@ -49,8 +49,8 @@ export class GDHoverProvider implements HoverProvider {
 			if (word.startsWith("ExtResource")) {
 				const match = word.match(wordPattern);
 				const id = match[1];
-				const resource = scene.externalResources[id];
-				const definition = scene.externalResources[id].body;
+				const resource = scene.externalResources.get(id);
+				const definition = resource.body;
 				const links = await this.get_links(definition);
 
 				const contents = new MarkdownString();
@@ -77,7 +77,7 @@ export class GDHoverProvider implements HoverProvider {
 				const match = word.match(wordPattern);
 				const id = match[1];
 
-				let definition = scene.subResources[id].body;
+				let definition = scene.subResources.get(id).body;
 				// don't display contents of giant arrays
 				definition = definition?.replace(/Array\([0-9,\.\- ]*\)/, "Array(...)");
 

@@ -126,7 +126,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];
 			const end = document.positionAt(match.index + match[0].length);
-			const resource = scene.externalResources[id];
+			const resource = scene.externalResources.get(id);
 
 			const label = `${resource.type}: "${resource.path}"`;
 
@@ -138,7 +138,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		for (const match of text.matchAll(/SubResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];
 			const end = document.positionAt(match.index + match[0].length);
-			const resource = scene.subResources[id];
+			const resource = scene.subResources.get(id);
 
 			const label = `${resource.type}`;
 

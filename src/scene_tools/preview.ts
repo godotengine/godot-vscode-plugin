@@ -89,7 +89,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		token: vscode.CancellationToken,
 	): void | Thenable<void> {
 		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
-		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
+		data.set("godot/node", new vscode.DataTransferItem(source[0]));
+		data.set("godot/path", new vscode.DataTransferItem(source[0].path));
+		data.set("godot/relativePath", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 		data.set("godot/unique", new vscode.DataTransferItem(source[0].unique));
 		data.set("godot/label", new vscode.DataTransferItem(source[0].label));
@@ -192,7 +194,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_script(item: SceneNode) {
-		const path = this.scene.externalResources[item.scriptId].path;
+		const path = this.scene.externalResources.get(item.scriptId).path;
 
 		const uri = await convert_resource_path_to_uri(path);
 		if (uri) {
@@ -211,7 +213,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		if (this.currentScene) {
 			const root = this.scene.root;
 			if (root?.hasScript) {
-				const path = this.scene.externalResources[root.scriptId].path;
+				const path = this.scene.externalResources.get(root.scriptId).path;
 				const uri = await convert_resource_path_to_uri(path);
 				if (uri) {
 					vscode.window.showTextDocument(uri, { preview: true });
