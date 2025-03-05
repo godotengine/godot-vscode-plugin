@@ -65,7 +65,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
-			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
+			window.onDidChangeActiveTextEditor(this.text_editor_changed.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
 			window.registerFileDecorationProvider(this.scriptDecorator),
 			this.watcher.onDidChange(this.on_file_changed.bind(this)),
@@ -73,6 +73,12 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			this.tree.onDidChangeSelection(this.tree_selection_changed),
 			this.tree,
 		);
+		const result: string | undefined = this.context.workspaceState.get("godotTools.scenePreview.lockedScene");
+		if (result) {
+			set_context("scenePreview.locked", true);
+			this.scenePreviewLocked = true;
+			this.currentScene = result;
+		}
 
 		this.refresh();
 	}
@@ -103,11 +109,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		}, 20);
 	}
 
-	public async refresh() {
+	public async text_editor_changed() {
 		if (this.scenePreviewLocked) {
 			return;
 		}
-
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
@@ -140,24 +145,30 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 				return;
 			}
 
-			const document = await vscode.workspace.openTextDocument(fileName);
-			this.scene = this.parser.parse_scene(document);
-
-			this.tree.message = this.scene.title;
 			this.currentScene = fileName;
-
-			this.changeTreeEvent.fire();
+			this.refresh();
 		}
+	}
+
+	public async refresh() {
+		const document = await vscode.workspace.openTextDocument(this.currentScene);
+		this.scene = this.parser.parse_scene(document);
+
+		this.tree.message = this.scene.title;
+
+		this.changeTreeEvent.fire();
 	}
 
 	private lock_preview() {
 		this.scenePreviewLocked = true;
 		set_context("scenePreview.locked", true);
+		this.context.workspaceState.update("godotTools.scenePreview.lockedScene", this.currentScene);
 	}
 
 	private unlock_preview() {
 		this.scenePreviewLocked = false;
 		set_context("scenePreview.locked", false);
+		this.context.workspaceState.update("godotTools.scenePreview.lockedScene", "");
 		this.refresh();
 	}
 
