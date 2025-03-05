@@ -893,7 +893,7 @@
 		"chai": "^4.5.0",
 		"chai-as-promised": "^8.0.1",
 		"chai-subset": "^1.6.0",
-		"esbuild": "^0.17.15",
+		"esbuild": "^0.25.0",
 		"eslint": "^8.37.0",
 		"mocha": "^10.8.2",
 		"sinon": "^19.0.2",
