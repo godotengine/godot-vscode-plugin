@@ -1,4 +1,4 @@
-import { GodotVariable, } from "../debug_runtime";
+import { GodotVariable } from "../debug_runtime";
 import { SceneNode } from "../scene_tree_provider";
 import { ObjectId } from "./variables/variants";
 
@@ -43,9 +43,12 @@ export function get_sub_values(value: any): GodotVariable[] {
 		} else if (value instanceof Map) {
 			subValues = [];
 			for (const [key, val] of value.entries()) {
-				const name = typeof key["stringify_value"] === "function" ? `${key.type_name()}${key.stringify_value()}` : `${key}`;
+				const name =
+					typeof key["stringify_value"] === "function"
+						? `${key.type_name()}${key.stringify_value()}`
+						: `${key}`;
 				const godot_id = val instanceof ObjectId ? val.id : undefined;
-				subValues.push({id: godot_id, name, value: val } as GodotVariable);
+				subValues.push({ id: godot_id, name, value: val } as GodotVariable);
 			}
 		} else if (typeof value["sub_values"] === "function") {
 			subValues = value.sub_values()?.map((sva) => {

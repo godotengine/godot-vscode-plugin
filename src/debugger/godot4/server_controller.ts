@@ -24,7 +24,7 @@ import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
 import { VariablesManager } from "./variables/variables_manager";
-import BBCodeToAnsi from 'bbcode-to-ansi';
+import BBCodeToAnsi from "bbcode-to-ansi";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -42,7 +42,7 @@ class Command {
 class GodotPartialStackVars {
 	Locals: GodotVariable[] = [];
 	Members: GodotVariable[] = [];
-	Globals: GodotVariable [] = [];
+	Globals: GodotVariable[] = [];
 	public remaining: number;
 	public stack_frame_id: number;
 	constructor(stack_frame_id: number) {
@@ -56,7 +56,7 @@ class GodotPartialStackVars {
 		this.Globals = [];
 	}
 
-	public append(name: string, godotScopeIndex: 0|1|2, type: number, value: any, sub_values?: GodotVariable[]) {
+	public append(name: string, godotScopeIndex: 0 | 1 | 2, type: number, value: any, sub_values?: GodotVariable[]) {
 		const scopeName = ["Locals", "Members", "Globals"][godotScopeIndex];
 		const scope = this[scopeName];
 		// const objectId = value instanceof ObjectId ? value : undefined; // won't work, unless the value is re-created through new ObjectId(godot_id)
@@ -79,13 +79,13 @@ export class ServerController {
 	private didFirstOutput = false;
 	private partialStackVars: GodotPartialStackVars;
 	private projectVersionMajor: number;
-	private projectVersionMinor : number;
-	private projectVersionPoint : number;
+	private projectVersionMinor: number;
+	private projectVersionPoint: number;
 
 	public constructor(public session: GodotDebugSession) {}
 
 	public setProjectVersion(projectVersion: string) {
-		const versionParts = projectVersion.split('.').map(Number);
+		const versionParts = projectVersion.split(".").map(Number);
 		this.projectVersionMajor = versionParts[0] || 0;
 		this.projectVersionMinor = versionParts[1] || 0;
 		this.projectVersionPoint = versionParts[2] || 0;
@@ -135,11 +135,12 @@ export class ServerController {
 
 	public request_stack_frame_vars(stack_frame_id: number) {
 		if (this.partialStackVars !== undefined) {
-			log.warn("Partial stack frames have been requested, while existing request hasn't been completed yet." +
-							`Remaining stack_frames: ${this.partialStackVars.remaining}` +
-							`Current stack_frame_id: ${this.partialStackVars.stack_frame_id}` + 
-							`Requested stack_frame_id: ${stack_frame_id}`
-						);
+			log.warn(
+				"Partial stack frames have been requested, while existing request hasn't been completed yet." +
+					`Remaining stack_frames: ${this.partialStackVars.remaining}` +
+					`Current stack_frame_id: ${this.partialStackVars.stack_frame_id}` +
+					`Requested stack_frame_id: ${stack_frame_id}`,
+			);
 		}
 		this.partialStackVars = new GodotPartialStackVars(stack_frame_id);
 		this.send_command("get_stack_frame_vars", [stack_frame_id]);
@@ -480,7 +481,9 @@ export class ServerController {
 			case "stack_frame_vars": {
 				/** first response to {@link request_stack_frame_vars} */
 				if (this.partialStackVars !== undefined) {
-					log.warn("'stack_frame_vars' received again from godot engine before all partial 'stack_frame_var' are received");
+					log.warn(
+						"'stack_frame_vars' received again from godot engine before all partial 'stack_frame_var' are received",
+					);
 				}
 				const remaining = command.parameters[0];
 				// init this.partialStackVars, which will be filled with "stack_frame_var" responses data
@@ -493,15 +496,27 @@ export class ServerController {
 					return;
 				}
 				if (typeof command.parameters[0] !== "string") {
-					log.error("Unexpected parameter type for 'stack_frame_var'. Expected string for name, got " + typeof command.parameters[0]);
+					log.error(
+						"Unexpected parameter type for 'stack_frame_var'. Expected string for name, got " +
+							typeof command.parameters[0],
+					);
 					return;
 				}
-				if (typeof command.parameters[1] !== "number" || command.parameters[1] !== 0 && command.parameters[1] !== 1 && command.parameters[1] !== 2) {
-					log.error("Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got " + typeof command.parameters[1]);
+				if (
+					typeof command.parameters[1] !== "number" ||
+					(command.parameters[1] !== 0 && command.parameters[1] !== 1 && command.parameters[1] !== 2)
+				) {
+					log.error(
+						"Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got " +
+							typeof command.parameters[1],
+					);
 					return;
 				}
 				if (typeof command.parameters[2] !== "number") {
-					log.error("Unexpected parameter type for 'stack_frame_var'. Expected number for type, got " + typeof command.parameters[2]);
+					log.error(
+						"Unexpected parameter type for 'stack_frame_var'. Expected number for type, got " +
+							typeof command.parameters[2],
+					);
 					return;
 				}
 				var name: string = command.parameters[0];
@@ -517,13 +532,21 @@ export class ServerController {
 					log.info("All partial 'stack_frame_var' are received.");
 					// godot server doesn't send the frame_id for the stack_vars, assume the remembered stack_frame_id:
 					const frame_id = BigInt(stackVars.stack_frame_id);
-					const local_scopes_godot_id = -frame_id*3n-1n;
-					const member_scopes_godot_id = -frame_id*3n-2n;
-					const global_scopes_godot_id = -frame_id*3n-3n;
-	
+					const local_scopes_godot_id = -frame_id * 3n - 1n;
+					const member_scopes_godot_id = -frame_id * 3n - 2n;
+					const global_scopes_godot_id = -frame_id * 3n - 3n;
+
 					this.session.variables_manager.resolve_variable(local_scopes_godot_id, "Locals", stackVars.Locals);
-					this.session.variables_manager.resolve_variable(member_scopes_godot_id, "Members", stackVars.Members);
-					this.session.variables_manager.resolve_variable(global_scopes_godot_id, "Globals", stackVars.Globals);
+					this.session.variables_manager.resolve_variable(
+						member_scopes_godot_id,
+						"Members",
+						stackVars.Members,
+					);
+					this.session.variables_manager.resolve_variable(
+						global_scopes_godot_id,
+						"Globals",
+						stackVars.Globals,
+					);
 				}
 				break;
 			}
@@ -532,8 +555,8 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
-				for (const output of command.parameters[0]){
-					output.split("\n").forEach(line => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
+				for (const output of command.parameters[0]) {
+					output.split("\n").forEach((line) => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
 				}
 				break;
 			}

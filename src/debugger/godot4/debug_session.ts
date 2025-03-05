@@ -29,7 +29,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	public variables_manager: VariablesManager;
 
-	public constructor(projectVersion : string) {
+	public constructor(projectVersion: string) {
 		super();
 
 		this.setDebuggerLinesStartAt1(false);
@@ -233,14 +233,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		// TODO: create scopes dynamically for a given frame
 		const vscode_scope_ids = this.variables_manager.get_or_create_frame_scopes(args.frameId);
-		const scopes_with_references =  [
-      {name: "Locals", variablesReference: vscode_scope_ids.Locals, expensive: false},
-			{name: "Members", variablesReference: vscode_scope_ids.Members, expensive: false},
-			{name: "Globals", variablesReference: vscode_scope_ids.Globals, expensive: false},
-    ];
+		const scopes_with_references = [
+			{ name: "Locals", variablesReference: vscode_scope_ids.Locals, expensive: false },
+			{ name: "Members", variablesReference: vscode_scope_ids.Members, expensive: false },
+			{ name: "Globals", variablesReference: vscode_scope_ids.Globals, expensive: false },
+		];
 
 		response.body = {
-			scopes: scopes_with_references
+			scopes: scopes_with_references,
 			// scopes: [
 			// 	{ name: "Locals", variablesReference: 1, expensive: false },
 			// 	{ name: "Members", variablesReference: 2, expensive: false },
@@ -252,7 +252,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
+	protected async variablesRequest(
+		response: DebugProtocol.VariablesResponse,
+		args: DebugProtocol.VariablesArguments,
+	) {
 		log.info("variablesRequest", args);
 		try {
 			const variables = await this.variables_manager.get_vscode_object(args.variablesReference);
@@ -274,10 +277,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 		log.info("evaluateRequest", args);
 
 		try {
-			const parsed_variable = await this.variables_manager.get_vscode_variable_by_name(args.expression, args.frameId);
+			const parsed_variable = await this.variables_manager.get_vscode_variable_by_name(
+				args.expression,
+				args.frameId,
+			);
 			response.body = {
 				result: parsed_variable.value,
-				variablesReference: parsed_variable.variablesReference
+				variablesReference: parsed_variable.variablesReference,
 			};
 		} catch (error) {
 			response.success = false;
