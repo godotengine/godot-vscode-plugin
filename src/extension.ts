@@ -5,6 +5,7 @@ import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./ut
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
+	GDDocumentDropEditProvider,
 	GDDocumentLinkProvider,
 	GDSemanticTokensProvider,
 	GDCompletionItemProvider,
@@ -36,6 +37,7 @@ interface Extension {
 	debug?: GodotDebugger;
 	scenePreviewProvider?: ScenePreviewProvider;
 	linkProvider?: GDDocumentLinkProvider;
+	dropsProvider?: GDDocumentDropEditProvider;
 	hoverProvider?: GDHoverProvider;
 	inlayProvider?: GDInlayHintsProvider;
 	formattingProvider?: FormattingProvider;
@@ -56,6 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.debug = new GodotDebugger(context);
 	globals.scenePreviewProvider = new ScenePreviewProvider(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
+    globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
 	globals.inlayProvider = new GDInlayHintsProvider(context);
 	globals.formattingProvider = new FormattingProvider(context);
@@ -213,7 +216,7 @@ async function open_godot_editor_settings() {
 
 	const choices: vscode.QuickPickItem[] = [];
 	for (const file of files) {
-        const pick: vscode.QuickPickItem = {
+		const pick: vscode.QuickPickItem = {
 			label: file,
 			description: path.join(dir, file),
 		};

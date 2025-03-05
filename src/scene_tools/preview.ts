@@ -1,41 +1,36 @@
+import * as fs from "node:fs";
 import * as vscode from "vscode";
 import {
+	type CancellationToken,
+	type Event,
+	EventEmitter,
+	type ExtensionContext,
+	type FileDecoration,
+	type ProviderResult,
 	type TreeDataProvider,
 	type TreeDragAndDropController,
-	type ExtensionContext,
-	EventEmitter,
-	type Event,
-	type TreeView,
-	type ProviderResult,
 	type TreeItem,
 	TreeItemCollapsibleState,
-	window,
-	languages,
+	type TreeView,
 	type Uri,
-	type CancellationToken,
-	type FileDecoration,
-	type DocumentDropEditProvider,
+	window,
 	workspace,
 } from "vscode";
-import * as fs from "node:fs";
 import {
-	get_configuration,
-	find_file,
-	set_context,
 	convert_resource_path_to_uri,
-	register_command,
 	createLogger,
+	find_file,
+	get_configuration,
 	make_docs_uri,
-	node_name_to_snake,
+	register_command,
+	set_context,
 } from "../utils";
 import { SceneParser } from "./parser";
-import type { SceneNode, Scene } from "./types";
+import type { Scene, SceneNode } from "./types";
 
 const log = createLogger("scenes.preview");
 
-export class ScenePreviewProvider
-	implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode>, DocumentDropEditProvider
-{
+export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDragAndDropController<SceneNode> {
 	public dropMimeTypes = [];
 	public dragMimeTypes = [];
 	private tree: TreeView<SceneNode>;
@@ -58,10 +53,6 @@ export class ScenePreviewProvider
 			dragAndDropController: this,
 		});
 
-		const selector = [
-			{ language: "csharp", scheme: "file" },
-			{ language: "gdscript", scheme: "file" },
-		];
 		context.subscriptions.push(
 			register_command("scenePreview.lock", this.lock_preview.bind(this)),
 			register_command("scenePreview.unlock", this.unlock_preview.bind(this)),
@@ -77,7 +68,6 @@ export class ScenePreviewProvider
 			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
 			window.registerFileDecorationProvider(this.scriptDecorator),
-			languages.registerDocumentDropEditProvider(selector, this),
 			this.watcher.onDidChange(this.on_file_changed.bind(this)),
 			this.watcher,
 			this.tree.onDidChangeSelection(this.tree_selection_changed),
@@ -92,57 +82,11 @@ export class ScenePreviewProvider
 		data: vscode.DataTransfer,
 		token: vscode.CancellationToken,
 	): void | Thenable<void> {
+		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
 		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 		data.set("godot/unique", new vscode.DataTransferItem(source[0].unique));
 		data.set("godot/label", new vscode.DataTransferItem(source[0].label));
-	}
-
-	public provideDocumentDropEdits(
-		document: vscode.TextDocument,
-		position: vscode.Position,
-		dataTransfer: vscode.DataTransfer,
-		token: vscode.CancellationToken,
-	): vscode.ProviderResult<vscode.DocumentDropEdit> {
-		const path: string = dataTransfer.get("godot/path").value;
-		const className: string = dataTransfer.get("godot/class").value;
-		const line = document.lineAt(position.line);
-		const unique = dataTransfer.get("godot/unique").value === "true";
-		const label: string = dataTransfer.get("godot/label").value;
-
-		// TODO: compare the source scene to the target file
-		// What should happen when you drag a node into a script that isn't the
-		// "main" script for that scene?
-		// Attempt to calculate a relative path that resolves correctly?
-
-		if (className) {
-			// For the root node, the path is empty and needs to be replaced with the node name
-			const savePath = path || label;
-
-			if (document.languageId === "gdscript") {
-				let qualifiedPath = `$${savePath}`;
-
-				if (unique) {
-					// For unique nodes, we can use the % syntax and drop the full path
-					qualifiedPath = `%${label}`;
-				}
-
-				if (line.text === "") {
-					// We assume that if the user is dropping a node in an empty line, they are at the top of
-					// the script and want to declare an onready variable
-					return new vscode.DocumentDropEdit(
-						`@onready var ${node_name_to_snake(label)}: ${className} = ${qualifiedPath}\n`,
-					);
-				}
-
-				// In any other place, we assume the user wants to get a reference to the node itself
-				return new vscode.DocumentDropEdit(qualifiedPath);
-			}
-
-			if (document.languageId === "csharp") {
-				return new vscode.DocumentDropEdit(`GetNode<${className}>("${savePath}")`);
-			}
-		}
 	}
 
 	public async on_file_changed(uri: vscode.Uri) {
