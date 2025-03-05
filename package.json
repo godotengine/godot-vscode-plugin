@@ -31,7 +31,7 @@
 	],
 	"main": "./out/extension.js",
 	"scripts": {
-		"format": "biome format --write src",
+		"format": "biome format --write --changed src",
 		"compile": "tsc -p ./",
 		"lint": "eslint ./src --quiet",
 		"watch": "tsc -watch -p ./",

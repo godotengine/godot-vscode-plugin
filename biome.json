@@ -1,4 +1,7 @@
 {
+	"vcs": {
+		"defaultBranch": "master"
+	},
 	"formatter": {
 		"enabled": true,
 		"formatWithErrors": false,
@@ -16,7 +19,7 @@
 		"rules": {
 			"style": {
 				"noUselessElse": "off",
-                "useImportType": "off"
+				"useImportType": "off"
 			}
 		}
 	}
