@@ -31,6 +31,7 @@
 	],
 	"main": "./out/extension.js",
 	"scripts": {
+		"format": "biome format src",
 		"compile": "tsc -p ./",
 		"lint": "eslint ./src --quiet",
 		"watch": "tsc -watch -p ./",
@@ -263,7 +264,7 @@
 					"maximum": 200,
 					"description": "Scale factor (%) to apply to the Godot documentation viewer."
 				},
-				"godotTools.documentation.displayMinimap":{
+				"godotTools.documentation.displayMinimap": {
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to display the minimap for the Godot documentation viewer."
@@ -875,6 +876,7 @@
 		}
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
 		"@types/chai": "^4.3.11",
 		"@types/chai-as-promised": "^8.0.1",
 		"@types/chai-subset": "^1.3.5",
