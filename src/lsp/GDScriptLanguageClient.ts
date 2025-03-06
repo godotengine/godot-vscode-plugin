@@ -126,11 +126,11 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.sentMessages.set(message.id, message);
 
 		// discard outgoing messages that we know aren't supported
-		if (message.method === "didChangeWatchedFiles") {
-			return;
+		if (message.method === "workspace/didChangeWatchedFiles") {
+			return false;
 		}
 		if (message.method === "workspace/symbol") {
-			return;
+			return false;
 		}
 
 		return message;

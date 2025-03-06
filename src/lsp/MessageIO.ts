@@ -22,9 +22,9 @@ export class MessageIO extends EventEmitter {
 	reader = new MessageIOReader(this);
 	writer = new MessageIOWriter(this);
 
-	requestFilter: (msg: RequestMessage) => RequestMessage = (msg) => msg;
-	responseFilter: (msg: ResponseMessage) => ResponseMessage = (msg) => msg;
-	notificationFilter: (msg: NotificationMessage) => NotificationMessage = (msg) => msg;
+	requestFilter: (msg: RequestMessage) => RequestMessage | false = (msg) => msg;
+	responseFilter: (msg: ResponseMessage) => ResponseMessage | false = (msg) => msg;
+	notificationFilter: (msg: NotificationMessage) => NotificationMessage | false = (msg) => msg;
 
 	socket: Socket = null;
 	messageCache: string[] = [];
@@ -128,7 +128,7 @@ export class MessageIOWriter extends AbstractMessageWriter implements MessageWri
 
 	async write(msg: RequestMessage) {
 		const modified = this.io.requestFilter(msg);
-		if (!modified) {
+		if (modified === false) {
 			log.debug("tx [discarded]:", msg);
 			return;
 		}
