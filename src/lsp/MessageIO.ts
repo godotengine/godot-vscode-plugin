@@ -100,7 +100,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			}
 			const json = JSON.parse(msg);
 			// allow message to be modified
-			let modified: ResponseMessage | NotificationMessage;
+			let modified: ResponseMessage | NotificationMessage | false;
 			if ("id" in json) {
 				modified = this.io.responseFilter(json);
 			} else if ("method" in json) {
@@ -109,7 +109,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 				log.warn("rx [unhandled]:", json);
 			}
 
-			if (!modified) {
+			if (modified === false) {
 				log.debug("rx [discarded]:", json);
 				return;
 			}
