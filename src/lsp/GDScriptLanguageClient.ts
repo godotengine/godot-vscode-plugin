@@ -29,7 +29,7 @@ export enum TargetLSP {
 export type Target = {
 	host: string;
 	port: number;
-    type: TargetLSP;
+	type: TargetLSP;
 };
 
 type HoverResult = {
@@ -85,9 +85,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				{ scheme: "file", language: "gdscript" },
 				{ scheme: "untitled", language: "gdscript" },
 			],
-			synchronize: {
-				fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
-			},
 		};
 
 		super("GDScriptLanguageClient", serverOptions, clientOptions);
@@ -126,6 +123,12 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.sentMessages.set(message.id, message);
 
 		// discard outgoing messages that we know aren't supported
+		if (message.method === "textDocument/didSave") {
+			return false;
+		}
+		if (message.method === "textDocument/willSaveWaitUntil") {
+			return false;
+		}
 		if (message.method === "workspace/didChangeWatchedFiles") {
 			return false;
 		}
