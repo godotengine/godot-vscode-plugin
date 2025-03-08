@@ -61,7 +61,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
 			register_command("scenePreview.openCurrentScene", this.open_current_scene.bind(this)),
-			register_command("scenePreview.openCurrentScript", this.open_main_script.bind(this)),
+			register_command("scenePreview.openMainScript", this.open_main_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
