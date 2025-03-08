@@ -75,9 +75,11 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		);
 		const result: string | undefined = this.context.workspaceState.get("godotTools.scenePreview.lockedScene");
 		if (result) {
-			set_context("scenePreview.locked", true);
-			this.scenePreviewLocked = true;
-			this.currentScene = result;
+			if (fs.existsSync(result)) {
+				set_context("scenePreview.locked", true);
+				this.scenePreviewLocked = true;
+				this.currentScene = result;
+			}
 		}
 
 		this.refresh();
@@ -153,6 +155,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public async refresh() {
+		if (!fs.existsSync(this.currentScene)) {
+			return;
+		}
+
 		const document = await vscode.workspace.openTextDocument(this.currentScene);
 		this.scene = this.parser.parse_scene(document);
 
