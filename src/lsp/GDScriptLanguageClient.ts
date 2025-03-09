@@ -63,6 +63,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public port = -1;
 	public lastPortTried = -1;
 	public sentMessages = new Map();
+	private initMessage: RequestMessage;
 
 	events = new EventEmitter();
 
@@ -122,13 +123,16 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	private request_filter(message: RequestMessage) {
 		this.sentMessages.set(message.id, message);
 
+		if (!this.initMessage && message.method === "initialize") {
+			this.initMessage = message;
+		}
 		// discard outgoing messages that we know aren't supported
-		if (message.method === "textDocument/didSave") {
-			return false;
-		}
-		if (message.method === "textDocument/willSaveWaitUntil") {
-			return false;
-		}
+		// if (message.method === "textDocument/didSave") {
+		// 	return false;
+		// }
+		// if (message.method === "textDocument/willSaveWaitUntil") {
+		// 	return false;
+		// }
 		if (message.method === "workspace/didChangeWatchedFiles") {
 			return false;
 		}
@@ -236,6 +240,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 		const host = get_configuration("lsp.serverHost");
 		log.info(`connected to LSP at ${host}:${this.lastPortTried}`);
+
+		if (this.initMessage) {
+			this.sendRequest(this.initMessage.method, this.initMessage.params);
+		}
 	}
 
 	private on_disconnected() {
