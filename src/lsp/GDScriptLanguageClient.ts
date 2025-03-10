@@ -1,4 +1,5 @@
 import EventEmitter from "node:events";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import {
 	LanguageClient,
@@ -10,7 +11,7 @@ import {
 } from "vscode-languageclient/node";
 
 import { globals } from "../extension";
-import { createLogger, get_configuration } from "../utils";
+import { createLogger, get_configuration, get_project_dir } from "../utils";
 import { MessageIO } from "./MessageIO";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
@@ -19,6 +20,7 @@ export enum ClientStatus {
 	PENDING = 0,
 	DISCONNECTED = 1,
 	CONNECTED = 2,
+	REJECTED = 3,
 }
 
 export enum TargetLSP {
@@ -29,7 +31,7 @@ export enum TargetLSP {
 export type Target = {
 	host: string;
 	port: number;
-    type: TargetLSP;
+	type: TargetLSP;
 };
 
 type HoverResult = {
@@ -55,6 +57,13 @@ type HoverResponseMesssage = {
 	result: HoverResult;
 };
 
+type ChangeWorkspaceNotification = {
+	method: string;
+	params: {
+		path: string;
+	};
+};
+
 export default class GDScriptLanguageClient extends LanguageClient {
 	public io: MessageIO = new MessageIO();
 
@@ -63,6 +72,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public port = -1;
 	public lastPortTried = -1;
 	public sentMessages = new Map();
+	private initMessage: RequestMessage;
+	private rejected = false;
 
 	events = new EventEmitter();
 
@@ -85,9 +96,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				{ scheme: "file", language: "gdscript" },
 				{ scheme: "untitled", language: "gdscript" },
 			],
-			synchronize: {
-				fileEvents: vscode.workspace.createFileSystemWatcher("**/*.gd"),
-			},
 		};
 
 		super("GDScriptLanguageClient", serverOptions, clientOptions);
@@ -100,6 +108,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	}
 
 	connect(target: TargetLSP = TargetLSP.EDITOR) {
+		this.rejected = false;
 		this.target = target;
 		this.status = ClientStatus.PENDING;
 
@@ -122,15 +131,38 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect(host, port);
 	}
 
+	async send_request(method: string, params) {
+		try {
+			return this.sendRequest(method, params);
+		} catch {
+			log.warn("sending request failed!");
+		}
+	}
+
 	private request_filter(message: RequestMessage) {
+		if (this.rejected) {
+			if (message.method === "shutdown") {
+				return message;
+			}
+			return false;
+		}
 		this.sentMessages.set(message.id, message);
 
+		if (!this.initMessage && message.method === "initialize") {
+			this.initMessage = message;
+		}
 		// discard outgoing messages that we know aren't supported
-		if (message.method === "didChangeWatchedFiles") {
-			return;
+		// if (message.method === "textDocument/didSave") {
+		// 	return false;
+		// }
+		// if (message.method === "textDocument/willSaveWaitUntil") {
+		// 	return false;
+		// }
+		if (message.method === "workspace/didChangeWatchedFiles") {
+			return false;
 		}
 		if (message.method === "workspace/symbol") {
-			return;
+			return false;
 		}
 
 		return message;
@@ -165,9 +197,19 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		return message;
 	}
 
+	private async check_workspace(message: ChangeWorkspaceNotification) {
+		const server_path = path.normalize(message.params.path);
+		const client_path = path.normalize(await get_project_dir());
+		if (server_path !== client_path) {
+			log.warn("Connected LSP is a different workspace");
+			this.io.socket.resetAndDestroy();
+			this.rejected = true;
+		}
+	}
+
 	private notification_filter(message: NotificationMessage) {
 		if (message.method === "gdscript_client/changeWorkspace") {
-			//
+			this.check_workspace(message as ChangeWorkspaceNotification);
 		}
 		if (message.method === "gdscript/capabilities") {
 			globals.docsProvider.register_capabilities(message);
@@ -194,9 +236,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response: HoverResult = await this.sendRequest("textDocument/hover", params);
-
-		return this.parse_hover_result(response);
+		const response = await this.send_request("textDocument/hover", params);
+		return this.parse_hover_result(response as HoverResult);
 	}
 
 	private parse_hover_result(message: HoverResult) {
@@ -233,9 +274,17 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 		const host = get_configuration("lsp.serverHost");
 		log.info(`connected to LSP at ${host}:${this.lastPortTried}`);
+
+		if (this.initMessage) {
+			this.send_request(this.initMessage.method, this.initMessage.params);
+		}
 	}
 
 	private on_disconnected() {
+		if (this.rejected) {
+			this.status = ClientStatus.REJECTED;
+			return;
+		}
 		if (this.target === TargetLSP.EDITOR) {
 			const host = get_configuration("lsp.serverHost");
 			let port = get_configuration("lsp.serverPort");

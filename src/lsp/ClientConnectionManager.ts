@@ -25,6 +25,7 @@ enum ManagerStatus {
 	DISCONNECTED = 4,
 	CONNECTED = 5,
 	RETRYING = 6,
+	WRONG_WORKSPACE = 7,
 }
 
 export class ClientConnectionManager {
@@ -211,6 +212,9 @@ export class ClientConnectionManager {
 			case ManagerStatus.RETRYING:
 				this.show_retrying_prompt();
 				break;
+			case ManagerStatus.WRONG_WORKSPACE:
+				this.retry_connect_client();
+				break;
 		}
 	}
 
@@ -253,6 +257,10 @@ export class ClientConnectionManager {
 					tooltip += `\n${this.connectedVersion}`;
 				}
 				break;
+			case ManagerStatus.WRONG_WORKSPACE:
+				text = "$(x) Wrong Project";
+				tooltip = "Disconnected from the GDScript language server.";
+				break;
 		}
 		this.statusWidget.text = text;
 		this.statusWidget.tooltip = tooltip;
@@ -269,7 +277,7 @@ export class ClientConnectionManager {
 				set_context("connectedToLSP", true);
 				this.status = ManagerStatus.CONNECTED;
 				if (this.client.needsStart()) {
-					this.context.subscriptions.push(this.client.start());
+					this.client.start().then(() => log.info("LSP Client started"));
 				}
 				break;
 			case ClientStatus.DISCONNECTED:
@@ -284,6 +292,10 @@ export class ClientConnectionManager {
 					this.status = ManagerStatus.DISCONNECTED;
 				}
 				this.retry = true;
+				break;
+			case ClientStatus.REJECTED:
+				this.status = ManagerStatus.WRONG_WORKSPACE;
+				this.retry = false;
 				break;
 			default:
 				break;
