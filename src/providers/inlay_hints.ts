@@ -65,8 +65,10 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			if (!get_configuration("inlayHints.gdscript", true)) {
 				return hints;
 			}
-
-			await globals.lsp.client.onReady();
+            
+			if (!globals.lsp.client.isRunning()) {
+                return hints;
+            }
 
 			const symbolsRequest = await globals.lsp.client.send_request("textDocument/documentSymbol", {
 				textDocument: { uri: document.uri.toString() },
