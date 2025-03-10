@@ -27,7 +27,7 @@ function fromDetail(detail: string): string {
 }
 
 async function addByHover(document: TextDocument, hoverPosition: vscode.Position, start: vscode.Position): Promise<InlayHint | undefined> {
-	const response = await globals.lsp.client.sendRequest("textDocument/hover", {
+	const response = await globals.lsp.client.send_request("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
 			line: hoverPosition.line,
@@ -68,7 +68,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 			await globals.lsp.client.onReady();
 
-			const symbolsRequest = await globals.lsp.client.sendRequest("textDocument/documentSymbol", {
+			const symbolsRequest = await globals.lsp.client.send_request("textDocument/documentSymbol", {
 				textDocument: { uri: document.uri.toString() },
 			}) as unknown[];
 

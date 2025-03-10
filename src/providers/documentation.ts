@@ -103,7 +103,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 				symbol_name: className,
 			};
 
-			const response = await globals.lsp.client.sendRequest("textDocument/nativeSymbol", params);
+			const response = await globals.lsp.client.send_request("textDocument/nativeSymbol", params);
 
 			symbol = response as GodotNativeSymbol;
 			symbol.class_info = this.classInfo.get(symbol.name);
