@@ -1,6 +1,6 @@
+import * as fs from "node:fs";
+import { basename, extname } from "node:path";
 import { TextDocument, Uri } from "vscode";
-import { basename, extname } from "path";
-import * as fs from "fs";
 import { SceneNode, Scene } from "./types";
 import { createLogger } from "../utils";
 
@@ -46,7 +46,7 @@ export class SceneParser {
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
 			const id = line.match(/ id="?([\w]+)"?/)?.[1];
 
-			scene.externalResources[id] = {
+			scene.externalResources.set(id, {
 				body: line,
 				path: path,
 				type: type,
@@ -54,7 +54,7 @@ export class SceneParser {
 				id: id,
 				index: match.index,
 				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
-			};
+			});
 		}
 
 		let lastResource = null;
@@ -76,7 +76,7 @@ export class SceneParser {
 				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
 			}
 
-			scene.subResources[id] = resource;
+			scene.subResources.set(id, resource);
 			lastResource = resource;
 		}
 
@@ -134,9 +134,10 @@ export class SceneParser {
 			scene.nodes.set(_path, node);
 
 			if (instance) {
-				if (instance in scene.externalResources) {
-					node.tooltip = scene.externalResources[instance].path;
-					node.resourcePath = scene.externalResources[instance].path;
+				const res = scene.externalResources.get(instance);
+				if (res) {
+					node.tooltip = res.path;
+					node.resourcePath = res.path;
 					if ([".tscn"].includes(extname(node.resourcePath))) {
 						node.contextValue += "openable";
 					}

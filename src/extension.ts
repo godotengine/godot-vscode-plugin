@@ -27,6 +27,7 @@ import {
 	get_project_dir,
 	get_project_version,
 	verify_godot_version,
+	convert_uri_to_resource_path,
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
@@ -58,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.debug = new GodotDebugger(context);
 	globals.scenePreviewProvider = new ScenePreviewProvider(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
-    globals.dropsProvider = new GDDocumentDropEditProvider(context);
+	globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
 	globals.inlayProvider = new GDInlayHintsProvider(context);
 	globals.formattingProvider = new FormattingProvider(context);
@@ -122,19 +123,12 @@ export function deactivate(): Thenable<void> {
 	});
 }
 
-function copy_resource_path(uri: vscode.Uri) {
+async function copy_resource_path(uri: vscode.Uri) {
 	if (!uri) {
 		uri = vscode.window.activeTextEditor.document.uri;
 	}
 
-	const project_dir = path.dirname(find_project_file(uri.fsPath));
-	if (project_dir === null) {
-		return;
-	}
-
-	let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));
-	relative_path = relative_path.split(path.sep).join(path.posix.sep);
-	relative_path = "res://" + relative_path;
+	const relative_path = await convert_uri_to_resource_path(uri);
 
 	vscode.env.clipboard.writeText(relative_path);
 }

@@ -40,7 +40,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 				const uri = Uri.from({
 					scheme: "file",
 					path: path,
-					fragment: `${scene.externalResources[id].line},0`,
+					fragment: `${scene.externalResources.get(id).line},0`,
 				});
 
 				const r = this.create_range(document, match);
@@ -54,7 +54,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 				const uri = Uri.from({
 					scheme: "file",
 					path: path,
-					fragment: `${scene.subResources[id].line},0`,
+					fragment: `${scene.subResources.get(id).line},0`,
 				});
 
 				const r = this.create_range(document, match);

@@ -53,7 +53,7 @@ export class SceneNode extends TreeItem {
 				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)[1];
 				this.contextValue += "hasScript";
 			}
-			if (line != "") {
+			if (line !== "") {
 				newLines.push(line);
 			}
 		}
@@ -79,7 +79,7 @@ export class Scene {
 	public title: string;
 	public mtime: number;
 	public root: SceneNode | undefined;
-	public externalResources: {[key: string]: GDResource} = {};
-	public subResources: {[key: string]: GDResource} = {};
+	public externalResources: Map<string, GDResource> = new Map();
+	public subResources: Map<string, GDResource> = new Map();
 	public nodes: Map<string, SceneNode> = new Map();
 }

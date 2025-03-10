@@ -61,11 +61,11 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.openScene", this.open_scene.bind(this)),
 			register_command("scenePreview.openScript", this.open_script.bind(this)),
 			register_command("scenePreview.openCurrentScene", this.open_current_scene.bind(this)),
-			register_command("scenePreview.openCurrentScript", this.open_main_script.bind(this)),
+			register_command("scenePreview.openMainScript", this.open_main_script.bind(this)),
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
-			window.onDidChangeActiveTextEditor(this.refresh.bind(this)),
+			window.onDidChangeActiveTextEditor(this.text_editor_changed.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
 			window.registerFileDecorationProvider(this.scriptDecorator),
 			this.watcher.onDidChange(this.on_file_changed.bind(this)),
@@ -73,6 +73,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			this.tree.onDidChangeSelection(this.tree_selection_changed),
 			this.tree,
 		);
+		const result: string | undefined = this.context.workspaceState.get("godotTools.scenePreview.lockedScene");
+		if (result) {
+			if (fs.existsSync(result)) {
+				set_context("scenePreview.locked", true);
+				this.scenePreviewLocked = true;
+				this.currentScene = result;
+			}
+		}
 
 		this.refresh();
 	}
@@ -83,7 +91,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		token: vscode.CancellationToken,
 	): void | Thenable<void> {
 		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
-		data.set("godot/path", new vscode.DataTransferItem(source[0].relativePath));
+		data.set("godot/node", new vscode.DataTransferItem(source[0]));
+		data.set("godot/path", new vscode.DataTransferItem(source[0].path));
+		data.set("godot/relativePath", new vscode.DataTransferItem(source[0].relativePath));
 		data.set("godot/class", new vscode.DataTransferItem(source[0].className));
 		data.set("godot/unique", new vscode.DataTransferItem(source[0].unique));
 		data.set("godot/label", new vscode.DataTransferItem(source[0].label));
@@ -103,11 +113,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		}, 20);
 	}
 
-	public async refresh() {
+	public async text_editor_changed() {
 		if (this.scenePreviewLocked) {
 			return;
 		}
-
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			let fileName = editor.document.uri.fsPath;
@@ -140,24 +149,34 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 				return;
 			}
 
-			const document = await vscode.workspace.openTextDocument(fileName);
-			this.scene = this.parser.parse_scene(document);
-
-			this.tree.message = this.scene.title;
 			this.currentScene = fileName;
-
-			this.changeTreeEvent.fire();
+			this.refresh();
 		}
+	}
+
+	public async refresh() {
+		if (!fs.existsSync(this.currentScene)) {
+			return;
+		}
+
+		const document = await vscode.workspace.openTextDocument(this.currentScene);
+		this.scene = this.parser.parse_scene(document);
+
+		this.tree.message = this.scene.title;
+
+		this.changeTreeEvent.fire();
 	}
 
 	private lock_preview() {
 		this.scenePreviewLocked = true;
 		set_context("scenePreview.locked", true);
+		this.context.workspaceState.update("godotTools.scenePreview.lockedScene", this.currentScene);
 	}
 
 	private unlock_preview() {
 		this.scenePreviewLocked = false;
 		set_context("scenePreview.locked", false);
+		this.context.workspaceState.update("godotTools.scenePreview.lockedScene", "");
 		this.refresh();
 	}
 
@@ -181,7 +200,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_script(item: SceneNode) {
-		const path = this.scene.externalResources[item.scriptId].path;
+		const path = this.scene.externalResources.get(item.scriptId).path;
 
 		const uri = await convert_resource_path_to_uri(path);
 		if (uri) {
@@ -200,7 +219,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		if (this.currentScene) {
 			const root = this.scene.root;
 			if (root?.hasScript) {
-				const path = this.scene.externalResources[root.scriptId].path;
+				const path = this.scene.externalResources.get(root.scriptId).path;
 				const uri = await convert_resource_path_to_uri(path);
 				if (uri) {
 					vscode.window.showTextDocument(uri, { preview: true });
