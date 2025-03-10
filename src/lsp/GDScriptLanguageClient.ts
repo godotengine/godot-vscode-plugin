@@ -236,9 +236,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response: HoverResult = await this.send_request("textDocument/hover", params);
-
-		return this.parse_hover_result(response);
+		const response = await this.send_request("textDocument/hover", params);
+		return this.parse_hover_result(response as HoverResult);
 	}
 
 	private parse_hover_result(message: HoverResult) {
