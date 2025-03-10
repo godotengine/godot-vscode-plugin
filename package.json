@@ -2,7 +2,7 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "2.4.0",
+	"version": "2.5.0",
 	"description": "Tools for game development with Godot Engine and GDScript",
 	"repository": {
 		"type": "git",

@@ -1,5 +1,16 @@
 # Changelog
 
+### 2.5.0
+
+- [**Add `print_rich()` support to debug console**](https://github.com/godotengine/godot-vscode-plugin/pull/792)
+- [Improve Scene Preview drag-and-drop behavior](https://github.com/godotengine/godot-vscode-plugin/pull/815)
+- [Add snippet/placeholder behavior to Scene Preview file drops](https://github.com/godotengine/godot-vscode-plugin/pull/813)
+- [Overhaul the DebugAdapter variables in DAP](https://github.com/godotengine/godot-vscode-plugin/pull/793)
+- [Fix opening a Godot project in Visual Studio Code before the editor resulting in bad file requests](https://github.com/godotengine/godot-vscode-plugin/pull/816)
+- [Fix some GDScript syntax highlighting and formatting issues](https://github.com/godotengine/godot-vscode-plugin/pull/783)
+- [Fix attached debugging](https://github.com/godotengine/godot-vscode-plugin/pull/784)
+- [Fix multi-packet reponses breaking things when starting or ending in a multi-byte UTF-8 sequence](https://github.com/godotengine/godot-vscode-plugin/pull/797)
+
 ### 2.4.0
 
 - [**Implement warnings and errors in debug console**](https://github.com/godotengine/godot-vscode-plugin/pull/749)
