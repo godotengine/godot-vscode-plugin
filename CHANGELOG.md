@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.5.1
+
+- [Fix "Request textDocument/documentSymbol failed" error when opening a GDScript file](https://github.com/godotengine/godot-vscode-plugin/pull/823)
+
 ### 2.5.0
 
 - [**Add `print_rich()` support to debug console**](https://github.com/godotengine/godot-vscode-plugin/pull/792)
