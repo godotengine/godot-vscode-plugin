@@ -3,6 +3,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import {
 	LanguageClient,
+	MessageSignature,
 	type LanguageClientOptions,
 	type NotificationMessage,
 	type RequestMessage,
@@ -137,6 +138,22 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		} catch {
 			log.warn("sending request failed!");
 		}
+	}
+
+	handleFailedRequest<T>(
+		type: MessageSignature,
+		token: vscode.CancellationToken | undefined,
+		error: any,
+		defaultValue: T,
+		showNotification?: boolean,
+	): T {
+		if (type.method === "textDocument/documentSymbol") {
+			if (error.message.includes("selectionRange must be contained in fullRange")) {
+				log.warn(`Request failed for method "${type.method}", suppressing notification - see issue #820`);
+				return super.handleFailedRequest(type, token, error, defaultValue, false);
+			}
+		}
+		return super.handleFailedRequest(type, token, error, defaultValue, showNotification);
 	}
 
 	private request_filter(message: RequestMessage) {
