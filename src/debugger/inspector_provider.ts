@@ -6,10 +6,10 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	onDidChangeTreeData = this.changeTreeEvent.event;
 
 	private root: RemoteProperty | undefined;
-	public tree: TreeView<RemoteProperty>;
+	public view: TreeView<RemoteProperty>;
 
 	constructor() {
-		this.tree = window.createTreeView("godotTools.nodeInspector", {
+		this.view = window.createTreeView("godotTools.nodeInspector", {
 			treeDataProvider: this,
 		});
 	}
@@ -73,7 +73,7 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		return this.root !== undefined;
 	}
 
-	private parse_variable(va: GodotVariable, object_id?: number) {
+	private parse_variable(va: GodotVariable, object_id?: number): RemoteProperty {
 		const value = va.value;
 		let rendered_value = "";
 

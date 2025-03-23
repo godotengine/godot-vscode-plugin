@@ -9,16 +9,16 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	onDidChangeTreeData = this.changeTreeEvent.event;
 
 	private root: SceneNode | undefined;
-	public tree: TreeView<SceneNode>;
+	public view: TreeView<SceneNode>;
 
 	constructor() {
-		this.tree = window.createTreeView("godotTools.activeSceneTree", {
+		this.view = window.createTreeView("godotTools.activeSceneTree", {
 			treeDataProvider: this,
 		});
 	}
 
-	public fill_tree(tree: SceneNode) {
-		this.root = tree;
+	public fill_tree(node: SceneNode) {
+		this.root = node;
 		this.changeTreeEvent.fire(undefined);
 	}
 
