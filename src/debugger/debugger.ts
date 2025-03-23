@@ -61,7 +61,9 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 
 export let pinnedScene: Uri;
 
-export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider, FileDecorationProvider {
+export class GodotDebugger
+	implements DebugAdapterDescriptorFactory, DebugConfigurationProvider, FileDecorationProvider
+{
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public inspectorProvider = new InspectorProvider();
 	public sceneTreeProvider = new SceneTreeProvider();
@@ -122,7 +124,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public resolveDebugConfiguration(
 		folder: WorkspaceFolder | undefined,
 		config: DebugConfiguration,
-		token?: CancellationToken
+		token?: CancellationToken,
 	): ProviderResult<DebugConfiguration> {
 		// request is actually a required field according to vscode
 		// however, setting it here lets us catch a possible misconfiguration
@@ -157,7 +159,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 
 	public debug_current_file() {
 		log.info("Attempting to debug current file");
-		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", window.activeTextEditor.document.uri).get("configurations");
+		const configs: DebugConfiguration[] = workspace
+			.getConfiguration("launch", window.activeTextEditor.document.uri)
+			.get("configurations");
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "current");
 
@@ -222,17 +226,18 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public pin_file(uri: Uri) {
+		let _uri = uri;
 		if (uri === undefined) {
-			uri = window.activeTextEditor.document.uri;
+			_uri = window.activeTextEditor.document.uri;
 		}
-		log.info(`Pinning debug target file: '${uri.fsPath}'`);
-		set_context("pinnedScene", [uri.fsPath]);
+		log.info(`Pinning debug target file: '${_uri.fsPath}'`);
+		set_context("pinnedScene", [_uri.fsPath]);
 		if (pinnedScene) {
 			this._onDidChangeFileDecorations.fire(pinnedScene);
 		}
-		pinnedScene = uri;
+		pinnedScene = _uri;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
-		this._onDidChangeFileDecorations.fire(uri);
+		this._onDidChangeFileDecorations.fire(_uri);
 	}
 
 	public unpin_file(uri: Uri) {
@@ -266,9 +271,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	private create_godot_variable(godot_object: GodotObject): GodotVariable {
 		return {
 			value: {
-				type_name: function() { return godot_object.type; },
-				stringify_value: function() { return `<${godot_object.godot_id}>`; },
-				sub_values: function() {return godot_object.sub_values; },
+				type_name: () => godot_object.type,
+				stringify_value: () => `<${godot_object.godot_id}>`,
+				sub_values: () => godot_object.sub_values,
 			},
 		} as GodotVariable;
 	}
@@ -280,17 +285,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			this.inspectorProvider.fill_tree(label, godot_object.type, Number(godot_object.godot_id), va);
 		} else {
 			this.session?.controller.request_inspect_object(BigInt(godot_id));
-			this.session?.inspect_callbacks.set(
-				BigInt(godot_id),
-				(class_name, variable) => {
-					this.inspectorProvider.fill_tree(
-						label,
-						class_name,
-						Number(godot_id),
-						variable
-					);
-				},
-			);
+			this.session?.inspect_callbacks.set(BigInt(godot_id), (class_name, variable) => {
+				this.inspectorProvider.fill_tree(label, class_name, Number(godot_id), variable);
+			});
 		}
 	}
 
@@ -330,10 +327,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				}
 				break;
 			case "boolean":
-				if (
-					value.toLowerCase() === "true" ||
-					value.toLowerCase() === "false"
-				) {
+				if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
 					new_parsed_value = value.toLowerCase() === "true";
 				} else if (value === "0" || value === "1") {
 					new_parsed_value = value === "1";
@@ -347,22 +341,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			while (parents[idx].changes_parent) {
 				parents.push(parents[idx++].parent);
 			}
-			const changed_value = this.inspectorProvider.get_changed_value(
-				parents,
-				property,
-				new_parsed_value
-			);
-			this.session?.controller.set_object_property(
-				BigInt(property.object_id),
-				parents[idx].label,
-				changed_value,
-			);
+			const changed_value = this.inspectorProvider.get_changed_value(parents, property, new_parsed_value);
+			this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
 		} else {
-			this.session?.controller.set_object_property(
-				BigInt(property.object_id),
-				property.label,
-				new_parsed_value,
-			);
+			this.session?.controller.set_object_property(BigInt(property.object_id), property.label, new_parsed_value);
 		}
 
 		const label = this.inspectorProvider.get_top_name();
