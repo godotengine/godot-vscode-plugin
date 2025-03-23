@@ -305,7 +305,7 @@ export class ServerController {
 				return;
 			}
 
-			socketLog.debug("rx:", data[0], data[0][2]);
+			socketLog.debug("rx:", data[0]);
 			const command = this.parse_message(data[0]);
 			this.handle_command(command);
 		}
