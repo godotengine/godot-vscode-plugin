@@ -549,8 +549,11 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
+				const console = debug.activeDebugConsole;
 				for (const output of command.parameters[0]) {
-					output.split("\n").forEach((line) => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
+					for (const line of output.split("\n")) {
+						console.appendLine(bbcodeParser.parse(line));
+					}
 				}
 				break;
 			}
