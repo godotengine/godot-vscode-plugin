@@ -10,10 +10,10 @@
 		"indentWidth": 4,
 		"lineWidth": 120,
 		"lineEnding": "lf",
-		"include": ["src/**/*.ts"]
+		"include": ["src/**/*.ts", "tools/**/*.ts"]
 	},
 	"files": {
-		"include": ["src/**/*.ts"],
+		"include": ["src/**/*.ts", "tools/**/*.ts"],
 		"ignore": ["node_modules"]
 	},
 	"linter": {
