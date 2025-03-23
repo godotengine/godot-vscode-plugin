@@ -15,6 +15,9 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	}
 
 	public clear() {
+		this.view.description = undefined;
+		this.view.message = undefined;
+
 		if (this.root) {
 			this.root = undefined;
 			this.changeTreeEvent.fire(undefined);

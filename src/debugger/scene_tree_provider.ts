@@ -18,6 +18,9 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 	}
 
 	public clear() {
+		this.view.description = undefined;
+		this.view.message = undefined;
+
 		if (this.root) {
 			this.root = undefined;
 			this.changeTreeEvent.fire(undefined);
