@@ -81,8 +81,8 @@ export class GodotDebugger
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
 			debug.registerDebugAdapterDescriptorFactory("godot", this),
-			window.registerTreeDataProvider("inspectNode", this.inspectorProvider),
-			window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider),
+			window.registerTreeDataProvider("godotTools.nodeInspector", this.inspectorProvider),
+			window.registerTreeDataProvider("godotTools.activeSceneTree", this.sceneTreeProvider),
 			window.registerFileDecorationProvider(this),
 			register_command("debugger.inspectNode", this.inspect_node.bind(this)),
 			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),

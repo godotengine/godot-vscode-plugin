@@ -48,7 +48,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	constructor(private context: ExtensionContext) {
-		this.tree = vscode.window.createTreeView("scenePreview", {
+		this.tree = vscode.window.createTreeView("godotTools.scenePreview", {
 			treeDataProvider: this,
 			dragAndDropController: this,
 		});
