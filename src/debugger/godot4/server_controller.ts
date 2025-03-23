@@ -408,13 +408,10 @@ export class ServerController {
 					this.set_exception("");
 				}
 				this.request_stack_dump();
-				this.session.variables_manager = new VariablesManager(this);
-
 				this.request_scene_tree();
 				break;
 			}
 			case "debug_exit":
-				this.session.variables_manager = undefined;
 				break;
 			case "message:click_ctrl":
 				// TODO: what is this?
