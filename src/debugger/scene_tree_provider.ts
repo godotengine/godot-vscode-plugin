@@ -1,40 +1,34 @@
-import {
-	TreeDataProvider,
-	EventEmitter,
-	Event,
-	ProviderResult,
-	TreeItem,
-	TreeItemCollapsibleState,
-	Uri
-} from "vscode";
-import path = require("path");
+import * as path from "node:path";
+import { EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, Uri, window } from "vscode";
 import { get_extension_uri } from "../utils";
 
 const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
 
 export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
-	private _on_did_change_tree_data: EventEmitter<
-		SceneNode | undefined
-	> = new EventEmitter<SceneNode | undefined>();
-	private tree: SceneNode | undefined;
+	private changeTreeEvent = new EventEmitter<SceneNode>();
+	onDidChangeTreeData = this.changeTreeEvent.event;
 
-	public readonly onDidChangeTreeData: Event<SceneNode> | undefined = this
-		._on_did_change_tree_data.event;
+	private root: SceneNode | undefined;
+	public tree: TreeView<SceneNode>;
 
-	constructor() { }
+	constructor() {
+		this.tree = window.createTreeView("godotTools.activeSceneTree", {
+			treeDataProvider: this,
+		});
+	}
 
 	public fill_tree(tree: SceneNode) {
-		this.tree = tree;
-		this._on_did_change_tree_data.fire(undefined);
+		this.root = tree;
+		this.changeTreeEvent.fire(undefined);
 	}
 
 	public getChildren(element?: SceneNode): SceneNode[] {
-		if (!this.tree) {
+		if (!this.root) {
 			return [];
 		}
 
 		if (!element) {
-			return [this.tree];
+			return [this.root];
 		} else {
 			return element.children;
 		}
@@ -45,10 +39,10 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 		const tree_item: TreeItem = new TreeItem(
 			element.label,
 			has_children
-				? element === this.tree
+				? element === this.root
 					? TreeItemCollapsibleState.Expanded
 					: TreeItemCollapsibleState.Collapsed
-				: TreeItemCollapsibleState.None
+				: TreeItemCollapsibleState.None,
 		);
 
 		tree_item.description = element.class_name;
@@ -79,7 +73,7 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label);
 
-		const iconName = class_name + ".svg";
+		const iconName = `${class_name}.svg`;
 
 		this.iconPath = {
 			light: Uri.file(path.join(iconDir, "light", iconName)),
