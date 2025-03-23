@@ -643,17 +643,20 @@
 			"debug": [
 				{
 					"id": "activeSceneTree",
-					"name": "Active Scene Tree"
+					"name": "Active Scene Tree",
+					"icon": "resources/godot_icon.svg"
 				},
 				{
 					"id": "inspectNode",
-					"name": "Inspector"
+					"name": "Inspector",
+					"icon": "resources/godot_icon.svg"
 				}
 			],
 			"godotTools": [
 				{
 					"id": "scenePreview",
-					"name": "Scene Preview"
+					"name": "Scene Preview",
+					"icon": "resources/godot_icon.svg"
 				}
 			]
 		},
