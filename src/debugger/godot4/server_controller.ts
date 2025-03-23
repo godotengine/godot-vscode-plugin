@@ -1,10 +1,11 @@
-import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { DebugProtocol } from "@vscode/debugprotocol";
 import * as fs from "node:fs";
 import * as net from "node:net";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
+import { DebugProtocol } from "@vscode/debugprotocol";
+import BBCodeToAnsi from "bbcode-to-ansi";
 import { debug, window } from "vscode";
-
 import {
+	VERIFY_RESULT,
 	ansi,
 	convert_resource_path_to_uri,
 	createLogger,
@@ -12,7 +13,6 @@ import {
 	get_free_port,
 	get_project_version,
 	verify_godot_version,
-	VERIFY_RESULT,
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { killSubProcesses, subProcess } from "../../utils/subspawn";
@@ -23,8 +23,6 @@ import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers"
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
-import { VariablesManager } from "./variables/variables_manager";
-import BBCodeToAnsi from "bbcode-to-ansi";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");

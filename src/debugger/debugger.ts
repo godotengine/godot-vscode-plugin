@@ -9,7 +9,6 @@ import {
 	DebugConfiguration,
 	DebugConfigurationProvider,
 	DebugSession,
-	Event,
 	EventEmitter,
 	ExtensionContext,
 	FileDecoration,
@@ -22,10 +21,10 @@ import {
 	workspace,
 } from "vscode";
 import { createLogger, get_project_version, register_command, set_context } from "../utils";
-import { GodotVariable, RawObject } from "./debug_runtime";
+import { GodotVariable } from "./debug_runtime";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import { GodotObject, GodotObjectPromise } from "./godot4/variables/godot_object_promise";
+import { GodotObject } from "./godot4/variables/godot_object_promise";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
 
@@ -81,8 +80,8 @@ class GDFileDecorationProvider implements FileDecorationProvider {
 
 export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
 	public session?: Godot3DebugSession | Godot4DebugSession;
-	public inspector = new InspectorProvider();
 	public sceneTree = new SceneTreeProvider();
+	public inspector = new InspectorProvider();
 
 	fileDecorations = new GDFileDecorationProvider();
 
@@ -104,8 +103,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.pinFile", this.pin_file.bind(this)),
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
-			this.inspector.tree,
-			this.sceneTree.tree,
+			this.inspector.view,
+			this.sceneTree.view,
 		);
 	}
 
@@ -122,6 +121,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.context.subscriptions.push(this.session);
 
 		this.session.sceneTree = this.sceneTree;
+		this.session.inspector = this.inspector;
+
 		return new DebugAdapterInlineImplementation(this.session);
 	}
 
