@@ -32,11 +32,11 @@ const socketLog = createLogger("debugger.socket");
 const bbcodeParser = new BBCodeToAnsi("\u001b[38;2;211;211;211m");
 
 class Command {
-	public command: string = "";
-	public paramCount: number = -1;
-	public parameters: any[] = [];
-	public complete: boolean = false;
-	public threadId: number = 0;
+	public command = "";
+	public paramCount = -1;
+	public parameters = [];
+	public complete = false;
+	public threadId = 0;
 }
 
 class GodotPartialStackVars {
@@ -136,10 +136,7 @@ export class ServerController {
 	public request_stack_frame_vars(stack_frame_id: number) {
 		if (this.partialStackVars !== undefined) {
 			log.warn(
-				"Partial stack frames have been requested, while existing request hasn't been completed yet." +
-					`Remaining stack_frames: ${this.partialStackVars.remaining}` +
-					`Current stack_frame_id: ${this.partialStackVars.stack_frame_id}` +
-					`Requested stack_frame_id: ${stack_frame_id}`,
+				`Partial stack frames have been requested, while existing request hasn't been completed yet.Remaining stack_frames: ${this.partialStackVars.remaining} Current stack_frame_id: ${this.partialStackVars.stack_frame_id} Requested stack_frame_id: ${stack_frame_id}`,
 			);
 		}
 		this.partialStackVars = new GodotPartialStackVars(stack_frame_id);
@@ -497,8 +494,7 @@ export class ServerController {
 				}
 				if (typeof command.parameters[0] !== "string") {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected string for name, got " +
-							typeof command.parameters[0],
+						`Unexpected parameter type for 'stack_frame_var'. Expected string for name, got ${typeof command.parameters[0]}`,
 					);
 					return;
 				}
@@ -507,23 +503,21 @@ export class ServerController {
 					(command.parameters[1] !== 0 && command.parameters[1] !== 1 && command.parameters[1] !== 2)
 				) {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got " +
-							typeof command.parameters[1],
+						`Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got ${typeof command.parameters[1]}`,
 					);
 					return;
 				}
 				if (typeof command.parameters[2] !== "number") {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected number for type, got " +
-							typeof command.parameters[2],
+						`Unexpected parameter type for 'stack_frame_var'. Expected number for type, got ${typeof command.parameters[2]}`,
 					);
 					return;
 				}
-				var name: string = command.parameters[0];
-				var scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
-				var type: number = command.parameters[2];
-				var value: any = command.parameters[3];
-				var subValues: GodotVariable[] = get_sub_values(value);
+				const name: string = command.parameters[0];
+				const scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
+				const type: number = command.parameters[2];
+				const value: any = command.parameters[3];
+				const subValues: GodotVariable[] = get_sub_values(value);
 				this.partialStackVars.append(name, scope, type, value, subValues);
 
 				if (this.partialStackVars.remaining === 0) {
