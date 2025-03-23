@@ -409,6 +409,8 @@ export class ServerController {
 				}
 				this.request_stack_dump();
 				this.session.variables_manager = new VariablesManager(this);
+
+				this.request_scene_tree();
 				break;
 			}
 			case "debug_exit":
