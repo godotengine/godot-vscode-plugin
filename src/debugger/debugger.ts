@@ -165,8 +165,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		if (path.endsWith(".gd")) {
 			const scenePath = path.replace(".gd", ".tscn");
 			if (!fs.existsSync(scenePath)) {
-				log.warn(`Can't find associated scene for '${path}', aborting debug`);
-				window.showWarningMessage(`Can't find associated scene file for '${path}'`);
+				log.warn(`Can't find associated scene for '${path}', aborting debug, script and scene file have to share the same name`);
+				window.showWarningMessage(`Can't find associated scene file for '${path}', script and scene file have to share the same name`);
 				return;
 			}
 			path = scenePath;
