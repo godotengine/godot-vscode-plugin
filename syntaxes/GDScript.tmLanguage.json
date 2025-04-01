@@ -61,9 +61,7 @@
 				{ "include": "#operators" },
 				{ "include": "#lambda_declaration" },
 				{ "include": "#class_declaration" },
-				{
-					"include": "#variable_declaration_name"
-				},
+				{ "include": "#variable_declaration_name" },
 				{ "include": "#variable_declaration" },
 				{ "include": "#signal_declaration_bare" },
 				{ "include": "#signal_declaration" },
