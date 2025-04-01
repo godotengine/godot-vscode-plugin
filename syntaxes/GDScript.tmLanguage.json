@@ -338,9 +338,7 @@
 			"begin": "(?<=\\b(var|const)\\s+)",
 			"end": "(?!\\s*:=)(?!\\w*)|([A-Za-z_]\\w*)",
 			"patterns": [
-				{
-					"include": "#any_variable"
-				}
+				{ "include": "#any_variable" }
 			]
 		},
 		"getter_setter_godot4": {
