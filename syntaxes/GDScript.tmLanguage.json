@@ -337,7 +337,8 @@
 		},
 		"variable_declaration_name": {
 			"name": "meta.variable.declaration.name.gdscript",
-			"match": "(?<=\\b(var|const)\\s+)([A-Za-z_]\\w*)(?!\\s*:=)|(?<=\\s*:=\\s*)([A-Za-z_]\\w*)",
+			"begin": "(?<=\\b(var|const)\\s+)",
+			"end": "(?!\\s*:=)(?!\\w*)|([A-Za-z_]\\w*)",
 			"patterns": [
 				{
 					"include": "#any_variable"
