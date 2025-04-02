@@ -23,7 +23,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 	public controller = new ServerController(this);
 	public debug_data = new GodotDebugData(this);
 	public sceneTree: SceneTreeProvider;
-	private exception = false;
 	private configuration_done: Subject = new Subject();
 	private mode: "launch" | "attach" | "" = "";
 
@@ -81,7 +80,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.mode = "launch";
 
 		this.debug_data.projectPath = args.project;
-		this.exception = false;
 		await this.controller.launch(args);
 
 		this.sendResponse(response);
@@ -94,7 +92,6 @@ export class GodotDebugSession extends LoggingDebugSession {
 		this.mode = "attach";
 
 		this.debug_data.projectPath = args.project;
-		this.exception = false;
 		await this.controller.attach(args);
 
 		this.sendResponse(response);
@@ -111,27 +108,21 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments) {
 		log.info("continueRequest", args);
-		if (!this.exception) {
-			response.body = { allThreadsContinued: true };
-			this.controller.continue();
-			this.sendResponse(response);
-		}
+		response.body = { allThreadsContinued: true };
+		this.controller.continue();
+		this.sendResponse(response);
 	}
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
 		log.info("nextRequest", args);
-		if (!this.exception) {
-			this.controller.next();
-			this.sendResponse(response);
-		}
+		this.controller.next();
+		this.sendResponse(response);
 	}
 
 	protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments) {
 		log.info("pauseRequest", args);
-		if (!this.exception) {
-			this.controller.break();
-			this.sendResponse(response);
-		}
+		this.controller.break();
+		this.sendResponse(response);
 	}
 
 	protected setBreakPointsRequest(
@@ -176,18 +167,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments) {
 		log.info("stepInRequest", args);
-		if (!this.exception) {
-			this.controller.step();
-			this.sendResponse(response);
-		}
+		this.controller.step();
+		this.sendResponse(response);
 	}
 
 	protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
 		log.info("stepOutRequest", args);
-		if (!this.exception) {
-			this.controller.step_out();
-			this.sendResponse(response);
-		}
+		this.controller.step_out();
+		this.sendResponse(response);
 	}
 
 	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments) {
@@ -296,9 +283,5 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		log.info("evaluateRequest response", response);
 		this.sendResponse(response);
-	}
-
-	public set_exception(exception: boolean) {
-		this.exception = true;
 	}
 }
