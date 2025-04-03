@@ -75,15 +75,15 @@ type DocumentLinkResult = {
 			character: number;
 			line: number;
 		};
-	}
+	};
 	target: string;
-}
+};
 
 type DocumentLinkResponseMessage = {
 	id: number;
 	jsonrpc: string;
 	result: DocumentLinkResult[];
-}
+};
 
 export default class GDScriptLanguageClient extends LanguageClient {
 	public io: MessageIO = new MessageIO();
@@ -168,12 +168,28 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		showNotification?: boolean,
 	): T {
 		if (type.method === "textDocument/documentSymbol") {
-			if (error.message.includes("selectionRange must be contained in fullRange")) {
-				log.warn(`Request failed for method "${type.method}", suppressing notification - see issue #820`);
-				return super.handleFailedRequest(type, token, error, defaultValue, false);
+			if (
+				error.message.includes("selectionRange must be contained in fullRange")
+			) {
+				log.warn(
+					`Request failed for method "${type.method}", suppressing notification - see issue #820`
+				);
+				return super.handleFailedRequest(
+					type,
+					token,
+					error,
+					defaultValue,
+					false
+				);
 			}
 		}
-		return super.handleFailedRequest(type, token, error, defaultValue, showNotification);
+		return super.handleFailedRequest(
+			type,
+			token,
+			error,
+			defaultValue,
+			showNotification
+		);
 	}
 
 	private request_filter(message: RequestMessage) {
@@ -230,13 +246,24 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				(message as HoverResponseMesssage).result.contents.value = value;
 			}
 		} else if (sentMessage.method === "textDocument/documentLink") {
-			const results: DocumentLinkResult[] = (message as DocumentLinkResponseMessage).result;
+			const results: DocumentLinkResult[] = (
+				message as DocumentLinkResponseMessage
+			).result;
 
 			if (!results) {
 				return message;
 			}
 
 			const final_result: DocumentLinkResult[] = [];
+			// at this point, Godot's LSP server does not
+			// return a valid path for resources identified
+			// by "uid://""
+			//
+			// this is a dirty hack to remove any "uid://"
+			// document links.
+			//
+			// to provide links for these, we will be relying on
+			// the internal DocumentLinkProvider instead.
 			for (const result of results) {
 				if (!result.target.startsWith("uid://")) {
 					final_result.push(result);
@@ -283,7 +310,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		return message;
 	}
 
-	public async get_symbol_at_position(uri: vscode.Uri, position: vscode.Position) {
+	public async get_symbol_at_position(
+		uri: vscode.Uri,
+		position: vscode.Position
+	) {
 		const params = {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
