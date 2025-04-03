@@ -127,6 +127,69 @@ export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<str
 	return `res://${relative_path}`;
 }
 
+const uidCache: Map<string, vscode.Uri | null> = new Map();
+
+export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, vscode.Uri>> {
+	const not_found_uids: string[] = [];
+	const uris: Map<string, vscode.Uri> = new Map();
+
+	let found_all: boolean = true;
+	for (const uid of uids) {
+		if (!uid.startsWith("uid://")) {
+			continue;
+		}
+
+		if (uidCache.has(uid)) {
+			const uri = uidCache.get(uid);
+			if (fs.existsSync(uri.fsPath)) {
+				uris.set(uid, uri);
+				continue;
+			}
+
+			uidCache.delete(uid);
+		}
+
+		found_all = false;
+		not_found_uids.push(uid);
+	}
+
+	if (found_all) {
+		return uris;
+	}
+
+	const files = await vscode.workspace.findFiles("**/*.uid", null);
+
+	for (const file of files) {
+		const document = await vscode.workspace.openTextDocument(file);
+		const text = document.getText();
+		const match = text.match(/uid:\/\/([0-9a-z]*)/);
+		if (!match) {
+			continue;
+		}
+
+		const found_match = not_found_uids.indexOf(match[0]) >= 0;
+
+		const file_path = file.fsPath.substring(0, file.fsPath.length - ".uid".length);
+		if (!fs.existsSync(file_path)) {
+			continue;
+		}
+
+		const file_uri = vscode.Uri.file(file_path);
+		uidCache.set(match[0], file_uri);
+
+		if (found_match) {
+			uris.set(match[0], file_uri);
+		}
+	}
+
+	return uris;
+}
+
+export async function convert_uid_to_uri(uid: string): Promise<vscode.Uri | undefined> {
+	const uris = await convert_uids_to_uris([uid]);
+	return uris.get(uid);
+}
+
 export type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 export type VERIFY_RESULT = {
 	status: VERIFY_STATUS;

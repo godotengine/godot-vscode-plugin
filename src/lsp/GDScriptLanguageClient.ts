@@ -65,6 +65,26 @@ type ChangeWorkspaceNotification = {
 	};
 };
 
+type DocumentLinkResult = {
+	range: {
+		end: {
+			character: number;
+			line: number;
+		};
+		start: {
+			character: number;
+			line: number;
+		};
+	}
+	target: string;
+}
+
+type DocumentLinkResponseMessage = {
+	id: number;
+	jsonrpc: string;
+	result: DocumentLinkResult[];
+}
+
 export default class GDScriptLanguageClient extends LanguageClient {
 	public io: MessageIO = new MessageIO();
 
@@ -209,6 +229,21 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 				(message as HoverResponseMesssage).result.contents.value = value;
 			}
+		} else if (sentMessage.method === "textDocument/documentLink") {
+			const results: DocumentLinkResult[] = (message as DocumentLinkResponseMessage).result;
+
+			if (!results) {
+				return message;
+			}
+
+			const final_result: DocumentLinkResult[] = [];
+			for (const result of results) {
+				if (!result.target.startsWith("uid://")) {
+					final_result.push(result);
+				}
+			}
+
+			(message as DocumentLinkResponseMessage).result = final_result;
 		}
 
 		return message;
