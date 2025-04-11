@@ -402,7 +402,7 @@
 			"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape.gdscript",
 			"begin": "(?:(\\$|%)|(&|\\^|@))(\"|')",
 			"beginCaptures": {
-				"1": { "name": "keyword.control.flow.gdscript" },
+				"1": { "name": "constant.character.escape.gdscript" },
 				"2": { "name": "variable.other.enummember.gdscript" }
 			},
 			"end": "(\\3)",
@@ -417,7 +417,7 @@
 			"name": "meta.literal.nodepath.bare.gdscript",
 			"match": "(?<!/\\s*)(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)\\b(?!\\s*/)",
 			"captures": {
-				"1": { "name": "keyword.control.flow.gdscript" },
+				"1": { "name": "constant.character.escape.gdscript" },
 				"2": { "name": "constant.character.escape.gdscript" },
 				"3": { "name": "constant.character.escape.gdscript" },
 				"4": { "name": "constant.character.escape.gdscript" }
@@ -427,7 +427,7 @@
 			"name": "meta.literal.nodepath.bare.gdscript",
 			"begin": "(\\$\\s*|%|\\$%\\s*)(/\\s*)?([a-zA-Z_]\\w*)",
 			"beginCaptures": {
-				"1": { "name": "keyword.control.flow.gdscript" },
+				"1": { "name": "constant.character.escape.gdscript" },
 				"2": { "name": "constant.character.escape.gdscript" },
 				"3": { "name": "constant.character.escape.gdscript" }
 			},
