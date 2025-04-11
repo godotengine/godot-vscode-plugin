@@ -250,7 +250,7 @@
 			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
-			"match": "\\b(?:class|class_name|abstract|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super)\\b",
+			"match": "\\b(?:class|class_name|abstract|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super|self)\\b",
 			"name": "keyword.language.gdscript"
 		},
 		"letter": {
