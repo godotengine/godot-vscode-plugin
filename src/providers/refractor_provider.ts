@@ -12,31 +12,54 @@ export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
 		context: vscode.CodeActionContext,
 		token: vscode.CancellationToken
 	): vscode.ProviderResult<vscode.CodeAction[]> {
-		// Get the line where the cursor is located
 		const startLine = document.lineAt(range.start.line);
 		const lineText = startLine.text.trim();
 
 		// Only show the action if the line starts with "var"
-		if (!lineText.startsWith('var ')) {
+		if (!lineText.startsWith("var ")) {
 			return undefined;
 		}
 
-		// Create the refactor action
-		const addExportToVariable = new vscode.CodeAction(
-			'Add @export to var',
-			vscode.CodeActionKind.Refactor
-		);
-
 		// Specify the edits to be applied
-		addExportToVariable.edit = new vscode.WorkspaceEdit();
-		const updatedText = lineText.replace(/^var /, '@export var ${1:}');
+		var _addExportToVariable = addExportToVariable(lineText, document, startLine);
+		var _addRageExportToVariable = addRangeExportToVariable(lineText, document, startLine);
 
-		addExportToVariable.edit.replace(
-			document.uri,
-			startLine.range,
-			updatedText
-		);
-
-		return [addExportToVariable];
+		return [_addExportToVariable, _addRageExportToVariable];
 	}
+}
+
+function addExportToVariable(lineText: string, document: vscode.TextDocument, startLine: vscode.TextLine): vscode.CodeAction {
+	const codeAction = new vscode.CodeAction(
+		"Export this variable",
+		vscode.CodeActionKind.RefactorInline
+	);
+
+	codeAction.edit = new vscode.WorkspaceEdit();
+
+	const updatedText = lineText.replace(/^var/, "@export var");
+
+	codeAction.edit.replace(
+		document.uri,
+		startLine.range,
+		updatedText
+	);
+
+	return codeAction;
+}
+
+function addRangeExportToVariable(lineText: string, document: vscode.TextDocument, startLine: vscode.TextLine): vscode.CodeAction {
+	const codeAction = new vscode.CodeAction(
+		"Export as a range",
+		vscode.CodeActionKind.RefactorInline
+	);
+	codeAction.edit = new vscode.WorkspaceEdit();
+
+	const updatedText = lineText.replace(/^var\s*(\w+)\s*:\s*(float|int)/, "@export_range(0, 1) var $1: $2");
+
+	codeAction.edit.replace(
+		document.uri,
+		startLine.range,
+		updatedText
+	);
+	return codeAction
 }
