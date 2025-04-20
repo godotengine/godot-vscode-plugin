@@ -31,6 +31,7 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
+import { RefactorCodeActionProvider } from "./providers/refractor_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -76,6 +77,13 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 		register_command("getGodotPath", get_godot_path),
+		vscode.languages.registerCodeActionsProvider(
+			{ language: 'gdscript' },
+			new RefactorCodeActionProvider(),
+			{
+				providedCodeActionKinds: RefactorCodeActionProvider.providedCodeActionKinds,
+			}
+		)
 	);
 
 	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader"]);
@@ -228,6 +236,7 @@ async function open_godot_editor_settings() {
 	});
 }
 
+
 /**
  * Returns the executable path for Godot based on the current project's version.
  * Created to allow other extensions to get the path without having to go
@@ -250,7 +259,7 @@ class GodotEditorTerminal implements vscode.Pseudoterminal {
 	private closeEmitter = new vscode.EventEmitter<number>();
 	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
 
-	constructor(private command: string) {}
+	constructor(private command: string) { }
 
 	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
 		const proc = subProcess("GodotEditor", this.command, { shell: true, detached: true });
