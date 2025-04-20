@@ -123,8 +123,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.session.sceneTree = this.sceneTree;
 		this.session.inspector = this.inspector;
 
-        this.sceneTree.clear()
-        this.inspector.clear()
+		this.sceneTree.clear();
+		this.inspector.clear();
 
 		return new DebugAdapterInlineImplementation(this.session);
 	}
