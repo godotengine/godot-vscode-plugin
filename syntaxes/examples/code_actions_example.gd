@@ -1,3 +1,9 @@
 var simple_export
-var range_export: float
+@@export_range(0, 0) var range_export: float
 var range_export_integer: int
+
+@export var ex
+@export var ex
+@export var ex
+@export var ex
+@export var ex
