@@ -31,7 +31,7 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
-import { RefactorCodeActionProvider } from "./providers/refractor_provider";
+import { extractFunctionCommand, RefactorCodeActionProvider } from "./providers/refractor_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -77,6 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 		register_command("getGodotPath", get_godot_path),
+		register_command("extractFunction", extractFunctionCommand),
 		vscode.languages.registerCodeActionsProvider(
 			{ language: 'gdscript' },
 			new RefactorCodeActionProvider(),

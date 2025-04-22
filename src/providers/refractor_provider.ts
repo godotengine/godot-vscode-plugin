@@ -170,3 +170,56 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	codeAction.isPreferred = true;
 	return codeAction
 }
+
+
+export async function extractFunctionCommand(): Promise<void> {
+	const editor = vscode.window.activeTextEditor;
+
+	if (!editor) {
+		vscode.window.showErrorMessage('No active editor!');
+		return;
+	}
+
+	const selection = editor.selection;
+	const selectedText = editor.document.getText(selection);
+
+	if (!selectedText) {
+		vscode.window.showErrorMessage('No code selected!');
+		return;
+	}
+
+	// Prompt for function name
+	const functionName = await vscode.window.showInputBox({
+		prompt: 'Enter the name of the new function',
+		validateInput: (input) => input.trim() === '' ? 'Function name cannot be empty' : null,
+	});
+
+	if (!functionName) {
+		vscode.window.showErrorMessage('Function name is required!');
+		return;
+	}
+
+	// Generate the new function code
+	const newFunction = `
+function ${functionName}() {
+${selectedText.split("\n").map(line => "\t" + line).join("\n")}
+}
+`;
+
+	// Insert the new function at the end of the file
+	const document = editor.document;
+	const fullText = document.getText();
+
+
+	const position = new vscode.Position(document.lineCount, 0);
+
+	await editor.edit((editBuilder) => {
+		// Add the new function
+		editBuilder.insert(position, newFunction);
+
+		// Replace the selected code with a function call
+		editBuilder.replace(selection, `${functionName}();`);
+	});
+
+	vscode.window.showInformationMessage(`Extracted code as a new function: ${functionName}`);
+}

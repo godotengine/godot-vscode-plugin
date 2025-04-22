@@ -9,3 +9,17 @@ var ex
 const ex
 var ex
 var ex
+
+
+func method(args):
+    if condition:
+        var a
+        var b
+        var c
+    else:
+        pass
+        pass
+        pass
+
+func method(args):
+    pass
