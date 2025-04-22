@@ -21,7 +21,7 @@ export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
 	): vscode.ProviderResult<vscode.CodeAction[]> {
 
 		// Specify the edits to be applied
-		var _exportTheseVariables = exportTheseVariables(range, document);
+		var _exportTheseVariables = exportTheseVariables(document);
 		var _handleDifferentVariableExports = handleDifferentTypedVariableExports(range, document);
 
 		return [..._handleDifferentVariableExports, _exportTheseVariables];
@@ -115,8 +115,26 @@ function handleDifferentTypedVariableExports(range: vscode.Range, document: vsco
 	return actions;
 }
 
+// function exportColorNoAlpha(
+// 	range: vscode.Range,
+// 	document: vscode.TextDocument,
+// 	name: string,
+// 	type: string,
+// 	body: string,
+// ): vscode.CodeAction {
+// 	if (type !== "Color") return;
+// 	const codeAction = new vscode.CodeAction(
+// 		"Export as Color No Alpha",
+// 		vscode.CodeActionKind.RefactorRewrite,
+// 	);
+
+
+
+// 	return;
+// }
+
 // TODO: When everything is done, this should export them to their designated exports
-function exportTheseVariables(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction {
+function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction {
 	const codeAction = new vscode.CodeAction(
 		"Export these variables",
 		vscode.CodeActionKind.RefactorRewrite,
