@@ -91,6 +91,7 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 	return codeAction
 }
 
+// TODO: When everything is done, this should export them to their designated exports
 function exportTheseVariables(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction {
 	const codeAction = new vscode.CodeAction(
 		"Export these variables",
