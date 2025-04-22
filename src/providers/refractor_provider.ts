@@ -1,5 +1,12 @@
 import * as vscode from "vscode";
 
+/**
+ * @param $1 The variable name,
+ * @param $2 The variable type,
+ * @param $3 Everything else after the type
+ */
+const VARIABLE_REGEXP: RegExp = /var\s*(\w+:?)\s*\s*(\w*)([\s\S\w\W]*)/
+
 export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
 	// Define the kind of code actions this provider offers
 	public static readonly providedCodeActionKinds = [
@@ -38,7 +45,7 @@ function addExportToVariable(range: vscode.Range, document: vscode.TextDocument)
 
 	codeAction.edit = new vscode.WorkspaceEdit();
 
-	const updatedText = lineText.replace(/^var/, "@export var");
+	const updatedText = lineText.replace(VARIABLE_REGEXP, "@export var $1 $2 $3");
 
 	codeAction.edit.replace(
 		document.uri,
@@ -50,7 +57,6 @@ function addExportToVariable(range: vscode.Range, document: vscode.TextDocument)
 }
 
 function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction {
-	const editor = vscode.window.activeTextEditor;
 	const REGEX: RegExp = /^var\s*(\w+)\s*:\s*(float|int)/
 	const startLine = document.lineAt(range.start.line);
 	const lineText = startLine.text.trim();
@@ -67,22 +73,21 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 		vscode.CodeActionKind.RefactorInline
 	);
 	codeAction.edit = new vscode.WorkspaceEdit();
+	var updatedText = "";
 
+	if (exec[2].trim() == "float") {
+		updatedText = lineText.replace(REGEX, "@export_range(0.0, 1.0) var $1: $2");
+	} else {
+		updatedText = lineText.replace(REGEX, "@export_range(0, 1) var $1: $2");
+	}
 
-	const updatedText = lineText.replace(REGEX, "@export_range(0, 1) var $1: $2");
-	// const snipperString = new vscode.SnippetString(updatedText.replace("export_range(0, 1)", "@export_range(${1:0}, ${2:0})"))
 
 	codeAction.edit.replace(
 		document.uri,
 		startLine.range,
 		updatedText
 	);
-	// editor.insertSnippet(snipperString, startLine.range)
-	// Move the cursor to the specified position
-	// const newPosition = new vscode.Position(startLine.lineNumber, character);
-	// editor.selection = new vscode.Selection(newPosition, newPosition);
-	// editor.revealRange(new vscode.Range(newPosition, newPosition));
-
+	codeAction.isPreferred = true
 	return codeAction
 }
 
