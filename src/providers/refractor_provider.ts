@@ -16,8 +16,9 @@ export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
 		// Specify the edits to be applied
 		var _addExportToVariable = addExportToVariable(range, document);
 		var _addRageExportToVariable = addRangeExportToVariable(range, document);
+		var _exportTheseVariables = exportTheseVariables(range, document)
 
-		return [_addExportToVariable, _addRageExportToVariable];
+		return [_addExportToVariable, _addRageExportToVariable, _exportTheseVariables];
 	}
 
 
@@ -85,23 +86,42 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 	return codeAction
 }
 
-function groupExportedProperties(lineText: string, document: vscode.TextDocument, startLine: vscode.TextLine): vscode.CodeAction {
+function exportTheseVariables(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction {
 	const codeAction = new vscode.CodeAction(
-		"Group exports",
-		vscode.CodeActionKind.RefactorInline
+		"Export these variables",
+		vscode.CodeActionKind.RefactorRewrite,
 	);
-	var editor = vscode.window.activeTextEditor;
-	const selectedText = editor.document.getText(editor.selection);
+	const editor = vscode.window.activeTextEditor;
+	const REGEX = /^\s*(?:@.*?)+(.*)$/gm
+	const selectedText = document.getText(editor.selection);
 
+	if (selectedText == "") return undefined;
+
+	const individualLines = selectedText.split("\n");
+
+	var updatedText: String[] = [];
+
+	for (let i = 0; i < individualLines.length; i++) {
+		const element = individualLines[i];
+		console.log(element);
+
+		if (!element.startsWith("var ")) {
+			updatedText = updatedText.concat(element);
+			continue;
+		}
+		updatedText = updatedText.concat(element.replace(/^var/, "@export var"));
+	}
+	console.log(updatedText);
+
+	if (updatedText.length <= 0) return undefined;
+
+	var newText: string = updatedText.join("\n");
 	codeAction.edit = new vscode.WorkspaceEdit();
-
-	const updatedText = lineText.replace(/^var\s*(\w+)\s*:\s*(float|int)/, "@export_range(0, 1) var $1: $2");
-
 	codeAction.edit.replace(
 		document.uri,
-		startLine.range,
-		updatedText
-	);
+		editor.selection,
+		newText,
+	)
 	return codeAction
 }
 
