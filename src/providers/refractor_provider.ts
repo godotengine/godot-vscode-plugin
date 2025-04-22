@@ -87,7 +87,9 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 
 
 /**
- * For Variables that only checks for the type
+ * For Variables that only checks for the type.
+ * It makes a single execution and passes down the results, furthermore ,
+ * since the functions are only in variables, we exit early if the line is NOT a variable
  * @param range 
  * @param document 
  * @returns 
@@ -109,8 +111,6 @@ function handleDifferentTypedVariableExports(range: vscode.Range, document: vsco
 	var _addRageExportToVariable = addRangeExportToVariable(range, document, name, type, body);
 
 	actions.push(_addExportToVariable, _addRageExportToVariable)
-
-
 
 	return actions;
 }
