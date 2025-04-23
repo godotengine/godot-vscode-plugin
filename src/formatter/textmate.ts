@@ -243,6 +243,10 @@ function is_comment(line: TextLine): boolean {
 	return line.text[line.firstNonWhitespaceCharacterIndex] === "#";
 }
 
+function is_merge_conflict(line: TextLine): boolean {
+	return (line.startsWith('<<<<<<<') || line.startsWith('=======') || line.startsWith('>>>>>>>'));
+}
+
 export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
@@ -292,6 +296,11 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 		// skip comments
 		if (is_comment(line)) {
+			continue;
+		}
+
+		// skip merge conflicts markers
+		if (is_merge_conflict(line)) {
 			continue;
 		}
 
