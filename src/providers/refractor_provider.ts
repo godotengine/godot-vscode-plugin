@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { integer } from "vscode-languageclient";
 
 /**
  * @param $1 The variable name (including the : if it has it),
@@ -176,7 +177,6 @@ export async function extractFunctionCommand(): Promise<void> {
 	const editor = vscode.window.activeTextEditor;
 
 	if (!editor) {
-		vscode.window.showErrorMessage('No active editor!');
 		return;
 	}
 
@@ -184,10 +184,8 @@ export async function extractFunctionCommand(): Promise<void> {
 	const selectedText = editor.document.getText(selection);
 
 	if (!selectedText) {
-		vscode.window.showErrorMessage('No code selected!');
 		return;
 	}
-
 	// Prompt for function name
 	const functionName = await vscode.window.showInputBox({
 		prompt: 'Enter the name of the new function',
@@ -198,28 +196,32 @@ export async function extractFunctionCommand(): Promise<void> {
 		vscode.window.showErrorMessage('Function name is required!');
 		return;
 	}
-
-	// Generate the new function code
-	const newFunction = `
-function ${functionName}() {
-${selectedText.split("\n").map(line => "\t" + line).join("\n")}
-}
-`;
-
-	// Insert the new function at the end of the file
+	const newFunction = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}\n`;
 	const document = editor.document;
-	const fullText = document.getText();
+
+	var pasteLine: number = editor.selection.end.line;
+	/**
+	 * Look in each line, starting with this one and go down,
+	 * if you find a line with a method declaration, go up one and paste the new function
+	 * or the end of the document
+	 */
+
+	for (let i = 0; i < document.lineCount; i++) {
+		if (i < pasteLine) continue;
+		const textLine = document.lineAt(i);
+
+		if (textLine.text.includes("func")) {
+			break;
+		} else {
+			pasteLine++;
+		}
+	}
 
 
-	const position = new vscode.Position(document.lineCount, 0);
+	const position = new vscode.Position(Math.min(pasteLine, document.lineCount), 0);
 
-	await editor.edit((editBuilder) => {
-		// Add the new function
-		editBuilder.insert(position, newFunction);
-
-		// Replace the selected code with a function call
-		editBuilder.replace(selection, `${functionName}();`);
+	await editor.edit((doc) => {
+		doc.insert(position, newFunction);
+		doc.replace(selection, `${functionName}()`);
 	});
-
-	vscode.window.showInformationMessage(`Extracted code as a new function: ${functionName}`);
 }

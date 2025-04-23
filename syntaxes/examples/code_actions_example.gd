@@ -11,7 +11,7 @@ var ex
 var ex
 
 
-func method(args):
+func export_code_as_new_function(args):
     if condition:
         var a
         var b
@@ -20,6 +20,10 @@ func method(args):
         pass
         pass
         pass
+        if condition:
+            if condition:
+                if condition:
+                    pass
 
 func method(args):
     pass
