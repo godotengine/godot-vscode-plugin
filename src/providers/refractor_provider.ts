@@ -7,10 +7,13 @@ import * as vscode from "vscode";
  */
 const VARIABLE_REGEXP: RegExp = /var\s*(\w+:?)\s*\s*(\w*)([\s\S\w\W]*)/
 
-export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
+export class ExportVariablesCodeActionProvider implements vscode.CodeActionProvider {
 	// Define the kind of code actions this provider offers
 	public static readonly providedCodeActionKinds = [
 		vscode.CodeActionKind.Refactor,
+		vscode.CodeActionKind.RefactorExtract,
+		vscode.CodeActionKind.RefactorRewrite,
+		vscode.CodeActionKind.RefactorInline,
 	];
 
 	public provideCodeActions(
@@ -21,22 +24,34 @@ export class RefactorCodeActionProvider implements vscode.CodeActionProvider {
 	): vscode.ProviderResult<vscode.CodeAction[]> {
 
 		// Specify the edits to be applied
-		var _exportTheseVariables = exportTheseVariables(document);
-		var _handleDifferentVariableExports = handleDifferentTypedVariableExports(range, document);
+		const _exportTheseVariables = exportTheseVariables(document);
+		const _extractSelected = extractSelected(document);
 
-		return [..._handleDifferentVariableExports, _exportTheseVariables];
+		const _addExportToVariable = addExportToVariable(range, document);
+		const _addRangeExportToVariable = addRangeExportToVariable(range, document);
+
+		return [_extractSelected, _exportTheseVariables, _addExportToVariable, _addRangeExportToVariable];
 	}
 
 
 }
 
+
+
 function addExportToVariable(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction {
+	const startLine = document.lineAt(range.start.line);
+	const lineText = startLine.text.trim();
+
+	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText)
+	if (!exec) {
+		return undefined
+	}
+
 	const codeAction = new vscode.CodeAction(
 		"Export this variable",
 		vscode.CodeActionKind.RefactorInline
 	);
-	const startLine = document.lineAt(range.start.line);
-	const lineText = startLine.text.trim();
+
 
 	codeAction.edit = new vscode.WorkspaceEdit();
 
@@ -52,15 +67,20 @@ function addExportToVariable(range: vscode.Range, document: vscode.TextDocument)
 }
 
 function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocument,
-	name: string,
-	type: string,
-	body: string,
+
 ): vscode.CodeAction {
 	const startLine = document.lineAt(range.start.line);
 	const lineText = startLine.text.trim();
 
+	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText)
+	if (!exec) {
+		return undefined
+	}
+
+	const [_, name, type, body] = exec;
+
 	const is_number = type.trim() === "float" || type.trim() === "int";
-	if (!is_number) return;
+	if (!is_number) return undefined;
 
 	const codeAction = new vscode.CodeAction(
 		"Export as a range",
@@ -85,34 +105,20 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 	return codeAction
 }
 
+function extractSelected(document: vscode.TextDocument): vscode.CodeAction {
+	const codeAction = new vscode.CodeAction(
+		"Extract function",
+		vscode.CodeActionKind.RefactorExtract,
+	)
+	const editor = vscode.window.activeTextEditor;
+	const selectedText = document.getText(editor.selection);
 
-/**
- * For Variables that only checks for the type.
- * It makes a single execution and passes down the results, furthermore ,
- * since the functions are only in variables, we exit early if the line is NOT a variable
- * @param range 
- * @param document 
- * @returns 
- */
-function handleDifferentTypedVariableExports(range: vscode.Range, document: vscode.TextDocument): vscode.CodeAction[] {
-	var actions: vscode.CodeAction[] = [];
+	if (selectedText === "") return undefined;
 
-	const startLine = document.lineAt(range.start.line);
-	const lineText = startLine.text.trim();
+	codeAction.command = { command: "godotTools.extractFunction", title: "Extract selected as a function" };
 
-	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText)
-	if (!exec) {
-		return undefined
-	}
+	return codeAction;
 
-	const [_, name, type, body] = exec;
-
-	var _addExportToVariable = addExportToVariable(range, document);
-	var _addRageExportToVariable = addRangeExportToVariable(range, document, name, type, body);
-
-	actions.push(_addExportToVariable, _addRageExportToVariable)
-
-	return actions;
 }
 
 // function exportColorNoAlpha(
@@ -147,18 +153,22 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	const individualLines = selectedText.split("\n");
 
 	var updatedText: String[] = [];
+	var nonVarElements: number = 0;
+	var varElements: number = 0;
 
 	for (let i = 0; i < individualLines.length; i++) {
 		const element = individualLines[i];
 
 		if (!element.startsWith("var ")) {
 			updatedText = updatedText.concat(element);
+			nonVarElements++;
 			continue;
 		}
 		updatedText = updatedText.concat(element.replace(/^var/, "@export var"));
+		varElements++;
 	}
 
-	if (updatedText.length <= 0) return undefined;
+	if (varElements < 1) return undefined;
 
 	var newText: string = updatedText.join("\n");
 	codeAction.edit = new vscode.WorkspaceEdit();
@@ -170,3 +180,5 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	codeAction.isPreferred = true;
 	return codeAction
 }
+
+

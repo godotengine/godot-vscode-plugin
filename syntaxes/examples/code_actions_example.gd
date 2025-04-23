@@ -9,3 +9,20 @@ var ex
 const ex
 var ex
 var ex
+
+
+func export_code_as_new_function(args):
+    if condition:
+        var a
+        var b
+        var c
+    else:
+        pass
+        pass
+        pass
+        if condition:
+            if condition:
+                if condition:
+                    pass
+func method(args):
+    pass

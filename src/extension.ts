@@ -31,7 +31,7 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
-import { RefactorCodeActionProvider } from "./providers/refractor_provider";
+import { ExportVariablesCodeActionProvider } from "./providers/refractor_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -77,11 +77,12 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("listGodotClasses", list_classes),
 		register_command("switchSceneScript", switch_scene_script),
 		register_command("getGodotPath", get_godot_path),
+		register_command("extractFunction", extract_function),
 		vscode.languages.registerCodeActionsProvider(
 			{ language: 'gdscript' },
-			new RefactorCodeActionProvider(),
+			new ExportVariablesCodeActionProvider(),
 			{
-				providedCodeActionKinds: RefactorCodeActionProvider.providedCodeActionKinds,
+				providedCodeActionKinds: ExportVariablesCodeActionProvider.providedCodeActionKinds,
 			}
 		)
 	);
@@ -91,6 +92,59 @@ export function activate(context: vscode.ExtensionContext) {
 
 	get_project_version().then(async () => {
 		initial_setup();
+	});
+}
+
+export async function extract_function(): Promise<void> {
+	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
+
+	if (!editor) {
+		return;
+	}
+
+	const selection: vscode.Selection = editor.selection;
+	const selectedText: string = editor.document.getText(selection);
+
+	if (!selectedText) {
+		return;
+	}
+	// Prompt for function name
+	const functionName = await vscode.window.showInputBox({
+		prompt: 'Enter the name of the new function',
+		validateInput: (input) => input.trim() === '' ? 'Function name cannot be empty' : null,
+	});
+
+	if (!functionName) {
+		vscode.window.showErrorMessage('Function name is required!');
+		return;
+	}
+	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}\n`;
+	const document: vscode.TextDocument = editor.document;
+
+	var pasteLine: number = editor.selection.end.line;
+	/**
+	 * Look in each line, starting with this one and go down,
+	 * if you find a line with a method declaration, go up one and paste the new function
+	 * or the end of the document
+	 */
+
+	for (let i = 0; i < document.lineCount; i++) {
+		if (i < pasteLine) continue;
+		const textLine = document.lineAt(i);
+
+		if (textLine.text.includes("func")) {
+			break;
+		} else {
+			pasteLine++;
+		}
+	}
+
+
+	const position = new vscode.Position(Math.min(pasteLine, document.lineCount), 0);
+
+	await editor.edit((doc) => {
+		doc.insert(position, newFunction);
+		doc.replace(selection, `${functionName}()`);
 	});
 }
 

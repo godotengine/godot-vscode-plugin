@@ -58,6 +58,11 @@
 		"commands": [
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.extractFunction",
+				"title": "Extract the selected code as a function"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.openEditor",
 				"title": "Open workspace with Godot editor"
 			},
