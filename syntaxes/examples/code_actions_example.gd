@@ -24,6 +24,5 @@ func export_code_as_new_function(args):
             if condition:
                 if condition:
                     pass
-
 func method(args):
     pass

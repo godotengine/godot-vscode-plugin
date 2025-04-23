@@ -28,8 +28,9 @@ export class ExportVariablesCodeActionProvider implements vscode.CodeActionProvi
 		const _extractSelected = extractSelected(document);
 
 		const _addExportToVariable = addExportToVariable(range, document);
+		const _addRangeExportToVariable = addRangeExportToVariable(range, document);
 
-		return [_extractSelected, _exportTheseVariables, _addExportToVariable];
+		return [_extractSelected, _exportTheseVariables, _addExportToVariable, _addRangeExportToVariable];
 	}
 
 
@@ -107,11 +108,10 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 function extractSelected(document: vscode.TextDocument): vscode.CodeAction {
 	const codeAction = new vscode.CodeAction(
 		"Extract function",
-		vscode.CodeActionKind.RefactorRewrite,
+		vscode.CodeActionKind.RefactorExtract,
 	)
 	const editor = vscode.window.activeTextEditor;
 	const selectedText = document.getText(editor.selection);
-	console.log(selectedText);
 
 	if (selectedText === "") return undefined;
 
@@ -153,18 +153,22 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	const individualLines = selectedText.split("\n");
 
 	var updatedText: String[] = [];
+	var nonVarElements: number = 0;
+	var varElements: number = 0;
 
 	for (let i = 0; i < individualLines.length; i++) {
 		const element = individualLines[i];
 
 		if (!element.startsWith("var ")) {
 			updatedText = updatedText.concat(element);
+			nonVarElements++;
 			continue;
 		}
 		updatedText = updatedText.concat(element.replace(/^var/, "@export var"));
+		varElements++;
 	}
 
-	if (updatedText.length <= 0) return undefined;
+	if (varElements < 1) return undefined;
 
 	var newText: string = updatedText.join("\n");
 	codeAction.edit = new vscode.WorkspaceEdit();
