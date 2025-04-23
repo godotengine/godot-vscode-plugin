@@ -31,7 +31,7 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
-import { RefactorCodeActionProvider } from "./providers/refractor_provider";
+import { ExportVariablesCodeActionProvider } from "./providers/refractor_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -80,9 +80,9 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("extractFunction", extract_function),
 		vscode.languages.registerCodeActionsProvider(
 			{ language: 'gdscript' },
-			new RefactorCodeActionProvider(),
+			new ExportVariablesCodeActionProvider(),
 			{
-				providedCodeActionKinds: RefactorCodeActionProvider.providedCodeActionKinds,
+				providedCodeActionKinds: ExportVariablesCodeActionProvider.providedCodeActionKinds,
 			}
 		)
 	);
@@ -147,7 +147,6 @@ export async function extract_function(): Promise<void> {
 		doc.replace(selection, `${functionName}()`);
 	});
 }
-
 
 async function initial_setup() {
 	const projectVersion = await get_project_version();
