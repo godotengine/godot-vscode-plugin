@@ -244,7 +244,7 @@ function is_comment(line: TextLine): boolean {
 }
 
 function is_merge_conflict(line: TextLine): boolean {
-	return (line.startsWith('<<<<<<<') || line.startsWith('=======') || line.startsWith('>>>>>>>'));
+	return (line.text.startsWith('<<<<<<<') || line.text.startsWith('=======') || line.text.startsWith('>>>>>>>'));
 }
 
 export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
