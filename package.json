@@ -63,6 +63,11 @@
 			},
 			{
 				"category": "Godot Tools",
+				"command": "godotTools.extractVariable",
+				"title": "Extract the selected code as a variable"
+			},
+			{
+				"category": "Godot Tools",
 				"command": "godotTools.openEditor",
 				"title": "Open workspace with Godot editor"
 			},
