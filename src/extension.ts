@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./utils";
+import { attemptSettingsUpdate, get_extension_uri, clean_godot_path, tabString } from "./utils";
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
@@ -78,6 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("switchSceneScript", switch_scene_script),
 		register_command("getGodotPath", get_godot_path),
 		register_command("extractFunction", extract_function),
+		register_command("extractVariable", extract_variable),
 		vscode.languages.registerCodeActionsProvider(
 			{ language: 'gdscript' },
 			new ExportVariablesCodeActionProvider(),
@@ -101,6 +102,7 @@ export async function extract_function(): Promise<void> {
 	if (!editor) {
 		return;
 	}
+	const document: vscode.TextDocument = editor.document;
 
 	const selection: vscode.Selection = editor.selection;
 	const selectedText: string = editor.document.getText(selection);
@@ -108,25 +110,22 @@ export async function extract_function(): Promise<void> {
 	if (!selectedText) {
 		return;
 	}
+
+	const tabOrSpace = tabString();
 	// Prompt for function name
 	const functionName = await vscode.window.showInputBox({
-		prompt: 'Enter the name of the new function',
-		validateInput: (input) => input.trim() === '' ? 'Function name cannot be empty' : null,
+		prompt: "Enter the name of the new function",
+		validateInput: (input) => input.trim() === "" ? "Function name cannot be empty" : null,
 	});
 
-	if (!functionName) {
-		vscode.window.showErrorMessage('Function name is required!');
-		return;
-	}
-	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}\n`;
-	const document: vscode.TextDocument = editor.document;
+	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => tabOrSpace + line).join("\n")}\n`;
 
-	var pasteLine: number = editor.selection.end.line;
 	/**
 	 * Look in each line, starting with this one and go down,
 	 * if you find a line with a method declaration, go up one and paste the new function
 	 * or the end of the document
 	 */
+	var pasteLine: number = editor.selection.end.line;
 
 	for (let i = 0; i < document.lineCount; i++) {
 		if (i < pasteLine) continue;
@@ -139,12 +138,54 @@ export async function extract_function(): Promise<void> {
 		}
 	}
 
-
+	/** Position at the line above another declaration or at the end of the document */
 	const position = new vscode.Position(Math.min(pasteLine, document.lineCount), 0);
 
 	await editor.edit((doc) => {
 		doc.insert(position, newFunction);
 		doc.replace(selection, `${functionName}()`);
+	});
+}
+
+export async function extract_variable(): Promise<void> {
+	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
+	const document: vscode.TextDocument = editor.document;
+
+	if (!editor) {
+		return;
+	}
+
+	const selection: vscode.Selection = editor.selection;
+	const selectedText: string = document.getText(selection);
+
+	if (!selectedText) {
+		return;
+	}
+	// Prompt for function name
+	const variableName = await vscode.window.showInputBox({
+		prompt: "Enter the name of the new variable",
+		validateInput: (input) => input.trim() === "" ? "The name of the variable cannot be empty" : null,
+	});
+	if (!variableName) {
+		return;
+	}
+	const pasteLine: number = editor.selection.start.line;
+	/** Paste at the same indentation level, just above the selection */
+	var indentation: string = ""
+
+	/** Look for the whitespace above at the start of the line */
+	const exec = /^\s+/.exec(document.lineAt(pasteLine).text);
+	if (exec) {
+		indentation = exec[0];
+	}
+
+	const newVariable: string = `${indentation}var ${variableName} := ${selectedText}\n`;
+
+	const position = new vscode.Position(document.lineAt(pasteLine).lineNumber, 0);
+
+	await editor.edit((doc) => {
+		doc.insert(position, newVariable);
+		doc.replace(selection, variableName);
 	});
 }
 

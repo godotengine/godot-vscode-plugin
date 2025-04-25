@@ -134,6 +134,18 @@ export type VERIFY_RESULT = {
 	version?: string;
 };
 
+/** 
+ * Returns either a tab or spaces depending on the user config
+ */
+export function tabString(): string {
+	const editorConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("editor");
+	const insertSpaces: boolean = editorConfig.get("insertSpaces") ?? false;
+	const tabSize: number = (editorConfig.get("tabSize") as number) ?? 4;
+
+	return insertSpaces ? " ".repeat(tabSize) : "\t";
+}
+
+
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
 	let target = clean_godot_path(godotPath);
 

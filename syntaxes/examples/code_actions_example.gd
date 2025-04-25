@@ -25,4 +25,5 @@ func export_code_as_new_function(args):
                 if condition:
                     pass
 func method(args):
+    position.x += (15 / 2) * 5
     pass
