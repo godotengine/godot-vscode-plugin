@@ -171,7 +171,7 @@ export async function extract_variable(): Promise<void> {
 	}
 	const pasteLine: number = editor.selection.start.line;
 	/** Paste at the same indentation level, just above the selection */
-	var indentation: string = ""
+	var indentation: string = "";
 
 	/** Look for the whitespace above at the start of the line */
 	const exec = /^\s+/.exec(document.lineAt(pasteLine).text);
