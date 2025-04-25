@@ -116,7 +116,7 @@ export async function extract_function(): Promise<void> {
 		validateInput: (input) => input.trim() === "" ? "Function name cannot be empty" : null,
 	});
 
-	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}`;
+	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}\n`;
 
 	/**
 	 * Look in each line, starting with this one and go down,
