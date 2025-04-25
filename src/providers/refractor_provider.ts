@@ -5,7 +5,7 @@ import * as vscode from "vscode";
  * @param $2 The variable type,
  * @param $3 Everything else after the type
  */
-const VARIABLE_REGEXP: RegExp = /^var\s*(\w+:?)\s*\s*(\w*)([\s\S\w\W]*)/
+const VARIABLE_REGEXP: RegExp = /^var\s*(\w+:?)\s*\s*(\w*)([\s\S\w\W]*)/;
 
 export class ExportVariablesCodeActionProvider implements vscode.CodeActionProvider {
 	// Define the kind of code actions this provider offers
@@ -45,7 +45,7 @@ function addExportToVariable(range: vscode.Range, document: vscode.TextDocument)
 
 	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText);
 	if (!exec) {
-		return undefined
+		return undefined;
 	}
 
 	const codeAction = new vscode.CodeAction(
@@ -73,7 +73,7 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 
 	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText)
 	if (!exec) {
-		return undefined
+		return undefined;
 	}
 
 	const [_, name, type, body] = exec;
@@ -100,8 +100,8 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 		startLine.range,
 		updatedText
 	);
-	codeAction.isPreferred = true
-	return codeAction
+	codeAction.isPreferred = true;
+	return codeAction;
 }
 
 function extractVariable(document: vscode.TextDocument) {
@@ -128,7 +128,7 @@ function extractFunction(document: vscode.TextDocument) {
 	const codeAction = new vscode.CodeAction(
 		"Extract function",
 		vscode.CodeActionKind.RefactorExtract,
-	)
+	);
 	codeAction.command = {
 		command: "godotTools.extractFunction",
 		title: "Extract selected as a function"
@@ -173,9 +173,9 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 		document.uri,
 		editor.selection,
 		newText,
-	)
+	);
 	codeAction.isPreferred = true;
-	return codeAction
+	return codeAction;
 }
 
 
