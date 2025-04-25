@@ -138,9 +138,9 @@ export type VERIFY_RESULT = {
  * Returns either a tab or spaces depending on the user config
  */
 export function tabString(): string {
-	const editorConfig = vscode.workspace.getConfiguration("editor");
-	const insertSpaces = editorConfig.get("insertSpaces") ?? false;
-	const tabSize = (editorConfig.get("tabSize") as number) ?? 4;
+	const editorConfig: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("editor");
+	const insertSpaces: boolean = editorConfig.get("insertSpaces") ?? false;
+	const tabSize: number = (editorConfig.get("tabSize") as number) ?? 4;
 
 	return insertSpaces ? " ".repeat(tabSize) : "\t";
 }
