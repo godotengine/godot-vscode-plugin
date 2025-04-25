@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./utils";
+import { attemptSettingsUpdate, get_extension_uri, clean_godot_path, tabString } from "./utils";
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
@@ -110,13 +110,15 @@ export async function extract_function(): Promise<void> {
 	if (!selectedText) {
 		return;
 	}
+
+	const tabOrSpace = tabString();
 	// Prompt for function name
 	const functionName = await vscode.window.showInputBox({
 		prompt: "Enter the name of the new function",
 		validateInput: (input) => input.trim() === "" ? "Function name cannot be empty" : null,
 	});
 
-	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => "\t" + line).join("\n")}\n`;
+	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => tabOrSpace + line).join("\n")}\n`;
 
 	/**
 	 * Look in each line, starting with this one and go down,
