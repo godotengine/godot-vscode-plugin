@@ -10,7 +10,7 @@ import {
 	Hover,
 } from "vscode";
 import { SceneParser } from "../scene_tools";
-import { convert_resource_path_to_uri, createLogger } from "../utils";
+import { convert_resource_path_to_uri, createLogger, convert_uid_to_uri, convert_uri_to_resource_path } from "../utils";
 
 const log = createLogger("providers.hover");
 
@@ -32,6 +32,12 @@ export class GDHoverProvider implements HoverProvider {
 		let links = "";
 		for (const match of text.matchAll(/res:\/\/[^"^']*/g)) {
 			const uri = await convert_resource_path_to_uri(match[0]);
+			if (uri instanceof Uri) {
+				links += `* [${match[0]}](${uri})\n`;
+			}
+		}
+		for (const match of text.matchAll(/uid:\/\/[0-9a-z]*/g)) {
+			const uri = await convert_uid_to_uri(match[0]);
 			if (uri instanceof Uri) {
 				links += `* [${match[0]}](${uri})\n`;
 			}
@@ -88,7 +94,15 @@ export class GDHoverProvider implements HoverProvider {
 			}
 		}
 
-		const link = document.getText(document.getWordRangeAtPosition(position, /res:\/\/[^"^']*/));
+		let link = document.getText(document.getWordRangeAtPosition(position, /res:\/\/[^"^']*/));
+		if (!link.startsWith("res://")) {
+			link = document.getText(document.getWordRangeAtPosition(position, /uid:\/\/[0-9a-z]*/));
+			if (link.startsWith("uid://")) {
+				const uri = await convert_uid_to_uri(link);
+				link = await convert_uri_to_resource_path(uri);
+			}
+		}
+
 		if (link.startsWith("res://")) {
 			let type = "";
 			if (link.endsWith(".gd")) {

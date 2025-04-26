@@ -9,7 +9,7 @@ import {
 	type ExtensionContext,
 } from "vscode";
 import { SceneParser } from "../scene_tools";
-import { convert_resource_path_to_uri, createLogger } from "../utils";
+import { convert_resource_path_to_uri, convert_uids_to_uris, createLogger } from "../utils";
 
 const log = createLogger("providers.document_links");
 
@@ -67,6 +67,22 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 			const uri = await convert_resource_path_to_uri(match[0]);
 			if (uri instanceof Uri) {
 				links.push(new DocumentLink(r, uri));
+			}
+		}
+
+		const uids: Set<string> = new Set();
+		const uid_matches: Array<[string, Range]> = [];
+		for (const match of text.matchAll(/uid:\/\/([0-9a-z]*)/g)) {
+			const r = this.create_range(document, match);
+			uids.add(match[0]);
+			uid_matches.push([match[0], r]);
+		}
+
+		const uid_map = await convert_uids_to_uris(Array.from(uids));
+		for (const uid of uid_matches) {
+			const uri = uid_map.get(uid[0]);
+			if (uri instanceof vscode.Uri) {
+				links.push(new DocumentLink(uid[1], uri));
 			}
 		}
 
