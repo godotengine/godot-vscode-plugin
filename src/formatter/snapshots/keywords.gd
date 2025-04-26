@@ -14,3 +14,4 @@ func f():
 
 	self.c = 1
 	print(self.c + 2)
+	print(func() return self.c + 2)
