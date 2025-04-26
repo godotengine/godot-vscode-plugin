@@ -179,7 +179,7 @@
 		},
 		"func": {
 			"match": "\\bfunc\\b",
-			"name": "keyword.language.gdscript"
+			"name": "keyword.language.gdscript storage.type.function.gdscript"
 		},
 		"in_keyword": {
 			"patterns": [
