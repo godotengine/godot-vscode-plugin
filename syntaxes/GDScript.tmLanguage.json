@@ -76,7 +76,6 @@
 				{ "include": "#function_call" },
 				{ "include": "#region"},
 				{ "include": "#comment" },
-				{ "include": "#self" },
 				{ "include": "#func" },
 				{ "include": "#letter" },
 				{ "include": "#numbers" },
@@ -177,10 +176,6 @@
 				},
 				{ "include": "#expression" }
 			]
-		},
-		"self": {
-			"match": "\\bself\\b",
-			"name": "variable.language.gdscript"
 		},
 		"func": {
 			"match": "\\bfunc\\b",
