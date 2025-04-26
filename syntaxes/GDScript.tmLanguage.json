@@ -167,11 +167,11 @@
 				{
 					"begin": "(\"|')",
 					"end": "\\1",
-					"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape",
+					"name": "string.quoted.gdscript meta.literal.nodepath.gdscript constant.character.escape.gdscript",
 					"patterns": [
 						{
 							"match": "%",
-							"name": "keyword.control.flow"
+							"name": "keyword.control.flow.gdscript"
 						}
 					]
 				},
