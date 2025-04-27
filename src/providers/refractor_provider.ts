@@ -71,7 +71,7 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 	const startLine = document.lineAt(range.start.line);
 	const lineText = startLine.text.trim();
 
-	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText)
+	const exec: RegExpExecArray | null = VARIABLE_REGEXP.exec(lineText);
 	if (!exec) {
 		return undefined;
 	}
@@ -112,7 +112,7 @@ function extractVariable(document: vscode.TextDocument) {
 	const codeAction = new vscode.CodeAction(
 		"Extract Variable",
 		vscode.CodeActionKind.RefactorExtract,
-	)
+	);
 	codeAction.command = {
 		command: "godotTools.extractVariable",
 		title: "Extract selected as a variable"
