@@ -307,6 +307,19 @@
 					"default": false,
 					"description": "Whether extra space should be removed from function parameter lists"
 				},
+				"godotTools.formatter.spacesBeforeEndOfLineComment": {
+					"type": "string",
+					"enum": [
+						"1",
+						"2"
+					],
+					"enumDescriptions": [
+						"1 space before EOL comments # Like this.",
+						"2 spaces before EOL comments  # Like this."
+					],
+					"default": "1",
+					"description": "Number of spaces before an end-of-line comment"
+				},
 				"godotTools.lsp.serverHost": {
 					"type": "string",
 					"default": "127.0.0.1",

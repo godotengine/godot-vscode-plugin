@@ -17,6 +17,7 @@ function normalizeLineEndings(str: string) {
 const defaultOptions: FormatterOptions = {
 	maxEmptyLines: 2,
 	denseFunctionParameters: false,
+        spacesBeforeEndOfLineComment: 1
 };
 
 function get_options(folder: fs.Dirent) {
