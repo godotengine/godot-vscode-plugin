@@ -228,22 +228,22 @@ export function verify_godot_version(godotPath: string, expectedVersion: "3" | "
 }
 
 export function clean_godot_path(godotPath: string): string {
-	let pathToClean: string = godotPath;
+	let pathToClean = godotPath;
 
-	// Environment variable check 
-	// Regular expression for variable value (between the variable suffix and the next ending curly bracket):
-	// .+? matches any character (except line terminators) between one and unlimited times,
-	// as few times as possible, expanding as needed (lazy)
-	const varValueRegexp: string = ".+?";
-	const pattern = `\\$\\{env:(${varValueRegexp})\\}`;
+	// check for environment variable syntax
+	// looking for: ${env:FOOBAR}
+	// extracts "FOOBAR"
+	const pattern = /\$\{env:(.+?)\}/;
 	const match = godotPath.match(pattern);
 
 	if (match && match.length >= 2)	{
 		pathToClean = process.env[match[1]];
 	}
 
+	// strip leading and trailing quotes
 	let target = pathToClean.replace(/^"/, "").replace(/"$/, "");
 
+	// try to fix macos paths
 	if (os.platform() === "darwin" && target.endsWith(".app")) {
 		target = path.join(target, "Contents", "MacOS", "Godot");
 	}
