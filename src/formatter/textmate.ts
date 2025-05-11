@@ -56,7 +56,7 @@ interface Token {
 export interface FormatterOptions {
 	maxEmptyLines: 0 | 1 | 2;
 	denseFunctionParameters: boolean;
-        spacesBeforeEndOfLineComment: 1 | 2;
+	spacesBeforeEndOfLineComment: 1 | 2;
 }
 
 function get_formatter_options() {
