@@ -232,14 +232,13 @@ export function clean_godot_path(godotPath: string): string {
 
 	// Environment variable check 
 	// Regular expression for variable value (between the variable suffix and the next ending curly bracket):
-    // .+? matches any character (except line terminators) between one and unlimited times,
-    // as few times as possible, expanding as needed (lazy)
-    const varValueRegexp: string = ".+?";
+	// .+? matches any character (except line terminators) between one and unlimited times,
+	// as few times as possible, expanding as needed (lazy)
+	const varValueRegexp: string = ".+?";
 	const pattern = `\\$\\{env:(${varValueRegexp})\\}`;
 	const match = godotPath.match(pattern);
 
-	if (match && match.length >= 2)
-	{
+	if (match && match.length >= 2)	{
 		pathToClean = process.env[match[1]];
 	}
 
