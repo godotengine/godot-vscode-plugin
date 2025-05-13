@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
-
+import {
+	ExtensionContext
+} from "vscode";
 /**
  * @param $1 The variable name (including the : if it has it),
  * @param $2 The variable type,
@@ -7,7 +9,19 @@ import * as vscode from "vscode";
  */
 const VARIABLE_REGEXP: RegExp = /^var\s*(\w+:?)\s*\s*(\w*)([\s\S\w\W]*)/;
 
-export class ExportVariablesCodeActionProvider implements vscode.CodeActionProvider {
+export class GDCodeActionProvider implements vscode.CodeActionProvider {
+	constructor(private context: ExtensionContext) {
+		context.subscriptions.push(
+			vscode.languages.registerCodeActionsProvider(
+				{ language: 'gdscript' },
+				this,
+				{
+					providedCodeActionKinds: GDCodeActionProvider.providedCodeActionKinds,
+				}
+			)
+		);
+
+	}
 	// Define the kind of code actions this provider offers
 	public static readonly providedCodeActionKinds = [
 		vscode.CodeActionKind.Refactor,
@@ -133,6 +147,7 @@ function extractFunction(document: vscode.TextDocument) {
 		command: "godotTools.extractFunction",
 		title: "Extract selected as a function"
 	};
+	// codeAction.edit.insert
 	return codeAction;
 }
 

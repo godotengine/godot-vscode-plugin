@@ -31,7 +31,7 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
-import { ExportVariablesCodeActionProvider } from "./providers/refractor_provider";
+import { GDCodeActionProvider } from "./providers/code_action_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -48,6 +48,7 @@ interface Extension {
 	semanticTokensProvider?: GDSemanticTokensProvider;
 	completionProvider?: GDCompletionItemProvider;
 	tasksProvider?: GDTaskProvider;
+	codeActionProvider?: GDCodeActionProvider;
 }
 
 export const globals: Extension = {};
@@ -66,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.formattingProvider = new FormattingProvider(context);
 	globals.docsProvider = new GDDocumentationProvider(context);
 	globals.definitionProvider = new GDDefinitionProvider(context);
+	globals.codeActionProvider = new GDCodeActionProvider(context);
 	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
 	// globals.completionProvider = new GDCompletionItemProvider(context);
 	// globals.tasksProvider = new GDTaskProvider(context);
@@ -79,13 +81,6 @@ export function activate(context: vscode.ExtensionContext) {
 		register_command("getGodotPath", get_godot_path),
 		register_command("extractFunction", extract_function),
 		register_command("extractVariable", extract_variable),
-		vscode.languages.registerCodeActionsProvider(
-			{ language: 'gdscript' },
-			new ExportVariablesCodeActionProvider(),
-			{
-				providedCodeActionKinds: ExportVariablesCodeActionProvider.providedCodeActionKinds,
-			}
-		)
 	);
 
 	set_context("godotFiles", ["gdscript", "gdscene", "gdresource", "gdshader"]);
@@ -96,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 }
 
-export async function extract_function(): Promise<void> {
+async function extract_function(): Promise<void> {
 	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
 
 	if (!editor) {
@@ -147,7 +142,7 @@ export async function extract_function(): Promise<void> {
 	});
 }
 
-export async function extract_variable(): Promise<void> {
+async function extract_variable(): Promise<void> {
 	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
 	const document: vscode.TextDocument = editor.document;
 
@@ -354,7 +349,7 @@ class GodotEditorTerminal implements vscode.Pseudoterminal {
 	private closeEmitter = new vscode.EventEmitter<number>();
 	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
 
-	constructor(private command: string) { }
+	constructor(private command: string) {}
 
 	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
 		const proc = subProcess("GodotEditor", this.command, { shell: true, detached: true });

@@ -1,22 +1,5 @@
 # Godot Tools
 
-## The David´s Branch
-
-This branch adds much needed code actions (the lightbulb at the left that lets you refractor code. I try to add that missing functionality
-
-### What does it do?
-
-* Firstly adds a simple action to export any variable, press (ctr+.) in a variable and it will appear an option to add @export at the start.
- - Bonus: it also detects where the variable is a float or int (a number) and gives you an option to export it as a range
-
-* Secondly, it adds an option to refractor any code as a function or a variable.
-
-Highlight any code and it will show an option to extract as a function or a variable. If it is a variable it will put it above the selection, and if is a function, it will put it after this function.
-
-Additionally you can call a command (ctr+shift+p) to do the same
-
-**Thats about it. For now**
-
 Game development tools for working with [Godot Engine](http://www.godotengine.org/) in Visual Studio Code.
 
 **IMPORTANT NOTE:** Versions 1.0.0 and later of this extension only support
