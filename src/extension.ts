@@ -143,14 +143,14 @@ async function extract_function(): Promise<void> {
 }
 
 async function extract_variable(): Promise<void> {
-	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
-	const document: vscode.TextDocument = editor.document;
+	const editor = vscode.window.activeTextEditor;
+	const document = editor.document;
 
 	if (!editor) {
 		return;
 	}
 
-	const selection: vscode.Selection = editor.selection;
+	const selection = editor.selection;
 	const selectedText: string = document.getText(selection);
 
 	if (!selectedText) {
@@ -166,7 +166,7 @@ async function extract_variable(): Promise<void> {
 	}
 	const pasteLine: number = editor.selection.start.line;
 	/** Paste at the same indentation level, just above the selection */
-	var indentation: string = "";
+	var indentation = "";
 
 	/** Look for the whitespace above at the start of the line */
 	const exec = /^\s+/.exec(document.lineAt(pasteLine).text);
@@ -174,7 +174,7 @@ async function extract_variable(): Promise<void> {
 		indentation = exec[0];
 	}
 
-	const newVariable: string = `${indentation}var ${variableName} := ${selectedText}\n`;
+	const newVariable = `${indentation}var ${variableName} := ${selectedText}\n`;
 
 	const position = new vscode.Position(document.lineAt(pasteLine).lineNumber, 0);
 

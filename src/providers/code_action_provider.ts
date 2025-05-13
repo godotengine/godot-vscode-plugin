@@ -165,8 +165,8 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	const individualLines = selectedText.split("\n");
 
 	var updatedText: String[] = [];
-	var nonVarElements: number = 0;
-	var varElements: number = 0;
+	var nonVarElements = 0;
+	var varElements = 0;
 
 	for (let i = 0; i < individualLines.length; i++) {
 		const element = individualLines[i];
