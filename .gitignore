@@ -6,3 +6,4 @@ workspace.code-workspace
 .history
 .godot
 *.tmp
+src/scene_tools/property_inspector/webview/dist

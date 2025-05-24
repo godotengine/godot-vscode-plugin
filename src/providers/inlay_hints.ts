@@ -1,17 +1,16 @@
 import * as vscode from "vscode";
 import {
-	Range,
-	TextDocument,
-	CancellationToken,
-	InlayHint,
-	ProviderResult,
-	InlayHintKind,
-	InlayHintsProvider,
-	ExtensionContext,
+    CancellationToken,
+    ExtensionContext,
+    InlayHint,
+    InlayHintKind,
+    InlayHintsProvider,
+    Range,
+    TextDocument
 } from "vscode";
-import { SceneParser } from "../scene_tools";
-import { createLogger, get_configuration } from "../utils";
 import { globals } from "../extension";
+import { SceneHandler } from "../scene_tools";
+import { createLogger, get_configuration } from "../utils";
 
 const log = createLogger("providers.inlay_hints");
 
@@ -44,7 +43,7 @@ async function addByHover(document: TextDocument, hoverPosition: vscode.Position
 }
 
 export class GDInlayHintsProvider implements InlayHintsProvider {
-	public parser = new SceneParser();
+	public parser = new SceneHandler();
 
 	constructor(private context: ExtensionContext) {
 		const selector = [
