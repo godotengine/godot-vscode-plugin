@@ -14,7 +14,7 @@ import {
 	type TreeView,
 	type Uri,
 	window,
-	workspace,
+	workspace
 } from "vscode";
 import {
 	convert_resource_path_to_uri,
@@ -23,10 +23,11 @@ import {
 	get_configuration,
 	make_docs_uri,
 	register_command,
-	set_context,
+	set_context
 } from "../utils";
 import { SceneParser } from "./parser";
-import type { Scene, SceneNode } from "./types";
+import { NodePropertiesWebviewProvider, PropertyInspector } from "./property_inspector";
+import { Scene, SceneNode } from "./types";
 
 const log = createLogger("scenes.preview");
 
@@ -38,9 +39,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	private currentScene = "";
 	public parser = new SceneParser();
 	public scene: Scene;
-	watcher = workspace.createFileSystemWatcher("**/*.tscn");
-	uniqueDecorator = new UniqueDecorationProvider(this);
-	scriptDecorator = new ScriptDecorationProvider(this);
+	private watcher = workspace.createFileSystemWatcher("**/*.tscn");
+	private uniqueDecorator = new UniqueDecorationProvider(this);
+	private scriptDecorator = new ScriptDecorationProvider(this);
+	
+	// Properties provider and webview
+	public nodePropertiesProvider: NodePropertiesWebviewProvider;
+	private propertyInspector: PropertyInspector;
 
 	private changeTreeEvent = new EventEmitter<void>();
 	public get onDidChangeTreeData(): Event<void> {
@@ -52,6 +57,17 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			treeDataProvider: this,
 			dragAndDropController: this,
 		});
+
+		// Create the Node Properties webview provider
+		this.nodePropertiesProvider = new NodePropertiesWebviewProvider(context.extensionUri);
+		
+		// Register the webview view provider
+		context.subscriptions.push(
+			vscode.window.registerWebviewViewProvider("nodeProperties", this.nodePropertiesProvider)
+		);
+
+		// Create the PropertyInspector with the provider
+		this.propertyInspector = new PropertyInspector(this.nodePropertiesProvider);
 
 		context.subscriptions.push(
 			register_command("scenePreview.lock", this.lock_preview.bind(this)),
@@ -70,7 +86,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			window.registerFileDecorationProvider(this.scriptDecorator),
 			this.watcher.onDidChange(this.on_file_changed.bind(this)),
 			this.watcher,
-			this.tree.onDidChangeSelection(this.tree_selection_changed),
+			this.tree.onDidChangeSelection(this.tree_selection_changed.bind(this)),
 			this.tree,
 		);
 		const result: string | undefined = this.context.workspaceState.get("godotTools.scenePreview.lockedScene");
@@ -89,7 +105,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		source: readonly SceneNode[],
 		data: vscode.DataTransfer,
 		token: vscode.CancellationToken,
-	): void | Thenable<void> {
+): void | Thenable<void> {
 		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
 		data.set("godot/node", new vscode.DataTransferItem(source[0]));
 		data.set("godot/path", new vscode.DataTransferItem(source[0].path));
@@ -131,22 +147,20 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 						return;
 					}
 					fileName = relatedScene.fsPath;
-				}
-
-				if (mode === "sameFolder") {
+				} else if (mode === "sameFolder") {
 					if (fs.existsSync(searchName)) {
 						fileName = searchName;
 					} else {
 						return;
 					}
-				}
-				if (mode === "off") {
+				} else if (mode === "off") {
 					return;
 				}
-			}
-			// don't attempt to parse non-scenes
-			if (!fileName.endsWith(".tscn")) {
-				return;
+
+				// Final check: make sure we have a valid scene file
+				if (!fileName.endsWith(".tscn")) {
+					return;
+				}
 			}
 
 			this.currentScene = fileName;
@@ -155,16 +169,33 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	public async refresh() {
-		if (!fs.existsSync(this.currentScene)) {
+		if (!this.currentScene || !fs.existsSync(this.currentScene)) {
+			this.scene = {} as Scene; // Reset scene to empty state
+			this.tree.message = "No scene loaded";
+			this.clearCaches();
+			this.changeTreeEvent.fire();
 			return;
 		}
 
-		const document = await vscode.workspace.openTextDocument(this.currentScene);
-		this.scene = this.parser.parse_scene(document);
-
-		this.tree.message = this.scene.title;
+		try {
+			const document = await vscode.workspace.openTextDocument(this.currentScene);
+			this.scene = this.parser.parse_scene(document);
+			this.tree.message = this.scene?.title || "Scene loaded";
+			// Clear property inspector cache when scene changes
+			this.propertyInspector.clearCache();
+		} catch (error) {
+			log.error(`Failed to parse scene ${this.currentScene}: ${error}`);
+			this.scene = {} as Scene;
+			this.tree.message = "Error loading scene";
+			this.clearCaches();
+		}
 
 		this.changeTreeEvent.fire();
+	}
+
+	private clearCaches() {
+		this.propertyInspector.clearCache();
+		this.nodePropertiesProvider.clearProperties();
 	}
 
 	private lock_preview() {
@@ -200,11 +231,22 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_script(item: SceneNode) {
-		const path = this.scene.externalResources.get(item.scriptId).path;
+		if (!item.hasScript || !item.scriptId) {
+			log.warn("Cannot open script: node has no script attached");
+			return;
+		}
 
-		const uri = await convert_resource_path_to_uri(path);
+		const scriptResource = this.scene.externalResources.get(item.scriptId);
+		if (!scriptResource) {
+			log.warn(`Cannot open script: script resource with ID ${item.scriptId} not found`);
+			return;
+		}
+
+		const uri = await convert_resource_path_to_uri(scriptResource.path);
 		if (uri) {
 			vscode.window.showTextDocument(uri, { preview: true });
+		} else {
+			log.warn(`Cannot open script: failed to convert resource path ${scriptResource.path} to URI`);
 		}
 	}
 
@@ -216,15 +258,33 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_main_script() {
-		if (this.currentScene) {
-			const root = this.scene.root;
-			if (root?.hasScript) {
-				const path = this.scene.externalResources.get(root.scriptId).path;
-				const uri = await convert_resource_path_to_uri(path);
-				if (uri) {
-					vscode.window.showTextDocument(uri, { preview: true });
-				}
-			}
+		if (!this.currentScene) {
+			log.warn("Cannot open main script: no current scene");
+			return;
+		}
+
+		if (!this.scene?.root) {
+			log.warn("Cannot open main script: scene has no root node");
+			return;
+		}
+
+		const root = this.scene.root;
+		if (!root.hasScript || !root.scriptId) {
+			log.warn("Cannot open main script: root node has no script attached");
+			return;
+		}
+
+		const scriptResource = this.scene.externalResources.get(root.scriptId);
+		if (!scriptResource) {
+			log.warn(`Cannot open main script: script resource with ID ${root.scriptId} not found`);
+			return;
+		}
+
+		const uri = await convert_resource_path_to_uri(scriptResource.path);
+		if (uri) {
+			vscode.window.showTextDocument(uri, { preview: true });
+		} else {
+			log.warn(`Cannot open main script: failed to convert resource path ${scriptResource.path} to URI`);
 		}
 	}
 
@@ -240,12 +300,16 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		vscode.commands.executeCommand("vscode.open", make_docs_uri(item.className));
 	}
 
-	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
-		// const item = event.selection[0];
-		// log(item.body);
-		// const editor = vscode.window.activeTextEditor;
-		// const range = editor.document.getText()
-		// editor.revealRange(range)
+	private async tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
+		const selectedNode = event.selection[0];
+		if (!selectedNode) {
+			// No node selected, clear properties
+			this.nodePropertiesProvider.clearProperties();
+			return;
+		}
+
+		// Use the PropertyInspector to inspect the selected node
+		await this.propertyInspector.inspectNodeProperties(selectedNode, this.scene);
 	}
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {

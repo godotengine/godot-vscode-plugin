@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://g5gqewj2i2xs"]
 
-[ext_resource type="Script" path="res://ScopeVars.gd" id="1_wtcpp"]
+[ext_resource type="Script" uid="uid://cbgugy44s0uia" path="res://ScopeVars.gd" id="1_wtcpp"]
 
 [node name="RootNode" type="Node"]
 script = ExtResource("1_wtcpp")

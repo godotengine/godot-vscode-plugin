@@ -1,12 +1,16 @@
 [gd_scene load_steps=3 format=3 uid="uid://bsonfthpqa3dx"]
 
-[ext_resource type="Script" path="res://ExtensiveVars.gd" id="1_fnilr"]
-[ext_resource type="Script" path="res://ExtensiveVars_Label.gd" id="2_jijf2"]
+[ext_resource type="Script" uid="uid://jj6y8lb0lkij" path="res://ExtensiveVars.gd" id="1_fnilr"]
+[ext_resource type="Script" uid="uid://ca1f5tmqgm6hu" path="res://ExtensiveVars_Label.gd" id="2_jijf2"]
 
 [node name="ExtensiveVars" type="Node2D"]
 script = ExtResource("1_fnilr")
 
 [node name="Label" type="Label" parent="."]
+ellipsis_char = "test"
+clip_text = false
+uppercase = false
+mouse_force_pass_scroll_events = false
 text = "Extensive Vars scene"
 script = ExtResource("2_jijf2")
 metadata/_edit_use_anchors_ = true

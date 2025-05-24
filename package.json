@@ -173,7 +173,16 @@
 			{
 				"category": "Godot Tools",
 				"command": "godotTools.scenePreview.openMainScript",
-				"title": "Open the main script of the Scene Preview's current scene",
+				"title": "Open Main Script",
+				"icon": {
+					"light": "resources/godot_icons/light/Script.svg",
+					"dark": "resources/godot_icons/dark/Script.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openScript",
+				"title": "Open Script",
 				"icon": {
 					"light": "resources/godot_icons/light/Script.svg",
 					"dark": "resources/godot_icons/dark/Script.svg"
@@ -224,15 +233,6 @@
 				"icon": {
 					"light": "resources/InstanceOptions.svg",
 					"dark": "resources/InstanceOptions.svg"
-				}
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.scenePreview.openScript",
-				"title": "Open Script",
-				"icon": {
-					"light": "resources/godot_icons/light/Script.svg",
-					"dark": "resources/godot_icons/dark/Script.svg"
 				}
 			},
 			{
@@ -314,8 +314,8 @@
 						"2"
 					],
 					"enumDescriptions": [
-						"1 space before EOL comments # Like this.",
-						"2 spaces before EOL comments  # Like this."
+						"1 space before EOL comments # Like this.",
+						"2 spaces before EOL comments  # Like this."
 					],
 					"default": "1",
 					"description": "Number of spaces before an end-of-line comment"
@@ -667,6 +667,11 @@
 				{
 					"id": "scenePreview",
 					"name": "Scene Preview"
+				},
+				{
+					"id": "nodeProperties",
+					"name": "Node Properties",
+					"type": "webview"
 				}
 			]
 		},
@@ -682,6 +687,10 @@
 			{
 				"view": "scenePreview",
 				"contents": "Open a Scene to see a preview of its structure"
+			},
+			{
+				"view": "nodeProperties",
+				"contents": "Select a node in the Scene Preview to view its properties"
 			}
 		],
 		"menus": {
@@ -813,13 +822,13 @@
 					"group": "1@2"
 				},
 				{
-					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /openable/",
+					"command": "godotTools.scenePreview.openScript",
+					"when": "view == scenePreview && viewItem =~ /hasScript/",
 					"group": "inline"
 				},
 				{
-					"command": "godotTools.scenePreview.openScript",
-					"when": "view == scenePreview && viewItem =~ /hasScript/",
+					"command": "godotTools.scenePreview.openScene",
+					"when": "view == scenePreview && viewItem =~ /openable/",
 					"group": "inline"
 				}
 			],
