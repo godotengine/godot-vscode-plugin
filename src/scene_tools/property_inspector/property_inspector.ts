@@ -3,7 +3,6 @@ import { globals } from "../../extension";
 import type { GodotNativeSymbol, NativeSymbolInspectParams } from "../../providers/documentation_types";
 import { convert_resource_path_to_uri, createLogger } from "../../utils";
 import type { Scene, SceneNode } from "../types";
-import { SceneFileOperations } from "./scene_file_operations";
 import type { PropertyData } from "./types";
 import { NodePropertiesWebviewProvider } from "./webview_provider";
 
@@ -40,8 +39,8 @@ export class PropertyInspector {
 			// Group properties by class
 			const propertiesByClass = new Map<string, PropertyData[]>();
 
-			// Parse current property values from the node's body
-			const currentValues = SceneFileOperations.parseNodePropertyValues(item);
+			// Parse current property values from the node's body using the new SceneNode method
+			const currentValues = item.getPropertyValues();
 
 			// Step 1: Get properties from attached script first (if any)
 			if (item.hasScript && item.scriptId) {

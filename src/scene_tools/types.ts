@@ -1,10 +1,10 @@
-import {
-	TreeItem,
-	TreeItemCollapsibleState,
-	MarkdownString,
-	Uri
-} from "vscode";
 import * as path from "path";
+import {
+    MarkdownString,
+    TreeItem,
+    TreeItemCollapsibleState,
+    Uri
+} from "vscode";
 import { get_extension_uri } from "../utils";
 
 const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
@@ -21,6 +21,9 @@ export class SceneNode extends TreeItem {
 	public hasScript: boolean = false;
 	public scriptId: string = "";
 	public children: SceneNode[] = [];
+	
+	// Property cache for efficient access
+	private _propertyValues: Map<string, string> | null = null;
 
 	constructor(
 		public label: string,
@@ -61,6 +64,67 @@ export class SceneNode extends TreeItem {
 		const content = new MarkdownString();
 		content.appendCodeblock(this.body, "gdresource");
 		this.tooltip = content;
+		
+		// Clear property cache when body changes
+		this._propertyValues = null;
+	}
+
+	/**
+	 * Parse property values from this node's body
+	 */
+	public getPropertyValues(): Map<string, string> {
+		if (this._propertyValues !== null) {
+			return this._propertyValues;
+		}
+
+		this._propertyValues = new Map<string, string>();
+		
+		if (!this.body) {
+			return this._propertyValues;
+		}
+
+		// Parse each line of the node body to extract property assignments
+		const lines = this.body.split('\n');
+		for (const line of lines) {
+			const trimmedLine = line.trim();
+			
+			// Look for property assignments (propertyName = value)
+			const assignmentMatch = trimmedLine.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+			if (assignmentMatch) {
+				const propertyName = assignmentMatch[1];
+				let propertyValue = assignmentMatch[2].trim();
+				
+				// Remove quotes from string values and unescape escape sequences
+				if (propertyValue.startsWith('"') && propertyValue.endsWith('"')) {
+					propertyValue = propertyValue.slice(1, -1);
+					// Unescape common escape sequences
+					propertyValue = propertyValue
+						.replace(/\\n/g, '\n')
+						.replace(/\\t/g, '\t')
+						.replace(/\\r/g, '\r')
+						.replace(/\\"/g, '"')
+						.replace(/\\\\/g, '\\');
+				}
+				
+				this._propertyValues.set(propertyName, propertyValue);
+			}
+		}
+		
+		return this._propertyValues;
+	}
+
+	/**
+	 * Get a specific property value from this node
+	 */
+	public getPropertyValue(propertyName: string): string | undefined {
+		return this.getPropertyValues().get(propertyName);
+	}
+
+	/**
+	 * Clear the property cache (call when the body is updated externally)
+	 */
+	public clearPropertyCache(): void {
+		this._propertyValues = null;
 	}
 }
 
@@ -82,4 +146,16 @@ export class Scene {
 	public externalResources: Map<string, GDResource> = new Map();
 	public subResources: Map<string, GDResource> = new Map();
 	public nodes: Map<string, SceneNode> = new Map();
+	
+	/**
+	 * Get a node by its label/name
+	 */
+	public getNodeByLabel(label: string): SceneNode | undefined {
+		for (const [path, node] of this.nodes) {
+			if (node.label === label) {
+				return node;
+			}
+		}
+		return undefined;
+	}
 }

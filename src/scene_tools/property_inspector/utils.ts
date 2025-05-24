@@ -16,7 +16,21 @@ export function extractPropertyValue(property: GodotNativeSymbol): string {
 	// Look for default values in common patterns like "property_name: Type = value"
 	const defaultMatch = property.detail.match(/=\s*(.+)$/);
 	if (defaultMatch) {
-		return defaultMatch[1].trim();
+		let value = defaultMatch[1].trim();
+		
+		// Remove surrounding quotes and unescape if present
+		if (value.startsWith('"') && value.endsWith('"')) {
+			value = value.slice(1, -1);
+			// Unescape common escape sequences
+			value = value
+				.replace(/\\n/g, '\n')
+				.replace(/\\t/g, '\t')
+				.replace(/\\r/g, '\r')
+				.replace(/\\"/g, '"')
+				.replace(/\\\\/g, '\\');
+		}
+		
+		return value;
 	}
 	
 	// For now, just return empty for non-string properties
@@ -67,18 +81,31 @@ export function escapeHtml(text: string): string {
 
 // Normalize values for comparison
 export function normalizeValue(val: string): string {
+	if (!val) return '';
+	
 	// Remove quotes from string values for comparison
 	if (val.startsWith('"') && val.endsWith('"')) {
-		return val.slice(1, -1);
+		let unquoted = val.slice(1, -1);
+		// Unescape common escape sequences for proper comparison
+		unquoted = unquoted
+			.replace(/\\n/g, '\n')
+			.replace(/\\t/g, '\t')
+			.replace(/\\r/g, '\r')
+			.replace(/\\"/g, '"')
+			.replace(/\\\\/g, '\\');
+		return unquoted;
 	}
+	
 	// Normalize boolean values
 	if (val.toLowerCase() === 'true' || val.toLowerCase() === 'false') {
 		return val.toLowerCase();
 	}
+	
 	// Normalize numeric values
 	if (!isNaN(Number(val))) {
 		return String(Number(val));
 	}
+	
 	return val;
 }
 

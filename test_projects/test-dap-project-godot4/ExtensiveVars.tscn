@@ -7,8 +7,9 @@
 script = ExtResource("1_fnilr")
 
 [node name="Label" type="Label" parent="."]
+text = "s"
+clip_text = false
 uppercase = false
 mouse_force_pass_scroll_events = false
-text = "Extensive Vars scene"
 script = ExtResource("2_jijf2")
 metadata/_edit_use_anchors_ = true

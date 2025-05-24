@@ -1,6 +1,5 @@
 import { FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { normalizeValue } from '../utils';
 
 interface BaseEditorProps {
   propertyName: string;
@@ -8,7 +7,6 @@ interface BaseEditorProps {
   propertyType: string;
   defaultValue: string;
   onChange: (propertyName: string, newValue: string, propertyType: string) => void;
-  onResetVisibilityChange?: (hasNonDefaultValue: boolean) => void;
 }
 
 export const StringEditor: FunctionComponent<BaseEditorProps> = ({
@@ -16,8 +14,7 @@ export const StringEditor: FunctionComponent<BaseEditorProps> = ({
   value,
   propertyType,
   defaultValue,
-  onChange,
-  onResetVisibilityChange
+  onChange
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
@@ -30,11 +27,6 @@ export const StringEditor: FunctionComponent<BaseEditorProps> = ({
     const newValue = target.value;
     setLocalValue(newValue);
     onChange(propertyName, newValue, propertyType);
-    
-    if (onResetVisibilityChange) {
-      const hasNonDefault = normalizeValue(newValue) !== normalizeValue(defaultValue);
-      onResetVisibilityChange(hasNonDefault);
-    }
   };
 
   return (
@@ -57,8 +49,7 @@ export const NumberEditor: FunctionComponent<BaseEditorProps> = ({
   value,
   propertyType,
   defaultValue,
-  onChange,
-  onResetVisibilityChange
+  onChange
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
@@ -71,11 +62,6 @@ export const NumberEditor: FunctionComponent<BaseEditorProps> = ({
     const newValue = target.value;
     setLocalValue(newValue);
     onChange(propertyName, newValue, propertyType);
-    
-    if (onResetVisibilityChange) {
-      const hasNonDefault = normalizeValue(newValue) !== normalizeValue(defaultValue);
-      onResetVisibilityChange(hasNonDefault);
-    }
   };
 
   return (
@@ -99,8 +85,7 @@ export const BooleanEditor: FunctionComponent<BaseEditorProps> = ({
   value,
   propertyType,
   defaultValue,
-  onChange,
-  onResetVisibilityChange
+  onChange
 }) => {
   const isChecked = value.toLowerCase() === 'true';
   
@@ -108,11 +93,6 @@ export const BooleanEditor: FunctionComponent<BaseEditorProps> = ({
     const target = e.target as HTMLInputElement;
     const newValue = target.checked ? 'true' : 'false';
     onChange(propertyName, newValue, propertyType);
-    
-    if (onResetVisibilityChange) {
-      const hasNonDefault = normalizeValue(newValue) !== normalizeValue(defaultValue);
-      onResetVisibilityChange(hasNonDefault);
-    }
   };
 
   return (
@@ -136,8 +116,7 @@ export const MultilineStringEditor: FunctionComponent<BaseEditorProps> = ({
   value,
   propertyType,
   defaultValue,
-  onChange,
-  onResetVisibilityChange
+  onChange
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
@@ -150,11 +129,6 @@ export const MultilineStringEditor: FunctionComponent<BaseEditorProps> = ({
     const newValue = target.value;
     setLocalValue(newValue);
     onChange(propertyName, newValue, propertyType);
-    
-    if (onResetVisibilityChange) {
-      const hasNonDefault = normalizeValue(newValue) !== normalizeValue(defaultValue);
-      onResetVisibilityChange(hasNonDefault);
-    }
   };
 
   return (

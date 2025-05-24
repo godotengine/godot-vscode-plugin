@@ -25,10 +25,11 @@ property_inspector/
 │   └── tsconfig.json          # TypeScript config
 ├── webview_provider.ts        # VSCode webview provider
 ├── property_inspector.ts      # Main property inspection logic
-├── scene_file_operations.ts   # Scene file modification
 ├── types.ts                   # Shared types
-└── utils.ts                   # Shared utilities
+└── utils.ts                   # Shared utilities and scene file formatting
 ```
+
+**Note**: Scene file modification functionality has been consolidated into the main `SceneParser` class (`../parser.ts`) and `SceneNode` class (`../types.ts`) for better architecture and to avoid duplication.
 
 ### Key Benefits of Preact
 

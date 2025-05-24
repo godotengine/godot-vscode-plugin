@@ -22,11 +22,18 @@ export function extractPropertyValue(property: PropertyInfo): string {
   const parts = property.detail.split('=');
   if (parts.length < 2) return '';
   
-  const value = parts.slice(1).join('=').trim();
+  let value = parts.slice(1).join('=').trim();
   
-  // Remove surrounding quotes if present
+  // Remove surrounding quotes and unescape if present
   if (value.startsWith('"') && value.endsWith('"')) {
-    return value.slice(1, -1);
+    value = value.slice(1, -1);
+    // Unescape common escape sequences
+    value = value
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\r/g, '\r')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
   }
   
   return value;
@@ -37,7 +44,15 @@ export function normalizeValue(val: string | undefined | null): string {
   
   // Remove quotes from string values for comparison
   if (val.startsWith('"') && val.endsWith('"')) {
-    return val.slice(1, -1);
+    let unquoted = val.slice(1, -1);
+    // Unescape common escape sequences for proper comparison
+    unquoted = unquoted
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\r/g, '\r')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
+    return unquoted;
   }
   
   // Normalize boolean values

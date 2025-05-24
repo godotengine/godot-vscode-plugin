@@ -3,8 +3,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { globals } from "../../extension";
 import { createLogger, make_docs_uri } from "../../utils";
+import { SceneParser } from "../parser";
 import type { Scene, SceneNode } from "../types";
-import { SceneFileOperations } from "./scene_file_operations";
 import type { PropertyData } from "./types";
 import { extractPropertyValue } from "./utils";
 
@@ -16,6 +16,7 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 	private currentNode?: SceneNode;
 	private currentScene?: Scene;
 	private propertiesByClass = new Map<string, PropertyData[]>();
+	private parser = new SceneParser();
 
 	constructor(private extensionUri: vscode.Uri) {}
 
@@ -97,7 +98,7 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 				}
 			}
 
-			await SceneFileOperations.updatePropertyInSceneFile(
+			await this.parser.updatePropertyInSceneFile(
 				this.currentScene,
 				this.currentNode,
 				propertyName,
@@ -123,23 +124,11 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 			}
 			
 			// Re-parse current values from the updated node body to ensure consistency
-			const currentValues = SceneFileOperations.parseNodePropertyValues(this.currentNode);
+			const currentValues = this.currentNode.getPropertyValues();
 			log.info(`Re-parsed node property values:`, Object.fromEntries(currentValues));
-			
-			// Update all properties with current values from node body
-			for (const [className, properties] of this.propertiesByClass) {
-				for (const propertyData of properties) {
-					if (currentValues.has(propertyData.property.name)) {
-						const valueFromNode = currentValues.get(propertyData.property.name);
-						if (propertyData.currentValue !== valueFromNode) {
-							log.info(`Syncing property ${propertyData.property.name}: data=${propertyData.currentValue}, node=${valueFromNode}`);
-							propertyData.currentValue = valueFromNode;
-						}
-					}
-				}
-			}
-			
-			log.info(`Property change handled successfully`);
+
+			// Update the webview
+			this.updateContent();
 			
 		} catch (error) {
 			log.error(`Failed to update property ${propertyName}: ${error}`);
@@ -168,7 +157,7 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 			}
 
 			// Remove the property from scene file (since default values don't need to be stored)
-			await SceneFileOperations.removePropertyFromSceneFile(
+			await this.parser.removePropertyFromSceneFile(
 				this.currentScene,
 				this.currentNode,
 				propertyName

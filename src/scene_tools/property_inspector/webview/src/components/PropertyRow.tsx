@@ -1,5 +1,4 @@
 import { FunctionComponent } from 'preact';
-import { useState } from 'preact/hooks';
 import { PropertyData, vscode } from '../types';
 import {
     extractPropertyValue,
@@ -29,7 +28,8 @@ export const PropertyRow: FunctionComponent<PropertyRowProps> = ({ propertyData 
   const displayValue = propertyValue || '';
   const editorInfo = getPropertyEditorInfo(property);
 
-  const [showReset, setShowReset] = useState(hasNonDefaultValue(propertyValue, defaultValue));
+  // Always compute reset button visibility based on current vs default values
+  const showReset = hasNonDefaultValue(propertyValue, defaultValue);
 
   // Enhanced tooltip with better documentation
   let tooltipText = property.documentation || 'No documentation available';
@@ -58,18 +58,13 @@ export const PropertyRow: FunctionComponent<PropertyRowProps> = ({ propertyData 
     });
   };
 
-  const handleResetVisibilityChange = (hasNonDefaultValue: boolean) => {
-    setShowReset(hasNonDefaultValue);
-  };
-
   const renderEditor = () => {
     const commonProps = {
       propertyName: property.name,
       value: displayValue,
       propertyType,
       defaultValue,
-      onChange: handlePropertyChange,
-      onResetVisibilityChange: handleResetVisibilityChange
+      onChange: handlePropertyChange
     };
 
     switch (editorInfo.type) {
