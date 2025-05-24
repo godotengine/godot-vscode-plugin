@@ -1,10 +1,12 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
+import { globals } from "../../extension";
 import { createLogger, make_docs_uri } from "../../utils";
 import type { Scene, SceneNode } from "../types";
 import { SceneFileOperations } from "./scene_file_operations";
 import type { PropertyData } from "./types";
 import { extractPropertyValue } from "./utils";
-import { WebviewHtmlGenerator } from "./webview_html_generator";
 
 const log = createLogger("scenes.property_inspector.webview_provider");
 
@@ -44,6 +46,10 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 			}
 		);
 
+		// Set the webview HTML
+		this.webviewView.webview.html = this.getWebviewHtml(webviewView.webview);
+		
+		// Send initial empty state
 		this.updateContent();
 	}
 
@@ -177,7 +183,7 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 				}
 			}
 
-			// Regenerate the HTML to update reset button visibility
+			// Update the webview
 			this.updateContent();
 			
 		} catch (error) {
@@ -191,14 +197,45 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 			return;
 		}
 
-		if (this.propertiesByClass.size === 0) {
-			this.webviewView.webview.html = WebviewHtmlGenerator.generateEmptyHtml();
-			return;
+		// Convert Map to plain object for JSON serialization
+		const propertiesByClassObj: { [key: string]: PropertyData[] } = {};
+		for (const [className, properties] of this.propertiesByClass) {
+			propertiesByClassObj[className] = properties;
 		}
 
-		this.webviewView.webview.html = WebviewHtmlGenerator.generatePropertiesHtml(
-			this.currentNodeName,
-			this.propertiesByClass
-		);
+		// Get list of documented classes
+		const documentedClasses = Array.from(this.propertiesByClass.keys())
+			.filter(className => globals.docsProvider?.classInfo?.has(className) || false);
+
+		if (this.propertiesByClass.size === 0) {
+			this.webviewView.webview.postMessage({
+				type: 'clearProperties'
+			});
+		} else {
+			this.webviewView.webview.postMessage({
+				type: 'updateProperties',
+				nodeName: this.currentNodeName,
+				propertiesByClass: propertiesByClassObj,
+				documentedClasses
+			});
+		}
+	}
+
+	private getWebviewHtml(webview: vscode.Webview): string {
+		// Get paths to resources
+		const webviewDistPath = path.join(this.extensionUri.fsPath, 'src', 'scene_tools', 'property_inspector', 'webview', 'dist');
+		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewDistPath, 'webview.js')));
+		
+		// Read the HTML template
+		const htmlPath = path.join(this.extensionUri.fsPath, 'src', 'scene_tools', 'property_inspector', 'webview', 'src', 'index.html');
+		let html = fs.readFileSync(htmlPath, 'utf8');
+		
+		// Replace placeholders
+		html = html.replace(/{{cspSource}}/g, webview.cspSource);
+		
+		// Add script tag before closing body
+		html = html.replace('</body>', `<script src="${scriptUri}"></script></body>`);
+		
+		return html;
 	}
 } 

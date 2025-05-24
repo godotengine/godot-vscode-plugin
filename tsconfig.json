@@ -15,12 +15,13 @@
 		"strict": false,
 		"skipLibCheck": true,
 		"allowJs": true,
-		"strictBindCallApply": true
+		"strictBindCallApply": true,
 	},
 	"exclude": [
 		"node_modules",
 		"out",
 		"tools",
-		"media"
+		"media",
+		"src/scene_tools/property_inspector/webview"
 	]
 }

@@ -69,12 +69,41 @@ The Scene Preview now includes an interactive "Node Properties" panel that displ
 - **Real-Time Updates**: Immediate scene file updates with user feedback
 - **Type-Aware Formatting**: Automatic value formatting for different property types
 
+## 🚀 NEW: Preact-Based Architecture
+
+The property inspector has been **completely rebuilt using Preact**, providing:
+
+### **Benefits of the Preact Migration**
+- **Component-Based Architecture**: Each property editor is now a reusable Preact component
+- **Better Performance**: Virtual DOM ensures efficient updates when properties change
+- **Type Safety**: Full TypeScript support throughout the webview code
+- **Modern Development Experience**: JSX, hooks, and modern JavaScript features
+- **Tiny Bundle Size**: Preact is only ~3KB, perfect for VSCode webviews
+- **Easier Maintenance**: Clear separation of concerns with proper component structure
+
+### **Technical Implementation**
+- **Build System**: Uses esbuild for fast bundling with hot reload support
+- **Component Structure**:
+  - `App.tsx` - Main container component
+  - `PropertySection.tsx` - Collapsible class sections
+  - `PropertyRow.tsx` - Individual property rows with layout logic
+  - `PropertyEditors.tsx` - Specialized editors for each data type
+- **State Management**: Centralized state with message passing to extension host
+- **Styling**: CSS modules with VSCode theme integration
+
+### **Developer Experience**
+- **Hot Reload**: Run `npm run watch-webview` for instant updates during development
+- **Type Checking**: Full TypeScript support in the webview
+- **Debugging**: Use Chrome DevTools to debug the Preact components
+- **Extensibility**: Easy to add new property editors by creating new components
+
 ## Testing Instructions
 
 1. Open the test project in VS Code: `/test_projects/test-dap-project-godot4`
 2. Open the same project in Godot 4 editor (to enable LSP connection)
-3. Open any `.tscn` file (e.g., `NodeVars.tscn` - now has test properties!)
-4. In the Godot Tools activity bar:
+3. Build the webview: `npm run build-webview`
+4. Open any `.tscn` file (e.g., `NodeVars.tscn` - now has test properties!)
+5. In the Godot Tools activity bar:
    - View the Scene Preview panel
    - Click on any node in the scene tree (especially try a **Label node** to see full inheritance)
    - The Node Properties panel below will automatically populate with a **modern, clean layout** showing:
@@ -122,9 +151,10 @@ To make this feature even more complete, we could add:
 ## Code Location
 
 The implementation is in:
-- `src/scene_tools/property_inspector.ts` - WebView-based property inspection logic with editing capabilities and documentation integration
+- `src/scene_tools/property_inspector/` - Main property inspection logic
+- `src/scene_tools/property_inspector/webview/` - Preact-based webview application
 - `src/scene_tools/preview.ts` - Scene preview integration and UI management
-- `package.json` - WebView view registration and configuration
+- `package.json` - WebView view registration and build scripts
 
 ## Recent UI Improvements
 
@@ -135,4 +165,5 @@ The implementation is in:
 - **Enhanced Tooltips**: Rich tooltips showing property type, inheritance status, and documentation
 - **Improved Spacing**: More compact layout with better information density
 - **Modern Animations**: Smooth hover effects and transitions for better user experience
-- **Smart Documentation Detection**: Only shows documentation links for classes with available docs 
+- **Smart Documentation Detection**: Only shows documentation links for classes with available docs
+- **Preact Migration**: Complete rewrite using Preact for better performance and maintainability 

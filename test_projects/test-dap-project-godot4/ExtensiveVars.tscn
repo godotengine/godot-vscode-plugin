@@ -7,8 +7,6 @@
 script = ExtResource("1_fnilr")
 
 [node name="Label" type="Label" parent="."]
-ellipsis_char = "test"
-clip_text = false
 uppercase = false
 mouse_force_pass_scroll_events = false
 text = "Extensive Vars scene"
