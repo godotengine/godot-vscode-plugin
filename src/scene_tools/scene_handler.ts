@@ -7,16 +7,16 @@ import { Scene, SceneNode } from "./types";
 
 const log = createLogger("scenes.parser");
 
-export class SceneParser {
-	private static instance: SceneParser;
+export class SceneHandler {
+	private static instance: SceneHandler;
 	public scenes: Map<string, Scene> = new Map();
 
 	constructor() {
-		if (SceneParser.instance) {
+		if (SceneHandler.instance) {
 			// biome-ignore lint/correctness/noConstructorReturn: <explanation>
-			return SceneParser.instance;
+			return SceneHandler.instance;
 		}
-		SceneParser.instance = this;
+		SceneHandler.instance = this;
 	}
 
 	public parse_scene(document: TextDocument) {

@@ -8,19 +8,16 @@ import {
 	ExtensionContext,
 	languages,
 	Position,
-	ProviderResult,
-	Range,
-	TextDocument,
-	Uri,
+	TextDocument
 } from "vscode";
-import { SceneParser } from "../scene_tools/parser";
-import { createLogger, node_name_to_snake, get_project_version, convert_uri_to_resource_path } from "../utils";
+import { SceneHandler } from "../scene_tools/scene_handler";
 import { SceneNode } from "../scene_tools/types";
+import { convert_uri_to_resource_path, createLogger, get_project_version, node_name_to_snake } from "../utils";
 
 const log = createLogger("providers.drops");
 
 export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
-	public parser = new SceneParser();
+	public parser = new SceneHandler();
 
 	constructor(private context: ExtensionContext) {
 		const dropEditSelector = [

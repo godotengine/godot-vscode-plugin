@@ -25,8 +25,8 @@ import {
 	register_command,
 	set_context
 } from "../utils";
-import { SceneParser } from "./parser";
 import { NodePropertiesWebviewProvider, PropertyInspector } from "./property_inspector";
+import { SceneHandler } from "./scene_handler";
 import { Scene, SceneNode } from "./types";
 
 const log = createLogger("scenes.preview");
@@ -37,7 +37,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	private tree: TreeView<SceneNode>;
 	private scenePreviewLocked = false;
 	private currentScene = "";
-	public parser = new SceneParser();
+	public parser = new SceneHandler();
 	public scene: Scene;
 	private watcher = workspace.createFileSystemWatcher("**/*.tscn");
 	private uniqueDecorator = new UniqueDecorationProvider(this);

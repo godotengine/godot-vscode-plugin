@@ -1,21 +1,21 @@
 import * as vscode from "vscode";
 import {
-	Uri,
-	Position,
-	TextDocument,
-	CancellationToken,
-	ExtensionContext,
-	HoverProvider,
-	MarkdownString,
-	Hover,
+    CancellationToken,
+    ExtensionContext,
+    Hover,
+    HoverProvider,
+    MarkdownString,
+    Position,
+    TextDocument,
+    Uri,
 } from "vscode";
-import { SceneParser } from "../scene_tools";
-import { convert_resource_path_to_uri, createLogger, convert_uid_to_uri, convert_uri_to_resource_path } from "../utils";
+import { SceneHandler } from "../scene_tools";
+import { convert_resource_path_to_uri, convert_uid_to_uri, convert_uri_to_resource_path, createLogger } from "../utils";
 
 const log = createLogger("providers.hover");
 
 export class GDHoverProvider implements HoverProvider {
-	public parser = new SceneParser();
+	public parser = new SceneHandler();
 
 	constructor(private context: ExtensionContext) {
 		const selector = [

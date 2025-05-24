@@ -3,7 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { globals } from "../../extension";
 import { createLogger, make_docs_uri } from "../../utils";
-import { SceneParser } from "../parser";
+import { SceneHandler } from "../scene_handler";
 import type { Scene, SceneNode } from "../types";
 import type { PropertyData } from "./types";
 import { extractPropertyValue } from "./utils";
@@ -16,7 +16,7 @@ export class NodePropertiesWebviewProvider implements vscode.WebviewViewProvider
 	private currentNode?: SceneNode;
 	private currentScene?: Scene;
 	private propertiesByClass = new Map<string, PropertyData[]>();
-	private parser = new SceneParser();
+	private parser = new SceneHandler();
 
 	constructor(private extensionUri: vscode.Uri) {}
 
