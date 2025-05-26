@@ -58,6 +58,7 @@ export const ENCODE_FLAG_TYPED_ARRAY_MASK = 0b11 << 16;
 export const ENCODE_FLAG_TYPED_DICT_MASK = 0b1111 << 16;
 
 export enum ContainerTypeFlags {
+	NONE = 0,
 	BUILTIN = 1,
 	CLASS_NAME = 2,
 	SCRIPT = 3,

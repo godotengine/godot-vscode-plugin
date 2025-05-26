@@ -712,7 +712,6 @@ export class ServerController {
 		if (this.exception.length === 0) {
 			this.session.sendEvent(new StoppedEvent("breakpoint", 0));
 		} else {
-			this.session.set_exception(true);
 			this.session.sendEvent(new StoppedEvent("exception", 0, this.exception));
 		}
 	}
