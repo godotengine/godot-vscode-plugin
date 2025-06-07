@@ -91,6 +91,11 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 }
 
+/**
+ * Opens a input box asking for the new function's name, when given it will move the
+ * selected text to below the current function declaration and immediately call the
+ * newly made function at the selected position
+ */
 async function extract_function(): Promise<void> {
 	const editor: vscode.TextEditor = vscode.window.activeTextEditor;
 
@@ -126,7 +131,7 @@ async function extract_function(): Promise<void> {
 		if (i < pasteLine) continue;
 		const textLine = document.lineAt(i);
 
-		if (textLine.text.includes("func")) {
+		if (textLine.text.trim().startsWith("func")) {
 			break;
 		} else {
 			pasteLine++;
@@ -137,7 +142,7 @@ async function extract_function(): Promise<void> {
 	const position = new vscode.Position(Math.min(pasteLine, document.lineCount), 0);
 
 	await editor.edit((doc) => {
-		doc.insert(position, newFunction);
+		doc.insert(position, `\n${newFunction}`);
 		doc.replace(selection, `${functionName}()`);
 	});
 }
@@ -174,6 +179,7 @@ async function extract_variable(): Promise<void> {
 		indentation = exec[0];
 	}
 
+	//\t\t var xyz := x + y + z\n
 	const newVariable = `${indentation}var ${variableName} := ${selectedText}\n`;
 
 	const position = new vscode.Position(document.lineAt(pasteLine).lineNumber, 0);
