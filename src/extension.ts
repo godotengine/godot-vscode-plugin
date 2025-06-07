@@ -12,6 +12,7 @@ import {
 	GDDocumentationProvider,
 	GDDefinitionProvider,
 	GDTaskProvider,
+	GDCodeActionProvider,
 } from "./providers";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_tools";
@@ -31,7 +32,6 @@ import {
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
-import { GDCodeActionProvider } from "./providers/code_action_provider";
 
 interface Extension {
 	context?: vscode.ExtensionContext;

@@ -7,3 +7,4 @@ export * from "./hover";
 export * from "./inlay_hints";
 export * from "./semantic_tokens";
 export * from "./tasks";
+export * from "./code_action_provider";
