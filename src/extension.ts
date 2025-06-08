@@ -115,17 +115,20 @@ async function extract_function(): Promise<void> {
 	// Prompt for function name
 	const functionName = await vscode.window.showInputBox({
 		prompt: "Enter the name of the new function",
-		validateInput: (input) => input.trim() === "" ? "Function name cannot be empty" : null,
+		validateInput: (input) => (input.trim() === "" ? "Function name cannot be empty" : null),
 	});
 
-	const newFunction: string = `func ${functionName}():\n${selectedText.split("\n").map(line => tabOrSpace + line).join("\n")}\n`;
+	const newFunction: string = `func ${functionName}():\n${selectedText
+		.split("\n")
+		.map((line) => tabOrSpace + line)
+		.join("\n")}\n`;
 
 	/**
 	 * Look in each line, starting with this one and go down,
 	 * if you find a line with a method declaration, go up one and paste the new function
 	 * or the end of the document
 	 */
-	var pasteLine: number = editor.selection.end.line;
+	let pasteLine: number = editor.selection.end.line;
 
 	for (let i = 0; i < document.lineCount; i++) {
 		if (i < pasteLine) continue;
@@ -164,14 +167,14 @@ async function extract_variable(): Promise<void> {
 	// Prompt for function name
 	const variableName = await vscode.window.showInputBox({
 		prompt: "Enter the name of the new variable",
-		validateInput: (input) => input.trim() === "" ? "The name of the variable cannot be empty" : null,
+		validateInput: (input) => (input.trim() === "" ? "The name of the variable cannot be empty" : null),
 	});
 	if (!variableName) {
 		return;
 	}
 	const pasteLine: number = editor.selection.start.line;
 	/** Paste at the same indentation level, just above the selection */
-	var indentation = "";
+	let indentation = "";
 
 	/** Look for the whitespace above at the start of the line */
 	const exec = /^\s+/.exec(document.lineAt(pasteLine).text);
@@ -331,7 +334,6 @@ async function open_godot_editor_settings() {
 		vscode.window.showTextDocument(doc);
 	});
 }
-
 
 /**
  * Returns the executable path for Godot based on the current project's version.
