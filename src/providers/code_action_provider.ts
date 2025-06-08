@@ -101,9 +101,9 @@ function addRangeExportToVariable(range: vscode.Range, document: vscode.TextDocu
 	);
 
 	codeAction.edit = new vscode.WorkspaceEdit();
-	var updatedText = "";
+	let updatedText = "";
 
-	if (type.trim() == "float") {
+	if (type.trim() === "float") {
 		updatedText = lineText.replace(VARIABLE_REGEXP, `@export_range(0.0, 1.0) var ${name} ${type} ${body}`);
 	} else {
 		updatedText = lineText.replace(VARIABLE_REGEXP, `@export_range(0, 1) var ${name} ${type} ${body}`);
@@ -164,9 +164,9 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 
 	const individualLines = selectedText.split("\n");
 
-	var updatedText: String[] = [];
-	var nonVarElements = 0;
-	var varElements = 0;
+	let updatedText: string[] = [];
+	let nonVarElements = 0;
+	let varElements = 0;
 
 	for (let i = 0; i < individualLines.length; i++) {
 		const element = individualLines[i];
@@ -182,7 +182,7 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 
 	if (varElements < 1) return undefined;
 
-	var newText: string = updatedText.join("\n");
+	const newText: string = updatedText.join("\n");
 	codeAction.edit = new vscode.WorkspaceEdit();
 	codeAction.edit.replace(
 		document.uri,
@@ -192,5 +192,3 @@ function exportTheseVariables(document: vscode.TextDocument): vscode.CodeAction 
 	codeAction.isPreferred = true;
 	return codeAction;
 }
-
-
