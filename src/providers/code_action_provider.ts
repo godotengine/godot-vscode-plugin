@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
 	ExtensionContext
 } from "vscode";
+import { tabString } from "../utils";
 /**
  * @param $1 The variable name (including the : if it has it),
  * @param $2 The variable type,
@@ -127,10 +128,17 @@ function extractVariable(document: vscode.TextDocument) {
 		"Extract Variable",
 		vscode.CodeActionKind.RefactorExtract,
 	);
-	codeAction.command = {
-		command: "godotTools.extractVariable",
-		title: "Extract selected as a variable"
-	};
+
+
+	// codeAction.edit.replace(
+	// 	document.uri,
+	// 	startLine.range,
+	// 	updatedText
+	// );
+	// codeAction.command = {
+	// 	command: "godotTools.extractVariable",
+	// 	title: "Extract selected as a variable"
+	// };
 	return codeAction;
 }
 
@@ -143,11 +151,54 @@ function extractFunction(document: vscode.TextDocument) {
 		"Extract function",
 		vscode.CodeActionKind.RefactorExtract,
 	);
+	const tabOrSpace = tabString();
+	// TODO: Maybe look for another name because if by any chance the user has this exact function name, it will mess things up
+	const functionName = "_new_function";
+	const newFunction: string = `func ${functionName}():\n${selectedText
+		.split("\n")
+		.map((line) => tabOrSpace + line)
+		.join("\n")}\n`;
+	/**
+	 * Look in each line, starting with this one and go down,
+	 * if you find a line with a method declaration, go up one and paste the new function
+	 * or the end of the document
+	 */
+	let pasteLine: number = editor.selection.end.line;
+
+	for (let i = 0; i < document.lineCount; i++) {
+		if (i < pasteLine) continue;
+		const textLine = document.lineAt(i);
+
+		if (textLine.text.trim().startsWith("func")) {
+			break;
+		} else {
+			pasteLine++;
+		}
+	}
+	const position = new vscode.Position(Math.min(pasteLine, document.lineCount), 0);
+
+	const edit = new vscode.WorkspaceEdit();
+
+	const callNewFunction = vscode.SnippetTextEdit.replace(
+		editor.selection,
+		new vscode.SnippetString(`${functionName}$0()`)
+	);
+	const insertNewFunction = vscode.TextEdit.insert(
+		position, `\n${newFunction}`
+	);
+
+	edit.set(document.uri, [
+		callNewFunction,
+		insertNewFunction
+	]);
+
+	codeAction.edit = edit;
+
 	codeAction.command = {
-		command: "godotTools.extractFunction",
-		title: "Extract selected as a function"
+		command: "editor.action.rename",
+		title: "Rename the new function"
 	};
-	// codeAction.edit.insert
+
 	return codeAction;
 }
 

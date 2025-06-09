@@ -27,5 +27,6 @@ func export_code_as_new_function(args):
 func method(args):
     position.x += (15 / 2) * 5
     var lambda = func (x):
-	    print(x)
+        print(x)
     pass
+
