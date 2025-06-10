@@ -129,16 +129,45 @@ function extractVariable(document: vscode.TextDocument) {
 		vscode.CodeActionKind.RefactorExtract,
 	);
 
+	const variableName = "_new_variable_name";
 
-	// codeAction.edit.replace(
-	// 	document.uri,
-	// 	startLine.range,
-	// 	updatedText
-	// );
-	// codeAction.command = {
-	// 	command: "godotTools.extractVariable",
-	// 	title: "Extract selected as a variable"
-	// };
+	const pasteLine: number = editor.selection.start.line;
+
+	/** Paste at the same indentation level, just above the selection */
+	let indentation = "";
+
+	/** Look for the whitespace above at the start of the line */
+	const exec = /^\s+/.exec(document.lineAt(pasteLine).text);
+	if (exec) {
+		indentation = exec[0];
+	}
+
+	//\t\t var xyz := x + y + z\n
+	const newVariable = new vscode.SnippetString(`${indentation}var ${variableName}$0 := ${selectedText}\n`);
+
+	const position = new vscode.Position(document.lineAt(pasteLine).lineNumber, 0);
+
+	const referenceNewVariable = vscode.TextEdit.replace(
+		editor.selection,
+		variableName
+	);
+	const insertNewFunction = vscode.SnippetTextEdit.insert(
+		position,
+		newVariable
+	);
+
+	const edit = new vscode.WorkspaceEdit();
+
+	edit.set(document.uri, [
+		referenceNewVariable,
+		insertNewFunction
+	]);
+	codeAction.edit = edit;
+	codeAction.command = {
+		command: "editor.action.rename",
+		title: "Rename the new variable"
+	};
+
 	return codeAction;
 }
 
