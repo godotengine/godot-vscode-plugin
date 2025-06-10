@@ -34,11 +34,9 @@ export function get_extension_uri(...paths: string[]) {
  * Returns either a tab or spaces depending on the user config
  */
 export function tabString(document?: vscode.TextDocument): string {
-	// Prefer activeTextEditor, but allow explicit document for LSP calls etc.
 	const editor = vscode.window.activeTextEditor;
 	const doc = document ?? editor?.document;
 
-	// Fallback to global config if we can't get real options
 	if (!doc) {
 		const editorConfig = vscode.workspace.getConfiguration("editor");
 		const insertSpaces = editorConfig.get<boolean>("insertSpaces", true);
@@ -46,7 +44,6 @@ export function tabString(document?: vscode.TextDocument): string {
 		return insertSpaces ? " ".repeat(tabSize) : "\t";
 	}
 
-	// Get options for this document
 	const { insertSpaces, tabSize } = vscode.window.activeTextEditor?.options ?? {};
 	const size = typeof tabSize === "number" ? tabSize : 4;
 	return insertSpaces ? " ".repeat(size) : "\t";

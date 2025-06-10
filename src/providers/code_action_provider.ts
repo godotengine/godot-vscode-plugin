@@ -198,7 +198,7 @@ function extractFunction(document: vscode.TextDocument) {
 		if (i < pasteLine) continue;
 		const textLine = document.lineAt(i);
 
-		if (textLine.text.trim().startsWith("func")) {
+		if (textLine.text.startsWith("func")) {
 			break;
 		} else {
 			pasteLine++;
