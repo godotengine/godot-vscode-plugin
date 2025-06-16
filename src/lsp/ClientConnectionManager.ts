@@ -40,8 +40,7 @@ export class ClientConnectionManager {
 	private connectedVersion = "";
 
 	constructor(private context: vscode.ExtensionContext) {
-		this.client = new GDScriptLanguageClient();
-		this.client.events.on("status", this.on_client_status_changed.bind(this));
+		this.create_new_client();
 
 		setInterval(() => {
 			this.retry_callback();
@@ -68,6 +67,12 @@ export class ClientConnectionManager {
 		);
 
 		this.connect_to_language_server();
+	}
+
+	private create_new_client() {
+		this.client?.events?.removeAllListeners();
+		this.client = new GDScriptLanguageClient();
+		this.client.events.on("status", this.on_client_status_changed.bind(this));
 	}
 
 	private async connect_to_language_server() {
@@ -281,7 +286,9 @@ export class ClientConnectionManager {
 				}
 				break;
 			case ClientStatus.DISCONNECTED:
-				set_context("connectedToLSP", false);
+				// Disconnection is unrecoverable, since the server will not know that the reconnected client is the same.
+				// Create a new client with a clean state to prevent de-sync e.g. of client managed files.
+				this.create_new_client();
 				if (this.retry) {
 					if (this.client.port !== -1) {
 						this.status = ManagerStatus.INITIALIZING_LSP;
