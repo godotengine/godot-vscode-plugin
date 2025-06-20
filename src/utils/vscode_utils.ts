@@ -22,7 +22,7 @@ export function set_context(name: string, value: any) {
 }
 
 export function register_command(command: string, callback: (...args: any[]) => any, thisArg?: any): vscode.Disposable {
-	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback);
+	return vscode.commands.registerCommand(`${EXTENSION_PREFIX}.${command}`, callback, thisArg);
 }
 
 export function get_extension_uri(...paths: string[]) {
