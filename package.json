@@ -33,7 +33,7 @@
 	"scripts": {
 		"format": "biome format --write --changed src",
 		"compile": "tsc -p ./",
-		"lint": "eslint ./src --quiet",
+		"lint": "biome lint src",
 		"watch": "tsc -watch -p ./",
 		"package": "vsce package",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
