@@ -391,7 +391,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		if (!root) {
 			if (!expression.includes("self")) {
-				expression = "self." + expression;
+				expression = `self.${expression}`;
 			}
 
 			root = this.all_scopes.find((x) => x && x.name === "self");
