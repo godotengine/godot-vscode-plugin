@@ -1,44 +1,44 @@
 import { GodotVariable } from "../../debug_runtime";
 
 export enum GDScriptTypes {
-	NIL,
+	NIL = 0,
 
 	// atomic types
-	BOOL,
-	INT,
-	REAL,
-	STRING,
+	BOOL = 1,
+	INT = 2,
+	REAL = 3,
+	STRING = 4,
 
 	// math types
 
-	VECTOR2, // 5
-	RECT2,
-	VECTOR3,
-	TRANSFORM2D,
-	PLANE,
-	QUAT, // 10
-	AABB,
-	BASIS,
-	TRANSFORM,
+	VECTOR2 = 5,
+	RECT2 = 6,
+	VECTOR3 = 7,
+	TRANSFORM2D = 8,
+	PLANE = 9,
+	QUAT = 10,
+	AABB = 11,
+	BASIS = 12,
+	TRANSFORM = 13,
 
 	// misc types
-	COLOR,
-	NODE_PATH, // 15
-	_RID,
-	OBJECT,
-	DICTIONARY,
-	ARRAY,
+	COLOR = 14,
+	NODE_PATH = 15,
+	_RID = 16,
+	OBJECT = 17,
+	DICTIONARY = 18,
+	ARRAY = 19,
 
 	// arrays
-	POOL_BYTE_ARRAY, // 20
-	POOL_INT_ARRAY,
-	POOL_REAL_ARRAY,
-	POOL_STRING_ARRAY,
-	POOL_VECTOR2_ARRAY,
-	POOL_VECTOR3_ARRAY, // 25
-	POOL_COLOR_ARRAY,
+	POOL_BYTE_ARRAY = 20,
+	POOL_INT_ARRAY = 21,
+	POOL_REAL_ARRAY = 22,
+	POOL_STRING_ARRAY = 23,
+	POOL_VECTOR2_ARRAY = 24,
+	POOL_VECTOR3_ARRAY = 25,
+	POOL_COLOR_ARRAY = 26,
 
-	VARIANT_MAX,
+	VARIANT_MAX = 27,
 }
 
 export interface BufferModel {
@@ -59,9 +59,9 @@ function clean_number(value: number) {
 
 export class Vector3 implements GDObject {
 	constructor(
-		public x: number = 0.0,
-		public y: number = 0.0,
-		public z: number = 0.0
+		public x = 0.0,
+		public y = 0.0,
+		public z = 0.0
 	) {}
 
 	public stringify_value(): string {
@@ -84,7 +84,7 @@ export class Vector3 implements GDObject {
 }
 
 export class Vector2 implements GDObject {
-	constructor(public x: number = 0.0, public y: number = 0.0) {}
+	constructor(public x = 0.0, public y = 0.0) {}
 
 	public stringify_value(): string {
 		return `(${clean_number(this.x)}, ${clean_number(this.y)})`;
@@ -146,7 +146,7 @@ export class Color implements GDObject {
 		public r: number,
 		public g: number,
 		public b: number,
-		public a: number = 1.0
+		public a = 1.0
 	) {}
 
 	public stringify_value(): string {

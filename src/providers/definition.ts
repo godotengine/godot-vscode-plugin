@@ -8,6 +8,7 @@ import {
 	Definition,
 	DefinitionProvider,
 	ExtensionContext,
+	TextLine,
 } from "vscode";
 import { make_docs_uri, createLogger } from "../utils";
 import { globals } from "../extension";
@@ -23,7 +24,7 @@ export class GDDefinitionProvider implements DefinitionProvider {
 		];
 
 		context.subscriptions.push(
-			vscode.languages.registerDefinitionProvider(selector, this),
+			vscode.languages.registerDefinitionProvider(selector, this), //
 		);
 	}
 
@@ -37,8 +38,8 @@ export class GDDefinitionProvider implements DefinitionProvider {
 					return new Location(uri, new Position(0, 0));
 				} else {
 					let i = 0;
-					let line;
-					let match;
+					let line: TextLine;
+					let match: RegExpMatchArray | null;
 
 					do {
 						line = document.lineAt(position.line - i++);

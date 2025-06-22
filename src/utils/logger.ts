@@ -2,16 +2,16 @@ import { LogOutputChannel, window } from "vscode";
 import { is_debug_mode } from ".";
 
 export enum LOG_LEVEL {
-	SILENT,
-	ERROR,
-	WARNING,
-	INFO,
-	DEBUG,
-	TRACE,
+	SILENT = 0,
+	ERROR = 1,
+	WARNING = 2,
+	INFO = 3,
+	DEBUG = 4,
+	TRACE = 5,
 }
 
 const LOG_LEVEL_NAMES = [
-	"SILENT",
+	"SILENT", //
 	"ERROR",
 	"WARN ",
 	"INFO ",
@@ -31,16 +31,16 @@ const LOG_COLORS = [
 ];
 
 export interface LoggerOptions {
-	level?: LOG_LEVEL
+	level?: LOG_LEVEL;
 	time?: boolean;
 	output?: string;
 }
 
 export class Logger {
 	private level: LOG_LEVEL = LOG_LEVEL.DEBUG;
-	private show_tag: boolean = true;
-	private show_time: boolean;
-	private show_level: boolean = false;
+	private show_tag = true;
+	private show_time = false;
+	private show_level = false;
 	private output?: LogOutputChannel;
 
 	constructor(
@@ -61,10 +61,10 @@ export class Logger {
 				prefix += `[${new Date().toISOString()}]`;
 			}
 			if (this.show_level) {
-				prefix += "[" + LOG_COLORS[level] + LOG_LEVEL_NAMES[level] + RESET + "]";
+				prefix += `[${LOG_COLORS[level]}${LOG_LEVEL_NAMES[level]}${RESET}]`;
 			}
 			if (this.show_tag) {
-				prefix += "[" + LOG_COLORS[level] + this.tag + RESET + "]";
+				prefix += `[${LOG_COLORS[level]}${this.tag}${RESET}]`;
 			}
 
 			console.log(prefix, ...messages);

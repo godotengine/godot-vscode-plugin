@@ -30,8 +30,8 @@ export function split_buffers(buffer: Buffer) {
 }
 
 export function is_variable_built_in_type(va: GodotVariable) {
-	var type = typeof va.value;
-	return ["number", "bigint", "boolean", "string"].some(x => x == type);
+	const type = typeof va.value;
+	return ["number", "bigint", "boolean", "string"].some(x => x === type);
 }
 
 export function build_sub_values(va: GodotVariable) {
@@ -45,7 +45,7 @@ export function build_sub_values(va: GodotVariable) {
 		});
 	} else if (value instanceof Map) {
 		subValues = Array.from(value.keys()).map((va) => {
-			if (typeof va["stringify_value"] === "function") {
+			if (typeof va.stringify_value === "function") {
 				return {
 					name: `${va.type_name()}${va.stringify_value()}`,
 					value: value.get(va),
@@ -57,7 +57,7 @@ export function build_sub_values(va: GodotVariable) {
 				} as GodotVariable;
 			}
 		});
-	} else if (value && typeof value["sub_values"] === "function") {
+	} else if (value && typeof value.sub_values === "function") {
 		subValues = value.sub_values().map((sva) => {
 			return { name: sva.name, value: sva.value } as GodotVariable;
 		});
@@ -79,7 +79,7 @@ export function parse_variable(va: GodotVariable, i?: number) {
 		if (Number.isInteger(value)) {
 			rendered_value = `${value}`;
 		} else {
-			rendered_value = `${parseFloat(value.toFixed(5))}`;
+			rendered_value = `${Number.parseFloat(value.toFixed(5))}`;
 		}
 	} else if (
 		typeof value === "bigint" ||
@@ -96,7 +96,7 @@ export function parse_variable(va: GodotVariable, i?: number) {
 			array_type = "indexed";
 			reference = i ? i : 0;
 		} else if (value instanceof Map) {
-			rendered_value = value["class_name"] ?? `Dictionary[${value.size}]`;
+			rendered_value = value.get("class_name") ?? `Dictionary[${value.size}]`;
 			array_size = value.size;
 			array_type = "named";
 			reference = i ? i : 0;

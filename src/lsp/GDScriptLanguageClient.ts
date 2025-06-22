@@ -152,7 +152,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect(host, port);
 	}
 
-	async send_request(method: string, params) {
+	async send_request<R>(method: string, params): Promise<R> {
 		try {
 			return this.sendRequest(method, params);
 		} catch {

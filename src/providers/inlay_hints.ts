@@ -1,17 +1,18 @@
 import * as vscode from "vscode";
 import {
-	Range,
-	TextDocument,
 	CancellationToken,
+	DocumentSymbol,
+	ExtensionContext,
 	InlayHint,
-	ProviderResult,
 	InlayHintKind,
 	InlayHintsProvider,
-	ExtensionContext,
+	Position,
+	Range,
+	TextDocument,
 } from "vscode";
+import { globals } from "../extension";
 import { SceneParser } from "../scene_tools";
 import { createLogger, get_configuration } from "../utils";
-import { globals } from "../extension";
 
 const log = createLogger("providers.inlay_hints");
 
@@ -26,21 +27,32 @@ function fromDetail(detail: string): string {
 	return ` ${label} `;
 }
 
-async function addByHover(document: TextDocument, hoverPosition: vscode.Position, start: vscode.Position): Promise<InlayHint | undefined> {
-	const response = await globals.lsp.client.send_request("textDocument/hover", {
+interface HoverResponse {
+	contents;
+}
+
+async function addByHover(
+	document: TextDocument,
+	hoverPosition: Position,
+	start: Position,
+): Promise<InlayHint | undefined> {
+	const response = await globals.lsp.client.send_request<HoverResponse>("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
 			line: hoverPosition.line,
 			character: hoverPosition.character,
-		}
+		},
 	});
 
 	// check if contents is an empty array; if it is, we have no hover information
-	if (Array.isArray(response["contents"]) && response["contents"].length === 0) {
+	if (Array.isArray(response.contents) && response.contents.length === 0) {
 		return undefined;
 	}
 
-	return new InlayHint(start, fromDetail(response["contents"].value), InlayHintKind.Type);
+	const label = fromDetail(response.contents.value);
+	const hint = new InlayHint(start, label, InlayHintKind.Type);
+	hint.textEdits = [{ range: new Range(start, start), newText: label }];
+	return hint;
 }
 
 export class GDInlayHintsProvider implements InlayHintsProvider {
@@ -53,7 +65,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			{ language: "gdscript", scheme: "file" },
 		];
 		context.subscriptions.push(
-			vscode.languages.registerInlayHintsProvider(selector, this),
+			vscode.languages.registerInlayHintsProvider(selector, this), //
 		);
 	}
 
@@ -65,22 +77,27 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			if (!get_configuration("inlayHints.gdscript", true)) {
 				return hints;
 			}
-            
+
 			if (!globals.lsp.client.isRunning()) {
-                return hints;
-            }
-
-			const symbolsRequest = await globals.lsp.client.send_request("textDocument/documentSymbol", {
-				textDocument: { uri: document.uri.toString() },
-			}) as unknown[];
-
-			if (symbolsRequest.length === 0) {
+				// TODO: inlay hints need to be retriggered once lsp client becomes active
 				return hints;
 			}
 
-			const symbols = (typeof symbolsRequest[0] === "object" && "children" in symbolsRequest[0])
-				? (symbolsRequest[0].children as unknown[]) // godot 4.0+ returns an array of children
-				: symbolsRequest; // godot 3.2 and below returns an array of symbols
+			const symbolsResponse = await globals.lsp.client.send_request<DocumentSymbol[]>(
+				"textDocument/documentSymbol",
+				{
+					textDocument: { uri: document.uri.toString() },
+				},
+			);
+			log.debug(symbolsResponse);
+			if (symbolsResponse.length === 0) {
+				return hints;
+			}
+
+			const symbols =
+				typeof symbolsResponse[0] === "object" && "children" in symbolsResponse[0]
+					? symbolsResponse[0].children // godot 4.0+ returns an array of children
+					: symbolsResponse; // godot 3.2 and below returns an array of symbols
 
 			const hasDetail = symbols.some((s: any) => s.detail);
 
@@ -90,7 +107,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			// since neither LSP or the grammar know whether a variable is inferred or not,
 			// we still need to use regex to find all inferred variable declarations.
 			const regex = /((var|const)\s+)([\w\d_]+)\s*:=/g;
-			
+
 			for (const match of text.matchAll(regex)) {
 				if (token.isCancellationRequested) break;
 				// TODO: until godot supports nested document symbols, we need to send
@@ -100,8 +117,10 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 				if (hasDetail) {
 					const symbol = symbols.find((s: any) => s.name === match[3]);
-					if (symbol && symbol["detail"]) {
-						const hint = new InlayHint(start, fromDetail(symbol["detail"]), InlayHintKind.Type);
+					if (symbol?.detail) {
+						const label = fromDetail(symbol.detail);
+						const hint = new InlayHint(start, label);
+						hint.textEdits = [{ range: new Range(start, start), newText: label }];
 						hints.push(hint);
 					} else {
 						const hint = await addByHover(document, hoverPosition, start);

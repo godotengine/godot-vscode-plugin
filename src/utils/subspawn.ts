@@ -5,7 +5,7 @@ Original library copyright (c) 2022 Craig Wardman
 I had to vendor this library to fix the API in a couple places.
 */
 
-import { ChildProcess, execSync, spawn, SpawnOptions } from "child_process";
+import { ChildProcess, execSync, spawn, SpawnOptions } from "node:child_process";
 import { createLogger } from ".";
 
 const log = createLogger("subspawn");
@@ -20,7 +20,7 @@ export function killSubProcesses(owner: string) {
 		return;
 	}
 
-	children[owner].forEach((c) => {
+	for (const c of children[owner]) {
 		try {
 			if (c.pid) {
 				if (process.platform === "win32") {
@@ -34,13 +34,17 @@ export function killSubProcesses(owner: string) {
 		} catch {
 			log.error(`couldn't kill task ${owner}`);
 		}
-	});
+	}
 
 	children[owner] = [];
 }
 
 process.on("exit", () => {
-	Object.keys(children).forEach((owner) => killSubProcesses(owner));
+	for (const owner of Object.keys(children)) {
+		killSubProcesses(owner);
+	}
+
+	// Object.keys(children).forEach((owner) => killSubProcesses(owner));
 });
 
 function gracefulExitHandler() {
