@@ -245,7 +245,7 @@
 			"captures": { "1": { "name": "keyword.control.gdscript" } }
 		},
 		"keywords": {
-			"match": "\\b(?:class|class_name|abstract|is|onready|tool|static|export|as|void|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super|self)\\b",
+			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super|self)\\b",
 			"name": "keyword.language.gdscript"
 		},
 		"letter": {
@@ -439,14 +439,14 @@
 			]
 		},
 		"annotations": {
-			"match": "(@)(export|export_group|export_color_no_alpha|export_custom|export_dir|export_enum|export_exp_easing|export_file|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_global_dir|export_global_file|export_multiline|export_node_path|export_placeholder|export_range|export_storage|icon|onready|rpc|tool|warning_ignore|static_unload)\\b",
+			"match": "(@)(abstract|export|export_category|export_color_no_alpha|export_custom|export_dir|export_enum|export_exp_easing|export_file|export_file_path|export_flags|export_flags_2d_navigation|export_flags_2d_physics|export_flags_2d_render|export_flags_3d_navigation|export_flags_3d_physics|export_flags_3d_render|export_flags_avoidance|export_global_dir|export_global_file|export_group|export_multiline|export_node_path|export_placeholder|export_range|export_storage|export_subgroup|export_tool_button|icon|onready|rpc|static_unload|tool|warning_ignore|warning_ignore_restore|warning_ignore_start)\\b",
 			"captures": {
 				"1": { "name": "entity.name.function.decorator.gdscript" },
 				"2": { "name": "entity.name.function.decorator.gdscript" }
 			}
 		},
 		"builtin_classes": {
-			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Vector4|Vector4i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|Signal|Callable|StringName|Quaternion|Projection|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedVector4Array|PackedColorArray|JSON|UPNP|OS|IP|JSONRPC|XRVRS)\\b",
+			"match": "(?<![^.]\\.|:)\\b(Vector2|Vector2i|Vector3|Vector3i|Vector4|Vector4i|Color|Rect2|Rect2i|Array|Basis|Dictionary|Plane|Quat|RID|Rect3|Transform|Transform2D|Transform3D|AABB|String|Color|NodePath|PoolByteArray|PoolIntArray|PoolRealArray|PoolStringArray|PoolVector2Array|PoolVector3Array|PoolColorArray|bool|int|float|Signal|Callable|StringName|Quaternion|Projection|PackedByteArray|PackedInt32Array|PackedInt64Array|PackedFloat32Array|PackedFloat64Array|PackedStringArray|PackedVector2Array|PackedVector2iArray|PackedVector3Array|PackedVector3iArray|PackedVector4Array|PackedColorArray|JSON|UPNP|OS|IP|JSONRPC|XRVRS|Variant|void)\\b",
 			"name": "entity.name.type.class.builtin.gdscript"
 		},
 		"const_vars": {
@@ -489,7 +489,7 @@
 			"end2": "(\\s*(\\-\\>)\\s*(void\\w*)|([a-zA-Z_]\\w*)\\s*\\:)",
 			"endCaptures2": {
 				"1": { "name": "punctuation.separator.annotation.result.gdscript" },
-				"2": { "name": "keyword.language.void.gdscript" },
+				"2": { "name": "entity.name.type.class.builtin.gdscript" },
 				"3": { "name": "entity.name.type.class.gdscript markup.italic" }
 			},
 			"patterns": [
