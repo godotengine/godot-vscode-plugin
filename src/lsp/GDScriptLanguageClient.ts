@@ -93,7 +93,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 	public port = -1;
 	public lastPortTried = -1;
 	public sentMessages = new Map();
-	private initMessage: RequestMessage;
 	private rejected = false;
 
 	events = new EventEmitter();
@@ -201,9 +200,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 		this.sentMessages.set(message.id, message);
 
-		if (!this.initMessage && message.method === "initialize") {
-			this.initMessage = message;
-		}
 		// discard outgoing messages that we know aren't supported
 		// if (message.method === "textDocument/didSave") {
 		// 	return false;
@@ -215,6 +211,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			return false;
 		}
 		if (message.method === "workspace/symbol") {
+			// Fixed on server side since Godot 4.5
 			return false;
 		}
 
@@ -356,10 +353,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 		const host = get_configuration("lsp.serverHost");
 		log.info(`connected to LSP at ${host}:${this.lastPortTried}`);
-
-		if (this.initMessage) {
-			this.send_request(this.initMessage.method, this.initMessage.params);
-		}
 	}
 
 	private on_disconnected() {
