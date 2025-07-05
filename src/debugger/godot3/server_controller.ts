@@ -23,7 +23,7 @@ import { build_sub_values, parse_next_scene_node, split_buffers } from "./helper
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
-import BBCodeToAnsi from 'bbcode-to-ansi';
+import BBCodeToAnsi from "bbcode-to-ansi";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -31,11 +31,11 @@ const socketLog = createLogger("debugger.socket");
 const bbcodeParser = new BBCodeToAnsi("\u001b[38;2;211;211;211m");
 
 class Command {
-	public command: string = "";
-	public paramCount: number = -1;
+	public command = "";
+	public paramCount = -1;
 	public parameters: any[] = [];
-	public complete: boolean = false;
-	public threadId: number = 0;
+	public complete = false;
+	public threadId = 0;
 }
 
 export class ServerController {
@@ -48,7 +48,7 @@ export class ServerController {
 	private socket?: net.Socket;
 	private steppingOut = false;
 	private currentCommand: Command = undefined;
-	private didFirstOutput: boolean = false;
+	private didFirstOutput = false;
 	private connectedVersion = "";
 
 	public constructor(public session: GodotDebugSession) {}
@@ -430,8 +430,10 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
-				for (const output of command.parameters){
-					output[0].split("\n").forEach(line => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
+				for (const output of command.parameters) {
+					for (const line of output[0].split("\n")) {
+						debug.activeDebugConsole.appendLine(bbcodeParser.parse(line));
+					}
 				}
 				break;
 			}
@@ -632,6 +634,7 @@ export class ServerController {
 			stackVars.globals.push({ name: parameters[i++], value: parameters[i++] });
 		}
 
+		// biome-ignore lint/complexity/noForEach: <custom forEach impl>
 		stackVars.forEach((item) => build_sub_values(item));
 
 		this.session.set_scopes(stackVars);

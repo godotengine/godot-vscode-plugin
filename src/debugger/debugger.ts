@@ -1,33 +1,32 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
+import { InvalidatedEvent } from "@vscode/debugadapter";
+import { DebugProtocol } from "@vscode/debugprotocol";
 import {
+	CancellationToken,
+	DebugAdapterDescriptor,
+	DebugAdapterDescriptorFactory,
+	DebugAdapterInlineImplementation,
+	DebugConfiguration,
+	DebugConfigurationProvider,
+	DebugSession,
+	EventEmitter,
+	ExtensionContext,
+	FileDecoration,
+	FileDecorationProvider,
+	ProviderResult,
+	Uri,
+	WorkspaceFolder,
 	debug,
 	window,
 	workspace,
-	ExtensionContext,
-	DebugConfigurationProvider,
-	WorkspaceFolder,
-	DebugAdapterInlineImplementation,
-	DebugAdapterDescriptorFactory,
-	DebugConfiguration,
-	DebugAdapterDescriptor,
-	DebugSession,
-	CancellationToken,
-	ProviderResult,
-	FileDecoration,
-	FileDecorationProvider,
-	Uri,
-	EventEmitter,
-	Event,
 } from "vscode";
-import { DebugProtocol } from "@vscode/debugprotocol";
+import { createLogger, get_project_version, register_command, set_context } from "../utils";
+import { GodotVariable } from "./debug_runtime";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
-import { register_command, set_context, createLogger, get_project_version } from "../utils";
-import { SceneTreeProvider, SceneNode } from "./scene_tree_provider";
+import { GodotObject } from "./godot4/variables/godot_object_promise";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
-import { GodotVariable, RawObject } from "./debug_runtime";
-import { GodotObject, GodotObjectPromise } from "./godot4/variables/godot_object_promise";
-import { InvalidatedEvent } from "@vscode/debugadapter";
+import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
 
 const log = createLogger("debugger", { output: "Godot Debugger" });
 
@@ -61,37 +60,12 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 
 export let pinnedScene: Uri;
 
-export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider, FileDecorationProvider {
-	public session?: Godot3DebugSession | Godot4DebugSession;
-	public inspectorProvider = new InspectorProvider();
-	public sceneTreeProvider = new SceneTreeProvider();
+class GDFileDecorationProvider implements FileDecorationProvider {
+	private emitter = new EventEmitter<Uri>();
+	onDidChangeFileDecorations = this.emitter.event;
 
-	private _onDidChangeFileDecorations = new EventEmitter<Uri>();
-	get onDidChangeFileDecorations(): Event<Uri> {
-		return this._onDidChangeFileDecorations.event;
-	}
-
-	constructor(private context: ExtensionContext) {
-		log.info("Initializing Godot Debugger");
-
-		this.restore_pinned_file();
-
-		context.subscriptions.push(
-			debug.registerDebugConfigurationProvider("godot", this),
-			debug.registerDebugAdapterDescriptorFactory("godot", this),
-			window.registerTreeDataProvider("inspectNode", this.inspectorProvider),
-			window.registerTreeDataProvider("activeSceneTree", this.sceneTreeProvider),
-			window.registerFileDecorationProvider(this),
-			register_command("debugger.inspectNode", this.inspect_node.bind(this)),
-			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),
-			register_command("debugger.refreshInspector", this.refresh_inspector.bind(this)),
-			register_command("debugger.editValue", this.edit_value.bind(this)),
-			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
-			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
-			register_command("debugger.pinFile", this.pin_file.bind(this)),
-			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
-			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
-		);
+	update(uri: Uri) {
+		this.emitter.fire(uri);
 	}
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
@@ -101,6 +75,37 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				badge: "🖈",
 			};
 		}
+	}
+}
+
+export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
+	public session?: Godot3DebugSession | Godot4DebugSession;
+	public sceneTree = new SceneTreeProvider();
+	public inspector = new InspectorProvider();
+
+	fileDecorations = new GDFileDecorationProvider();
+
+	constructor(private context: ExtensionContext) {
+		log.info("Initializing Godot Debugger");
+
+		this.restore_pinned_file();
+
+		context.subscriptions.push(
+			debug.registerDebugConfigurationProvider("godot", this),
+			debug.registerDebugAdapterDescriptorFactory("godot", this),
+			window.registerFileDecorationProvider(this.fileDecorations),
+			register_command("debugger.inspectNode", this.inspect_node.bind(this)),
+			register_command("debugger.refreshSceneTree", this.refresh_scene_tree.bind(this)),
+			register_command("debugger.refreshInspector", this.refresh_inspector.bind(this)),
+			register_command("debugger.editValue", this.edit_value.bind(this)),
+			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
+			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
+			register_command("debugger.pinFile", this.pin_file.bind(this)),
+			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
+			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
+			this.inspector.view,
+			this.sceneTree.view,
+		);
 	}
 
 	public async createDebugAdapterDescriptor(session: DebugSession): Promise<DebugAdapterDescriptor> {
@@ -115,14 +120,19 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 		this.context.subscriptions.push(this.session);
 
-		this.session.sceneTree = this.sceneTreeProvider;
+		this.session.sceneTree = this.sceneTree;
+		this.session.inspector = this.inspector;
+
+		this.sceneTree.clear();
+		this.inspector.clear();
+
 		return new DebugAdapterInlineImplementation(this.session);
 	}
 
 	public resolveDebugConfiguration(
 		folder: WorkspaceFolder | undefined,
 		config: DebugConfiguration,
-		token?: CancellationToken
+		token?: CancellationToken,
 	): ProviderResult<DebugConfiguration> {
 		// request is actually a required field according to vscode
 		// however, setting it here lets us catch a possible misconfiguration
@@ -157,7 +167,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 
 	public debug_current_file() {
 		log.info("Attempting to debug current file");
-		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", window.activeTextEditor.document.uri).get("configurations");
+		const configs: DebugConfiguration[] = workspace
+			.getConfiguration("launch", window.activeTextEditor.document.uri)
+			.get("configurations");
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "current");
 
@@ -223,17 +235,18 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public pin_file(uri: Uri) {
+		let _uri = uri;
 		if (uri === undefined) {
-			uri = window.activeTextEditor.document.uri;
+			_uri = window.activeTextEditor.document.uri;
 		}
-		log.info(`Pinning debug target file: '${uri.fsPath}'`);
-		set_context("pinnedScene", [uri.fsPath]);
+		log.info(`Pinning debug target file: '${_uri.fsPath}'`);
+		set_context("pinnedScene", [_uri.fsPath]);
 		if (pinnedScene) {
-			this._onDidChangeFileDecorations.fire(pinnedScene);
+			this.fileDecorations.update(pinnedScene);
 		}
-		pinnedScene = uri;
+		pinnedScene = _uri;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
-		this._onDidChangeFileDecorations.fire(uri);
+		this.fileDecorations.update(_uri);
 	}
 
 	public unpin_file(uri: Uri) {
@@ -242,7 +255,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const previousPinnedScene = pinnedScene;
 		pinnedScene = undefined;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
-		this._onDidChangeFileDecorations.fire(previousPinnedScene);
+		this.fileDecorations.update(previousPinnedScene);
 	}
 
 	public restore_pinned_file() {
@@ -261,38 +274,36 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public async inspect_node(element: SceneNode | RemoteProperty) {
-		await this.fill_provider_tree(element.label, BigInt(element.object_id));
+		await this.fill_inspector(element);
+	}
+
+	private async fill_inspector(element: SceneNode | RemoteProperty, force_refresh = false) {
+		if (this.session instanceof Godot4DebugSession) {
+			const godot_object = await this.session.variables_manager?.get_godot_object(
+				BigInt(element.object_id),
+				force_refresh,
+			);
+			if (!godot_object) {
+				return;
+			}
+			const va = this.create_godot_variable(godot_object);
+			this.inspector.fill_tree(element.label, godot_object.type, Number(godot_object.godot_id), va);
+		} else {
+			this.session?.controller.request_inspect_object(BigInt(element.object_id));
+			this.session?.inspect_callbacks.set(BigInt(element.object_id), (class_name, variable) => {
+				this.inspector.fill_tree(element.label, class_name, Number(element.object_id), variable);
+			});
+		}
 	}
 
 	private create_godot_variable(godot_object: GodotObject): GodotVariable {
 		return {
 			value: {
-				type_name: function() { return godot_object.type; },
-				stringify_value: function() { return `<${godot_object.godot_id}>`; },
-				sub_values: function() {return godot_object.sub_values; },
+				type_name: () => godot_object.type,
+				stringify_value: () => `<${godot_object.godot_id}>`,
+				sub_values: () => godot_object.sub_values,
 			},
 		} as GodotVariable;
-	}
-
-	private async fill_provider_tree(label: string, godot_id: bigint, force_refresh = false) {
-		if (this.session instanceof Godot4DebugSession) {
-			const godot_object = await this.session.variables_manager.get_godot_object(BigInt(godot_id), force_refresh);
-			const va = this.create_godot_variable(godot_object);
-			this.inspectorProvider.fill_tree(label, godot_object.type, Number(godot_object.godot_id), va);
-		} else {
-			this.session?.controller.request_inspect_object(BigInt(godot_id));
-			this.session?.inspect_callbacks.set(
-				BigInt(godot_id),
-				(class_name, variable) => {
-					this.inspectorProvider.fill_tree(
-						label,
-						class_name,
-						Number(godot_id),
-						variable
-					);
-				},
-			);
-		}
 	}
 
 	public refresh_scene_tree() {
@@ -300,10 +311,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public async refresh_inspector() {
-		if (this.inspectorProvider.has_tree()) {
-			const label = this.inspectorProvider.get_top_name();
-			const id = this.inspectorProvider.get_top_id();
-			await this.fill_provider_tree(label, BigInt(id), /*force_refresh*/ true);
+		if (this.inspector.has_tree()) {
+			const item = this.inspector.get_top_item();
+			await this.fill_inspector(item, /*force_refresh*/ true);
 		}
 	}
 
@@ -331,10 +341,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				}
 				break;
 			case "boolean":
-				if (
-					value.toLowerCase() === "true" ||
-					value.toLowerCase() === "false"
-				) {
+				if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
 					new_parsed_value = value.toLowerCase() === "true";
 				} else if (value === "0" || value === "1") {
 					new_parsed_value = value === "1";
@@ -348,30 +355,16 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			while (parents[idx].changes_parent) {
 				parents.push(parents[idx++].parent);
 			}
-			const changed_value = this.inspectorProvider.get_changed_value(
-				parents,
-				property,
-				new_parsed_value
-			);
-			this.session?.controller.set_object_property(
-				BigInt(property.object_id),
-				parents[idx].label,
-				changed_value,
-			);
+			const changed_value = this.inspector.get_changed_value(parents, property, new_parsed_value);
+			this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
 		} else {
-			this.session?.controller.set_object_property(
-				BigInt(property.object_id),
-				property.label,
-				new_parsed_value,
-			);
+			this.session?.controller.set_object_property(BigInt(property.object_id), property.label, new_parsed_value);
 		}
 
-		const label = this.inspectorProvider.get_top_name();
-		const godot_id = BigInt(this.inspectorProvider.get_top_id());
+		const item = this.inspector.get_top_item();
+		await this.fill_inspector(item, /*force_refresh*/ true);
 
-		await this.fill_provider_tree(label, godot_id, /*force_refresh*/ true);
 		// const res = await debug.activeDebugSession?.customRequest("refreshVariables"); // refresh vscode.debug variables
 		this.session.sendEvent(new InvalidatedEvent(["variables"]));
-		console.log("foo");
 	}
 }

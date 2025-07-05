@@ -89,7 +89,7 @@ export class VariantDecoder {
 
 	public get_dataset(buffer: Buffer) {
 		const len = buffer.readUInt32LE(0);
-		if (buffer.length != len + 4) {
+		if (buffer.length !== len + 4) {
 			return undefined;
 		}
 		const model: BufferModel = {
