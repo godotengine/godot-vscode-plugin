@@ -14,10 +14,11 @@ import {
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
 import { killSubProcesses, subProcess } from "../utils/subspawn";
 import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
+import { EventEmitter } from "vscode";
 
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
-enum ManagerStatus {
+export enum ManagerStatus {
 	INITIALIZING = 0,
 	INITIALIZING_LSP = 1,
 	PENDING = 2,
@@ -30,6 +31,9 @@ enum ManagerStatus {
 
 export class ClientConnectionManager {
 	public client: GDScriptLanguageClient = null;
+
+	private statusChanged = new EventEmitter<ManagerStatus>();
+	onStatusChanged = this.statusChanged.event;
 
 	private reconnectionAttempts = 0;
 
@@ -70,8 +74,10 @@ export class ClientConnectionManager {
 	}
 
 	private create_new_client() {
+		const port = this.client?.port ?? -1;
 		this.client?.events?.removeAllListeners();
 		this.client = new GDScriptLanguageClient();
+		this.client.port = port;
 		this.client.events.on("status", this.on_client_status_changed.bind(this));
 	}
 
@@ -248,7 +254,7 @@ export class ClientConnectionManager {
 				text = "$(check) Connected";
 				tooltip = `Connected to the GDScript language server.\n${lspTarget}`;
 				if (this.connectedVersion) {
-					tooltip += `\n${this.connectedVersion}`;
+					tooltip += `\nGodot version: ${this.connectedVersion}`;
 				}
 				break;
 			case ManagerStatus.DISCONNECTED:
@@ -307,6 +313,7 @@ export class ClientConnectionManager {
 			default:
 				break;
 		}
+		this.statusChanged.fire(this.status);
 		this.update_status_widget();
 	}
 
