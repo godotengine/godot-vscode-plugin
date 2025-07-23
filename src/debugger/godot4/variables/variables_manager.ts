@@ -235,6 +235,7 @@ export class VariablesManager {
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
 			} else if (value instanceof Map) {
+				// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 				rendered_value = value["class_name"] ?? `Dictionary(${value.size})`;
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),

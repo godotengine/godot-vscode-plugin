@@ -133,7 +133,7 @@ export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, 
 	const not_found_uids: string[] = [];
 	const uris: Map<string, vscode.Uri> = new Map();
 
-	let found_all: boolean = true;
+	let found_all = true;
 	for (const uid of uids) {
 		if (!uid.startsWith("uid://")) {
 			continue;

@@ -125,6 +125,7 @@ export class VariantEncoder {
 	private encode_Array(arr: any[], model: BufferModel) {
 		const size = arr.length;
 		this.encode_UInt32(size, model);
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		arr.forEach((e) => {
 			this.encode_variant(e, model);
 		});
@@ -151,6 +152,7 @@ export class VariantEncoder {
 		const size = dict.size;
 		this.encode_UInt32(size, model);
 		const keys = Array.from(dict.keys());
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		keys.forEach((key) => {
 			const value = dict.get(key);
 			this.encode_variant(key, model);
@@ -239,6 +241,7 @@ export class VariantEncoder {
 	private size_Dictionary(dict: Map<any, any>): number {
 		let size = this.size_UInt32();
 		const keys = Array.from(dict.keys());
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		keys.forEach((key) => {
 			const value = dict.get(key);
 			size += this.size_variant(key);
@@ -266,6 +269,7 @@ export class VariantEncoder {
 
 	private size_array(arr: any[]): number {
 		let size = this.size_UInt32();
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		arr.forEach((e) => {
 			size += this.size_variant(e);
 		});
@@ -316,6 +320,7 @@ export class VariantEncoder {
 					size += this.size_Dictionary(value);
 					break;
 				} else {
+					// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 					switch (value["__type__"]) {
 						case "Vector2":
 							size += this.size_UInt32() * 2;
