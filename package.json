@@ -900,6 +900,7 @@
 		"@types/mocha": "^10.0.6",
 		"@types/node": "^18.19.75",
 		"@types/prismjs": "^1.16.8",
+		"@types/sinon": "^17.0.4",
 		"@types/vscode": "^1.96.0",
 		"@types/ws": "^8.5.4",
 		"@typescript-eslint/eslint-plugin": "^5.57.1",

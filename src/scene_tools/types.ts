@@ -4,7 +4,7 @@ import {
 	MarkdownString,
 	Uri
 } from "vscode";
-import * as path from "path";
+import * as path from "node:path";
 import { get_extension_uri } from "../utils";
 
 const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
@@ -17,9 +17,9 @@ export class SceneNode extends TreeItem {
 	public text: string;
 	public position: number;
 	public body: string;
-	public unique: boolean = false;
-	public hasScript: boolean = false;
-	public scriptId: string = "";
+	public unique = false;
+	public hasScript = false;
+	public scriptId = "";
 	public children: SceneNode[] = [];
 
 	constructor(
@@ -29,7 +29,7 @@ export class SceneNode extends TreeItem {
 	) {
 		super(label, collapsibleState);
 
-		const iconName = className + ".svg";
+		const iconName = `${className}.svg`;
 
 		this.iconPath = {
 			light: Uri.file(path.join(iconDir, "light", iconName)),

@@ -322,14 +322,14 @@ function make_link(classname: string, symbol: string) {
 function make_codeblock(code: string, language: string) {
 	const lines = code.split("\n");
 	const indent = lines[0].match(/^\s*/)[0].length;
-	code = lines.map((line) => line.slice(indent)).join("\n");
-	return marked.parse(`\`\`\`${language}\n${code}\n\`\`\``);
+	const _code = lines.map((line) => line.slice(indent)).join("\n");
+	return marked.parse(`\`\`\`${language}\n${_code}\n\`\`\``);
 }
 
 function format_documentation(bbcode: string, classname: string) {
 	// ya-bbcode doesn't parse [code skip-lint] as a [code] tag
-	bbcode = bbcode.replaceAll("[code skip-lint]", "[code]");
-	let html = parser.parse(bbcode.trim());
+	const _bbcode = bbcode.replaceAll("[code skip-lint]", "[code]");
+	let html = parser.parse(_bbcode.trim());
 
 	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
 	html = html.replaceAll("&quot;", '"');
