@@ -13,6 +13,7 @@ chaiAsPromised.then((module) => {
 
 import { promisify } from "util";
 import { execFile } from "child_process";
+import { clean_godot_path } from "../../../utils";
 const execFileAsync = promisify(execFile);
 
 chai.use(chaiSubset);
