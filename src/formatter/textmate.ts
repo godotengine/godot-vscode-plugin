@@ -56,12 +56,14 @@ interface Token {
 export interface FormatterOptions {
 	maxEmptyLines: 0 | 1 | 2;
 	denseFunctionParameters: boolean;
+	spacesBeforeEndOfLineComment: 1 | 2;
 }
 
 function get_formatter_options() {
 	const options: FormatterOptions = {
 		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
 		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
+		spacesBeforeEndOfLineComment: get_configuration("formatter.spacesBeforeEndOfLineComment") === "1" ? 1 : 2,
 	};
 
 	return options;
@@ -135,8 +137,8 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (!prev) return "";
 
-	if (next === "##") return " ";
-	if (next === "#") return " ";
+	if (next === "##") return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
+	if (next === "#") return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
 	if (prev === "(") return "";

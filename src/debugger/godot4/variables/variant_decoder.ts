@@ -210,6 +210,9 @@ export class VariantDecoder {
 
 	private decode_ContainerTypeFlag(model: BufferModel, type: GDScriptTypes, bitOffset: number) {
 		const shiftedType = (type >> bitOffset) & 0b11;
+		if (shiftedType === ContainerTypeFlags.NONE) {
+			return 0;
+		}
 		if (shiftedType === ContainerTypeFlags.BUILTIN) {
 			return this.decode_UInt32(model);
 		} else {

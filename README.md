@@ -209,10 +209,9 @@ see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### Why isn't IntelliSense displaying script members?
 
-- GDScript is a dynamically typed script language. The language server can't
+- GDScript is a gradually typed script language. The language server can't
   infer all variable types.
-- To increase the number of results displayed, open the **Editor Settings**,
-  go to the **Language Server** section then check **Enable Smart Resolve**.
+- To increase the number of results displayed, use static typing in your scripts.
 
 ### Can Godot/VSCode load in my script changes automatically instead of showing a confirmation window?
 
