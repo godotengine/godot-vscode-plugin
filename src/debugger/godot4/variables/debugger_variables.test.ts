@@ -229,7 +229,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		const config = vscode.workspace.getConfiguration("godotTools");
 		// config.update("editorPath.godot4", "godot4", vscode.ConfigurationTarget.Workspace);
 
-		var godot4_path = clean_godot_path(config.get<string>("editorPath.godot4"));
+		const godot4_path = clean_godot_path(config.get<string>("editorPath.godot4"));
 
 		// get the path for currently opened project in vscode test instance:
 		console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
