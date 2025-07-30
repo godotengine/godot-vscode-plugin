@@ -13,6 +13,8 @@ chaiAsPromised.then((module) => {
 
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
+import { clean_godot_path } from "../../../utils";
+
 const execFileAsync = promisify(execFile);
 
 chai.use(chaiSubset);
@@ -226,7 +228,9 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		// init the godot project by importing it in godot engine:
 		const config = vscode.workspace.getConfiguration("godotTools");
 		// config.update("editorPath.godot4", "godot4", vscode.ConfigurationTarget.Workspace);
-		const godot4_path = config.get<string>("editorPath.godot4");
+
+		var godot4_path = clean_godot_path(config.get<string>("editorPath.godot4"));
+
 		// get the path for currently opened project in vscode test instance:
 		console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
 		const exec_res = await execFileAsync(godot4_path, ["--headless", "--import", workspaceFolder], {
