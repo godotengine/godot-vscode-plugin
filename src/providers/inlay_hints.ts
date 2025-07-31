@@ -12,6 +12,7 @@ import {
 	TextDocument,
 } from "vscode";
 import { globals } from "../extension";
+import { ClientStatus } from "../lsp/GDScriptLanguageClient";
 import { SceneParser } from "../scene_tools";
 import { createLogger, get_configuration } from "../utils";
 import { ManagerStatus } from "../lsp/ClientConnectionManager";
@@ -91,6 +92,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
 		const hints: InlayHint[] = [];
 		const text = document.getText(range);
+		log.debug("Inlay Hints: provideInlayHints");
 
 		if (document.fileName.endsWith(".gd")) {
 			if (!get_configuration("inlayHints.gdscript", true)) {
