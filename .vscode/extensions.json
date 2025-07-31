@@ -1,5 +1,6 @@
 {
   "recommendations": [
-    "ms-vscode.extension-test-runner"
+    "ms-vscode.extension-test-runner",
+    "biomejs.biome"
   ]
 }

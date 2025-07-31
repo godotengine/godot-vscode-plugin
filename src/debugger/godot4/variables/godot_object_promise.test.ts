@@ -3,7 +3,7 @@ import chai from "chai";
 import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
 // import chaiAsPromised from "chai-as-promised";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-var chaiAsPromised = import("chai-as-promised");
+const chaiAsPromised = import("chai-as-promised");
 // const chaiAsPromised = await import("chai-as-promised"); // TODO: use after migration to ECMAScript modules
 
 chaiAsPromised.then((module) => {
@@ -12,7 +12,7 @@ chaiAsPromised.then((module) => {
 const { expect } = chai;
 
 suite("GodotObjectPromise", () => {
-	let clock;
+	let clock: sinon.SinonFakeTimers;
 
 	setup(() => {
 		clock = sinon.useFakeTimers(); // Use Sinon to control time

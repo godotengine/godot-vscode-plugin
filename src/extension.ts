@@ -259,14 +259,14 @@ class GodotEditorTerminal implements vscode.Pseudoterminal {
 		proc.stdout.on("data", (data) => {
 			const out = data.toString().trim();
 			if (out) {
-				this.writeEmitter.fire(data + "\r\n");
+				this.writeEmitter.fire(`${data}\r\n`);
 			}
 		});
 
 		proc.stderr.on("data", (data) => {
 			const out = data.toString().trim();
 			if (out) {
-				this.writeEmitter.fire(data + "\r\n");
+				this.writeEmitter.fire(`${data}\r\n`);
 			}
 		});
 

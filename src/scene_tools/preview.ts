@@ -43,12 +43,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	scriptDecorator = new ScriptDecorationProvider(this);
 
 	private changeTreeEvent = new EventEmitter<void>();
-	public get onDidChangeTreeData(): Event<void> {
-		return this.changeTreeEvent.event;
-	}
+	onDidChangeTreeData = this.changeTreeEvent.event;
 
 	constructor(private context: ExtensionContext) {
-		this.tree = vscode.window.createTreeView("scenePreview", {
+		this.tree = vscode.window.createTreeView("godotTools.scenePreview", {
 			treeDataProvider: this,
 			dragAndDropController: this,
 		});
@@ -265,17 +263,19 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			element.collapsibleState = TreeItemCollapsibleState.None;
 		}
 
-		this.uniqueDecorator.changeDecorationsEvent.fire(element.resourceUri);
-		this.scriptDecorator.changeDecorationsEvent.fire(element.resourceUri);
+		this.uniqueDecorator.update(element.resourceUri);
+		this.scriptDecorator.update(element.resourceUri);
 
 		return element;
 	}
 }
 
 class UniqueDecorationProvider implements vscode.FileDecorationProvider {
-	public changeDecorationsEvent = new EventEmitter<Uri>();
-	get onDidChangeFileDecorations(): Event<Uri> {
-		return this.changeDecorationsEvent.event;
+	public emitter = new EventEmitter<Uri>();
+	onDidChangeFileDecorations = this.emitter.event;
+
+	update(uri: Uri) {
+		this.emitter.fire(uri);
 	}
 
 	constructor(private previewer: ScenePreviewProvider) {}
@@ -293,9 +293,11 @@ class UniqueDecorationProvider implements vscode.FileDecorationProvider {
 }
 
 class ScriptDecorationProvider implements vscode.FileDecorationProvider {
-	public changeDecorationsEvent = new EventEmitter<Uri>();
-	get onDidChangeFileDecorations(): Event<Uri> {
-		return this.changeDecorationsEvent.event;
+	public emitter = new EventEmitter<Uri>();
+	onDidChangeFileDecorations = this.emitter.event;
+
+	update(uri: Uri) {
+		this.emitter.fire(uri);
 	}
 
 	constructor(private previewer: ScenePreviewProvider) {}

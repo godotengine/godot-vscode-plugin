@@ -1,36 +1,44 @@
-import { TreeDataProvider, EventEmitter, Event, ProviderResult, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { GodotVariable, RawObject, ObjectId } from "./debug_runtime";
+import { EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState, TreeView, window } from "vscode";
+import { GodotVariable, ObjectId, RawObject } from "./debug_runtime";
 
 export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
-	private _on_did_change_tree_data: EventEmitter<RemoteProperty | undefined> = new EventEmitter<
-		RemoteProperty | undefined
-	>();
-	private tree: RemoteProperty | undefined;
+	private changeTreeEvent = new EventEmitter<RemoteProperty>();
+	onDidChangeTreeData = this.changeTreeEvent.event;
 
-	public readonly onDidChangeTreeData: Event<RemoteProperty> | undefined = this._on_did_change_tree_data.event;
+	private root: RemoteProperty | undefined;
+	public view: TreeView<RemoteProperty>;
 
-	public clean_up() {
-		if (this.tree) {
-			this.tree = undefined;
-			this._on_did_change_tree_data.fire(undefined);
+	constructor() {
+		this.view = window.createTreeView("godotTools.nodeInspector", {
+			treeDataProvider: this,
+		});
+	}
+
+	public clear() {
+		this.view.description = undefined;
+		this.view.message = undefined;
+
+		if (this.root) {
+			this.root = undefined;
+			this.changeTreeEvent.fire(undefined);
 		}
 	}
 
 	public fill_tree(element_name: string, class_name: string, object_id: number, variable: GodotVariable) {
-		this.tree = this.parse_variable(variable, object_id);
-		this.tree.label = element_name;
-		this.tree.collapsibleState = TreeItemCollapsibleState.Expanded;
-		this.tree.description = class_name;
-		this._on_did_change_tree_data.fire(undefined);
+		this.root = this.parse_variable(variable, object_id);
+		this.root.label = element_name;
+		this.root.collapsibleState = TreeItemCollapsibleState.Expanded;
+		this.root.description = class_name;
+		this.changeTreeEvent.fire(undefined);
 	}
 
 	public getChildren(element?: RemoteProperty): RemoteProperty[] {
-		if (!this.tree) {
+		if (!this.root) {
 			return [];
 		}
 
 		if (!element) {
-			return [this.tree];
+			return [this.root];
 		} else {
 			return element.properties;
 		}
@@ -57,25 +65,18 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 		return value;
 	}
 
-	public get_top_id(): number {
-		if (this.tree) {
-			return this.tree.object_id;
-		}
-		return undefined;
-	}
-
-	public get_top_name() {
-		if (this.tree) {
-			return this.tree.label;
+	public get_top_item(): RemoteProperty {
+		if (this.root) {
+			return this.root;
 		}
 		return undefined;
 	}
 
 	public has_tree() {
-		return this.tree !== undefined;
+		return this.root !== undefined;
 	}
 
-	private parse_variable(va: GodotVariable, object_id?: number) {
+	private parse_variable(va: GodotVariable, object_id?: number): RemoteProperty {
 		const value = va.value;
 		let rendered_value = "";
 

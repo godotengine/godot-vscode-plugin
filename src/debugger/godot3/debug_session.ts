@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import {
 	Breakpoint,
 	InitializedEvent,
@@ -8,12 +9,11 @@ import {
 } from "@vscode/debugadapter";
 import { DebugProtocol } from "@vscode/debugprotocol";
 import { Subject } from "await-notify";
-import * as fs from "node:fs";
 import { debug } from "vscode";
-
 import { createLogger } from "../../utils";
 import { GodotDebugData, GodotStackVars, GodotVariable } from "../debug_runtime";
 import { AttachRequestArguments, LaunchRequestArguments } from "../debugger";
+import { InspectorProvider } from "../inspector_provider";
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { is_variable_built_in_type, parse_variable } from "./helpers";
 import { ServerController } from "./server_controller";
@@ -32,6 +32,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	public controller = new ServerController(this);
 	public debug_data = new GodotDebugData(this);
 	public sceneTree: SceneTreeProvider;
+	public inspector: InspectorProvider;
 	private got_scope: Subject = new Subject();
 	private ongoing_inspections: bigint[] = [];
 	private previous_inspections: bigint[] = [];
@@ -390,7 +391,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 		if (!root) {
 			if (!expression.includes("self")) {
-				expression = "self." + expression;
+				expression = `self.${expression}`;
 			}
 
 			root = this.all_scopes.find((x) => x && x.name === "self");

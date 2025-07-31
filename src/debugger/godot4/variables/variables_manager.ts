@@ -1,9 +1,9 @@
 import { DebugProtocol } from "@vscode/debugprotocol";
-import { ServerController } from "../server_controller";
-import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
 import { GodotVariable } from "../../debug_runtime";
-import { ObjectId } from "./variants";
+import { ServerController } from "../server_controller";
 import { GodotIdToVscodeIdMapper, GodotIdWithPath } from "./godot_id_to_vscode_id_mapper";
+import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
+import { ObjectId } from "./variants";
 
 export interface VsCodeScopeIDs {
 	Locals: number;
@@ -27,7 +27,7 @@ export class VariablesManager {
 	 * @returns an object with Locals, Members, and Globals vscode_ids
 	 */
 	public get_or_create_frame_scopes(stack_frame_id: number): VsCodeScopeIDs {
-		var scopes = this.frame_id_to_scopes_map.get(stack_frame_id);
+		let scopes = this.frame_id_to_scopes_map.get(stack_frame_id);
 		if (scopes === undefined) {
 			const frame_id = BigInt(stack_frame_id);
 			scopes = {} as VsCodeScopeIDs;
@@ -68,7 +68,7 @@ export class VariablesManager {
 				}
 			}
 		}
-		var variable_promise = this.godot_object_promises.get(godot_id);
+		let variable_promise = this.godot_object_promises.get(godot_id);
 		if (variable_promise === undefined) {
 			// variable not found, request one
 			if (godot_id < 0) {
@@ -153,8 +153,9 @@ export class VariablesManager {
 		let variable: GodotVariable;
 
 		const variable_names = variable_name.split(".");
+		let parent_id: bigint;
 
-		for (var i = 0; i < variable_names.length; i++) {
+		for (let i = 0; i < variable_names.length; i++) {
 			if (i === 0) {
 				// find the first part of variable_name in scopes. Locals first, then Members, then Globals
 				const vscode_scope_ids = this.get_or_create_frame_scopes(stack_frame_id);
@@ -162,11 +163,12 @@ export class VariablesManager {
 				const godot_ids = vscode_ids
 					.map((vscode_id) => this.godot_id_to_vscode_id_mapper.get_godot_id_with_path(vscode_id))
 					.map((godot_id_with_path) => godot_id_with_path.godot_id);
-				for (var godot_id of godot_ids) {
+				for (const godot_id of godot_ids) {
 					// check each scope for requested variable
 					const scope = await this.get_godot_object(godot_id);
 					variable = scope.sub_values.find((sv) => sv.name === variable_names[0]);
 					if (variable !== undefined) {
+						parent_id = godot_id;
 						break;
 					}
 				}
@@ -189,7 +191,7 @@ export class VariablesManager {
 		const parsed_variable = await this.parse_variable(
 			variable,
 			undefined,
-			godot_id,
+			parent_id,
 			[],
 			this.godot_id_to_vscode_id_mapper,
 		);
@@ -220,7 +222,7 @@ export class VariablesManager {
 			if (Number.isInteger(value)) {
 				rendered_value = `${value}`;
 			} else {
-				rendered_value = `${parseFloat(value.toFixed(5))}`;
+				rendered_value = `${Number.parseFloat(value.toFixed(5))}`;
 			}
 		} else if (typeof value === "bigint" || typeof value === "boolean" || typeof value === "string") {
 			rendered_value = `${value}`;
@@ -233,6 +235,7 @@ export class VariablesManager {
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
 			} else if (value instanceof Map) {
+				// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 				rendered_value = value["class_name"] ?? `Dictionary(${value.size})`;
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),

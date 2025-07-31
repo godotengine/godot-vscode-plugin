@@ -33,7 +33,7 @@
 	"scripts": {
 		"format": "biome format --write --changed src",
 		"compile": "tsc -p ./",
-		"lint": "eslint ./src --quiet",
+		"lint": "biome lint src",
 		"watch": "tsc -watch -p ./",
 		"package": "vsce package",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -655,32 +655,35 @@
 		"views": {
 			"debug": [
 				{
-					"id": "activeSceneTree",
-					"name": "Active Scene Tree"
+					"id": "godotTools.activeSceneTree",
+					"name": "Active Scene Tree",
+					"icon": "resources/godot_icon.svg"
 				},
 				{
-					"id": "inspectNode",
-					"name": "Inspector"
+					"id": "godotTools.nodeInspector",
+					"name": "Inspector",
+					"icon": "resources/godot_icon.svg"
 				}
 			],
 			"godotTools": [
 				{
-					"id": "scenePreview",
-					"name": "Scene Preview"
+					"id": "godotTools.scenePreview",
+					"name": "Scene Preview",
+					"icon": "resources/godot_icon.svg"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "activeSceneTree",
+				"view": "godotTools.activeSceneTree",
 				"contents": "Scene Tree data has not been requested"
 			},
 			{
-				"view": "inspectNode",
+				"view": "godotTools.nodeInspector",
 				"contents": "Node has not been inspected"
 			},
 			{
-				"view": "scenePreview",
+				"view": "godotTools.scenePreview",
 				"contents": "Open a Scene to see a preview of its structure"
 			}
 		],
@@ -734,92 +737,92 @@
 			"view/title": [
 				{
 					"command": "godotTools.debugger.refreshSceneTree",
-					"when": "view == activeSceneTree",
+					"when": "view == godotTools.activeSceneTree",
 					"group": "navigation"
 				},
 				{
 					"command": "godotTools.debugger.refreshInspector",
-					"when": "view == inspectNode",
+					"when": "view == godotTools.nodeInspector",
 					"group": "navigation"
 				},
 				{
 					"command": "godotTools.scenePreview.lock",
-					"when": "view == scenePreview && !godotTools.context.scenePreview.locked",
+					"when": "view == godotTools.scenePreview && !godotTools.context.scenePreview.locked",
 					"group": "navigation@1"
 				},
 				{
 					"command": "godotTools.scenePreview.unlock",
-					"when": "view == scenePreview && godotTools.context.scenePreview.locked",
+					"when": "view == godotTools.scenePreview && godotTools.context.scenePreview.locked",
 					"group": "navigation@1"
 				},
 				{
 					"command": "godotTools.scenePreview.refresh",
-					"when": "view == scenePreview",
+					"when": "view == godotTools.scenePreview",
 					"group": "navigation@2"
 				},
 				{
 					"command": "godotTools.scenePreview.openMainScript",
-					"when": "view == scenePreview",
+					"when": "view == godotTools.scenePreview",
 					"group": "navigation@3"
 				},
 				{
 					"command": "godotTools.scenePreview.openCurrentScene",
-					"when": "view == scenePreview",
+					"when": "view == godotTools.scenePreview",
 					"group": "navigation@4"
 				}
 			],
 			"view/item/context": [
 				{
 					"command": "godotTools.debugger.inspectNode",
-					"when": "view == activeSceneTree",
+					"when": "view == godotTools.activeSceneTree",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.debugger.inspectNode",
-					"when": "view == inspectNode && viewItem == remote_object",
+					"when": "view == godotTools.nodeInspector && viewItem == remote_object",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.debugger.editValue",
-					"when": "view == inspectNode && viewItem == editable_value",
+					"when": "view == godotTools.nodeInspector && viewItem == editable_value",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.scenePreview.goToDefinition",
-					"when": "view == scenePreview",
+					"when": "view == godotTools.scenePreview",
 					"group": "1@1"
 				},
 				{
 					"command": "godotTools.scenePreview.openDocumentation",
-					"when": "view == scenePreview",
+					"when": "view == godotTools.scenePreview",
 					"group": "1@1"
 				},
 				{
 					"command": "godotTools.scenePreview.copyNodePath",
-					"when": "view == scenePreview"
+					"when": "view == godotTools.scenePreview"
 				},
 				{
 					"command": "godotTools.scenePreview.copyResourcePath",
-					"when": "view == scenePreview && viewItem =~ /hasResourcePath/"
+					"when": "view == godotTools.scenePreview && viewItem =~ /hasResourcePath/"
 				},
 				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /openable/",
+					"when": "view == godotTools.scenePreview && viewItem =~ /openable/",
 					"group": "1@2"
 				},
 				{
 					"command": "godotTools.scenePreview.openScript",
-					"when": "view == scenePreview && viewItem =~ /hasScript/",
+					"when": "view == godotTools.scenePreview && viewItem =~ /hasScript/",
 					"group": "1@2"
 				},
 				{
 					"command": "godotTools.scenePreview.openScene",
-					"when": "view == scenePreview && viewItem =~ /openable/",
+					"when": "view == godotTools.scenePreview && viewItem =~ /openable/",
 					"group": "inline"
 				},
 				{
 					"command": "godotTools.scenePreview.openScript",
-					"when": "view == scenePreview && viewItem =~ /hasScript/",
+					"when": "view == godotTools.scenePreview && viewItem =~ /hasScript/",
 					"group": "inline"
 				}
 			],
@@ -897,6 +900,7 @@
 		"@types/mocha": "^10.0.6",
 		"@types/node": "^18.19.75",
 		"@types/prismjs": "^1.16.8",
+		"@types/sinon": "^17.0.4",
 		"@types/vscode": "^1.96.0",
 		"@types/ws": "^8.5.4",
 		"@typescript-eslint/eslint-plugin": "^5.57.1",

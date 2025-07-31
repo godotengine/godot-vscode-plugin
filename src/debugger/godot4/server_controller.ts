@@ -1,10 +1,11 @@
-import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
-import { DebugProtocol } from "@vscode/debugprotocol";
 import * as fs from "node:fs";
 import * as net from "node:net";
+import { StoppedEvent, TerminatedEvent } from "@vscode/debugadapter";
+import { DebugProtocol } from "@vscode/debugprotocol";
+import BBCodeToAnsi from "bbcode-to-ansi";
 import { debug, window } from "vscode";
-
 import {
+	VERIFY_RESULT,
 	ansi,
 	convert_resource_path_to_uri,
 	createLogger,
@@ -12,7 +13,6 @@ import {
 	get_free_port,
 	get_project_version,
 	verify_godot_version,
-	VERIFY_RESULT,
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { killSubProcesses, subProcess } from "../../utils/subspawn";
@@ -23,8 +23,6 @@ import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers"
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
-import { VariablesManager } from "./variables/variables_manager";
-import BBCodeToAnsi from "bbcode-to-ansi";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -32,11 +30,11 @@ const socketLog = createLogger("debugger.socket");
 const bbcodeParser = new BBCodeToAnsi("\u001b[38;2;211;211;211m");
 
 class Command {
-	public command: string = "";
-	public paramCount: number = -1;
-	public parameters: any[] = [];
-	public complete: boolean = false;
-	public threadId: number = 0;
+	public command = "";
+	public paramCount = -1;
+	public parameters = [];
+	public complete = false;
+	public threadId = 0;
 }
 
 class GodotPartialStackVars {
@@ -136,10 +134,7 @@ export class ServerController {
 	public request_stack_frame_vars(stack_frame_id: number) {
 		if (this.partialStackVars !== undefined) {
 			log.warn(
-				"Partial stack frames have been requested, while existing request hasn't been completed yet." +
-					`Remaining stack_frames: ${this.partialStackVars.remaining}` +
-					`Current stack_frame_id: ${this.partialStackVars.stack_frame_id}` +
-					`Requested stack_frame_id: ${stack_frame_id}`,
+				`Partial stack frames have been requested, while existing request hasn't been completed yet.Remaining stack_frames: ${this.partialStackVars.remaining} Current stack_frame_id: ${this.partialStackVars.stack_frame_id} Requested stack_frame_id: ${stack_frame_id}`,
 			);
 		}
 		this.partialStackVars = new GodotPartialStackVars(stack_frame_id);
@@ -308,7 +303,7 @@ export class ServerController {
 				return;
 			}
 
-			socketLog.debug("rx:", data[0], data[0][2]);
+			socketLog.debug("rx:", data[0]);
 			const command = this.parse_message(data[0]);
 			this.handle_command(command);
 		}
@@ -411,11 +406,10 @@ export class ServerController {
 					this.set_exception("");
 				}
 				this.request_stack_dump();
-				this.session.variables_manager = new VariablesManager(this);
+				this.request_scene_tree();
 				break;
 			}
 			case "debug_exit":
-				this.session.variables_manager = undefined;
 				break;
 			case "message:click_ctrl":
 				// TODO: what is this?
@@ -497,8 +491,7 @@ export class ServerController {
 				}
 				if (typeof command.parameters[0] !== "string") {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected string for name, got " +
-							typeof command.parameters[0],
+						`Unexpected parameter type for 'stack_frame_var'. Expected string for name, got ${typeof command.parameters[0]}`,
 					);
 					return;
 				}
@@ -507,23 +500,21 @@ export class ServerController {
 					(command.parameters[1] !== 0 && command.parameters[1] !== 1 && command.parameters[1] !== 2)
 				) {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got " +
-							typeof command.parameters[1],
+						`Unexpected parameter type for 'stack_frame_var'. Expected number for scope, got ${typeof command.parameters[1]}`,
 					);
 					return;
 				}
 				if (typeof command.parameters[2] !== "number") {
 					log.error(
-						"Unexpected parameter type for 'stack_frame_var'. Expected number for type, got " +
-							typeof command.parameters[2],
+						`Unexpected parameter type for 'stack_frame_var'. Expected number for type, got ${typeof command.parameters[2]}`,
 					);
 					return;
 				}
-				var name: string = command.parameters[0];
-				var scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
-				var type: number = command.parameters[2];
-				var value: any = command.parameters[3];
-				var subValues: GodotVariable[] = get_sub_values(value);
+				const name: string = command.parameters[0];
+				const scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
+				const type: number = command.parameters[2];
+				const value: any = command.parameters[3];
+				const subValues: GodotVariable[] = get_sub_values(value);
 				this.partialStackVars.append(name, scope, type, value, subValues);
 
 				if (this.partialStackVars.remaining === 0) {
@@ -555,8 +546,11 @@ export class ServerController {
 					this.didFirstOutput = true;
 					// this.request_scene_tree();
 				}
+				const console = debug.activeDebugConsole;
 				for (const output of command.parameters[0]) {
-					output.split("\n").forEach((line) => debug.activeDebugConsole.appendLine(bbcodeParser.parse(line)));
+					for (const line of output.split("\n")) {
+						console.appendLine(bbcodeParser.parse(line));
+					}
 				}
 				break;
 			}
