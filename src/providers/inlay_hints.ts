@@ -8,14 +8,15 @@ import {
 	InlayHint,
 	InlayHintKind,
 	InlayHintsProvider,
+	Position,
 	Range,
 	TextDocument,
+	TextEdit,
 } from "vscode";
 import { globals } from "../extension";
-import { ClientStatus } from "../lsp/GDScriptLanguageClient";
+import { ManagerStatus } from "../lsp";
 import { SceneParser } from "../scene_tools";
 import { createLogger, get_configuration } from "../utils";
-import { ManagerStatus } from "../lsp/ClientConnectionManager";
 
 const log = createLogger("providers.inlay_hints");
 
@@ -32,7 +33,7 @@ function fromDetail(detail: string): string {
 	if (label.includes(".gd.")) {
 		label = label.split(".gd.")[1];
 	}
-	return ` ${label} `;
+	return `${label}`;
 }
 
 type HoverResult = {
@@ -42,11 +43,7 @@ type HoverResult = {
 	};
 };
 
-async function addByHover(
-	document: TextDocument,
-	hoverPosition: vscode.Position,
-	start: vscode.Position,
-): Promise<InlayHint | undefined> {
+async function addByHover(document: TextDocument, hoverPosition: vscode.Position): Promise<string | undefined> {
 	const response = (await globals.lsp.client.send_request("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
@@ -59,8 +56,7 @@ async function addByHover(
 	if (Array.isArray(response.contents) && response.contents.length === 0) {
 		return undefined;
 	}
-
-	return new InlayHint(start, fromDetail(response.contents.value), InlayHintKind.Type);
+	return response.contents.value;
 }
 
 export class GDInlayHintsProvider implements InlayHintsProvider {
@@ -87,6 +83,16 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 				}, 250);
 			}
 		});
+	}
+
+	buildHint(start: Position, detail: string): InlayHint {
+		const label = fromDetail(detail);
+		const hint = new InlayHint(start, label, InlayHintKind.Type);
+		hint.paddingLeft = true;
+		hint.paddingRight = true;
+		// hint.tooltip = "tooltip";
+		hint.textEdits = [TextEdit.insert(start, ` ${label} `)];
+		return hint;
 	}
 
 	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
@@ -126,28 +132,27 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const regex = /((var|const)\s+)([\w\d_]+)\s*:=/g;
 
 			for (const match of text.matchAll(regex)) {
-				if (token.isCancellationRequested) break;
+				if (token.isCancellationRequested) {
+					break;
+				}
 				// TODO: until godot supports nested document symbols, we need to send
 				// a hover request for each variable declaration that is nested
 				const start = document.positionAt(match.index + match[0].length - 1);
-				const hoverPosition = document.positionAt(match.index + match[1].length);
 
 				if (hasDetail) {
 					const symbol = symbols.find((s) => s.name === match[3]);
 					if (symbol?.detail) {
-						const hint = new InlayHint(start, fromDetail(symbol.detail), InlayHintKind.Type);
+						const hint = this.buildHint(start, symbol.detail);
 						hints.push(hint);
-					} else {
-						const hint = await addByHover(document, hoverPosition, start);
-						if (hint) {
-							hints.push(hint);
-						}
+						continue;
 					}
-				} else {
-					const hint = await addByHover(document, hoverPosition, start);
-					if (hint) {
-						hints.push(hint);
-					}
+				}
+
+				const hoverPosition = document.positionAt(match.index + match[1].length);
+				const detail = await addByHover(document, hoverPosition);
+				if (detail) {
+					const hint = this.buildHint(start, detail);
+					hints.push(hint);
 				}
 			}
 			return hints;
