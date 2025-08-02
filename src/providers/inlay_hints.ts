@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import {
 	CancellationToken,
 	DocumentSymbol,
+	Event,
+	EventEmitter,
 	ExtensionContext,
 	InlayHint,
 	InlayHintKind,
@@ -9,8 +11,10 @@ import {
 	Position,
 	Range,
 	TextDocument,
+	TextEdit,
 } from "vscode";
 import { globals } from "../extension";
+import { ManagerStatus } from "../lsp";
 import { SceneParser } from "../scene_tools";
 import { createLogger, get_configuration } from "../utils";
 
@@ -21,42 +25,47 @@ const log = createLogger("providers.inlay_hints");
  * E.g. `var a: int` gets parsed to ` int `.
  */
 function fromDetail(detail: string): string {
-	const labelRegex = /: ([\w\d_]+)/;
+	const labelRegex = /: ([\w\d_.]+)/;
 	const labelMatch = detail.match(labelRegex);
-	const label = labelMatch ? labelMatch[1] : "unknown";
-	return ` ${label} `;
+
+	let label = labelMatch ? labelMatch[1] : "unknown";
+	// fix when detail includes a script name
+	if (label.includes(".gd.")) {
+		label = label.split(".gd.")[1];
+	}
+	return `${label}`;
 }
 
-interface HoverResponse {
-	contents;
-}
+type HoverResult = {
+	contents: {
+		kind: string;
+		value: string;
+	};
+};
 
-async function addByHover(
-	document: TextDocument,
-	hoverPosition: Position,
-	start: Position,
-): Promise<InlayHint | undefined> {
-	const response = await globals.lsp.client.send_request<HoverResponse>("textDocument/hover", {
+async function addByHover(document: TextDocument, hoverPosition: vscode.Position): Promise<string | undefined> {
+	const response = (await globals.lsp.client.send_request("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
 			line: hoverPosition.line,
 			character: hoverPosition.character,
 		},
-	});
+	})) as HoverResult;
 
 	// check if contents is an empty array; if it is, we have no hover information
 	if (Array.isArray(response.contents) && response.contents.length === 0) {
 		return undefined;
 	}
-
-	const label = fromDetail(response.contents.value);
-	const hint = new InlayHint(start, label, InlayHintKind.Type);
-	hint.textEdits = [{ range: new Range(start, start), newText: label }];
-	return hint;
+	return response.contents.value;
 }
 
 export class GDInlayHintsProvider implements InlayHintsProvider {
 	public parser = new SceneParser();
+
+	private _onDidChangeInlayHints = new EventEmitter<void>();
+	get onDidChangeInlayHints(): Event<void> {
+		return this._onDidChangeInlayHints.event;
+	}
 
 	constructor(private context: ExtensionContext) {
 		const selector = [
@@ -64,14 +73,32 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			{ language: "gdscene", scheme: "file" },
 			{ language: "gdscript", scheme: "file" },
 		];
-		context.subscriptions.push(
-			vscode.languages.registerInlayHintsProvider(selector, this), //
-		);
+		context.subscriptions.push(vscode.languages.registerInlayHintsProvider(selector, this));
+
+		globals.lsp.onStatusChanged((status) => {
+			this._onDidChangeInlayHints.fire();
+			if (status === ManagerStatus.CONNECTED) {
+				setTimeout(() => {
+					this._onDidChangeInlayHints.fire();
+				}, 250);
+			}
+		});
+	}
+
+	buildHint(start: Position, detail: string): InlayHint {
+		const label = fromDetail(detail);
+		const hint = new InlayHint(start, label, InlayHintKind.Type);
+		hint.paddingLeft = true;
+		hint.paddingRight = true;
+		// hint.tooltip = "tooltip";
+		hint.textEdits = [TextEdit.insert(start, ` ${label} `)];
+		return hint;
 	}
 
 	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
 		const hints: InlayHint[] = [];
 		const text = document.getText(range);
+		log.debug("Inlay Hints: provideInlayHints");
 
 		if (document.fileName.endsWith(".gd")) {
 			if (!get_configuration("inlayHints.gdscript", true)) {
@@ -79,27 +106,23 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			}
 
 			if (!globals.lsp.client.isRunning()) {
-				// TODO: inlay hints need to be retriggered once lsp client becomes active
 				return hints;
 			}
 
-			const symbolsResponse = await globals.lsp.client.send_request<DocumentSymbol[]>(
-				"textDocument/documentSymbol",
-				{
-					textDocument: { uri: document.uri.toString() },
-				},
-			);
-			log.debug(symbolsResponse);
-			if (symbolsResponse.length === 0) {
+			const symbolsRequest = (await globals.lsp.client.send_request("textDocument/documentSymbol", {
+				textDocument: { uri: document.uri.toString() },
+			})) as DocumentSymbol[];
+
+			if (symbolsRequest.length === 0) {
 				return hints;
 			}
 
 			const symbols =
-				typeof symbolsResponse[0] === "object" && "children" in symbolsResponse[0]
-					? symbolsResponse[0].children // godot 4.0+ returns an array of children
-					: symbolsResponse; // godot 3.2 and below returns an array of symbols
+				typeof symbolsRequest[0] === "object" && "children" in symbolsRequest[0]
+					? (symbolsRequest[0].children as DocumentSymbol[]) // godot 4.0+ returns an array of children
+					: symbolsRequest; // godot 3.2 and below returns an array of symbols
 
-			const hasDetail = symbols.some((s: any) => s.detail);
+			const hasDetail = symbols.some((s) => s.detail);
 
 			// TODO: make sure godot reports the correct location for variable declaration symbols
 			// (allowing the use of regex only on ranges provided by the LSP (textDocument/documentSymbol))
@@ -109,30 +132,27 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const regex = /((var|const)\s+)([\w\d_]+)\s*:=/g;
 
 			for (const match of text.matchAll(regex)) {
-				if (token.isCancellationRequested) break;
+				if (token.isCancellationRequested) {
+					break;
+				}
 				// TODO: until godot supports nested document symbols, we need to send
 				// a hover request for each variable declaration that is nested
 				const start = document.positionAt(match.index + match[0].length - 1);
-				const hoverPosition = document.positionAt(match.index + match[1].length);
 
 				if (hasDetail) {
-					const symbol = symbols.find((s: any) => s.name === match[3]);
+					const symbol = symbols.find((s) => s.name === match[3]);
 					if (symbol?.detail) {
-						const label = fromDetail(symbol.detail);
-						const hint = new InlayHint(start, label);
-						hint.textEdits = [{ range: new Range(start, start), newText: label }];
+						const hint = this.buildHint(start, symbol.detail);
 						hints.push(hint);
-					} else {
-						const hint = await addByHover(document, hoverPosition, start);
-						if (hint) {
-							hints.push(hint);
-						}
+						continue;
 					}
-				} else {
-					const hint = await addByHover(document, hoverPosition, start);
-					if (hint) {
-						hints.push(hint);
-					}
+				}
+
+				const hoverPosition = document.positionAt(match.index + match[1].length);
+				const detail = await addByHover(document, hoverPosition);
+				if (detail) {
+					const hint = this.buildHint(start, detail);
+					hints.push(hint);
 				}
 			}
 			return hints;

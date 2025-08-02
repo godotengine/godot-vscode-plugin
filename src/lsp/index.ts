@@ -1,1 +1,1 @@
-export { ClientConnectionManager } from "./ClientConnectionManager";
+export { ClientConnectionManager, ManagerStatus } from "./ClientConnectionManager";
