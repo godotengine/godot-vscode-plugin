@@ -201,9 +201,15 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === ":" && next === "=") return "";
 	if (next === "(") {
+		if (prev === "super") return "";
 		if (prev === "export") return "";
 		if (prev === "func") return "";
 		if (prev === "assert") return "";
+	}
+
+	if (prev === "self") {
+		if (next === ")") return "";
+		if (next === "[") return "";
 	}
 
 	if (prev === ")" && nextToken.type === "keyword") return " ";
