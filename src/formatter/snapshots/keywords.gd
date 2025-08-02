@@ -2,6 +2,8 @@
 var c = 0
 
 func f():
+	super()
+
 	const a = preload("res://a.gd")
 	const b = load("res://b.gd")
 
@@ -15,3 +17,6 @@ func f():
 	self.c = 1
 	print(self.c + 2)
 	print(func() return self.c + 2)
+
+	[].append(self)
+	var a = self['1']
