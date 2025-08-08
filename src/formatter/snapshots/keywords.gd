@@ -22,6 +22,7 @@ func f():
 	var list2 = [self, self]
 
 	var dict = {self: self}
+	print(dict[self])
 
 	print(self)
 	print(self, self)
