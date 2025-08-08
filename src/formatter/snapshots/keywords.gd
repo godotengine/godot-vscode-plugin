@@ -18,5 +18,10 @@ func f():
 	print(self.c + 2)
 	print(func() return self.c + 2)
 
+	var list = [self]
+	var list2 = [self, self]
+	print(self)
+	print(self, self)
+
 	[].append(self)
 	var a = self['1']

@@ -148,6 +148,14 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	}
 	if (next === ".") return "";
 
+	if (next === "self") {
+		if (prev === "[") return "";
+	}
+	if (prev === "self") {
+		if (next === ",") return "";
+		if (next === "]") return "";
+	}
+
 	if (nextToken.param) {
 		if (options.denseFunctionParameters) {
 			if (prev === "-" || prev === "+") {
