@@ -21,7 +21,7 @@ const wasmBin = fs.readFileSync(wasmPath).buffer;
 
 // Create a registry that can create a grammar from a scope name.
 const registry = new vsctm.Registry({
-	onigLib: oniguruma.loadWASM(wasmBin).then(() => {
+	onigLib: oniguruma.loadWASM(wasmBin as unknown as oniguruma.IOptions).then(() => {
 		return {
 			createOnigScanner(patterns) {
 				return new oniguruma.OnigScanner(patterns);
