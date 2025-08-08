@@ -109,6 +109,11 @@ function parse_token(token: Token) {
 	if (token.value === "preload") {
 		return;
 	}
+	// "self" and "super" are highlighted as keywords but behaves like an identifier
+	if (token.value === "self" || token.value === "super") {
+		token.type = "variable";
+		return;
+	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
 		token.type = "keyword";
 		return;
@@ -147,14 +152,6 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		return "";
 	}
 	if (next === ".") return "";
-
-	if (next === "self") {
-		if (prev === "[") return "";
-	}
-	if (prev === "self") {
-		if (next === ",") return "";
-		if (next === "]") return "";
-	}
 
 	if (nextToken.param) {
 		if (options.denseFunctionParameters) {
@@ -209,15 +206,9 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === ":" && next === "=") return "";
 	if (next === "(") {
-		if (prev === "super") return "";
 		if (prev === "export") return "";
 		if (prev === "func") return "";
 		if (prev === "assert") return "";
-	}
-
-	if (prev === "self") {
-		if (next === ")") return "";
-		if (next === "[") return "";
 	}
 
 	if (prev === ")" && nextToken.type === "keyword") return " ";

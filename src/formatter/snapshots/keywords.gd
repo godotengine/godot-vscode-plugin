@@ -20,6 +20,9 @@ func f():
 
 	var list = [self]
 	var list2 = [self, self]
+
+	var dict = {self: self}
+
 	print(self)
 	print(self, self)
 
