@@ -21,7 +21,7 @@ const wasmBin = fs.readFileSync(wasmPath).buffer;
 
 // Create a registry that can create a grammar from a scope name.
 const registry = new vsctm.Registry({
-	onigLib: oniguruma.loadWASM(wasmBin).then(() => {
+	onigLib: oniguruma.loadWASM(wasmBin as unknown as oniguruma.IOptions).then(() => {
 		return {
 			createOnigScanner(patterns) {
 				return new oniguruma.OnigScanner(patterns);
@@ -107,6 +107,11 @@ function parse_token(token: Token) {
 	}
 	// "preload" is highlighted as a keyword but it behaves like a function
 	if (token.value === "preload") {
+		return;
+	}
+	// "self" and "super" are highlighted as keywords but behaves like an identifier
+	if (token.value === "self" || token.value === "super") {
+		token.type = "variable";
 		return;
 	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
