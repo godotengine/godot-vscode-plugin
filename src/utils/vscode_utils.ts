@@ -28,3 +28,23 @@ export function register_command(command: string, callback: (...args: any[]) => 
 export function get_extension_uri(...paths: string[]) {
 	return vscode.Uri.joinPath(vscode.extensions.getExtension("geequlim.godot-tools").extensionUri, ...paths ?? "");
 }
+
+
+/** 
+ * Returns either a tab or spaces depending on the user config
+ */
+export function tabString(document?: vscode.TextDocument): string {
+	const editor = vscode.window.activeTextEditor;
+	const doc = document ?? editor?.document;
+
+	if (!doc) {
+		const editorConfig = vscode.workspace.getConfiguration("editor");
+		const insertSpaces = editorConfig.get<boolean>("insertSpaces", true);
+		const tabSize = editorConfig.get<number>("tabSize", 4);
+		return insertSpaces ? " ".repeat(tabSize) : "\t";
+	}
+
+	const { insertSpaces, tabSize } = vscode.window.activeTextEditor?.options ?? {};
+	const size = typeof tabSize === "number" ? tabSize : 4;
+	return insertSpaces ? " ".repeat(size) : "\t";
+}
