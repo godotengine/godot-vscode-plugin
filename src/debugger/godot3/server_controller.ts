@@ -12,7 +12,9 @@ import {
 	get_free_port,
 	get_project_version,
 	verify_godot_version,
+	clean_godot_path,
 	VERIFY_RESULT,
+	get_editor_path,
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { killSubProcesses, subProcess } from "../../utils/subspawn";
@@ -115,9 +117,9 @@ export class ServerController {
 		if (args.editor_path) {
 			log.info("Using 'editor_path' variable from launch.json");
 
-			log.info(`Verifying version of '${args.editor_path}'`);
-			result = verify_godot_version(args.editor_path, "3");
-			godotPath = result.godotPath;
+			godotPath = clean_godot_path(args.editor_path);
+			log.info(`Verifying version of '${godotPath}'`);
+			result = verify_godot_version(godotPath, "3");
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
 			switch (result.status) {
@@ -144,11 +146,10 @@ export class ServerController {
 			log.info("Using 'editorPath.godot3' from settings");
 
 			const settingName = "editorPath.godot3";
-			godotPath = get_configuration(settingName);
+			godotPath = get_editor_path("3");
 
 			log.info(`Verifying version of '${godotPath}'`);
 			result = verify_godot_version(godotPath, "3");
-			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
 			switch (result.status) {

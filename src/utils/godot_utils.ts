@@ -3,6 +3,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import { execSync } from "node:child_process";
+import { get_configuration } from "./vscode_utils";
 
 export function get_editor_data_dir(): string {
 	// from: https://stackoverflow.com/a/26227660
@@ -193,60 +194,100 @@ export async function convert_uid_to_uri(uid: string): Promise<vscode.Uri | unde
 export type VERIFY_STATUS = "SUCCESS" | "WRONG_VERSION" | "INVALID_EXE";
 export type VERIFY_RESULT = {
 	status: VERIFY_STATUS;
-	godotPath: string;
 	version?: string;
 };
 
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
-	let target = clean_godot_path(godotPath);
-
 	let output = "";
 	try {
-		output = execSync(`"${target}" --version`).toString().trim();
+		output = execSync(`"${godotPath}" --version`).toString().trim();
 	} catch {
-		if (path.isAbsolute(target)) {
-			return { status: "INVALID_EXE", godotPath: target };
-		}
-		const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-		target = path.resolve(workspacePath, target);
-		try {
-			output = execSync(`"${target}" --version`).toString().trim();
-		} catch {
-			return { status: "INVALID_EXE", godotPath: target };
-		}
+		return { status: "INVALID_EXE" };
 	}
 
 	const pattern = /^(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
 	const match = output.match(pattern);
 	if (!match) {
-		return { status: "INVALID_EXE", godotPath: target };
+		return { status: "INVALID_EXE" };
 	}
 	if (match[2] !== expectedVersion) {
-		return { status: "WRONG_VERSION", godotPath: target, version: match[1] };
+		return { status: "WRONG_VERSION", version: match[1] };
 	}
-	return { status: "SUCCESS", godotPath: target, version: match[1] };
+	return { status: "SUCCESS", version: match[1] };
+}
+
+export function get_editor_path(major_version: string): string {
+	// try the platform and architecture specific setting
+	// these are converted to match the godot build system's platform and arch names
+	let configValue = ""
+	switch (os.platform()) {
+		case "win32": {
+			switch (os.arch()) {
+				case "x64": {
+					configValue = get_configuration(`editorPath.windows-x86_64.godot${major_version}`);
+					break;
+				}
+				case "arm64": {
+					configValue = get_configuration(`editorPath.windows-arm64.godot${major_version}`);
+					break;
+				}
+			}
+			break;
+		}
+		case "darwin": {
+			switch (os.arch()) {
+				case "x64": {
+					configValue = get_configuration(`editorPath.macos-x86_64.godot${major_version}`);
+					break;
+				}
+				case "arm64": {
+					configValue = get_configuration(`editorPath.macos-arm64.godot${major_version}`);
+					break;
+				}
+			}
+			break;
+		}
+		case "linux": {
+			switch (os.arch()) {
+				case "x64": {
+					configValue = get_configuration(`editorPath.linux-x86_64.godot${major_version}`);
+					break;
+				}
+				case "arm64": {
+					configValue = get_configuration(`editorPath.linux-arm64.godot${major_version}`);
+					break;
+				}
+			}
+			break;
+		}
+	}
+	if (!configValue) {
+		configValue = get_configuration(`editorPath.godot${major_version}`);
+	}
+	return clean_godot_path(configValue);
 }
 
 export function clean_godot_path(godotPath: string): string {
-	let pathToClean = godotPath;
-
 	// check for environment variable syntax
 	// looking for: ${env:FOOBAR}
 	// extracts "FOOBAR"
-	const pattern = /\$\{env:(.+?)\}/;
-	const match = godotPath.match(pattern);
-
-	if (match && match.length >= 2)	{
-		pathToClean = process.env[match[1]];
-	}
+	godotPath = godotPath.replaceAll(/\$\{env:(.+?)\}/g, (_, key) => {
+		return process.env[key] || "";
+	});
 
 	// strip leading and trailing quotes
-	let target = pathToClean.replace(/^"/, "").replace(/"$/, "");
+	godotPath = godotPath.replace(/^"/, "").replace(/"$/, "");
 
 	// try to fix macos paths
-	if (os.platform() === "darwin" && target.endsWith(".app")) {
-		target = path.join(target, "Contents", "MacOS", "Godot");
+	if (os.platform() === "darwin" && godotPath.endsWith(".app")) {
+		godotPath = path.join(godotPath, "Contents", "MacOS", "Godot");
 	}
 
-	return target;
+	// convert any relative path to absolute using the workspace dir
+	if (!path.isAbsolute(godotPath) && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+		const workspaceDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
+		godotPath = path.join(workspaceDir, godotPath);
+	}
+
+	return godotPath;
 }
