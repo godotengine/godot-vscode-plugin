@@ -284,7 +284,9 @@ export function clean_godot_path(godotPath: string): string {
 	}
 
 	// convert any relative path to absolute using the workspace dir
-	if (!path.isAbsolute(godotPath) && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+	// not using path.isAbsolute here because the default "godot" may be an executable in the PATH
+	if ((godotPath.startsWith("./") || godotPath.startsWith("../") || godotPath.startsWith(".\\") || godotPath.startsWith("..\\")) 
+		&& vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
 		const workspaceDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
 		godotPath = path.join(workspaceDir, godotPath);
 	}
