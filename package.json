@@ -272,12 +272,42 @@
 				"godotTools.editorPath.godot3": {
 					"type": "string",
 					"default": "godot3",
-					"description": "Path to the Godot 3 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "Path to the Godot 3 editor executable. Workspace relative. Supports environment variables using '${env:VAR_NAME}'."
 				},
 				"godotTools.editorPath.godot4": {
 					"type": "string",
 					"default": "godot",
-					"description": "Path to the Godot 4 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "Path to the Godot 4 editor executable. Workspace relative. Supports environment variables using '${env:VAR_NAME}'."
+				},
+				"godotTools.editorPath.windows-arm64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
+				},
+				"godotTools.editorPath.macos-arm64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
+				},
+				"godotTools.editorPath.linux-arm64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
+				},
+				"godotTools.editorPath.windows-x86_64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
+				},
+				"godotTools.editorPath.macos-x86_64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
+				},
+				"godotTools.editorPath.linux-x86_64.godot4": {
+					"type": "string",
+					"default": "",
+					"description": "Platform-specific editor path. If specified, overrides `godotTools.editorPath.godot4`."
 				},
 				"godotTools.editor.verbose": {
 					"type": "boolean",

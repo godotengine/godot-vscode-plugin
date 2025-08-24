@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./utils";
+import { attemptSettingsUpdate, get_extension_uri, get_editor_path } from "./utils";
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
@@ -93,8 +93,8 @@ async function initial_setup() {
 		return;
 	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
-	const godotPath = result.godotPath;
+	const godotPath = get_editor_path(projectVersion[0]);
+	const result = verify_godot_version(godotPath, projectVersion[0]);
 
 	switch (result.status) {
 		case "SUCCESS": {
@@ -157,8 +157,8 @@ async function open_workspace_with_editor() {
 	const projectVersion = await get_project_version();
 
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
-	const godotPath = result.godotPath;
+	const godotPath = get_editor_path(projectVersion[0]);
+	const result = verify_godot_version(godotPath, projectVersion[0]);
 
 	switch (result.status) {
 		case "SUCCESS": {
@@ -240,8 +240,7 @@ async function get_godot_path(): Promise<string | undefined> {
 	if (projectVersion === undefined) {
 		return undefined;
 	}
-	const settingName = `editorPath.godot${projectVersion[0]}`;
-	return clean_godot_path(get_configuration(settingName));
+	return get_editor_path(projectVersion[0]);
 }
 
 class GodotEditorTerminal implements vscode.Pseudoterminal {
