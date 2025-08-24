@@ -19,6 +19,10 @@ let projectDir: string | undefined = undefined;
 let projectFile: string | undefined = undefined;
 
 export async function get_project_dir(): Promise<string | undefined> {
+	if (projectDir && projectFile) {
+		return projectDir;
+	}
+
 	let file = "";
 	if (vscode.workspace.workspaceFolders !== undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot", null);
@@ -61,6 +65,10 @@ export async function get_project_file(): Promise<string | undefined> {
 let projectVersion: string | undefined = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
+	if (projectVersion) {
+		return projectVersion;
+	}
+
 	if (projectDir === undefined || projectFile === undefined) {
 		await get_project_dir();
 	}
