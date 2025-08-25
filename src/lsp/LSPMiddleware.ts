@@ -21,7 +21,7 @@ export class LSPMiddleware implements Middleware {
     ): Promise<vscode.CompletionItem[] | vscode.CompletionList> {
         // TODO: this is quickfix, should be changed on LSP side later
         const quotesPresense = this.areQuotesPresent(document, position);
-        log.info(quotesPresense);
+
         if (quotesPresense.quoteChar !== null) {
             const result = await next(document, position, context, token);
             if (Array.isArray(result)) {
