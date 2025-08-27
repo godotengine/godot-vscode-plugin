@@ -120,7 +120,7 @@ export class ServerController {
 	}
 
 	public request_inspect_object(object_id: bigint) {
-		this.send_command("scene:inspect_object", [object_id]);
+		this.send_command("scene:inspect_objects", [[object_id], false]);
 	}
 
 	public request_scene_tree() {
@@ -425,12 +425,13 @@ export class ServerController {
 				this.session.sceneTree.fill_tree(tree);
 				break;
 			}
-			case "scene:inspect_object": {
-				let godot_id = BigInt(command.parameters[0]);
-				const className: string = command.parameters[1];
-				const properties: string[] = command.parameters[2];
+			case "scene:inspect_objects": {
+				const scene = command.parameters[0];
+				let godot_id = BigInt(scene[0]);
+				const className: string = scene[1];
+				const properties: string[] = scene[2];
 
-				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
+				// message:inspect_objects returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
 				if (godot_id < 0) {
 					godot_id = godot_id + BigInt(2) ** BigInt(64);
