@@ -278,7 +278,7 @@ export class ServerController {
 		}
 
 		log.info(`Launching game process using command: '${command}'`);
-		const debugProcess = subProcess("debug", command, { shell: true, detached: true });
+		const debugProcess = subProcess("debug", command, { shell: true});
 
 		debugProcess.stdout.on("data", (data) => {});
 		debugProcess.stderr.on("data", (data) => {});
