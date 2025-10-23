@@ -27,7 +27,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	private configuration_done: Subject = new Subject();
 	private mode: "launch" | "attach" | "" = "";
 
-	public variables_manager = new VariablesManager(this.controller);
+	public variables_manager: VariablesManager;
 
 	public constructor(projectVersion: string) {
 		super();
