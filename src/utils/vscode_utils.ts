@@ -11,6 +11,15 @@ export function get_configuration(name: string, defaultValue?: any) {
 	return configValue;
 }
 
+export function get_configuration_with_scope(name: string, scope: vscode.ConfigurationScope, defaultValue?: any) {
+	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX, scope).get(name, null);
+	if (defaultValue && configValue === null) {
+		return defaultValue;
+	}
+	return configValue;
+}
+
+
 export function set_configuration(name: string, value: any) {
 	return vscode.workspace.getConfiguration(EXTENSION_PREFIX).update(name, value);
 }
