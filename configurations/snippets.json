@@ -142,10 +142,10 @@
 			"signal ${1:signalname}(${2:args})"
 		]
 	},
-	"export variables": {
+	"export variables godot3": {
 		"prefix": "export",
 		"body": [
-			"@export(${1:type}${2:,other_configs}) var ${3:name}${4: = default}${5: setget }"
+			"export(${1:type}${2:,other_configs}) var ${3:name}${4: = default}${5: setget }"
 		]
 	},
 	"define variables": {
@@ -186,12 +186,6 @@
 			"\t# Initialization here",
 			"\tpass",
 			""
-		]
-	},
-	"pass statement": {
-		"prefix": "pass",
-		"body": [
-			"pass"
 		]
 	},
 	"GDScript Void": {
@@ -258,7 +252,7 @@
 			"xp"
 		],
 		"body": [
-			"export var ${1:variable_name}: ${2:String} = ${3:default_value}"
+			"@export var ${1:variable_name}: ${2:String} = ${3:default_value}"
 		],
 		"description": "Creates an exported (typed) variable in GDScript"
 	},
