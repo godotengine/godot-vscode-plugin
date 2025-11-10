@@ -5,6 +5,8 @@ var member1 := TestClassA.new()
 var str_var := "ScopeVars::member::str_var"
 var str_var_member_only := "ScopeVars::member::str_var_member_only"
 
+const const_member := "const member value"
+
 class ClassFoo:
   var member_ClassFoo
   var str_var := "ScopeVars::ClassFoo::member::str_var"
@@ -17,6 +19,7 @@ class ClassFoo:
 func _ready() -> void:
   var str_var := "ScopeVars::_ready::local::str_var"
   var self_var := self
+  var test_link := "res://TestClassA.gd"
   print("breakpoint::ScopeVars::_ready")
   test(0.123);
 

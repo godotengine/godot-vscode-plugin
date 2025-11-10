@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://xrjtth0d2nc5"]
+[gd_scene load_steps=4 format=3 uid="uid://xrjtth0d2nc5"]
 
 [ext_resource type="Script" path="res://NodeVars.gd" id="1_6eeca"]
 [ext_resource type="Script" path="res://Node1.gd" id="2_bl41t"]
+[ext_resource type="PackedScene" uid="uid://dtrlo3v5mxrb2" path="res://CustomScene.tscn" id="3_0py11"]
 
 [node name="NodeVars" type="Node2D"]
 script = ExtResource("1_6eeca")
@@ -15,3 +16,6 @@ script = ExtResource("2_bl41t")
 offset_right = 40.0
 offset_bottom = 23.0
 text = "NodeVars"
+
+[node name="CustomScene" parent="." instance=ExtResource("3_0py11")]
+metadata/_edit_use_anchors_ = true

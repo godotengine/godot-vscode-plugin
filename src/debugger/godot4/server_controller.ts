@@ -430,9 +430,11 @@ export class ServerController {
 				break;
 			}
 			case "scene:inspect_object": {
-				let godot_id = BigInt(command.parameters[0]);
-				const className: string = command.parameters[1];
-				const properties: string[] = command.parameters[2];
+				// godot_src: `SceneDebugger::_msg_inspect_object`
+				// command is `SceneDebuggerObject`
+				let godot_id = BigInt(command.parameters[0]); // ObjectID id;
+				const className: string = command.parameters[1]; // String class_name;
+				const properties: any[] = command.parameters[2]; // List<SceneDebuggerProperty> properties;
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
@@ -440,11 +442,43 @@ export class ServerController {
 					godot_id = godot_id + BigInt(2) ** BigInt(64);
 				}
 
+				// SceneDebuggerProperty is Pair<PropertyInfo, Variant>
+				// PropertyInfo:
+				// 	Variant::Type type = Variant::NIL;
+				// 	String name; 															// prop[0]
+				// 	StringName class_name; // For classes
+				// 	PropertyHint hint = PROPERTY_HINT_NONE;
+				// 	String hint_string;
+				// 	uint32_t usage = PROPERTY_USAGE_DEFAULT;  // propp[4]
+				// Variant:
+				// 	Variant value; 														// prop[5]
 				const rawObject = new RawObject(className);
+				var category = ""
 				for (const prop of properties) {
-					rawObject.set(prop[0], prop[5]);
+					const [name, class_name, hint, hint_string, usage, value, ...tail]: [string, string, number, string, number, any] = prop;
+					if (usage === 128) {
+						category = name;
+						continue; // not a variable - just a category grouping element for UI for subsequent items
+					}
+					let var_name;
+					if (category !== "") {
+						var_name = category + "/" + name;
+					} else {
+						if (name.startsWith("Members/")) {
+							var_name = name.slice("Members/".length)
+						} else if (name.startsWith("Constants/")) {
+							var_name = name.slice("Constants/".length)
+						} else if (name.includes("/")) {
+							var_name = name;
+						} else { // extra check for potential override values:
+							log.error(`Unknown property name: '${name}'. Expected it to start with "Members/" or "Constants/" or contain "/"`);
+							var_name = name;
+						}
+					}
+
+					rawObject.set(var_name, value);
 				}
-				const sub_values = get_sub_values(rawObject);
+				const sub_values = await get_sub_values(rawObject, this.session.variables_manager);
 
 				// race condition here:
 				// 0. DebuggerStop1 happens
@@ -518,7 +552,7 @@ export class ServerController {
 				const scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
 				const type: number = command.parameters[2];
 				const value: any = command.parameters[3];
-				const subValues: GodotVariable[] = get_sub_values(value);
+				const subValues: GodotVariable[] = await get_sub_values(value, this.session.variables_manager);
 				this.partialStackVars.append(name, scope, type, value, subValues);
 
 				if (this.partialStackVars.remaining === 0) {

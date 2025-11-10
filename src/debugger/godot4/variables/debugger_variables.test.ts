@@ -315,14 +315,14 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
 		const vars_frame0_locals = await getVariablesForVSCodeID(stack_scopes_map[0].Locals);
 		expect(vars_frame0_locals).to.containSubset([
-			{ name: "str_var", value: "ScopeVars::ClassFoo::test_function::local::str_var" },
+			{ name: "str_var", value: "'ScopeVars::ClassFoo::test_function::local::str_var'" },
 		]);
 
 		const vars_frame1_locals = await getVariablesForVSCodeID(stack_scopes_map[1].Locals);
-		expect(vars_frame1_locals).to.containSubset([{ name: "str_var", value: "ScopeVars::test::local::str_var" }]);
+		expect(vars_frame1_locals).to.containSubset([{ name: "str_var", value: "'ScopeVars::test::local::str_var'" }]);
 
 		const vars_frame2_locals = await getVariablesForVSCodeID(stack_scopes_map[2].Locals);
-		expect(vars_frame2_locals).to.containSubset([{ name: "str_var", value: "ScopeVars::_ready::local::str_var" }]);
+		expect(vars_frame2_locals).to.containSubset([{ name: "str_var", value: "'ScopeVars::_ready::local::str_var'" }]);
 	})?.timeout(10000);
 
 	test("should return global variables", async () => {
@@ -355,9 +355,10 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Locals);
-		expect(variables.length).to.equal(2);
+		expect(variables.length).to.equal(3);
 		expect(variables).to.containSubset([{ name: "str_var" }]);
 		expect(variables).to.containSubset([{ name: "self_var" }]);
+		expect(variables).to.containSubset([{ name: "test_link" }]);
 	})?.timeout(10000);
 
 	test("should return all member variables", async () => {
@@ -377,9 +378,9 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		expect(variables.length).to.equal(4);
 		expect(variables).to.containSubset([{ name: "self" }]);
 		expect(variables).to.containSubset([{ name: "member1" }]);
-		expect(variables).to.containSubset([{ name: "str_var", value: "ScopeVars::member::str_var" }]);
+		expect(variables).to.containSubset([{ name: "str_var", value: "'ScopeVars::member::str_var'" }]);
 		expect(variables).to.containSubset([
-			{ name: "str_var_member_only", value: "ScopeVars::member::str_var_member_only" },
+			{ name: "str_var_member_only", value: "'ScopeVars::member::str_var_member_only'" },
 		]);
 	})?.timeout(10000);
 
@@ -400,16 +401,21 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		expect(variables).to.containSubset([{ name: "int_var", value: "42" }]);
 		expect(variables).to.containSubset([{ name: "float_var", value: "3.14" }]);
 		expect(variables).to.containSubset([{ name: "bool_var", value: "true" }]);
-		expect(variables).to.containSubset([{ name: "string_var", value: "Hello, Godot!" }]);
+		expect(variables).to.containSubset([{ name: "string_var", value: "'Hello, Godot!'" }]);
+		expect(variables).to.containSubset([{ name: "string_name_var", value: "&'StringName var'" }]);
 		expect(variables).to.containSubset([{ name: "nil_var", value: "null" }]);
 		expect(variables).to.containSubset([{ name: "vector2", value: "Vector2(10, 20)" }]);
+		expect(variables).to.containSubset([{ name: "vector2i", value: "Vector2i(10, 20)" }]);
 		expect(variables).to.containSubset([{ name: "vector3", value: "Vector3(1, 2, 3)" }]);
 		expect(variables).to.containSubset([{ name: "rect2", value: "Rect2((0, 0) - (100, 50))" }]);
+		expect(variables).to.containSubset([{ name: "rect2i", value: "Rect2i((1, 2) - (3, 4))" }]);
 		expect(variables).to.containSubset([{ name: "quaternion", value: "Quat(0, 0, 0, 1)" }]);
 		expect(variables).to.containSubset([{ name: "simple_array", value: "(3) [1, 2, 3]" }]);
+		expect(variables).to.containSubset([{ name: "vector2i_array", value: "(2) [(11, 12), (21, 22)]" }]);
 		// expect(variables).to.containSubset([{ name: "nested_dict.nested_key", value: `"Nested Value"` }]);
 		// expect(variables).to.containSubset([{ name: "nested_dict.sub_dict.sub_key", value: "99" }]);
 		expect(variables).to.containSubset([{ name: "nested_dict", value: "Dictionary(2)" }]);
+		expect(variables).to.containSubset([{ name: "typed_dict", value: "Dictionary(1)" }]);
 		expect(variables).to.containSubset([{ name: "byte_array", value: "(4) [0, 1, 2, 255]" }]);
 		expect(variables).to.containSubset([{ name: "int32_array", value: "(3) [100, 200, 300]" }]);
 		expect(variables).to.containSubset([{ name: "color_var", value: "Color(1, 0, 0, 1)" }]);
@@ -452,7 +458,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 			{ name: "local_self_var_through_label", value: /Node2D<\d+>/ },
 			{ name: "local_classA", value: /RefCounted<\d+>/ },
 			{ name: "local_classB", value: /RefCounted<\d+>/ },
-			{ name: "str_var", value: /^ExtensiveVars::_ready::local::str_var$/ },
+			{ name: "str_var", value: /^'ExtensiveVars::_ready::local::str_var'$/ },
 		];
 		expect(localVariables.length).to.equal(expectedLocalVariables.length, "Incorrect local variables count");
 		expect(localVariables).to.containSubset(expectedLocalVariables.map((v) => ({ name: v.name })));

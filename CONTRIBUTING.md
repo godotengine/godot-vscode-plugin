@@ -12,6 +12,7 @@
 2. Download dependencies by using the command `npm install`
 3. When done, package a VSIX file by using the command `npm run package`.
 4. Install it by opening Visual Studio Code, opening the Extensions tab, clicking on the More actions (**...**) button in the top right, and choose **Install from VSIX...** and find the compiled VSIX file.
+5. Testing: `npm run test` to execute tests.
 
 When developing for the extension, you can open this project in Visual Studio Code and debug the extension by using the **Run Extension** launch configuration instead of going through steps 3 and 4. It will launch a new instance of Visual Studio Code that has the extension running. You can then open a Godot project folder and debug the extension or GDScript debugger.
 
@@ -32,8 +33,8 @@ An example `workspace.code-workspace` file:
 		"godotTools.editorPath.godot3": "godot3.dev.exe",
 		"godotTools.editorPath.godot4": "godot4.dev.exe",
 		// "godotTools.editorPath.godot4": "godot4.custom.exe"
-        // "godotTools.editorPath.godot4": "Godot_v4.1.1-stable_win64.exe",
-        "godotTools.lsp.headless": false
+		// "godotTools.editorPath.godot4": "Godot_v4.1.1-stable_win64.exe",
+		"godotTools.lsp.headless": false
 	}
 }
 ```
