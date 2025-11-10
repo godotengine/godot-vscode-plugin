@@ -239,8 +239,17 @@ export class VariablesManager {
 			rendered_value = "null";
 		} else {
 			if (Array.isArray(value)) {
-				const stringify_if_can = (v: any) => typeof v?.stringify_value === "function" ? v.stringify_value() : v;
-				rendered_value = `(${value.length}) [${value.slice(0, 10).map(v => stringify_if_can(v) ).join(", ")}]`;
+				const stringify_if_can = async (v: any) => {
+					if (typeof v?.get_rendered_value === "function") {
+						return await v.get_rendered_value(this)
+					}
+					if (typeof v?.stringify_value === "function") {
+						return v.stringify_value()
+					}
+					return v
+				}
+				const top_rendered_vals = await Promise.all(value.slice(0, 10).map(v => stringify_if_can(v)))
+				rendered_value = `(${value.length}) [${top_rendered_vals.join(", ")}]`;
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
@@ -250,19 +259,8 @@ export class VariablesManager {
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
-			} else if (value instanceof ObjectId) {
-				if (value.id === undefined) {
-					throw new Error("Invalid godot object: instanceof ObjectId but id is undefined");
-				}
-				// Godot returns only ID for the object.
-				// In order to retrieve the class name, we need to request the object
-				const godot_object = await this.get_godot_object(value.id);
-				const __repr__ = godot_object.sub_values.find((sv) => sv.name === "__repr__");
-				rendered_value = __repr__ !== undefined ? __repr__.value : `${godot_object.type}${value.stringify_value()}`;
-				// rendered_value = `${value.type_name()}${value.stringify_value()}`;
-				reference = vscode_id;
-			} else if (value instanceof StringName) {
-				rendered_value = `&'${value.stringify_value()}'`;
+			} else if (typeof value?.get_rendered_value === "function") { // (key instanceof ObjectId), (key instanceof StringName)
+				rendered_value = await value.get_rendered_value(this);
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;

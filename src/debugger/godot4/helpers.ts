@@ -46,13 +46,8 @@ export async function get_sub_values(value: any, variables_manager: VariablesMan
 			subValues = [];
 			var key_name = "";
 			for (const [key, val] of value.entries()) {
-				if (key instanceof ObjectId) {
-					// in order to display human-friendly key name, the godot object needs to be queried to get the __repr__ string
-					const godot_object = await variables_manager.get_godot_object(key.id);
-					const __repr__ = godot_object.sub_values.find((sv) => sv.name === "__repr__");
-					key_name = __repr__ !== undefined ? __repr__.value : `${godot_object.type}${key.stringify_value()}`;
-				} else if (key instanceof StringName) {
-					key_name = `&'${key.stringify_value()}'`
+				if (typeof key?.get_rendered_value === "function") { //  (key instanceof ObjectId), (key instanceof StringName)
+					key_name = await key.get_rendered_value(this.variables_manager);
 				} else {
 					key_name =
 						typeof key.stringify_value === "function"
