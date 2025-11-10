@@ -453,16 +453,16 @@ export class ServerController {
 				// Variant:
 				// 	Variant value; 														// prop[5]
 				const rawObject = new RawObject(className);
-				var category = ""
+				let category = ""
 				for (const prop of properties) {
 					const [name, class_name, hint, hint_string, usage, value, ...tail]: [string, string, number, string, number, any] = prop;
 					if (usage === 128) {
 						category = name;
 						continue; // not a variable - just a category grouping element for UI for subsequent items
 					}
-					let var_name;
+					let var_name: string;
 					if (category !== "") {
-						var_name = category + "/" + name;
+						var_name = `${category}/${name}`;
 					} else {
 						if (name.startsWith("Members/")) {
 							var_name = name.slice("Members/".length)

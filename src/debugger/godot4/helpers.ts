@@ -44,8 +44,8 @@ export async function get_sub_values(value: any, variables_manager: VariablesMan
 			});
 		} else if (value instanceof Map) {
 			subValues = [];
-			var key_name = "";
 			for (const [key, val] of value.entries()) {
+				let key_name = "";
 				if (typeof key?.get_rendered_value === "function") { //  (key instanceof ObjectId), (key instanceof StringName)
 					key_name = await key.get_rendered_value(variables_manager);
 				} else {
