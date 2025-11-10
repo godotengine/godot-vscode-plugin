@@ -18,7 +18,7 @@ body:
     description: >
       Specify the Git commit hash if using a development or non-official build.
       If you use a custom build, please test if your issue is reproducible in official builds too.
-    placeholder: 4.3.stable, 4.4.dev1 (28a72fa43)
+    placeholder: 4.5.1.stable, 4.6.dev0 (6fd949a)
   validations:
     required: true
 
