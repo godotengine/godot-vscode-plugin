@@ -261,6 +261,9 @@ export class VariablesManager {
 				);
 			} else if (typeof value?.get_rendered_value === "function") { // (key instanceof ObjectId), (key instanceof StringName)
 				rendered_value = await value.get_rendered_value(this);
+				if (value instanceof ObjectId) {
+					reference = vscode_id;
+				}
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;
