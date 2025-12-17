@@ -258,3 +258,18 @@ export function clean_godot_path(godotPath: string): string {
 
 	return target;
 }
+
+/**
+ * Checks if the current Godot project uses C#.
+ * Detection is based on presence of *.csproj files in the project directory.
+ */
+export async function is_csharp_project(): Promise<boolean> {
+	const projectDir = await get_project_dir();
+	if (!projectDir) {
+		return false;
+	}
+
+	// Check for .csproj files which indicate a C# project
+	const csprojFiles = await vscode.workspace.findFiles("**/*.csproj", null, 1);
+	return csprojFiles.length > 0;
+}

@@ -6,7 +6,9 @@ export function parse_next_scene_node(params: any[], ofs: { offset: number } = {
 	const childCount: number = params[ofs.offset++];
 	const name: string = params[ofs.offset++];
 	const className: string = params[ofs.offset++];
-	const id: number = params[ofs.offset++];
+	// Object ID may be BigInt (64-bit) from Godot, convert to Number for SceneNode
+	const rawId = params[ofs.offset++];
+	const id: number = typeof rawId === "bigint" ? Number(rawId) : rawId;
 	const sceneFilePath: string = params[ofs.offset++];
 	const viewFlags: number = params[ofs.offset++];
 

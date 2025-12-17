@@ -244,6 +244,33 @@
 				"category": "Godot Tools",
 				"command": "godotTools.copyResourcePath",
 				"title": "Copy Resource Path"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.sceneTreeMonitor.start",
+				"title": "Start Scene Tree Monitor",
+				"icon": {
+					"light": "resources/godot_icons/light/Play.svg",
+					"dark": "resources/godot_icons/dark/Play.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.sceneTreeMonitor.startWithGame",
+				"title": "Start Scene Tree Monitor (Launch Game)",
+				"icon": {
+					"light": "resources/godot_icons/light/PlayScene.svg",
+					"dark": "resources/godot_icons/dark/PlayScene.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.sceneTreeMonitor.stop",
+				"title": "Stop Scene Tree Monitor",
+				"icon": {
+					"light": "resources/godot_icons/light/Stop.svg",
+					"dark": "resources/godot_icons/dark/Stop.svg"
+				}
 			}
 		],
 		"keybindings": [
@@ -375,6 +402,32 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+				},
+				"godotTools.csharp.nodeReferenceStyle": {
+					"type": "string",
+					"enum": ["exportPrivate", "exportPublic", "lazyField", "expressionBodied"],
+					"enumDescriptions": [
+						"[Export] private Type _name { get; set; }",
+						"[Export] public Type Name { get; set; }",
+						"Type _name => field ??= GetNode<Type>(\"path\");  (C# 14)",
+						"Type Name => GetNode<Type>(\"path\");"
+					],
+					"default": "exportPublic",
+					"markdownDescription": "Default C# code style when dragging nodes from Scene Preview to empty lines.\n\nChange this to instantly use your preferred style without a picker dialog."
+				},
+				"godotTools.sceneTreeMonitor.port": {
+					"type": "number",
+					"default": 6007,
+					"minimum": 1,
+					"maximum": 65535,
+					"description": "Port for the Scene Tree Monitor to listen on. Godot will connect to this port with --remote-debug."
+				},
+				"godotTools.sceneTreeMonitor.refreshInterval": {
+					"type": "number",
+					"default": 0,
+					"minimum": 0,
+					"maximum": 60000,
+					"description": "Auto-refresh interval in milliseconds (0 = manual refresh only)."
 				}
 			}
 		},
@@ -676,7 +729,7 @@
 		"viewsWelcome": [
 			{
 				"view": "godotTools.activeSceneTree",
-				"contents": "Scene Tree data has not been requested"
+				"contents": "Scene Tree data has not been requested.\n\nFor C# projects, use the Scene Tree Monitor:\n[Start Scene Tree Monitor](command:godotTools.sceneTreeMonitor.start)\n[Start & Launch Game](command:godotTools.sceneTreeMonitor.startWithGame)"
 			},
 			{
 				"view": "godotTools.nodeInspector",
@@ -736,9 +789,24 @@
 			],
 			"view/title": [
 				{
+					"command": "godotTools.sceneTreeMonitor.start",
+					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
+					"group": "navigation@1"
+				},
+				{
+					"command": "godotTools.sceneTreeMonitor.startWithGame",
+					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
+					"group": "navigation@2"
+				},
+				{
+					"command": "godotTools.sceneTreeMonitor.stop",
+					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running",
+					"group": "navigation@1"
+				},
+				{
 					"command": "godotTools.debugger.refreshSceneTree",
 					"when": "view == godotTools.activeSceneTree",
-					"group": "navigation"
+					"group": "navigation@3"
 				},
 				{
 					"command": "godotTools.debugger.refreshInspector",

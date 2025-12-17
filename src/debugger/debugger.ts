@@ -27,6 +27,7 @@ import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session"
 import { GodotObject } from "./godot4/variables/godot_object_promise";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
+import { SceneTreeMonitor } from "./scene_tree_monitor";
 
 const log = createLogger("debugger", { output: "Godot Debugger" });
 
@@ -82,6 +83,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public sceneTree = new SceneTreeProvider();
 	public inspector = new InspectorProvider();
+	public sceneTreeMonitor: SceneTreeMonitor;
 
 	fileDecorations = new GDFileDecorationProvider();
 
@@ -89,6 +91,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info("Initializing Godot Debugger");
 
 		this.restore_pinned_file();
+
+		// Initialize Scene Tree Monitor for C# projects
+		this.sceneTreeMonitor = new SceneTreeMonitor(this.sceneTree);
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
@@ -103,6 +108,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.pinFile", this.pin_file.bind(this)),
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
+			// Scene Tree Monitor commands
+			register_command("sceneTreeMonitor.start", this.start_scene_tree_monitor.bind(this)),
+			register_command("sceneTreeMonitor.startWithGame", this.start_scene_tree_monitor_with_game.bind(this)),
+			register_command("sceneTreeMonitor.stop", this.stop_scene_tree_monitor.bind(this)),
 			this.inspector.view,
 			this.sceneTree.view,
 		);
@@ -307,7 +316,26 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public refresh_scene_tree() {
+		// If Scene Tree Monitor is running and connected, use it
+		if (this.sceneTreeMonitor.isConnected) {
+			this.sceneTreeMonitor.refreshSceneTree();
+			return;
+		}
+		// Otherwise use the debug session
 		this.session?.controller.request_scene_tree();
+	}
+
+	// Scene Tree Monitor methods
+	public async start_scene_tree_monitor() {
+		await this.sceneTreeMonitor.start(false);
+	}
+
+	public async start_scene_tree_monitor_with_game() {
+		await this.sceneTreeMonitor.start(true);
+	}
+
+	public stop_scene_tree_monitor() {
+		this.sceneTreeMonitor.stop();
 	}
 
 	public async refresh_inspector() {

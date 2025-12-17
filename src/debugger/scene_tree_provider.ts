@@ -27,6 +27,14 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 		}
 	}
 
+	public setMessage(message: string | undefined) {
+		this.view.message = message;
+	}
+
+	public setDescription(description: string | undefined) {
+		this.view.description = description;
+	}
+
 	public fill_tree(node: SceneNode) {
 		this.root = node;
 		this.changeTreeEvent.fire(undefined);
