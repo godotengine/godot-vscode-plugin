@@ -6,3 +6,7 @@ workspace.code-workspace
 .history
 .godot
 *.tmp
+.vscode/launch.json
+.claude/
+.claude/*
+*.MD
