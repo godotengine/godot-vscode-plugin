@@ -62,6 +62,46 @@ export function node_name_to_snake(name: string): string {
 	return snakeCase;
 }
 
+/**
+ * Converts a node name to PascalCase for C# property names.
+ *
+ * @example
+ * ```ts
+ * node_name_to_pascal("my_button") // "MyButton"
+ * node_name_to_pascal("Sprite2D") // "Sprite2D"
+ * node_name_to_pascal("player_health_bar") // "PlayerHealthBar"
+ * ```
+ */
+export function node_name_to_pascal(name: string): string {
+	// Handle already PascalCase names (common in Godot)
+	if (/^[A-Z][a-zA-Z0-9]*$/.test(name) && !name.includes("_")) {
+		return name;
+	}
+
+	// Convert snake_case or mixed case to PascalCase
+	return name
+		.split(/[_\s-]+/)
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join("")
+		// Handle numbers followed by lowercase (e.g., "2d" -> "2D")
+		.replace(/(\d)([a-z])/g, (_, num, letter) => num + letter.toUpperCase());
+}
+
+/**
+ * Converts a node name to camelCase for C# field names.
+ *
+ * @example
+ * ```ts
+ * node_name_to_camel("my_button") // "myButton"
+ * node_name_to_camel("MyNode") // "myNode"
+ * node_name_to_camel("Sprite2D") // "sprite2D"
+ * ```
+ */
+export function node_name_to_camel(name: string): string {
+	const pascal = node_name_to_pascal(name);
+	return pascal.charAt(0).toLowerCase() + pascal.slice(1);
+}
+
 export const ansi = {
 	reset: "\u001b[0;37m",
 	red: "\u001b[0;31m",
