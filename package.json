@@ -247,38 +247,11 @@
 			},
 			{
 				"category": "Godot Tools",
-				"command": "godotTools.sceneTreeMonitor.start",
-				"title": "Start Scene Tree Monitor",
-				"icon": {
-					"light": "resources/godot_icons/light/Play.svg",
-					"dark": "resources/godot_icons/dark/Play.svg"
-				}
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.sceneTreeMonitor.startWithGame",
-				"title": "Start Scene Tree Monitor (Launch Game)",
-				"icon": {
-					"light": "resources/godot_icons/light/PlayScene.svg",
-					"dark": "resources/godot_icons/dark/PlayScene.svg"
-				}
-			},
-			{
-				"category": "Godot Tools",
 				"command": "godotTools.sceneTreeMonitor.stop",
 				"title": "Stop Scene Tree Monitor",
 				"icon": {
 					"light": "resources/godot_icons/light/Stop.svg",
 					"dark": "resources/godot_icons/dark/Stop.svg"
-				}
-			},
-			{
-				"category": "Godot Tools",
-				"command": "godotTools.sceneTreeMonitor.attach",
-				"title": "Attach to Running Game",
-				"icon": {
-					"light": "resources/godot_icons/light/PlayRemote.svg",
-					"dark": "resources/godot_icons/dark/PlayRemote.svg"
 				}
 			}
 		],
@@ -743,7 +716,7 @@
 		"viewsWelcome": [
 			{
 				"view": "godotTools.activeSceneTree",
-				"contents": "Scene Tree data has not been requested.\n\nFor C# projects, use the Scene Tree Monitor:\n[Start Scene Tree Monitor](command:godotTools.sceneTreeMonitor.start)\n[Start & Launch Game](command:godotTools.sceneTreeMonitor.startWithGame)"
+				"contents": "Press F5 to start debugging with Scene Tree.\n\nMake sure your launch.json includes:\n`--remote-debug tcp://127.0.0.1:6007`\n\nSee [setup instructions](https://github.com/DanTrz/godot-vscode-plugin-csharp) for details."
 			},
 			{
 				"view": "godotTools.nodeInspector",
@@ -803,21 +776,6 @@
 			],
 			"view/title": [
 				{
-					"command": "godotTools.sceneTreeMonitor.start",
-					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
-					"group": "navigation@1"
-				},
-				{
-					"command": "godotTools.sceneTreeMonitor.startWithGame",
-					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
-					"group": "navigation@2"
-				},
-				{
-					"command": "godotTools.sceneTreeMonitor.attach",
-					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
-					"group": "navigation@3"
-				},
-				{
 					"command": "godotTools.sceneTreeMonitor.stop",
 					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running",
 					"group": "navigation@1"
@@ -825,7 +783,7 @@
 				{
 					"command": "godotTools.debugger.refreshSceneTree",
 					"when": "view == godotTools.activeSceneTree",
-					"group": "navigation@4"
+					"group": "navigation@2"
 				},
 				{
 					"command": "godotTools.debugger.refreshInspector",

@@ -2,15 +2,12 @@ import * as vscode from "vscode";
 import {
 	createLogger,
 	get_configuration,
-	get_project_dir,
 	get_project_version,
 	set_context,
-	verify_godot_version,
 } from "../utils";
 import { GodotVariable } from "./debug_runtime";
 import { InspectorProvider } from "./inspector_provider";
-import { prompt_for_godot_executable } from "../utils/prompts";
-import { killSubProcesses, subProcess } from "../utils/subspawn";
+import { killSubProcesses } from "../utils/subspawn";
 import { InspectedObject, SceneTreeClient } from "./scene_tree_client";
 import { SceneTreeProvider } from "./scene_tree_provider";
 
@@ -86,19 +83,18 @@ export class SceneTreeMonitor {
 
 	/**
 	 * Start the Scene Tree Monitor.
-	 * @param launchGodot If true, also launches the Godot game with debug flags.
+	 * Starts a TCP server that waits for Godot to connect via --remote-debug.
 	 */
-	public async start(launchGodot = false): Promise<void> {
+	public async start(): Promise<void> {
 		if (this._isRunning) {
 			log.warn("Scene Tree Monitor is already running");
-			vscode.window.showWarningMessage("Scene Tree Monitor is already running");
 			return;
 		}
 
 		log.info("Starting Scene Tree Monitor");
 
 		const configPort = get_configuration("sceneTreeMonitor.port") as number;
-		const port = await this.client.start(configPort || undefined);
+		await this.client.start(configPort || undefined);
 
 		this._isRunning = true;
 		set_context("sceneTreeMonitor.running", true);
@@ -116,66 +112,6 @@ export class SceneTreeMonitor {
 					this.refreshInspector();
 				}
 			}, refreshMs);
-		}
-
-		if (launchGodot) {
-			await this.launchGodot(port);
-		} else {
-			vscode.window.showInformationMessage(
-				`Scene Tree Monitor listening on port ${port}.\n` +
-					`Launch Godot with: --remote-debug tcp://127.0.0.1:${port}`,
-			);
-		}
-	}
-
-	/**
-	 * Attach to an already-running Godot instance.
-	 * Use this when Godot was launched externally (e.g., by C# debugger)
-	 * with --remote-debug tcp://127.0.0.1:<port>
-	 */
-	public async attach(): Promise<void> {
-		if (this._isRunning) {
-			log.warn("Scene Tree Monitor is already running");
-			vscode.window.showWarningMessage("Scene Tree Monitor is already running. Stop it first.");
-			return;
-		}
-
-		const configPort = get_configuration("sceneTreeMonitor.port") as number;
-		const port = configPort || 6007;
-
-		log.info(`Attaching to Godot on port ${port}`);
-		this.sceneTree.view.message = "Connecting to Godot...";
-		this.sceneTree.view.description = "Scene Tree Monitor (Attaching)";
-
-		const connected = await this.client.attach("127.0.0.1", port);
-
-		if (connected) {
-			this._isRunning = true;
-			set_context("sceneTreeMonitor.running", true);
-			this.updateStatusBar();
-			this.sceneTree.view.description = "Scene Tree Monitor";
-			this.sceneTree.view.message = undefined;
-
-			// Set up refresh interval if configured
-			const refreshMs = get_configuration("sceneTreeMonitor.refreshInterval") as number;
-			if (refreshMs > 0) {
-				this.refreshInterval = setInterval(() => {
-					if (this.client.isConnected) {
-						this.client.requestSceneTree();
-						// Also refresh the inspector if we have a currently inspected object
-						this.refreshInspector();
-					}
-				}, refreshMs);
-			}
-
-			vscode.window.showInformationMessage("Connected to Godot!");
-		} else {
-			this.sceneTree.view.message = undefined;
-			this.sceneTree.view.description = undefined;
-			vscode.window.showErrorMessage(
-				`Could not connect to Godot on port ${port}.\n` +
-					"Make sure Godot is running with: --remote-debug tcp://127.0.0.1:" + port,
-			);
 		}
 	}
 
@@ -311,50 +247,6 @@ export class SceneTreeMonitor {
 			this.statusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground");
 		}
 		this.statusBarItem.show();
-	}
-
-	private async launchGodot(port: number): Promise<void> {
-		log.info("Launching Godot for Scene Tree Monitor");
-
-		const settingName = "editorPath.godot4";
-		let godotPath = get_configuration(settingName);
-		const projectVersion = await get_project_version();
-		const expectedVersion = projectVersion?.startsWith("4") ? "4" : "3";
-
-		log.info(`Verifying version of '${godotPath}'`);
-		const result = verify_godot_version(godotPath, expectedVersion);
-		godotPath = result.godotPath;
-		log.info(`Verification result: ${result.status}, version: "${result.version}"`);
-
-		switch (result.status) {
-			case "WRONG_VERSION": {
-				const message = `Cannot start Scene Tree Monitor: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
-				log.warn(message);
-				prompt_for_godot_executable(message, settingName);
-				this.stop();
-				return;
-			}
-			case "INVALID_EXE": {
-				const message = `Cannot start Scene Tree Monitor: '${godotPath}' is not a valid Godot executable`;
-				log.warn(message);
-				prompt_for_godot_executable(message, settingName);
-				this.stop();
-				return;
-			}
-		}
-
-		const projectDir = await get_project_dir();
-		let command = `"${godotPath}" --path "${projectDir}"`;
-		command += ` --remote-debug "tcp://127.0.0.1:${port}"`;
-
-		log.info(`Launching Godot with command: '${command}'`);
-		const gameProcess = subProcess("scene_tree_monitor", command, { shell: true, detached: true });
-
-		gameProcess.stdout.on("data", () => {});
-		gameProcess.stderr.on("data", () => {});
-		gameProcess.on("close", (code) => {
-			log.info(`Godot process exited with code ${code}`);
-		});
 	}
 
 	/**

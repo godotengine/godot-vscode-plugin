@@ -109,10 +109,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 			// Scene Tree Monitor commands
-			register_command("sceneTreeMonitor.start", this.start_scene_tree_monitor.bind(this)),
-			register_command("sceneTreeMonitor.startWithGame", this.start_scene_tree_monitor_with_game.bind(this)),
 			register_command("sceneTreeMonitor.stop", this.stop_scene_tree_monitor.bind(this)),
-			register_command("sceneTreeMonitor.attach", this.attach_scene_tree_monitor.bind(this)),
 			// Auto-start Scene Tree Monitor for C# debug sessions
 			debug.onDidStartDebugSession(this.on_debug_session_start.bind(this)),
 			this.inspector.view,
@@ -341,20 +338,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	// Scene Tree Monitor methods
-	public async start_scene_tree_monitor() {
-		await this.sceneTreeMonitor.start(false);
-	}
-
-	public async start_scene_tree_monitor_with_game() {
-		await this.sceneTreeMonitor.start(true);
-	}
-
 	public stop_scene_tree_monitor() {
 		this.sceneTreeMonitor.stop();
-	}
-
-	public async attach_scene_tree_monitor() {
-		await this.sceneTreeMonitor.attach();
 	}
 
 	/**
@@ -386,7 +371,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 
 		log.info("C# debug session detected in Godot project - auto-starting Scene Tree Monitor");
-		await this.sceneTreeMonitor.start(false);
+		await this.sceneTreeMonitor.start();
 	}
 
 	public async refresh_inspector() {
