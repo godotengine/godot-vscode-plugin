@@ -1,5 +1,18 @@
 # Changelog
 
+### 2.5.1-csharp.1 (C# Fork)
+
+- **Active Scene Tree for C# projects** - View running scene nodes during C# debugging
+- **Node Inspector for C#** - Inspect node properties in real-time with auto-refresh
+- **C# Drag & Drop code generation** - Drag nodes from Scene Preview to generate C# code:
+  - `[Export]` properties (public/private)
+  - Lazy field initializers (C# 14)
+  - Expression-bodied properties
+
+*Based on [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin) v2.5.1*
+
+---
+
 ### 2.5.1
 
 - [Fix "Request textDocument/documentSymbol failed" error when opening a GDScript file](https://github.com/godotengine/godot-vscode-plugin/pull/823)

@@ -1,48 +1,63 @@
-# Godot Tools for C#
+# Godot Tools C# (Fork)
 
-A fork of [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin) with **Active Scene Tree and Inspector support for C# projects**.
-
----
-
-## C# Scene Tree Support
-
-This fork adds the ability to view the **Active Scene Tree** and **Inspector** when debugging Godot 4 C# projects - features that were previously only available for GDScript debugging.
-
-### Features for C# Projects
-
-| Feature | Original (GDScript only) | This Fork (C# Support) |
-|---------|-------------------------|------------------------|
-| Active Scene Tree | GDScript only | **Works with C#** |
-| Node Inspector | GDScript only | **Works with C#** |
-| Auto-refresh Scene Tree | GDScript only | **Works with C#** |
-| Auto-refresh Inspector | GDScript only | **Works with C#** |
-
-### How It Works
-
-The extension starts a TCP server that Godot connects to via its `--remote-debug` flag. This allows the extension to receive scene tree data independently of the C# debugger (which uses a separate debug protocol).
+A fork of [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin) with **C# enhancements** for Godot 4 development.
 
 ---
 
-## Setup Instructions
+## 🎯 Key Features
 
-### Prerequisites
+### 1. C# Drag & Drop Code Generation
 
-- **Godot 4.2+** (with C# support / .NET version)
-- **VS Code** with the C# extension installed
-- **.NET SDK** installed and configured
+Drag nodes from the **Scene Preview** panel directly into your C# scripts to automatically generate node reference code.
 
-### Step 1: Install the Extension
+#### How to Use
 
-Download the `.vsix` file from [Releases](https://github.com/DanTrz/godot-vscode-plugin-csharp/releases) and install it:
-1. Open VS Code
-2. Press `Ctrl+Shift+P` and run "Extensions: Install from VSIX..."
-3. Select the downloaded `.vsix` file
+1. Open a `.tscn` file to see the **Scene Preview** in the sidebar
+2. Open your C# script (`.cs` file)
+3. **Drag any node** from the Scene Preview into your script
+4. Code is automatically generated based on your preferred style
 
-### Step 2: Configure launch.json
+#### Code Styles
 
-Add the `--remote-debug` flag to your launch configuration. This tells Godot to connect to the Scene Tree Monitor.
+| Style | Generated Code |
+|-------|----------------|
+| **[Export] public** | `[Export] public Button MyButton { get; set; }` |
+| **[Export] private** | `[Export] private Button _myButton { get; set; }` |
+| **Lazy field (C# 14)** | `Button _myButton => field ??= GetNode<Button>("path");` |
+| **Expression-bodied** | `Button MyButton => GetNode<Button>("path");` |
 
-**Example launch.json:**
+#### Configuration
+
+Set your preferred default style in VS Code settings:
+
+```
+Settings > Godot Tools > C# > Node Reference Style
+```
+
+Or in `settings.json`:
+```json
+"godotTools.csharp.nodeReferenceStyle": "exportPublic"
+```
+
+Options: `exportPublic`, `exportPrivate`, `lazyField`, `expressionBodied`
+
+> **Tip:** When dropping on an empty line, your default style is used automatically. No dialog needed!
+
+---
+
+### 2. Active Scene Tree for C# Debugging
+
+View the **running scene tree** and **inspect node properties** during C# debugging - features previously only available for GDScript.
+
+| Feature | Original Plugin | This Fork |
+|---------|-----------------|-----------|
+| Active Scene Tree | GDScript only | ✅ **Works with C#** |
+| Node Inspector | GDScript only | ✅ **Works with C#** |
+| Auto-refresh | GDScript only | ✅ **Works with C#** |
+
+#### Setup for Scene Tree Monitor
+
+**Step 1:** Add `--remote-debug` to your `launch.json`:
 
 ```json
 {
@@ -53,10 +68,10 @@ Add the `--remote-debug` flag to your launch configuration. This tells Godot to 
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${env:GODOT4}", //Or your Path to Godot
+            "program": "${env:GODOT4}",
             "args": [
-                "--remote-debug", //MUST INCLUDE
-                "tcp://127.0.0.1:6007" //MUST INCLUDE - Check the port in settings
+                "--remote-debug",
+                "tcp://127.0.0.1:6007"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false
@@ -65,36 +80,33 @@ Add the `--remote-debug` flag to your launch configuration. This tells Godot to 
 }
 ```
 
-**Key addition:** The `--remote-debug tcp://127.0.0.1:6007` argument.
+**Step 2:** Press F5 to debug. The Scene Tree Monitor auto-starts.
 
-> **Note:** The port `6007` is the default. You can change it in VS Code settings under `godotTools.sceneTreeMonitor.port`.
+**Step 3:** Click the **eye icon** on any node to inspect its properties.
 
-
-## Workflow
-
-1. **Open your Godot C# project** in VS Code
-2. **Press F5** to start debugging
-3. The Scene Tree Monitor **auto-starts** and waits for Godot
-4. Godot launches and **connects automatically** (via `--remote-debug`)
-5. The **Active Scene Tree** populates with your running scene
-6. **Click the eye icon** on any node to inspect its properties
-7. **Stop debugging** - Scene Tree Monitor stops automatically
-
-### Inspector Panel
-
-- Located in the Explorer sidebar under "Inspector"
-- Shows properties of the selected node
-- Auto-refreshes along with the Scene Tree (configurable)
-
----
-
-## Settings
+#### Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `godotTools.sceneTreeMonitor.port` | `6007` | Port for Godot to connect to |
-| `godotTools.sceneTreeMonitor.autoStart` | `true` | Auto-start when C# debug session begins |
-| `godotTools.sceneTreeMonitor.refreshInterval` | `500` | Auto-refresh interval in ms (0 to disable) |
+| `godotTools.sceneTreeMonitor.port` | `6007` | Port for Godot connection |
+| `godotTools.sceneTreeMonitor.autoStart` | `true` | Auto-start on C# debug |
+| `godotTools.sceneTreeMonitor.refreshInterval` | `500` | Refresh interval (ms) |
+
+---
+
+## Installation
+
+### Prerequisites
+
+- **Godot 4.2+** (.NET version)
+- **VS Code** with C# extension
+- **.NET SDK** installed
+
+### Install from VSIX
+
+1. Download `.vsix` from [Releases](https://github.com/DanTrz/godot-vscode-plugin-csharp/releases)
+2. In VS Code: `Ctrl+Shift+P` → "Extensions: Install from VSIX..."
+3. Select the downloaded file
 
 ---
 
@@ -102,36 +114,32 @@ Add the `--remote-debug` flag to your launch configuration. This tells Godot to 
 
 ### Scene Tree not populating?
 
-1. **Check your launch.json** - make sure `--remote-debug tcp://127.0.0.1:6007` is included in args
-2. **Check the port** - ensure the port in launch.json matches `godotTools.sceneTreeMonitor.port` setting and your Godot settings
-3. **Check Godot version** - requires Godot 4.2 or later
+1. Check `--remote-debug tcp://127.0.0.1:6007` is in your launch.json args
+2. Verify port matches `godotTools.sceneTreeMonitor.port` setting
+3. Requires Godot 4.2+
 
-### "Connection refused" error?
+### Drag & Drop not working?
 
-This happens if Godot tries to connect before the Scene Tree Monitor is ready. The auto-start feature should handle this, but if you're starting Godot manually, ensure the monitor is running first.
-
-### Inspector shows "Node has not been inspected"?
-
-Click the **eye icon** next to a node in the Active Scene Tree to inspect it.
+1. Make sure you're dragging from **Scene Preview** (not file explorer)
+2. Target must be a `.cs` file
+3. The Scene Preview panel shows nodes from `.tscn` files
 
 ---
 
-## Original Godot Tools Features
+## Original Features
 
-This fork includes all original features from [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin):
+This fork includes all features from [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin):
 
-- GDScript language support (syntax highlighting, completions, formatting)
-- GDScript debugger (for GDScript projects)
-- GDResource/GDShader syntax highlighting
-- Scene preview
+- GDScript language support
+- GDScript debugger
+- Scene Preview
+- GDShader support
 - And more...
-
-See the [original README](https://github.com/godotengine/godot-vscode-plugin#readme) for full documentation.
 
 ---
 
 ## Contributing
 
-Issues and pull requests welcome at [github.com/DanTrz/godot-vscode-plugin-csharp](https://github.com/DanTrz/godot-vscode-plugin-csharp).
+Issues and PRs welcome at [github.com/DanTrz/godot-vscode-plugin-csharp](https://github.com/DanTrz/godot-vscode-plugin-csharp)
 
-This is a fork maintained separately from the original project.
+*Based on [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin) by the Godot Engine community*

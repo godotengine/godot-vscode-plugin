@@ -1,9 +1,9 @@
 {
 	"name": "godot-tools",
-	"displayName": "godot-tools",
+	"displayName": "Godot Tools C# (Fork)",
 	"icon": "icon.png",
-	"version": "2.5.1",
-	"description": "Tools for game development with Godot Engine and GDScript",
+	"version": "2.5.1-csharp.1",
+	"description": "C# Enhanced Fork by DanTrz, based on the original godot-tools plugin",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/godotengine/godot-vscode-plugin"
@@ -687,7 +687,7 @@
 			"activitybar": [
 				{
 					"id": "godotTools",
-					"title": "Godot Tools",
+					"title": "Godot Tools C#",
 					"icon": "resources/godot_icon.svg"
 				}
 			]
