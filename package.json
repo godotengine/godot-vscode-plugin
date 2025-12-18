@@ -271,6 +271,15 @@
 					"light": "resources/godot_icons/light/Stop.svg",
 					"dark": "resources/godot_icons/dark/Stop.svg"
 				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.sceneTreeMonitor.attach",
+				"title": "Attach to Running Game",
+				"icon": {
+					"light": "resources/godot_icons/light/PlayRemote.svg",
+					"dark": "resources/godot_icons/dark/PlayRemote.svg"
+				}
 			}
 		],
 		"keybindings": [
@@ -428,6 +437,11 @@
 					"minimum": 0,
 					"maximum": 60000,
 					"description": "Auto-refresh interval in milliseconds (0 = manual refresh only)."
+				},
+				"godotTools.sceneTreeMonitor.autoStart": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically start Scene Tree Monitor when a C# debug session starts in a Godot project."
 				}
 			}
 		},
@@ -799,6 +813,11 @@
 					"group": "navigation@2"
 				},
 				{
+					"command": "godotTools.sceneTreeMonitor.attach",
+					"when": "view == godotTools.activeSceneTree && !godotTools.context.sceneTreeMonitor.running",
+					"group": "navigation@3"
+				},
+				{
 					"command": "godotTools.sceneTreeMonitor.stop",
 					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running",
 					"group": "navigation@1"
@@ -806,7 +825,7 @@
 				{
 					"command": "godotTools.debugger.refreshSceneTree",
 					"when": "view == godotTools.activeSceneTree",
-					"group": "navigation@3"
+					"group": "navigation@4"
 				},
 				{
 					"command": "godotTools.debugger.refreshInspector",

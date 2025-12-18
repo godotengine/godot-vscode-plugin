@@ -20,7 +20,7 @@
 				"**/extensionHostProcess.js",
 				"<node_internals>/**/*.js"
 			],
-			"preLaunchTask": "npm: compile",
+			"preLaunchTask": "npm: watch",
 			"env": {
 				"VSCODE_DEBUG_MODE": "true"
 			}
@@ -42,7 +42,7 @@
 				"**/extensionHostProcess.js",
 				"<node_internals>/**/*.js"
 			],
-			"preLaunchTask": "npm: compile",
+			"preLaunchTask": "npm: watch",
 			"env": {
 				"VSCODE_DEBUG_MODE": "true"
 			}
@@ -64,7 +64,7 @@
 				"**/extensionHostProcess.js",
 				"<node_internals>/**/*.js"
 			],
-			"preLaunchTask": "npm: compile",
+			"preLaunchTask": "npm: watch",
 			"env": {
 				"VSCODE_DEBUG_MODE": "true"
 			}

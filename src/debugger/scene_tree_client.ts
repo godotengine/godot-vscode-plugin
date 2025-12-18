@@ -138,6 +138,80 @@ export class SceneTreeClient {
 	}
 
 	/**
+	 * Attach to an already-running Godot instance.
+	 * Godot must have been launched with: --remote-debug tcp://127.0.0.1:<port>
+	 * In this mode, we connect TO Godot (client mode) instead of Godot connecting to us (server mode).
+	 */
+	public async attach(address: string, port: number): Promise<boolean> {
+		if (this._isConnected) {
+			log.warn("Already connected");
+			return true;
+		}
+
+		if (this.server) {
+			log.warn("Server is running - stop it before attaching");
+			return false;
+		}
+
+		this._port = port;
+
+		return new Promise((resolve) => {
+			log.info(`Attaching to Godot at ${address}:${port}`);
+
+			const socket = net.createConnection({ host: address, port }, () => {
+				log.info("Connected to Godot debug server");
+				this.socket = socket;
+				this._isConnected = true;
+				this._onConnected.fire();
+
+				// Request scene tree after connection
+				setTimeout(() => {
+					if (this._isConnected) {
+						this.requestSceneTree();
+					}
+				}, 500);
+
+				resolve(true);
+			});
+
+			socket.on("data", this.onData.bind(this));
+
+			socket.on("close", () => {
+				log.info("Connection closed");
+				this._isConnected = false;
+				this.socket = undefined;
+				this._onDisconnected.fire();
+			});
+
+			socket.on("end", () => {
+				log.debug("Connection ended");
+				this._isConnected = false;
+				this.socket = undefined;
+				this._onDisconnected.fire();
+			});
+
+			socket.on("error", (error) => {
+				log.error("Socket error:", error);
+				this._onError.fire(error);
+				resolve(false);
+			});
+
+			socket.on("drain", () => {
+				socket.resume();
+				this.draining = false;
+				this.sendBuffer();
+			});
+
+			// Timeout after 5 seconds
+			socket.setTimeout(5000, () => {
+				log.warn("Connection timeout");
+				socket.destroy();
+				resolve(false);
+			});
+		});
+	}
+
+	/**
 	 * Request the current scene tree from Godot.
 	 * Note: In Godot 4.x, scene tree data may be available even while running.
 	 */

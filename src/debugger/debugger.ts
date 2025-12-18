@@ -112,6 +112,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("sceneTreeMonitor.start", this.start_scene_tree_monitor.bind(this)),
 			register_command("sceneTreeMonitor.startWithGame", this.start_scene_tree_monitor_with_game.bind(this)),
 			register_command("sceneTreeMonitor.stop", this.stop_scene_tree_monitor.bind(this)),
+			register_command("sceneTreeMonitor.attach", this.attach_scene_tree_monitor.bind(this)),
+			// Auto-start Scene Tree Monitor for C# debug sessions
+			debug.onDidStartDebugSession(this.on_debug_session_start.bind(this)),
 			this.inspector.view,
 			this.sceneTree.view,
 		);
@@ -336,6 +339,42 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 
 	public stop_scene_tree_monitor() {
 		this.sceneTreeMonitor.stop();
+	}
+
+	public async attach_scene_tree_monitor() {
+		await this.sceneTreeMonitor.attach();
+	}
+
+	/**
+	 * Auto-start Scene Tree Monitor when a C# debug session starts.
+	 * This detects coreclr sessions in Godot projects and automatically
+	 * starts the monitor so users don't have to click the button manually.
+	 */
+	private async on_debug_session_start(session: DebugSession) {
+		// Only handle coreclr (C#) sessions, not our own godot sessions
+		if (session.type !== "coreclr") {
+			return;
+		}
+
+		// Check if this is a Godot project
+		const projectVersion = await get_project_version();
+		if (!projectVersion?.startsWith("4")) {
+			return;
+		}
+
+		// Check if auto-start is enabled (default: true)
+		const autoStart = workspace.getConfiguration("godotTools").get("sceneTreeMonitor.autoStart", true);
+		if (!autoStart) {
+			return;
+		}
+
+		// Don't start if already running
+		if (this.sceneTreeMonitor.isRunning) {
+			return;
+		}
+
+		log.info("C# debug session detected in Godot project - auto-starting Scene Tree Monitor");
+		await this.sceneTreeMonitor.start(false);
 	}
 
 	public async refresh_inspector() {

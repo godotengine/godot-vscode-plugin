@@ -46,8 +46,9 @@ export class SceneTreeMonitor {
 
 		this.client.onDisconnected(() => {
 			log.info("Godot disconnected");
-			this.updateStatusBar();
-			this.sceneTree.view.message = "Waiting for Godot to connect...";
+			// Auto-stop when Godot disconnects to reset UI and allow fresh start
+			this.stop();
+			vscode.window.showInformationMessage("Godot disconnected. Scene Tree Monitor stopped.");
 		});
 
 		this.client.onSceneTree((tree) => {
@@ -108,6 +109,55 @@ export class SceneTreeMonitor {
 			vscode.window.showInformationMessage(
 				`Scene Tree Monitor listening on port ${port}.\n` +
 					`Launch Godot with: --remote-debug tcp://127.0.0.1:${port}`,
+			);
+		}
+	}
+
+	/**
+	 * Attach to an already-running Godot instance.
+	 * Use this when Godot was launched externally (e.g., by C# debugger)
+	 * with --remote-debug tcp://127.0.0.1:<port>
+	 */
+	public async attach(): Promise<void> {
+		if (this._isRunning) {
+			log.warn("Scene Tree Monitor is already running");
+			vscode.window.showWarningMessage("Scene Tree Monitor is already running. Stop it first.");
+			return;
+		}
+
+		const configPort = get_configuration("sceneTreeMonitor.port") as number;
+		const port = configPort || 6007;
+
+		log.info(`Attaching to Godot on port ${port}`);
+		this.sceneTree.view.message = "Connecting to Godot...";
+		this.sceneTree.view.description = "Scene Tree Monitor (Attaching)";
+
+		const connected = await this.client.attach("127.0.0.1", port);
+
+		if (connected) {
+			this._isRunning = true;
+			set_context("sceneTreeMonitor.running", true);
+			this.updateStatusBar();
+			this.sceneTree.view.description = "Scene Tree Monitor";
+			this.sceneTree.view.message = undefined;
+
+			// Set up refresh interval if configured
+			const refreshMs = get_configuration("sceneTreeMonitor.refreshInterval") as number;
+			if (refreshMs > 0) {
+				this.refreshInterval = setInterval(() => {
+					if (this.client.isConnected) {
+						this.client.requestSceneTree();
+					}
+				}, refreshMs);
+			}
+
+			vscode.window.showInformationMessage("Connected to Godot!");
+		} else {
+			this.sceneTree.view.message = undefined;
+			this.sceneTree.view.description = undefined;
+			vscode.window.showErrorMessage(
+				`Could not connect to Godot on port ${port}.\n` +
+					"Make sure Godot is running with: --remote-debug tcp://127.0.0.1:" + port,
 			);
 		}
 	}
