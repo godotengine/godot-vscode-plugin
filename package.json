@@ -433,10 +433,10 @@
 				},
 				"godotTools.sceneTreeMonitor.refreshInterval": {
 					"type": "number",
-					"default": 0,
+					"default": 500,
 					"minimum": 0,
 					"maximum": 60000,
-					"description": "Auto-refresh interval in milliseconds (0 = manual refresh only)."
+					"description": "Auto-refresh interval in milliseconds (0 = manual refresh only). Default: 500ms (half second)."
 				},
 				"godotTools.sceneTreeMonitor.autoStart": {
 					"type": "boolean",
