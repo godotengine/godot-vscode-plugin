@@ -7,9 +7,11 @@ import {
 	set_context,
 	verify_godot_version,
 } from "../utils";
+import { GodotVariable } from "./debug_runtime";
+import { InspectorProvider } from "./inspector_provider";
 import { prompt_for_godot_executable } from "../utils/prompts";
 import { killSubProcesses, subProcess } from "../utils/subspawn";
-import { SceneTreeClient } from "./scene_tree_client";
+import { InspectedObject, SceneTreeClient } from "./scene_tree_client";
 import { SceneTreeProvider } from "./scene_tree_provider";
 
 const log = createLogger("debugger.scene_tree_monitor", { output: "Godot Scene Tree" });
@@ -25,8 +27,14 @@ export class SceneTreeMonitor {
 	private statusBarItem: vscode.StatusBarItem;
 	private _isRunning = false;
 	private refreshInterval?: NodeJS.Timeout;
+	private pendingInspectLabel?: string;
+	private currentInspectedObjectId?: bigint;
+	private currentInspectedLabel?: string;
 
-	constructor(private sceneTree: SceneTreeProvider) {
+	constructor(
+		private sceneTree: SceneTreeProvider,
+		private inspector: InspectorProvider,
+	) {
 		this.client = new SceneTreeClient();
 
 		// Status bar item
@@ -55,6 +63,11 @@ export class SceneTreeMonitor {
 			log.info(`Received scene tree event: root="${tree?.label}", children=${tree?.children?.length ?? 0}`);
 			this.sceneTree.fill_tree(tree);
 			log.info("Scene tree filled in provider");
+		});
+
+		this.client.onInspectObject((data: InspectedObject) => {
+			log.info(`Received inspect_object: class=${data.className}, props=${data.properties.size}`);
+			this.fillInspector(data);
 		});
 
 		this.client.onError((error) => {
@@ -99,6 +112,8 @@ export class SceneTreeMonitor {
 			this.refreshInterval = setInterval(() => {
 				if (this.client.isConnected) {
 					this.client.requestSceneTree();
+					// Also refresh the inspector if we have a currently inspected object
+					this.refreshInspector();
 				}
 			}, refreshMs);
 		}
@@ -147,6 +162,8 @@ export class SceneTreeMonitor {
 				this.refreshInterval = setInterval(() => {
 					if (this.client.isConnected) {
 						this.client.requestSceneTree();
+						// Also refresh the inspector if we have a currently inspected object
+						this.refreshInspector();
 					}
 				}, refreshMs);
 			}
@@ -185,6 +202,9 @@ export class SceneTreeMonitor {
 		this.sceneTree.view.description = undefined;
 		this.sceneTree.view.message = undefined;
 
+		// Clear inspection state
+		this.clearInspection();
+
 		killSubProcesses("scene_tree_monitor");
 	}
 
@@ -195,6 +215,76 @@ export class SceneTreeMonitor {
 		if (this.client.isConnected) {
 			this.client.requestSceneTree();
 		}
+	}
+
+	/**
+	 * Request inspection of a node by its object ID.
+	 * The result will be displayed in the Inspector panel.
+	 */
+	public inspectObject(label: string, objectId: bigint): void {
+		if (!this.client.isConnected) {
+			log.warn("Cannot inspect object: not connected");
+			return;
+		}
+		this.pendingInspectLabel = label;
+		this.currentInspectedObjectId = objectId;
+		this.currentInspectedLabel = label;
+		this.client.requestInspectObject(objectId);
+	}
+
+	/**
+	 * Refresh the currently inspected object (if any).
+	 */
+	public refreshInspector(): void {
+		if (this.client.isConnected && this.currentInspectedObjectId !== undefined) {
+			this.pendingInspectLabel = this.currentInspectedLabel;
+			this.client.requestInspectObject(this.currentInspectedObjectId);
+		}
+	}
+
+	/**
+	 * Clear the current inspection state.
+	 */
+	public clearInspection(): void {
+		this.currentInspectedObjectId = undefined;
+		this.currentInspectedLabel = undefined;
+		this.inspector.clear();
+	}
+
+	/**
+	 * Fill the inspector panel with the received object data.
+	 */
+	private fillInspector(data: InspectedObject): void {
+		// Check if the object was freed (object ID 0 or no properties typically means freed)
+		if (data.objectId === BigInt(0) || (data.properties.size === 0 && data.className === "")) {
+			log.info("Inspected object appears to be freed, clearing inspector");
+			this.clearInspection();
+			return;
+		}
+
+		// Convert RawObject properties to GodotVariable format
+		const variable: GodotVariable = {
+			name: this.pendingInspectLabel || data.className,
+			value: {
+				type_name: () => data.className,
+				stringify_value: () => `<${data.objectId}>`,
+				sub_values: () => {
+					const subVars: GodotVariable[] = [];
+					for (const [key, value] of data.properties) {
+						subVars.push({ name: key, value: value });
+					}
+					return subVars;
+				},
+			},
+		};
+
+		this.inspector.fill_tree(
+			this.pendingInspectLabel || data.className,
+			data.className,
+			Number(data.objectId),
+			variable,
+		);
+		this.pendingInspectLabel = undefined;
 	}
 
 	/**

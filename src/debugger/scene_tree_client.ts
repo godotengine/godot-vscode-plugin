@@ -1,10 +1,20 @@
 import * as net from "node:net";
 import { EventEmitter } from "vscode";
 import { createLogger, get_free_port } from "../utils";
+import { RawObject } from "./debug_runtime";
 import { parse_next_scene_node, split_buffers } from "./godot4/helpers";
 import { VariantDecoder } from "./godot4/variables/variant_decoder";
 import { VariantEncoder } from "./godot4/variables/variant_encoder";
 import { SceneNode } from "./scene_tree_provider";
+
+/**
+ * Data returned when inspecting a remote object.
+ */
+export interface InspectedObject {
+	objectId: bigint;
+	className: string;
+	properties: RawObject;
+}
 
 const log = createLogger("debugger.scene_tree_client", { output: "Godot Scene Tree" });
 
@@ -30,6 +40,9 @@ export class SceneTreeClient {
 	// Events
 	private _onSceneTree = new EventEmitter<SceneNode>();
 	public readonly onSceneTree = this._onSceneTree.event;
+
+	private _onInspectObject = new EventEmitter<InspectedObject>();
+	public readonly onInspectObject = this._onInspectObject.event;
 
 	private _onConnected = new EventEmitter<void>();
 	public readonly onConnected = this._onConnected.event;
@@ -295,6 +308,37 @@ export class SceneTreeClient {
 				// When debugger stops (paused), request scene tree directly
 				log.info("Debug enter - Godot paused, requesting scene tree");
 				this.sendCommand("scene:request_scene_tree");
+				break;
+			}
+			case "scene:inspect_object": {
+				log.info("Parsing inspect_object response");
+				try {
+					// Parameters: [objectId, className, properties[]]
+					// Each property is: [name, type, hint, hint_string, usage, value]
+					let objectId = BigInt(parameters[0]);
+					const className: string = parameters[1];
+					const properties: any[] = parameters[2] || [];
+
+					// Convert signed to unsigned if negative (Godot sends as signed 64-bit)
+					if (objectId < 0) {
+						objectId = objectId + BigInt(2) ** BigInt(64);
+					}
+
+					const rawObject = new RawObject(className);
+					for (const prop of properties) {
+						// prop[0] = name, prop[5] = value
+						rawObject.set(prop[0], prop[5]);
+					}
+
+					log.info(`Inspect object received: id=${objectId}, class=${className}, props=${properties.length}`);
+					this._onInspectObject.fire({
+						objectId,
+						className,
+						properties: rawObject,
+					});
+				} catch (err) {
+					log.error("Error parsing inspect_object:", err);
+				}
 				break;
 			}
 			case "output": {

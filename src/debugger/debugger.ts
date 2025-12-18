@@ -93,7 +93,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.restore_pinned_file();
 
 		// Initialize Scene Tree Monitor for C# projects
-		this.sceneTreeMonitor = new SceneTreeMonitor(this.sceneTree);
+		this.sceneTreeMonitor = new SceneTreeMonitor(this.sceneTree, this.inspector);
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
@@ -286,6 +286,18 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public async inspect_node(element: SceneNode | RemoteProperty) {
+		// Guard against undefined element (e.g., node was removed from scene)
+		if (!element || element.object_id === undefined) {
+			log.warn("Cannot inspect node: element is undefined or has no object_id");
+			return;
+		}
+
+		// If Scene Tree Monitor is connected, use it for inspection
+		if (this.sceneTreeMonitor.isConnected) {
+			this.sceneTreeMonitor.inspectObject(element.label, BigInt(element.object_id));
+			return;
+		}
+		// Otherwise use the debug session
 		await this.fill_inspector(element);
 	}
 
