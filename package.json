@@ -2,17 +2,17 @@
 	"name": "godot-tools",
 	"displayName": "Godot Tools C# (Fork)",
 	"icon": "icon.png",
-	"version": "2.5.1-csharp.1",
+	"version": "2.5.2+csharp.1",
 	"description": "C# Enhanced Fork by DanTrz, based on the original godot-tools plugin",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/godotengine/godot-vscode-plugin"
+		"url": "https://github.com/DanTrz/godot-vscode-plugin-csharp"
 	},
 	"bugs": {
-		"url": "https://github.com/godotengine/godot-vscode-plugin/issues"
+		"url": "https://github.com/DanTrz/godot-vscode-plugin-csharp/issues"
 	},
 	"license": "MIT",
-	"author": "The Godot Engine community",
+	"author": "DanTrz",
 	"publisher": "geequlim",
 	"engines": {
 		"vscode": "^1.96.0"

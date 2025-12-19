@@ -1,6 +1,6 @@
 # Changelog
 
-### 2.5.1-csharp.1 (C# Fork)
+### 2.5.2+csharp.1 (C# Fork)
 
 - **Active Scene Tree for C# projects** - View running scene nodes during C# debugging
 - **Node Inspector for C#** - Inspect node properties in real-time with auto-refresh
