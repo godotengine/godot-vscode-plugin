@@ -253,6 +253,24 @@
 					"light": "resources/godot_icons/light/Stop.svg",
 					"dark": "resources/godot_icons/dark/Stop.svg"
 				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.pause",
+				"title": "Pause Game",
+				"icon": "$(debug-pause)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.resume",
+				"title": "Resume Game",
+				"icon": "$(debug-continue)"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.nextFrame",
+				"title": "Next Frame (Step)",
+				"icon": "$(debug-step-over)"
 			}
 		],
 		"keybindings": [
@@ -260,6 +278,21 @@
 				"command": "godotTools.switchSceneScript",
 				"key": "alt+o",
 				"when": "editorLangId in godotTools.context.godotFiles && editorTextFocus"
+			},
+			{
+				"command": "godotTools.debugger.pause",
+				"key": "f9",
+				"when": "godotTools.context.sceneTreeMonitor.running && !godotTools.context.sceneTreeMonitor.paused"
+			},
+			{
+				"command": "godotTools.debugger.resume",
+				"key": "f9",
+				"when": "godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused"
+			},
+			{
+				"command": "godotTools.debugger.nextFrame",
+				"key": "f10",
+				"when": "godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused"
 			}
 		],
 		"configuration": {
@@ -772,9 +805,36 @@
 				{
 					"command": "godotTools.debugger.refreshInspector",
 					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.pause",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.resume",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.nextFrame",
+					"when": "false"
 				}
 			],
 			"view/title": [
+				{
+					"command": "godotTools.debugger.pause",
+					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && !godotTools.context.sceneTreeMonitor.paused",
+					"group": "navigation@0"
+				},
+				{
+					"command": "godotTools.debugger.resume",
+					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused",
+					"group": "navigation@0"
+				},
+				{
+					"command": "godotTools.debugger.nextFrame",
+					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused",
+					"group": "navigation@0"
+				},
 				{
 					"command": "godotTools.sceneTreeMonitor.stop",
 					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running",

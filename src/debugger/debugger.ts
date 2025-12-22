@@ -110,6 +110,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 			// Scene Tree Monitor commands
 			register_command("sceneTreeMonitor.stop", this.stop_scene_tree_monitor.bind(this)),
+			// Debug control commands (Tier 1 features)
+			register_command("debugger.pause", this.pause_game.bind(this)),
+			register_command("debugger.resume", this.resume_game.bind(this)),
+			register_command("debugger.nextFrame", this.next_frame.bind(this)),
 			// Auto-start Scene Tree Monitor for C# debug sessions
 			debug.onDidStartDebugSession(this.on_debug_session_start.bind(this)),
 			this.inspector.view,
@@ -342,6 +346,19 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.sceneTreeMonitor.stop();
 	}
 
+	// Debug control methods (Tier 1 features)
+	public pause_game() {
+		this.sceneTreeMonitor.pause();
+	}
+
+	public resume_game() {
+		this.sceneTreeMonitor.resume();
+	}
+
+	public next_frame() {
+		this.sceneTreeMonitor.nextFrame();
+	}
+
 	/**
 	 * Auto-start Scene Tree Monitor when a C# debug session starts.
 	 * This detects coreclr sessions in Godot projects and automatically
@@ -382,10 +399,23 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	public async edit_value(property: RemoteProperty) {
+		// Guard against undefined value (can happen with compound type sub-properties)
+		if (property.value === undefined) {
+			log.warn(`Cannot edit property '${property.label}': value is undefined`);
+			window.showWarningMessage(`Cannot edit '${property.label}': value is undefined. This may be a compound type that requires editing individual components.`);
+			return;
+		}
+
 		const previous_value = property.value;
 		const type = typeof previous_value;
-		const is_float = type === "number" && !Number.isInteger(previous_value);
+		// For compound type sub-properties (Vector3.x, Color.r, etc.), always treat as float
+		// because compound types use floats even if the current value happens to be a whole number
+		const is_compound_child = property.changes_parent === true;
+		const is_float = type === "number" && (is_compound_child || !Number.isInteger(previous_value));
 		const value = await window.showInputBox({ value: `${property.description}` });
+		if (value === undefined) {
+			return; // User cancelled
+		}
 		let new_parsed_value: any;
 		switch (type) {
 			case "string":
@@ -413,22 +443,62 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 					return;
 				}
 		}
+
+		// Determine which backend to use for setting the property
+		const useSceneTreeMonitor = this.sceneTreeMonitor.isConnected;
+
+		log.info(`Editing property '${property.label}': changes_parent=${property.changes_parent}, parent=${property.parent?.label}, value=${new_parsed_value}`);
+
 		if (property.changes_parent) {
+			// Check if parent exists
+			if (!property.parent) {
+				log.error(`Cannot edit '${property.label}': changes_parent is true but parent is undefined`);
+				window.showWarningMessage(`Cannot edit '${property.label}': parent property is missing`);
+				return;
+			}
+
 			const parents = [property.parent];
 			let idx = 0;
-			while (parents[idx].changes_parent) {
+			while (parents[idx]?.changes_parent) {
+				if (!parents[idx].parent) {
+					log.error(`Cannot edit '${property.label}': parent chain is broken at '${parents[idx].label}'`);
+					window.showWarningMessage(`Cannot edit '${property.label}': parent chain is incomplete`);
+					return;
+				}
 				parents.push(parents[idx++].parent);
 			}
+
+			log.info(`Parent chain: ${parents.map(p => p.label).join(" -> ")}, root index: ${idx}`);
+
 			const changed_value = this.inspector.get_changed_value(parents, property, new_parsed_value);
-			this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
+			log.info(`Setting property '${parents[idx].label}' with changed value:`, changed_value);
+
+			if (useSceneTreeMonitor) {
+				this.sceneTreeMonitor.setObjectProperty(BigInt(property.object_id), parents[idx].label, changed_value);
+			} else {
+				this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
+			}
 		} else {
-			this.session?.controller.set_object_property(BigInt(property.object_id), property.label, new_parsed_value);
+			log.info(`Setting property '${property.label}' directly to:`, new_parsed_value);
+			if (useSceneTreeMonitor) {
+				this.sceneTreeMonitor.setObjectProperty(BigInt(property.object_id), property.label, new_parsed_value);
+			} else {
+				this.session?.controller.set_object_property(BigInt(property.object_id), property.label, new_parsed_value);
+			}
 		}
 
-		const item = this.inspector.get_top_item();
-		await this.fill_inspector(item, /*force_refresh*/ true);
+		// Refresh the inspector to show updated values
+		if (useSceneTreeMonitor) {
+			// For Scene Tree Monitor, re-inspect the object
+			this.sceneTreeMonitor.refreshInspector();
+		} else if (this.inspector.has_tree()) {
+			const item = this.inspector.get_top_item();
+			await this.fill_inspector(item, /*force_refresh*/ true);
+		}
 
-		// const res = await debug.activeDebugSession?.customRequest("refreshVariables"); // refresh vscode.debug variables
-		this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		// Refresh VSCode debug variables if session exists
+		if (this.session) {
+			this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		}
 	}
 }

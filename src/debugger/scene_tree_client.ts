@@ -53,8 +53,18 @@ export class SceneTreeClient {
 	private _onError = new EventEmitter<Error>();
 	public readonly onError = this._onError.event;
 
+	private _onPauseStateChanged = new EventEmitter<boolean>();
+	public readonly onPauseStateChanged = this._onPauseStateChanged.event;
+
+	// Debug control state
+	private _isPaused = false;
+
 	public get isConnected(): boolean {
 		return this._isConnected;
+	}
+
+	public get isPaused(): boolean {
+		return this._isPaused;
 	}
 
 	public get port(): number {
@@ -248,6 +258,75 @@ export class SceneTreeClient {
 		this.sendCommand("scene:inspect_object", [objectId]);
 	}
 
+	// ========================================
+	// Debug Control Methods (Tier 1 Features)
+	// ========================================
+
+	/**
+	 * Pause game execution by suspending the SceneTree.
+	 * Uses scene:suspend_changed command which actually pauses game logic.
+	 * Note: This is different from debugger "break" which only pauses GDScript debugging.
+	 */
+	public pause(): void {
+		if (!this._isConnected) {
+			log.warn("Cannot pause: not connected");
+			return;
+		}
+		log.info("Sending scene suspend command (pause)");
+		this.sendCommand("scene:suspend_changed", [true]);
+		this._isPaused = true;
+		this._onPauseStateChanged.fire(true);
+	}
+
+	/**
+	 * Resume game execution by unsuspending the SceneTree.
+	 * Uses scene:suspend_changed command to resume game logic.
+	 */
+	public resume(): void {
+		if (!this._isConnected) {
+			log.warn("Cannot resume: not connected");
+			return;
+		}
+		log.info("Sending scene unsuspend command (resume)");
+		this.sendCommand("scene:suspend_changed", [false]);
+		this._isPaused = false;
+		this._onPauseStateChanged.fire(false);
+	}
+
+	/**
+	 * Advance exactly one frame then pause again.
+	 * Uses the scene debugger's next_frame command (Godot 4.x).
+	 * IMPORTANT: This only works when SceneTree is suspended (via pause()).
+	 */
+	public nextFrame(): void {
+		if (!this._isConnected) {
+			log.warn("Cannot step frame: not connected");
+			return;
+		}
+		if (!this._isPaused) {
+			log.warn("Cannot step frame: game must be paused first");
+			return;
+		}
+		log.info("Sending next frame command");
+		this.sendCommand("scene:next_frame");
+		// Game stays paused after advancing one frame
+	}
+
+	/**
+	 * Set a property on a remote object.
+	 * Changes are RUNTIME ONLY - scene files are not modified.
+	 * Works for primitive types (int, float, string, bool, Vector3, Color).
+	 * Note: Node-type properties have a Godot bug where setters don't run.
+	 */
+	public setObjectProperty(objectId: bigint, property: string, value: any): void {
+		if (!this._isConnected) {
+			log.warn("Cannot set property: not connected");
+			return;
+		}
+		log.info(`Setting property ${property} on object ${objectId}`);
+		this.sendCommand("scene:set_object_property", [objectId, property, value]);
+	}
+
 	private onData(buffer: Buffer): void {
 		if (this.stash) {
 			buffer = Buffer.concat([this.stash, buffer]);
@@ -305,8 +384,10 @@ export class SceneTreeClient {
 				break;
 			}
 			case "debug_enter": {
-				// When debugger stops (paused), request scene tree directly
+				// When debugger stops (paused), update state and request scene tree
 				log.info("Debug enter - Godot paused, requesting scene tree");
+				this._isPaused = true;
+				this._onPauseStateChanged.fire(true);
 				this.sendCommand("scene:request_scene_tree");
 				break;
 			}
@@ -366,12 +447,18 @@ export class SceneTreeClient {
 				log.warn("Godot error received (full):", JSON.stringify(parameters));
 				break;
 			}
+			case "debug_exit": {
+				// When debugger resumes (running), update state
+				log.info("Debug exit - Godot resumed");
+				this._isPaused = false;
+				this._onPauseStateChanged.fire(false);
+				break;
+			}
 			case "performance:profile_frame":
 			case "message:click_ctrl":
 			case "stack_dump":
 			case "stack_frame_vars":
 			case "stack_frame_var":
-			case "debug_exit":
 				// Ignore these messages - we only care about scene tree
 				break;
 			default:

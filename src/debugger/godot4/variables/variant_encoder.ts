@@ -391,57 +391,34 @@ export class VariantEncoder {
 				// TODO: size of nodepath, rid, object, callable, signal
 				if (Array.isArray(value)) {
 					size += this.size_array(value);
-					break;
 				} else if (value instanceof Map) {
 					size += this.size_Dictionary(value);
-					break;
 				} else if (value instanceof StringName) {
 					size += this.size_String(value.value);
-					break;
-				} else {
-					// biome-ignore lint/complexity/useLiteralKeys: <explanation>
-					switch (value["__type__"]) {
-						case "Vector2":
-						case "Vector2i":
-							size += this.size_UInt32() * 2;
-							break;
-						case "Rect2":
-						case "Rect2i":
-							size += this.size_UInt32() * 4;
-							break;
-						case "Vector3":
-						case "Vector3i":
-							size += this.size_UInt32() * 3;
-							break;
-						case "Vector4":
-						case "Vector4i":
-							size += this.size_UInt32() * 4;
-							break;
-						case "Transform2D":
-							size += this.size_UInt32() * 6;
-							break;
-						case "Projection":
-							size += this.size_UInt32() * 16;
-							break;
-						case "Plane":
-							size += this.size_UInt32() * 4;
-							break;
-						case "Quaternion":
-							size += this.size_UInt32() * 4;
-							break;
-						case "AABB":
-							size += this.size_UInt32() * 6;
-							break;
-						case "Basis":
-							size += this.size_UInt32() * 9;
-							break;
-						case "Transform3D":
-							size += this.size_UInt32() * 12;
-							break;
-						case "Color":
-							size += this.size_UInt32() * 4;
-							break;
-					}
+				} else if (value instanceof Vector2i || value instanceof Vector2) {
+					size += this.size_UInt32() * 2;
+				} else if (value instanceof Rect2i || value instanceof Rect2) {
+					size += this.size_UInt32() * 4;
+				} else if (value instanceof Vector3i || value instanceof Vector3) {
+					size += this.size_UInt32() * 3;
+				} else if (value instanceof Vector4i || value instanceof Vector4) {
+					size += this.size_UInt32() * 4;
+				} else if (value instanceof Transform2D) {
+					size += this.size_UInt32() * 6;
+				} else if (value instanceof Projection) {
+					size += this.size_UInt32() * 16;
+				} else if (value instanceof Plane) {
+					size += this.size_UInt32() * 4;
+				} else if (value instanceof Quat) {
+					size += this.size_UInt32() * 4;
+				} else if (value instanceof AABB) {
+					size += this.size_UInt32() * 6;
+				} else if (value instanceof Basis) {
+					size += this.size_UInt32() * 9;
+				} else if (value instanceof Transform3D) {
+					size += this.size_UInt32() * 12;
+				} else if (value instanceof Color) {
+					size += this.size_UInt32() * 4;
 				}
 				break;
 		}

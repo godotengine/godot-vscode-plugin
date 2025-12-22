@@ -71,6 +71,13 @@ export class SceneTreeMonitor {
 			log.error("Client error:", error);
 			vscode.window.showErrorMessage(`Scene Tree Monitor error: ${error.message}`);
 		});
+
+		// Track pause state changes
+		this.client.onPauseStateChanged((isPaused) => {
+			log.info(`Pause state changed: ${isPaused}`);
+			set_context("sceneTreeMonitor.paused", isPaused);
+			this.updateStatusBar();
+		});
 	}
 
 	public get isRunning(): boolean {
@@ -79,6 +86,67 @@ export class SceneTreeMonitor {
 
 	public get isConnected(): boolean {
 		return this.client.isConnected;
+	}
+
+	public get isPaused(): boolean {
+		return this.client.isPaused;
+	}
+
+	// ========================================
+	// Debug Control Methods (Tier 1 Features)
+	// ========================================
+
+	/**
+	 * Pause game execution.
+	 * Uses native debug protocol command - works without project modification.
+	 */
+	public pause(): void {
+		if (!this.client.isConnected) {
+			log.warn("Cannot pause: not connected");
+			return;
+		}
+		this.client.pause();
+	}
+
+	/**
+	 * Resume game execution.
+	 * Uses native debug protocol command - works without project modification.
+	 */
+	public resume(): void {
+		if (!this.client.isConnected) {
+			log.warn("Cannot resume: not connected");
+			return;
+		}
+		this.client.resume();
+	}
+
+	/**
+	 * Advance exactly one frame then pause again.
+	 * Requires the game to be paused first (via scene suspension).
+	 */
+	public nextFrame(): void {
+		if (!this.client.isConnected) {
+			log.warn("Cannot step frame: not connected");
+			return;
+		}
+		if (!this.client.isPaused) {
+			log.warn("Cannot step frame: game must be paused first");
+			vscode.window.showWarningMessage("Cannot step frame: pause the game first");
+			return;
+		}
+		this.client.nextFrame();
+	}
+
+	/**
+	 * Set a property on a remote object.
+	 * Changes are RUNTIME ONLY - scene files are not modified.
+	 */
+	public setObjectProperty(objectId: bigint, property: string, value: any): void {
+		if (!this.client.isConnected) {
+			log.warn("Cannot set property: not connected");
+			return;
+		}
+		this.client.setObjectProperty(objectId, property, value);
 	}
 
 	/**
@@ -133,6 +201,7 @@ export class SceneTreeMonitor {
 		this.client.stop();
 		this._isRunning = false;
 		set_context("sceneTreeMonitor.running", false);
+		set_context("sceneTreeMonitor.paused", false);
 		this.updateStatusBar();
 		this.sceneTree.clear();
 		this.sceneTree.view.description = undefined;
