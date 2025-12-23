@@ -740,6 +740,7 @@
 				{
 					"id": "godotTools.nodeInspector",
 					"name": "Inspector",
+					"type": "webview",
 					"icon": "resources/godot_icon.svg"
 				}
 			],
@@ -876,17 +877,7 @@
 					"when": "view == godotTools.activeSceneTree",
 					"group": "inline"
 				},
-				{
-					"command": "godotTools.debugger.inspectNode",
-					"when": "view == godotTools.nodeInspector && viewItem == remote_object",
-					"group": "inline"
-				},
-				{
-					"command": "godotTools.debugger.editValue",
-					"when": "view == godotTools.nodeInspector && viewItem == editable_value",
-					"group": "inline"
-				},
-				{
+					{
 					"command": "godotTools.scenePreview.goToDefinition",
 					"when": "view == godotTools.scenePreview",
 					"group": "1@1"

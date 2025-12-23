@@ -7,10 +7,19 @@ import {
 } from "../utils";
 import { GodotVariable } from "./debug_runtime";
 import { GameDebugControlsProvider } from "./game_debug_controls_provider";
-import { InspectorProvider } from "./inspector_provider";
 import { killSubProcesses } from "../utils/subspawn";
 import { InspectedObject, SceneTreeClient } from "./scene_tree_client";
 import { SceneTreeProvider } from "./scene_tree_provider";
+
+/**
+ * Interface for inspector providers (TreeView or WebView).
+ */
+interface IInspectorProvider {
+	fill_tree(element_name: string, class_name: string, object_id: number, variable: GodotVariable): void;
+	clear(): void;
+	/** Check if user is currently editing (optional - only WebView has this) */
+	isCurrentlyEditing?: boolean;
+}
 
 const log = createLogger("debugger.scene_tree_monitor", { output: "Godot Scene Tree" });
 
@@ -31,7 +40,7 @@ export class SceneTreeMonitor {
 
 	constructor(
 		private sceneTree: SceneTreeProvider,
-		private inspector: InspectorProvider,
+		private inspector: IInspectorProvider,
 		private gameDebugControls: GameDebugControlsProvider,
 	) {
 		this.client = new SceneTreeClient();
@@ -179,6 +188,10 @@ export class SceneTreeMonitor {
 		if (refreshMs > 0) {
 			this.refreshInterval = setInterval(() => {
 				if (this.client.isConnected) {
+					// Skip refresh if user is currently editing a value
+					if (this.inspector.isCurrentlyEditing) {
+						return;
+					}
 					this.client.requestSceneTree();
 					// Also refresh the inspector if we have a currently inspected object
 					this.refreshInspector();

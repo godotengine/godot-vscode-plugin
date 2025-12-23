@@ -65,6 +65,14 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 
 		tree_item.description = element.class_name;
 		tree_item.iconPath = element.iconPath;
+
+		// Auto-inspect on click: when user clicks a node, automatically inspect it
+		tree_item.command = {
+			command: "godotTools.debugger.inspectNode",
+			arguments: [element],
+			title: "Inspect Node"
+		};
+
 		if (element.scene_file_path) {
 			let tooltip = "";
 			tooltip += `${element.label}`;

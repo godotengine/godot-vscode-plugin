@@ -11,17 +11,20 @@ export class InspectorProvider implements TreeDataProvider<RemoteProperty> {
 	onDidChangeTreeData = this.changeTreeEvent.event;
 
 	private root: RemoteProperty | undefined;
-	public view: TreeView<RemoteProperty>;
+	// Note: TreeView is no longer created here - we now use InspectorWebView (WebView) instead
+	// This class is kept for its get_changed_value() logic used in compound value reconstruction
+	public view?: TreeView<RemoteProperty>;
 
 	constructor() {
-		this.view = window.createTreeView("godotTools.nodeInspector", {
-			treeDataProvider: this,
-		});
+		// Don't create TreeView - the Inspector is now a WebView registered in package.json
+		// The old TreeView code conflicted with the WebView registration
 	}
 
 	public clear() {
-		this.view.description = undefined;
-		this.view.message = undefined;
+		if (this.view) {
+			this.view.description = undefined;
+			this.view.message = undefined;
+		}
 
 		if (this.root) {
 			this.root = undefined;
