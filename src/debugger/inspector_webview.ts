@@ -24,7 +24,7 @@ interface SerializedProperty {
 	id: string;
 	label: string;
 	description: string;
-	value_type: "number" | "bigint" | "boolean" | "string" | "null" | "object" | "array" | "map" | "objectId" | "compound";
+	value_type: "number" | "bigint" | "boolean" | "string" | "null" | "object" | "array" | "map" | "objectId" | "compound" | "resourcePath";
 	editable: boolean;
 	changes_parent: boolean;
 	object_id: number;
@@ -220,10 +220,18 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 			raw_value = value;
 			rendered_value = `${value}`;
 		} else if (typeof value === "string") {
-			value_type = "string";
-			editable = true;
-			raw_value = value;
-			rendered_value = `${value}`;
+			// Check if this is a resource path (res://) - display as non-editable styled text
+			if (value.startsWith("res://")) {
+				value_type = "resourcePath";
+				editable = false; // Cannot edit - would need Godot ResourceLoader
+				raw_value = value;
+				rendered_value = value;
+			} else {
+				value_type = "string";
+				editable = true;
+				raw_value = value;
+				rendered_value = `${value}`;
+			}
 		} else if (typeof value === "undefined") {
 			value_type = "null";
 			editable = false;
@@ -688,6 +696,13 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 			text-decoration: underline;
 		}
 
+		/* Resource path (res://) - styled but not clickable */
+		.property-value.resource-path {
+			color: var(--vscode-descriptionForeground);
+			font-style: italic;
+			opacity: 0.9;
+		}
+
 		/* Compound type inline editors (Vector3, Color, etc.) */
 		.compound-editor {
 			display: flex;
@@ -888,6 +903,11 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 							objectId: prop.raw_value
 						});
 					});
+				} else if (prop.value_type === "resourcePath") {
+					// Resource path: styled but not clickable (cannot drill-down externally)
+					value.textContent = prop.description;
+					value.classList.add("resource-path");
+					value.title = "Resource path - cannot inspect externally (requires Godot ResourceLoader)";
 				} else {
 					// Non-editable
 					value.textContent = prop.description;
