@@ -767,20 +767,125 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 			margin-right: 4px;
 			flex-shrink: 0;
 		}
+
+		/* Filter toolbar */
+		.inspector-toolbar {
+			display: flex;
+			padding: 4px 8px;
+			border-bottom: 1px solid var(--vscode-panel-border);
+			position: sticky;
+			top: 0;
+			background: var(--vscode-sideBar-background);
+			z-index: 10;
+			gap: 4px;
+		}
+
+		.filter-input {
+			flex: 1;
+			background: var(--vscode-input-background);
+			color: var(--vscode-input-foreground);
+			border: 1px solid var(--vscode-input-border, transparent);
+			padding: 3px 6px;
+			font-family: inherit;
+			font-size: inherit;
+			outline: none;
+		}
+
+		.filter-input:focus {
+			border-color: var(--vscode-focusBorder);
+		}
+
+		.filter-input::placeholder {
+			color: var(--vscode-input-placeholderForeground);
+		}
+
+		.clear-button {
+			background: transparent;
+			border: none;
+			color: var(--vscode-foreground);
+			cursor: pointer;
+			padding: 0 6px;
+			opacity: 0.6;
+			font-size: 14px;
+		}
+
+		.clear-button:hover {
+			opacity: 1;
+		}
+
+		.inspector-content {
+			padding: 4px 0;
+		}
+
+		.filter-hidden {
+			display: none !important;
+		}
 	</style>
 </head>
 <body>
 	<div id="inspector" class="inspector">
-		<div class="welcome">Node has not been inspected</div>
+		<div class="inspector-toolbar">
+			<input id="filterInput" type="text" placeholder="Filter properties..." class="filter-input">
+			<button id="clearFilter" class="clear-button" title="Clear filter">×</button>
+		</div>
+		<div id="properties" class="inspector-content">
+			<div class="welcome">Node has not been inspected</div>
+		</div>
 	</div>
 
 	<script nonce="${nonce}">
 		const vscode = acquireVsCodeApi();
-		const inspector = document.getElementById("inspector");
+		const propertiesContainer = document.getElementById("properties");
+		const filterInput = document.getElementById("filterInput");
+		const clearFilterBtn = document.getElementById("clearFilter");
 
 		let currentData = null;
 		// Track expanded paths to persist state across refreshes
 		const expandedPaths = new Set();
+
+		// Filter input handlers
+		filterInput.addEventListener("input", (e) => {
+			applyFilter(e.target.value);
+		});
+
+		clearFilterBtn.addEventListener("click", () => {
+			filterInput.value = "";
+			applyFilter("");
+		});
+
+		function applyFilter(filterText) {
+			const lowerFilter = filterText.toLowerCase().trim();
+			const containers = propertiesContainer.querySelectorAll(".property-container");
+
+			containers.forEach(container => {
+				const visible = shouldShowProperty(container, lowerFilter);
+				container.classList.toggle("filter-hidden", !visible && lowerFilter !== "");
+			});
+		}
+
+		function shouldShowProperty(container, filter) {
+			if (!filter) return true;
+
+			const row = container.querySelector(":scope > .property-row");
+			const label = row?.querySelector(".property-label")?.textContent?.toLowerCase() || "";
+			const value = row?.querySelector(".property-value")?.textContent?.toLowerCase() || "";
+			// Also check compound editor inputs
+			const compoundInputs = row?.querySelectorAll(".compound-input") || [];
+			const compoundValues = Array.from(compoundInputs).map(input => input.value?.toLowerCase() || "").join(" ");
+
+			// Check if this property matches
+			const matches = label.includes(filter) || value.includes(filter) || compoundValues.includes(filter);
+
+			// Check if any direct children match (recursive via DOM)
+			const childrenContainer = container.querySelector(":scope > .property-children");
+			if (childrenContainer) {
+				const childContainers = childrenContainer.querySelectorAll(":scope > .children-container > .property-container");
+				const hasMatchingChild = Array.from(childContainers).some(child => shouldShowProperty(child, filter));
+				if (hasMatchingChild) return true;
+			}
+
+			return matches;
+		}
 
 		// Handle messages from the extension
 		window.addEventListener("message", (event) => {
@@ -790,7 +895,7 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 					renderTree(message.data, message.element_name, message.class_name, message.object_id);
 					break;
 				case "clear":
-					inspector.innerHTML = '<div class="welcome">Node has not been inspected</div>';
+					propertiesContainer.innerHTML = '<div class="welcome">Node has not been inspected</div>';
 					currentData = null;
 					expandedPaths.clear();
 					break;
@@ -799,11 +904,16 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 
 		function renderTree(data, elementName, className, objectId) {
 			currentData = data;
-			inspector.innerHTML = "";
+			propertiesContainer.innerHTML = "";
 
 			// Render root node
 			const rootElement = renderProperty(data, [], true);
-			inspector.appendChild(rootElement);
+			propertiesContainer.appendChild(rootElement);
+
+			// Re-apply filter if there's text in the filter input
+			if (filterInput.value) {
+				applyFilter(filterInput.value);
+			}
 		}
 
 		function getPathKey(path) {
