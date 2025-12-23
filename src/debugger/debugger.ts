@@ -106,6 +106,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.inspectorWebView.setEditCallback(this.handleWebViewEdit.bind(this));
 		this.inspectorWebView.setEditCompoundCallback(this.handleWebViewCompoundEdit.bind(this));
 
+		// Set up the inspect object callback for drilling into resources (ObjectId)
+		this.inspectorWebView.setInspectObjectCallback(this.handleWebViewInspectObject.bind(this));
+
 		// Register WebView provider FIRST to avoid "No view is registered" error on startup
 		context.subscriptions.push(
 			window.registerWebviewViewProvider(InspectorWebView.viewType, this.inspectorWebView),
@@ -547,6 +550,25 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		// Refresh VSCode debug variables if session exists
 		if (this.session) {
 			this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		}
+	}
+
+	/**
+	 * Handle clicking on an ObjectId to drill down into a resource.
+	 * This allows inspecting nested resources like Materials, Meshes, Textures, etc.
+	 */
+	private handleWebViewInspectObject(objectIdStr: string): void {
+		const objectId = BigInt(objectIdStr);
+
+		log.info(`WebView inspect object: Drilling into ObjectId ${objectId}`);
+
+		// Use Scene Tree Monitor if connected (C# projects)
+		if (this.sceneTreeMonitor.isConnected) {
+			this.sceneTreeMonitor.inspectObject("Resource", objectId);
+		} else if (this.session) {
+			// Use debug session for GDScript projects
+			// Create a minimal element for fill_inspector
+			this.fill_inspector({ label: "Resource", object_id: Number(objectId) } as SceneNode, /*force_refresh*/ true);
 		}
 	}
 

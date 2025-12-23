@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
-import { GodotVariable, ObjectId, RawObject } from "./debug_runtime";
+import { GodotVariable, RawObject } from "./debug_runtime";
 import {
 	Vector2, Vector2i, Vector3, Vector3i, Vector4, Vector4i,
 	Color, Basis, AABB, Plane, Quat, Rect2, Rect2i,
-	Transform2D, Transform3D, Projection, NodePath, StringName
+	Transform2D, Transform3D, Projection, NodePath, StringName,
+	ObjectId
 } from "./godot4/variables/variants";
 
 /**
@@ -53,6 +54,9 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 
 	// Callback for when user edits a compound value (Vector3, Color, etc.)
 	private onEditCompoundCallback?: (objectId: number, propertyName: string, reconstructedValue: any) => void;
+
+	// Callback for when user clicks on an ObjectId to drill down into a resource
+	private onInspectObjectCallback?: (objectId: string) => void;
 
 	constructor(private readonly extensionUri: vscode.Uri) {}
 
@@ -106,6 +110,14 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 	 */
 	public setEditCompoundCallback(callback: (objectId: number, propertyName: string, reconstructedValue: any) => void): void {
 		this.onEditCompoundCallback = callback;
+	}
+
+	/**
+	 * Set callback for when user clicks on an ObjectId to drill down into a resource.
+	 * This enables inspecting nested resources like Materials, Meshes, Textures, etc.
+	 */
+	public setInspectObjectCallback(callback: (objectId: string) => void): void {
+		this.onInspectObjectCallback = callback;
 	}
 
 	/**
@@ -419,7 +431,10 @@ export class InspectorWebView implements vscode.WebviewViewProvider {
 				this.handleEditCompound(message);
 				break;
 			case "inspect_object":
-				// TODO: Handle clicking on ObjectId to drill down
+				// Handle clicking on ObjectId to drill down into a resource
+				if (this.onInspectObjectCallback && message.objectId) {
+					this.onInspectObjectCallback(message.objectId);
+				}
 				break;
 		}
 	}
