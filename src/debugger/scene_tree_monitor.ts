@@ -6,6 +6,7 @@ import {
 	set_context,
 } from "../utils";
 import { GodotVariable } from "./debug_runtime";
+import { GameDebugControlsProvider } from "./game_debug_controls_provider";
 import { InspectorProvider } from "./inspector_provider";
 import { killSubProcesses } from "../utils/subspawn";
 import { InspectedObject, SceneTreeClient } from "./scene_tree_client";
@@ -31,6 +32,7 @@ export class SceneTreeMonitor {
 	constructor(
 		private sceneTree: SceneTreeProvider,
 		private inspector: InspectorProvider,
+		private gameDebugControls: GameDebugControlsProvider,
 	) {
 		this.client = new SceneTreeClient();
 
@@ -44,6 +46,7 @@ export class SceneTreeMonitor {
 			log.info("Godot connected");
 			this.updateStatusBar();
 			this.sceneTree.view.message = undefined;
+			this.gameDebugControls.updateState(true, this.client.isPaused);
 
 			// Initial scene tree request
 			setTimeout(() => this.client.requestSceneTree(), 500);
@@ -77,6 +80,7 @@ export class SceneTreeMonitor {
 			log.info(`Pause state changed: ${isPaused}`);
 			set_context("sceneTreeMonitor.paused", isPaused);
 			this.updateStatusBar();
+			this.gameDebugControls.updateState(true, isPaused);
 		});
 	}
 
@@ -206,6 +210,7 @@ export class SceneTreeMonitor {
 		this.sceneTree.clear();
 		this.sceneTree.view.description = undefined;
 		this.sceneTree.view.message = undefined;
+		this.gameDebugControls.updateState(false, false);
 
 		// Clear inspection state
 		this.clearInspection();

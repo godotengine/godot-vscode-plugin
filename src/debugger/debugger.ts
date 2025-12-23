@@ -28,6 +28,7 @@ import { GodotObject } from "./godot4/variables/godot_object_promise";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
 import { SceneTreeMonitor } from "./scene_tree_monitor";
+import { GameDebugControlsProvider } from "./game_debug_controls_provider";
 
 const log = createLogger("debugger", { output: "Godot Debugger" });
 
@@ -83,6 +84,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public session?: Godot3DebugSession | Godot4DebugSession;
 	public sceneTree = new SceneTreeProvider();
 	public inspector = new InspectorProvider();
+	public gameDebugControls = new GameDebugControlsProvider();
 	public sceneTreeMonitor: SceneTreeMonitor;
 
 	fileDecorations = new GDFileDecorationProvider();
@@ -93,7 +95,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.restore_pinned_file();
 
 		// Initialize Scene Tree Monitor for C# projects
-		this.sceneTreeMonitor = new SceneTreeMonitor(this.sceneTree, this.inspector);
+		this.sceneTreeMonitor = new SceneTreeMonitor(this.sceneTree, this.inspector, this.gameDebugControls);
 
 		context.subscriptions.push(
 			debug.registerDebugConfigurationProvider("godot", this),
@@ -118,6 +120,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			debug.onDidStartDebugSession(this.on_debug_session_start.bind(this)),
 			this.inspector.view,
 			this.sceneTree.view,
+			this.gameDebugControls.view,
 		);
 	}
 

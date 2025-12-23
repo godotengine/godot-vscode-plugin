@@ -728,6 +728,11 @@
 		"views": {
 			"debug": [
 				{
+					"id": "godotTools.gameDebugControls",
+					"name": "Game Debug Controls",
+					"icon": "resources/godot_icon.svg"
+				},
+				{
 					"id": "godotTools.activeSceneTree",
 					"name": "Active Scene Tree",
 					"icon": "resources/godot_icon.svg"
@@ -747,6 +752,10 @@
 			]
 		},
 		"viewsWelcome": [
+			{
+				"view": "godotTools.gameDebugControls",
+				"contents": "Debug controls will appear when connected to a running Godot game.\n\nPress F5 to start debugging."
+			},
 			{
 				"view": "godotTools.activeSceneTree",
 				"contents": "Press F5 to start debugging with Scene Tree.\n\nMake sure your launch.json includes:\n`--remote-debug tcp://127.0.0.1:6007`\n\nSee [setup instructions](https://github.com/DanTrz/godot-vscode-plugin-csharp) for details."
@@ -820,21 +829,6 @@
 				}
 			],
 			"view/title": [
-				{
-					"command": "godotTools.debugger.pause",
-					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && !godotTools.context.sceneTreeMonitor.paused",
-					"group": "navigation@0"
-				},
-				{
-					"command": "godotTools.debugger.resume",
-					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused",
-					"group": "navigation@0"
-				},
-				{
-					"command": "godotTools.debugger.nextFrame",
-					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running && godotTools.context.sceneTreeMonitor.paused",
-					"group": "navigation@0"
-				},
 				{
 					"command": "godotTools.sceneTreeMonitor.stop",
 					"when": "view == godotTools.activeSceneTree && godotTools.context.sceneTreeMonitor.running",
