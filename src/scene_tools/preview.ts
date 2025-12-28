@@ -26,7 +26,14 @@ import {
 	set_context,
 } from "../utils";
 import { SceneParser } from "./parser";
-import type { Scene, SceneNode } from "./types";
+import {
+	type FuzzySearchResult,
+	formatSearchResultDescription,
+	formatSearchResultDetail,
+	formatSearchResultLabel,
+	searchNodes,
+} from "./search";
+import { SceneNode, type Scene } from "./types";
 
 const log = createLogger("scenes.preview");
 
@@ -41,6 +48,11 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	watcher = workspace.createFileSystemWatcher("**/*.tscn");
 	uniqueDecorator = new UniqueDecorationProvider(this);
 	scriptDecorator = new ScriptDecorationProvider(this);
+
+	// Filter mode state
+	private filterQuery = "";
+	private filteredNodes: SceneNode[] = [];
+	private isFilterMode = false;
 
 	private changeTreeEvent = new EventEmitter<void>();
 	onDidChangeTreeData = this.changeTreeEvent.event;
@@ -63,6 +75,9 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			register_command("scenePreview.goToDefinition", this.go_to_definition.bind(this)),
 			register_command("scenePreview.openDocumentation", this.open_documentation.bind(this)),
 			register_command("scenePreview.refresh", this.refresh.bind(this)),
+			register_command("scenePreview.search", this.open_search.bind(this)),
+			register_command("scenePreview.filter", this.toggle_filter_mode.bind(this)),
+			register_command("scenePreview.clearFilter", this.clearFilter.bind(this)),
 			window.onDidChangeActiveTextEditor(this.text_editor_changed.bind(this)),
 			window.registerFileDecorationProvider(this.uniqueDecorator),
 			window.registerFileDecorationProvider(this.scriptDecorator),
@@ -238,6 +253,158 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		vscode.commands.executeCommand("vscode.open", make_docs_uri(item.className));
 	}
 
+	/**
+	 * Opens a QuickPick dialog for fuzzy searching nodes.
+	 * Selecting a result reveals and selects the node in the tree.
+	 */
+	private async open_search(): Promise<void> {
+		if (!this.scene?.nodes || this.scene.nodes.size === 0) {
+			vscode.window.showInformationMessage("No scene loaded to search");
+			return;
+		}
+
+		// Clear filter mode if active to show normal tree after selection
+		if (this.isFilterMode) {
+			this.clearFilter();
+		}
+
+		interface SearchQuickPickItem extends vscode.QuickPickItem {
+			node: SceneNode;
+		}
+
+		const quickPick = vscode.window.createQuickPick<SearchQuickPickItem>();
+		quickPick.placeholder =
+			"Search nodes by name or type (e.g., 'mcoll' for MonsterController)";
+		quickPick.matchOnDescription = true;
+		quickPick.matchOnDetail = true;
+
+		// Debounce search for performance
+		let searchTimeout: NodeJS.Timeout | undefined;
+
+		quickPick.onDidChangeValue((value) => {
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+			}
+			searchTimeout = setTimeout(() => {
+				const results = searchNodes(this.scene, value);
+				quickPick.items = results.map((r) => ({
+					label: formatSearchResultLabel(r),
+					description: formatSearchResultDescription(r),
+					detail: formatSearchResultDetail(r),
+					node: r.node,
+				}));
+			}, 50); // 50ms debounce
+		});
+
+		quickPick.onDidAccept(() => {
+			const selected = quickPick.selectedItems[0];
+			if (selected?.node) {
+				// Find the original node in the scene (not the cloned one)
+				const originalNode = this.scene.nodes.get(selected.node.path);
+				if (originalNode) {
+					// Reveal and select the node in the tree
+					this.tree.reveal(originalNode, {
+						select: true,
+						focus: true,
+						expand: true,
+					});
+				}
+			}
+			quickPick.hide();
+		});
+
+		quickPick.onDidHide(() => {
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+			}
+			quickPick.dispose();
+		});
+
+		quickPick.show();
+	}
+
+	/**
+	 * Toggles filter mode on/off.
+	 * When enabling, prompts for a filter query.
+	 */
+	private async toggle_filter_mode(): Promise<void> {
+		if (this.isFilterMode) {
+			this.clearFilter();
+			return;
+		}
+
+		if (!this.scene?.nodes || this.scene.nodes.size === 0) {
+			vscode.window.showInformationMessage("No scene loaded to filter");
+			return;
+		}
+
+		const query = await vscode.window.showInputBox({
+			prompt: "Filter nodes (fuzzy match on name and type)",
+			placeHolder: "e.g., 'mcoll' for MonsterController",
+		});
+
+		if (query) {
+			this.applyFilter(query);
+		}
+	}
+
+	/**
+	 * Applies a filter query and transforms the tree to show flat results.
+	 * Nodes are cloned to preserve drag-and-drop functionality.
+	 * Called by the filter WebView panel for real-time filtering.
+	 */
+	public applyFilter(query: string): void {
+		this.filterQuery = query;
+		this.isFilterMode = true;
+
+		const results = searchNodes(this.scene, query);
+		this.filteredNodes = results.map((r) => {
+			// Clone node for flat display, preserving all properties for drag-and-drop
+			const flatNode = new SceneNode(
+				r.node.label as string,
+				r.node.className,
+				TreeItemCollapsibleState.None,
+			);
+
+			// Copy all properties needed for functionality
+			flatNode.path = r.node.path;
+			flatNode.relativePath = r.node.relativePath;
+			flatNode.resourcePath = r.node.resourcePath;
+			flatNode.parent = r.node.parent;
+			flatNode.unique = r.node.unique;
+			flatNode.hasScript = r.node.hasScript;
+			flatNode.scriptId = r.node.scriptId;
+			flatNode.position = r.node.position;
+			flatNode.text = r.node.text;
+			flatNode.body = r.node.body;
+			flatNode.contextValue = r.node.contextValue;
+			flatNode.resourceUri = r.node.resourceUri;
+			flatNode.children = []; // No children in flat mode
+
+			// Add path as description for context
+			flatNode.description = `${r.node.className} - ${r.node.relativePath || "(root)"}`;
+
+			return flatNode;
+		});
+
+		set_context("scenePreview.filterMode", true);
+		this.tree.message = `Filtering: "${query}" (${this.filteredNodes.length} results)`;
+		this.changeTreeEvent.fire();
+	}
+
+	/**
+	 * Clears the filter and restores the hierarchical tree view.
+	 * Called by the filter WebView panel when clear button is clicked.
+	 */
+	public clearFilter(): void {
+		this.filterQuery = "";
+		this.filteredNodes = [];
+		this.isFilterMode = false;
+		set_context("scenePreview.filterMode", false);
+		this.tree.message = this.scene?.title || "";
+		this.changeTreeEvent.fire();
+	}
+
 	private tree_selection_changed(event: vscode.TreeViewSelectionChangeEvent<SceneNode>) {
 		// const item = event.selection[0];
 		// log(item.body);
@@ -248,11 +415,21 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 
 	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
 		if (!element) {
+			// In filter mode, return flat filtered results
+			if (this.isFilterMode) {
+				return Promise.resolve(this.filteredNodes);
+			}
 			if (!this.scene?.root) {
 				return Promise.resolve([]);
 			}
 			return Promise.resolve([this.scene?.root]);
 		}
+
+		// In filter mode, nodes have no children (flat list)
+		if (this.isFilterMode) {
+			return Promise.resolve([]);
+		}
+
 		return Promise.resolve(element.children);
 	}
 

@@ -746,6 +746,12 @@
 			],
 			"godotTools": [
 				{
+					"id": "godotTools.scenePreviewFilter",
+					"name": "Filter",
+					"type": "webview",
+					"icon": "resources/godot_icon.svg"
+				},
+				{
 					"id": "godotTools.scenePreview",
 					"name": "Scene Preview",
 					"icon": "resources/godot_icon.svg"

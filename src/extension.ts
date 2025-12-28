@@ -14,7 +14,7 @@ import {
 	GDTaskProvider,
 } from "./providers";
 import { ClientConnectionManager } from "./lsp";
-import { ScenePreviewProvider } from "./scene_tools";
+import { ScenePreviewProvider, ScenePreviewFilterProvider } from "./scene_tools";
 import { GodotDebugger } from "./debugger";
 import { FormattingProvider } from "./formatter";
 import {
@@ -58,6 +58,17 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.lsp = new ClientConnectionManager(context);
 	globals.debug = new GodotDebugger(context);
 	globals.scenePreviewProvider = new ScenePreviewProvider(context);
+
+	// Register the filter WebView panel above the Scene Preview TreeView
+	const filterProvider = new ScenePreviewFilterProvider(context.extensionUri);
+	filterProvider.setScenePreviewProvider(globals.scenePreviewProvider);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			ScenePreviewFilterProvider.viewType,
+			filterProvider,
+		),
+	);
+
 	globals.linkProvider = new GDDocumentLinkProvider(context);
 	globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
