@@ -102,7 +102,13 @@ View the **running scene tree** and **inspect node properties** during C# debugg
 
 ---
 
-### 3. Advanced Debug Controls
+### 3. Live Property Editing on Node Inspector
+
+Right-click any property in the Node Inspector and select "Edit Value" to modify it at runtime.
+
+**Supported types:** `int`, `float`, `bool`, `string`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Transform3D`, and more.
+
+### 4. Advanced Debug Controls
 
 Full debug control panel for C# projects:
 
@@ -113,11 +119,7 @@ Full debug control panel for C# projects:
 | **Live Edit** | Modify node properties at runtime |
 | **Inspector Search** | Filter properties by name |
 
-#### Live Property Editing
 
-Right-click any property in the Node Inspector and select "Edit Value" to modify it at runtime.
-
-**Supported types:** `int`, `float`, `bool`, `string`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Transform3D`, and more.
 
 ---
 
