@@ -2,8 +2,8 @@
 	"name": "godot-tools",
 	"displayName": "Godot Tools C# (Fork)",
 	"icon": "icon.png",
-	"version": "2.5.2+csharp.1",
-	"description": "C# Enhanced Fork by DanTrz, based on the original godot-tools plugin",
+	"version": "2.5.3+csharp.1",
+	"description": "C# Enhanced Fork by DanTrz, based on the original godot-tools plugin - based on 2.5.1",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/DanTrz/godot-vscode-plugin-csharp"
