@@ -21,8 +21,8 @@
 	/** @type {any} */
 	let selectedNode = null;
 
-	/** @type {Set<string>} */
-	const expandedNodes = new Set();
+	/** @type {Set<string>} - Tracks COLLAPSED nodes (all expanded by default) */
+	const collapsedNodes = new Set();
 
 	/** @type {string} */
 	let darkIconsBaseUri = "";
@@ -177,54 +177,17 @@
 	}
 
 	/**
-	 * Count total nodes in tree recursively
-	 * @param {any} node
-	 * @returns {number}
-	 */
-	function countNodes(node) {
-		if (!node) return 0;
-		let count = 1;
-		if (node.children && Array.isArray(node.children)) {
-			for (const child of node.children) {
-				count += countNodes(child);
-			}
-		}
-		return count;
-	}
-
-	/**
 	 * Render the hierarchical tree
 	 */
 	function renderTree() {
-		console.log("[ScenePreview] renderTree called, currentTreeData:", currentTreeData);
 		if (!currentTreeData) {
 			treeContainer.innerHTML = '<div class="welcome-message">Open a Scene to see a preview of its structure</div>';
 			return;
 		}
 
-		// Count total nodes in received data
-		const totalNodes = countNodes(currentTreeData);
-		console.log("[ScenePreview] Total nodes in received data:", totalNodes);
-
-		console.log("[ScenePreview] Tree data - root:", currentTreeData.label, "hasChildren:", currentTreeData.hasChildren, "children.length:", currentTreeData.children?.length);
-		if (currentTreeData.children) {
-			for (const child of currentTreeData.children) {
-				console.log("[ScenePreview]   Child:", child.label, "hasChildren:", child.hasChildren, "children.length:", child.children?.length);
-			}
-		}
-
 		treeContainer.innerHTML = "";
-		try {
-			const treeElement = createTreeNode(currentTreeData, 0);
-			treeContainer.appendChild(treeElement);
-			const renderedNodes = treeElement.querySelectorAll(".tree-node").length;
-			console.log("[ScenePreview] Tree rendered, nodes in DOM:", renderedNodes, "expected:", totalNodes);
-			if (renderedNodes !== totalNodes) {
-				console.warn("[ScenePreview] MISMATCH: Expected", totalNodes, "nodes but only", renderedNodes, "were rendered!");
-			}
-		} catch (error) {
-			console.error("[ScenePreview] Error during tree rendering:", error);
-		}
+		const treeElement = createTreeNode(currentTreeData, 0);
+		treeContainer.appendChild(treeElement);
 	}
 
 	/**
@@ -234,10 +197,7 @@
 	 * @returns {HTMLElement}
 	 */
 	function createTreeNode(node, depth) {
-		console.log(`[createTreeNode] START: "${node?.label}" depth=${depth} path="${node?.path}"`);
-
 		if (!node) {
-			console.error("[createTreeNode] Node is null/undefined!");
 			const errorEl = document.createElement("div");
 			errorEl.className = "tree-node error";
 			errorEl.textContent = "Error: null node";
@@ -256,7 +216,8 @@
 		const expandIcon = document.createElement("span");
 		expandIcon.className = "expand-icon";
 		if (node.hasChildren) {
-			const isExpanded = expandedNodes.has(node.path) || depth === 0;
+			// All nodes expanded by default - collapsedNodes tracks which are collapsed
+			const isExpanded = !collapsedNodes.has(node.path);
 			expandIcon.className += isExpanded ? "" : " collapsed";
 			expandIcon.innerHTML = '<span class="codicon codicon-chevron-down"></span>';
 			expandIcon.addEventListener("click", (e) => {
@@ -301,6 +262,13 @@
 			badge.title = "Has script";
 			badgesElement.appendChild(badge);
 		}
+		if (node.isInstanced) {
+			const badge = document.createElement("span");
+			badge.className = "badge instanced";
+			badge.textContent = "⚡";
+			badge.title = "Instanced scene";
+			badgesElement.appendChild(badge);
+		}
 		if (badgesElement.children.length > 0) {
 			contentElement.appendChild(badgesElement);
 		}
@@ -324,27 +292,19 @@
 
 		// Children container
 		if (node.hasChildren && node.children) {
-			console.log(`[createTreeNode] "${node.label}" has ${node.children.length} children, creating container`);
 			const childrenContainer = document.createElement("div");
 			childrenContainer.className = "tree-children";
-			const isExpanded = expandedNodes.has(node.path) || depth === 0;
-			console.log(`[createTreeNode] "${node.label}" isExpanded=${isExpanded} (depth=${depth}, inSet=${expandedNodes.has(node.path)})`);
+			// All nodes expanded by default - collapsedNodes tracks which are collapsed
+			const isExpanded = !collapsedNodes.has(node.path);
 			if (!isExpanded) {
 				childrenContainer.className += " collapsed";
 			}
-			for (let i = 0; i < node.children.length; i++) {
-				const child = node.children[i];
-				console.log(`[createTreeNode] "${node.label}" creating child ${i}/${node.children.length}: "${child?.label}"`);
-				try {
-					childrenContainer.appendChild(createTreeNode(child, depth + 1));
-				} catch (childError) {
-					console.error(`[createTreeNode] Error creating child "${child?.label}":`, childError);
-				}
+			for (const child of node.children) {
+				childrenContainer.appendChild(createTreeNode(child, depth + 1));
 			}
 			nodeElement.appendChild(childrenContainer);
 		}
 
-		console.log(`[createTreeNode] END: "${node.label}"`);
 		return nodeElement;
 	}
 
@@ -359,14 +319,17 @@
 
 		if (!childrenContainer) return;
 
-		if (expandedNodes.has(path)) {
-			expandedNodes.delete(path);
-			expandIcon.classList.add("collapsed");
-			childrenContainer.classList.add("collapsed");
-		} else {
-			expandedNodes.add(path);
+		// collapsedNodes tracks collapsed nodes (all expanded by default)
+		if (collapsedNodes.has(path)) {
+			// Currently collapsed -> expand
+			collapsedNodes.delete(path);
 			expandIcon.classList.remove("collapsed");
 			childrenContainer.classList.remove("collapsed");
+		} else {
+			// Currently expanded -> collapse
+			collapsedNodes.add(path);
+			expandIcon.classList.add("collapsed");
+			childrenContainer.classList.add("collapsed");
 		}
 	}
 
@@ -435,7 +398,7 @@
 		mainRow.appendChild(typeElement);
 
 		// Badges
-		if (node.unique || node.hasScript) {
+		if (node.unique || node.hasScript || node.isInstanced) {
 			const badgesElement = document.createElement("span");
 			badgesElement.className = "node-badges";
 			if (node.unique) {
@@ -448,6 +411,12 @@
 				const badge = document.createElement("span");
 				badge.className = "badge script";
 				badge.textContent = "S";
+				badgesElement.appendChild(badge);
+			}
+			if (node.isInstanced) {
+				const badge = document.createElement("span");
+				badge.className = "badge instanced";
+				badge.textContent = "⚡";
 				badgesElement.appendChild(badge);
 			}
 			mainRow.appendChild(badgesElement);

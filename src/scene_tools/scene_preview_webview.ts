@@ -32,6 +32,7 @@ interface SerializedNode {
 	hasChildren: boolean;
 	children: SerializedNode[];
 	fromInstance: boolean;
+	isInstanced: boolean;
 }
 
 /**
@@ -151,6 +152,7 @@ export class ScenePreviewWebviewProvider implements vscode.WebviewViewProvider {
 			hasChildren: false,
 			children: [],
 			fromInstance: r.node.contextValue?.includes("fromInstance") ?? false,
+			isInstanced: r.node.contextValue?.includes("instanced") ?? false,
 		}));
 
 		// Get icon base URIs for the WebView
@@ -278,13 +280,6 @@ export class ScenePreviewWebviewProvider implements vscode.WebviewViewProvider {
 
 		// Use basic parsing first to debug children issue
 		this.scene = this.parser.parse_scene(document);
-
-		// Debug: log scene data
-		log.info(`WebView refresh: scene has ${this.scene?.nodes?.size || 0} nodes`);
-		if (this.scene?.root) {
-			log.info(`WebView: root="${this.scene.root.label}" has ${this.scene.root.children.length} children`);
-		}
-
 		this.sendTreeData();
 	}
 
@@ -307,15 +302,10 @@ export class ScenePreviewWebviewProvider implements vscode.WebviewViewProvider {
 			hasChildren: node.children.length > 0,
 			children: node.children.map(serializeNode),
 			fromInstance: node.contextValue?.includes("fromInstance") ?? false,
+			isInstanced: node.contextValue?.includes("instanced") ?? false,
 		});
 
 		const treeData = serializeNode(this.scene.root);
-
-		// Debug: verify serialization
-		log.info(`Serialized tree: root="${treeData.label}" hasChildren=${treeData.hasChildren} children.length=${treeData.children.length}`);
-		for (const child of treeData.children) {
-			log.info(`  Serialized child: "${child.label}" hasChildren=${child.hasChildren} children.length=${child.children.length}`);
-		}
 
 		// Get icon base URIs for the WebView
 		const darkIconsUri = this.view.webview.asWebviewUri(

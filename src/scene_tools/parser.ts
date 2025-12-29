@@ -11,6 +11,8 @@ const log = createLogger("scenes.parser", { output: "Godot Scene Parser" });
 export class SceneParser {
 	private static instance: SceneParser;
 	public scenes: Map<string, Scene> = new Map();
+	// Cache for root node types from instanced scenes
+	private rootTypeCache: Map<string, string> = new Map();
 
 	constructor() {
 		if (SceneParser.instance) {
@@ -18,6 +20,90 @@ export class SceneParser {
 			return SceneParser.instance;
 		}
 		SceneParser.instance = this;
+	}
+
+	/**
+	 * Get the root node type from a scene file without fully parsing it.
+	 * Uses a lightweight regex scan and caches results.
+	 * @param resourcePath The res:// path to the scene file
+	 * @returns The root node type, or "PackedScene" if not found
+	 */
+	public async getRootTypeFromScene(resourcePath: string): Promise<string> {
+		// Check cache first
+		if (this.rootTypeCache.has(resourcePath)) {
+			return this.rootTypeCache.get(resourcePath);
+		}
+
+		try {
+			const uri = await convert_resource_path_to_uri(resourcePath);
+			if (!uri || !fs.existsSync(uri.fsPath)) {
+				return "PackedScene";
+			}
+
+			// Read just the first part of the file to find the root node
+			const content = fs.readFileSync(uri.fsPath, "utf-8");
+
+			// Find the first [node ...] line (root node has no parent attribute)
+			const rootNodeMatch = content.match(/\[node\s+name="[^"]+"\s+type="(\w+)"\]/);
+			if (rootNodeMatch?.[1]) {
+				const rootType = rootNodeMatch[1];
+				this.rootTypeCache.set(resourcePath, rootType);
+				return rootType;
+			}
+
+			// If no type found, it might be a scene that inherits from another scene
+			// In that case, we'd need to parse recursively, so just return PackedScene
+			this.rootTypeCache.set(resourcePath, "PackedScene");
+			return "PackedScene";
+		} catch (error) {
+			log.warn(`Failed to get root type from ${resourcePath}:`, error);
+			return "PackedScene";
+		}
+	}
+
+	/**
+	 * Synchronous version for cases where we can't use async.
+	 * @param resourcePath The res:// path to the scene file
+	 * @returns The root node type, or "PackedScene" if not found
+	 */
+	public getRootTypeFromSceneSync(resourcePath: string): string {
+		// Check cache first
+		if (this.rootTypeCache.has(resourcePath)) {
+			return this.rootTypeCache.get(resourcePath);
+		}
+
+		try {
+			// We need to resolve the resource path synchronously
+			// This is a simplified version that works with the workspace folder
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (!workspaceFolders || workspaceFolders.length === 0) {
+				return "PackedScene";
+			}
+
+			// Convert res:// to filesystem path
+			const resPath = resourcePath.replace(/^res:\/\//, "");
+			const fullPath = path.join(workspaceFolders[0].uri.fsPath, resPath);
+
+			if (!fs.existsSync(fullPath)) {
+				return "PackedScene";
+			}
+
+			const content = fs.readFileSync(fullPath, "utf-8");
+
+			// Find the first [node ...] line with a type (root node has no parent attribute)
+			const rootNodeMatch = content.match(/\[node\s+name="[^"]+"\s+type="(\w+)"\]/);
+			if (rootNodeMatch?.[1]) {
+				const rootType = rootNodeMatch[1];
+				this.rootTypeCache.set(resourcePath, rootType);
+				return rootType;
+			}
+
+			this.rootTypeCache.set(resourcePath, "PackedScene");
+			return "PackedScene";
+		} catch (error) {
+			log.warn(`Failed to get root type from ${resourcePath}:`, error);
+			return "PackedScene";
+		}
 	}
 
 	/**
@@ -32,12 +118,12 @@ export class SceneParser {
 			const scene = this.scenes.get(scenePath);
 
 			if (scene.mtime === stats.mtimeMs) {
-				log.info(`Cache HIT for ${basename(scenePath)}: root has ${scene.root?.children?.length ?? 0} children, ${scene.nodes.size} total nodes`);
+				log.debug(`Cache HIT for ${basename(scenePath)}`);
 				return scene;
 			}
-			log.info(`Cache STALE for ${basename(scenePath)}: cached mtime ${scene.mtime} vs file mtime ${stats.mtimeMs}`);
+			log.debug(`Cache STALE for ${basename(scenePath)}`);
 		} else {
-			log.info(`Cache MISS for ${basename(scenePath)}`);
+			log.debug(`Cache MISS for ${basename(scenePath)}`);
 		}
 
 		const scene = new Scene();
@@ -152,19 +238,23 @@ export class SceneParser {
 					node.resourcePath = res.path;
 					if ([".tscn"].includes(extname(node.resourcePath))) {
 						node.contextValue += "openable";
+						// Get the actual root type from the instanced scene
+						const actualType = this.getRootTypeFromSceneSync(res.path);
+						if (actualType !== "PackedScene") {
+							node.className = actualType;
+							node.description = actualType;
+						}
 					}
 				}
 				node.contextValue += "hasResourcePath";
+				// Mark as instanced for UI badge
+				node.contextValue += "instanced";
 			}
 			if (_path === root) {
 				scene.root = node;
-				log.info(`[DEBUG] Set root node: "${name}"`);
 			}
 			if (parent in nodes) {
 				nodes[parent].children.push(node);
-				log.info(`[DEBUG] Added "${name}" as child of "${parent}" (now has ${nodes[parent].children.length} children)`);
-			} else if (parent) {
-				log.warn(`[DEBUG] Parent NOT FOUND for "${name}": looking for "${parent}" in nodes keys: ${Object.keys(nodes).join(', ')}`);
 			}
 			nodes[_path] = node;
 
@@ -174,15 +264,6 @@ export class SceneParser {
 		if (lastNode) {
 			lastNode.body = text.slice(lastNode.position, text.length);
 			lastNode.parse_body();
-		}
-
-		// Debug logging to identify parsing issues
-		log.info(`Parse complete for ${scene.title}: ${nodeMatchCount} nodes matched, ${scene.nodes.size} in map`);
-		if (scene.root) {
-			log.info(`Root node: "${scene.root.label}" with ${scene.root.children.length} direct children`);
-			for (const child of scene.root.children) {
-				log.info(`  Child: "${child.label}" (${child.className}) with ${child.children.length} grandchildren`);
-			}
 		}
 
 		const resourceRegex = /\[resource\]/g;
