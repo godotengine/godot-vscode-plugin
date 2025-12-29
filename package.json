@@ -420,7 +420,12 @@
 				},
 				"godotTools.csharp.nodeReferenceStyle": {
 					"type": "string",
-					"enum": ["exportPrivate", "exportPublic", "lazyField", "expressionBodied"],
+					"enum": [
+						"exportPrivate",
+						"exportPublic",
+						"lazyField",
+						"expressionBodied"
+					],
 					"enumDescriptions": [
 						"[Export] private Type _name { get; set; }",
 						"[Export] public Type Name { get; set; }",
@@ -746,14 +751,9 @@
 			],
 			"godotTools": [
 				{
-					"id": "godotTools.scenePreviewFilter",
-					"name": "Filter",
-					"type": "webview",
-					"icon": "resources/godot_icon.svg"
-				},
-				{
 					"id": "godotTools.scenePreview",
 					"name": "Scene Preview",
+					"type": "webview",
 					"icon": "resources/godot_icon.svg"
 				}
 			]
@@ -882,44 +882,6 @@
 					"command": "godotTools.debugger.inspectNode",
 					"when": "view == godotTools.activeSceneTree",
 					"group": "inline"
-				},
-					{
-					"command": "godotTools.scenePreview.goToDefinition",
-					"when": "view == godotTools.scenePreview",
-					"group": "1@1"
-				},
-				{
-					"command": "godotTools.scenePreview.openDocumentation",
-					"when": "view == godotTools.scenePreview",
-					"group": "1@1"
-				},
-				{
-					"command": "godotTools.scenePreview.copyNodePath",
-					"when": "view == godotTools.scenePreview"
-				},
-				{
-					"command": "godotTools.scenePreview.copyResourcePath",
-					"when": "view == godotTools.scenePreview && viewItem =~ /hasResourcePath/"
-				},
-				{
-					"command": "godotTools.scenePreview.openScene",
-					"when": "view == godotTools.scenePreview && viewItem =~ /openable/",
-					"group": "1@2"
-				},
-				{
-					"command": "godotTools.scenePreview.openScript",
-					"when": "view == godotTools.scenePreview && viewItem =~ /hasScript/",
-					"group": "1@2"
-				},
-				{
-					"command": "godotTools.scenePreview.openScene",
-					"when": "view == godotTools.scenePreview && viewItem =~ /openable/",
-					"group": "inline"
-				},
-				{
-					"command": "godotTools.scenePreview.openScript",
-					"when": "view == godotTools.scenePreview && viewItem =~ /hasScript/",
-					"group": "inline"
 				}
 			],
 			"explorer/context": [
@@ -1002,6 +964,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.57.1",
 		"@typescript-eslint/eslint-plugin-tslint": "^5.57.1",
 		"@typescript-eslint/parser": "^5.57.1",
+		"@vscode/codicons": "^0.0.44",
 		"@vscode/test-cli": "^0.0.10",
 		"@vscode/test-electron": "^2.3.8",
 		"@vscode/vsce": "^2.29.0",

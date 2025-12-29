@@ -1,10 +1,12 @@
 import * as fs from "node:fs";
+import * as path from "node:path";
 import { basename, extname } from "node:path";
+import * as vscode from "vscode";
 import { TextDocument, Uri } from "vscode";
 import { SceneNode, Scene } from "./types";
-import { createLogger } from "../utils";
+import { createLogger, convert_resource_path_to_uri } from "../utils";
 
-const log = createLogger("scenes.parser");
+const log = createLogger("scenes.parser", { output: "Godot Scene Parser" });
 
 export class SceneParser {
 	private static instance: SceneParser;
@@ -18,24 +20,32 @@ export class SceneParser {
 		SceneParser.instance = this;
 	}
 
+	/**
+	 * Parse a scene file without recursively loading instanced scenes.
+	 * Use parse_scene_recursive() for full tree including instanced PackedScenes.
+	 */
 	public parse_scene(document: TextDocument) {
-		const path = document.uri.fsPath;
-		const stats = fs.statSync(path);
+		const scenePath = document.uri.fsPath;
+		const stats = fs.statSync(scenePath);
 
-		if (this.scenes.has(path)) {
-			const scene = this.scenes.get(path);
+		if (this.scenes.has(scenePath)) {
+			const scene = this.scenes.get(scenePath);
 
 			if (scene.mtime === stats.mtimeMs) {
+				log.info(`Cache HIT for ${basename(scenePath)}: root has ${scene.root?.children?.length ?? 0} children, ${scene.nodes.size} total nodes`);
 				return scene;
 			}
+			log.info(`Cache STALE for ${basename(scenePath)}: cached mtime ${scene.mtime} vs file mtime ${stats.mtimeMs}`);
+		} else {
+			log.info(`Cache MISS for ${basename(scenePath)}`);
 		}
 
 		const scene = new Scene();
-		scene.path = path;
+		scene.path = scenePath;
 		scene.mtime = stats.mtimeMs;
-		scene.title = basename(path);
+		scene.title = basename(scenePath);
 
-		this.scenes.set(path, scene);
+		this.scenes.set(scenePath, scene);
 
 		const text = document.getText();
 
@@ -81,11 +91,13 @@ export class SceneParser {
 		}
 
 		let root = "";
-		const nodes = {};
+		const nodes: { [key: string]: SceneNode } = {};
 		let lastNode = null;
 
 		const nodeRegex = /\[node.*/g;
+		let nodeMatchCount = 0;
 		for (const match of text.matchAll(nodeRegex)) {
+			nodeMatchCount++;
 			const line = match[0];
 			const name = line.match(/name="([^.:@/"%]+)"/)?.[1];
 			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
@@ -146,9 +158,13 @@ export class SceneParser {
 			}
 			if (_path === root) {
 				scene.root = node;
+				log.info(`[DEBUG] Set root node: "${name}"`);
 			}
 			if (parent in nodes) {
 				nodes[parent].children.push(node);
+				log.info(`[DEBUG] Added "${name}" as child of "${parent}" (now has ${nodes[parent].children.length} children)`);
+			} else if (parent) {
+				log.warn(`[DEBUG] Parent NOT FOUND for "${name}": looking for "${parent}" in nodes keys: ${Object.keys(nodes).join(', ')}`);
 			}
 			nodes[_path] = node;
 
@@ -160,6 +176,15 @@ export class SceneParser {
 			lastNode.parse_body();
 		}
 
+		// Debug logging to identify parsing issues
+		log.info(`Parse complete for ${scene.title}: ${nodeMatchCount} nodes matched, ${scene.nodes.size} in map`);
+		if (scene.root) {
+			log.info(`Root node: "${scene.root.label}" with ${scene.root.children.length} direct children`);
+			for (const child of scene.root.children) {
+				log.info(`  Child: "${child.label}" (${child.className}) with ${child.children.length} grandchildren`);
+			}
+		}
+
 		const resourceRegex = /\[resource\]/g;
 		for (const match of text.matchAll(resourceRegex)) {
 			if (lastResource) {
@@ -168,5 +193,165 @@ export class SceneParser {
 			}
 		}
 		return scene;
+	}
+
+	/**
+	 * Parse a scene file and recursively load all instanced PackedScenes.
+	 * This provides a complete tree including nodes from instanced scenes.
+	 *
+	 * @param document The scene document to parse
+	 * @param maxDepth Maximum recursion depth to prevent infinite loops (default 10)
+	 * @param visited Set of already visited scene paths to prevent circular references
+	 */
+	public async parse_scene_recursive(
+		document: TextDocument,
+		maxDepth = 10,
+		visited: Set<string> = new Set()
+	): Promise<Scene> {
+		const scenePath = document.uri.fsPath;
+
+		// Prevent circular references
+		if (visited.has(scenePath)) {
+			log.debug(`Circular reference detected, skipping: ${scenePath}`);
+			return this.parse_scene(document);
+		}
+		visited.add(scenePath);
+
+		// First, parse the scene without recursion
+		const scene = this.parse_scene(document);
+
+		// If we've hit max depth, stop recursing
+		if (maxDepth <= 0) {
+			log.debug(`Max recursion depth reached for: ${scenePath}`);
+			return scene;
+		}
+
+		// Find all nodes that are instances of other scenes
+		const instancedNodes: SceneNode[] = [];
+
+		// Check root node
+		if (scene.root?.resourcePath) {
+			instancedNodes.push(scene.root);
+		}
+
+		// Check all other nodes
+		for (const node of scene.nodes.values()) {
+			if (node.resourcePath && node !== scene.root) {
+				instancedNodes.push(node);
+			}
+		}
+
+		// Recursively parse each instanced scene
+		for (const instanceNode of instancedNodes) {
+			try {
+				const resPath = instanceNode.resourcePath;
+
+				// Only process .tscn files
+				if (!resPath.endsWith(".tscn")) {
+					continue;
+				}
+
+				// Convert res:// path to file URI
+				const instanceUri = await convert_resource_path_to_uri(resPath);
+				if (!instanceUri) {
+					log.debug(`Could not resolve resource path: ${resPath}`);
+					continue;
+				}
+
+				// Check if file exists
+				if (!fs.existsSync(instanceUri.fsPath)) {
+					log.debug(`Instanced scene file not found: ${instanceUri.fsPath}`);
+					continue;
+				}
+
+				// Open and parse the instanced scene
+				const instanceDocument = await vscode.workspace.openTextDocument(instanceUri);
+				const instanceScene = await this.parse_scene_recursive(
+					instanceDocument,
+					maxDepth - 1,
+					visited
+				);
+
+				// Merge the instanced scene's nodes as children of the instance node
+				if (instanceScene.root) {
+					this.mergeInstancedNodes(instanceNode, instanceScene, scene);
+				}
+			} catch (error) {
+				log.error(`Error parsing instanced scene ${instanceNode.resourcePath}:`, error);
+			}
+		}
+
+		return scene;
+	}
+
+	/**
+	 * Merge nodes from an instanced scene into the parent scene.
+	 * The instanced scene's root node children become children of the instance node.
+	 */
+	private mergeInstancedNodes(
+		instanceNode: SceneNode,
+		instanceScene: Scene,
+		parentScene: Scene
+	): void {
+		// Clone and reparent all children of the instanced scene's root
+		const rootChildren = instanceScene.root?.children || [];
+
+		for (const child of rootChildren) {
+			// Clone the node to avoid modifying the cached instance scene
+			const clonedChild = this.cloneNodeTree(child, instanceNode, parentScene);
+			instanceNode.children.push(clonedChild);
+		}
+	}
+
+	/**
+	 * Deep clone a node and its children, updating paths relative to new parent.
+	 */
+	private cloneNodeTree(
+		node: SceneNode,
+		newParent: SceneNode,
+		targetScene: Scene
+	): SceneNode {
+		// Create a new node with the same properties
+		const clonedNode = new SceneNode(node.label as string, node.className, node.collapsibleState);
+
+		// Update path to be relative to the new parent
+		clonedNode.path = `${newParent.path}/${node.label}`;
+		clonedNode.parent = newParent.path;
+		clonedNode.relativePath = node.relativePath
+			? `${this.getRelativePathFromRoot(newParent)}/${node.relativePath}`
+			: `${this.getRelativePathFromRoot(newParent)}/${node.label}`;
+
+		// Copy other properties
+		clonedNode.text = node.text;
+		clonedNode.position = node.position;
+		clonedNode.body = node.body;
+		clonedNode.unique = node.unique;
+		clonedNode.hasScript = node.hasScript;
+		clonedNode.scriptId = node.scriptId;
+		clonedNode.resourcePath = node.resourcePath;
+		clonedNode.description = node.description;
+		clonedNode.tooltip = node.tooltip;
+		clonedNode.contextValue = node.contextValue;
+
+		// Mark as coming from an instanced scene for UI purposes
+		clonedNode.contextValue = `${clonedNode.contextValue || ""}fromInstance`;
+
+		// Add to parent scene's nodes map
+		targetScene.nodes.set(clonedNode.path, clonedNode);
+
+		// Recursively clone children
+		for (const child of node.children) {
+			const clonedChild = this.cloneNodeTree(child, clonedNode, targetScene);
+			clonedNode.children.push(clonedChild);
+		}
+
+		return clonedNode;
+	}
+
+	/**
+	 * Get the relative path from the scene root to a node.
+	 */
+	private getRelativePathFromRoot(node: SceneNode): string {
+		return node.relativePath || node.label as string;
 	}
 }
