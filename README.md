@@ -26,17 +26,24 @@ Drag nodes from the **Scene Preview** panel directly into your C# scripts to aut
 | **Lazy field (C# 14)** | `Button _myButton => field ??= GetNode<Button>("path");` |
 | **Expression-bodied** | `Button MyButton => GetNode<Button>("path");` |
 
+#### Primary & Secondary Styles
+
+- **Normal drag** → Uses your primary style
+- **Ctrl + drag** → Uses secondary style (shows "[Alt Style]" in preview)
+
 #### Configuration
 
-Set your preferred default style in VS Code settings:
+Set your preferred styles in VS Code settings:
 
 ```
 Settings > Godot Tools > C# > Node Reference Style
+Settings > Godot Tools > C# > Secondary Node Reference Style
 ```
 
 Or in `settings.json`:
 ```json
-"godotTools.csharp.nodeReferenceStyle": "exportPublic"
+"godotTools.csharp.nodeReferenceStyle": "exportPublic",
+"godotTools.csharp.secondaryNodeReferenceStyle": "lazyField"
 ```
 
 Options: `exportPublic`, `exportPrivate`, `lazyField`, `expressionBodied`
@@ -54,6 +61,7 @@ View the **running scene tree** and **inspect node properties** during C# debugg
 | Active Scene Tree | GDScript only | ✅ **Works with C#** |
 | Node Inspector | GDScript only | ✅ **Works with C#** |
 | Auto-refresh | GDScript only | ✅ **Works with C#** |
+| **Search/Filter** | ❌ | ✅ **New** |
 
 #### Setup for Scene Tree Monitor
 
@@ -91,6 +99,25 @@ View the **running scene tree** and **inspect node properties** during C# debugg
 | `godotTools.sceneTreeMonitor.port` | `6007` | Port for Godot connection |
 | `godotTools.sceneTreeMonitor.autoStart` | `true` | Auto-start on C# debug |
 | `godotTools.sceneTreeMonitor.refreshInterval` | `500` | Refresh interval (ms) |
+
+---
+
+### 3. Advanced Debug Controls
+
+Full debug control panel for C# projects:
+
+| Control | Description |
+|---------|-------------|
+| **Pause/Resume** | Pause game execution from VS Code |
+| **Frame Step** | Advance exactly one frame (when paused) |
+| **Live Edit** | Modify node properties at runtime |
+| **Inspector Search** | Filter properties by name |
+
+#### Live Property Editing
+
+Right-click any property in the Node Inspector and select "Edit Value" to modify it at runtime.
+
+**Supported types:** `int`, `float`, `bool`, `string`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Transform3D`, and more.
 
 ---
 

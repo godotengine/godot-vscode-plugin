@@ -1,5 +1,23 @@
 # Changelog
 
+### 2.5.3+csharp.1 (C# Fork)
+
+**New Features:**
+- **Advanced Debug Controls** - Pause/Resume, Frame Stepping from VS Code
+- **Live Property Editing** - Modify node properties at runtime via Inspector
+- **Scene Tree Search** - Filter nodes by name in Scene Preview
+- **Inspector Search** - Filter properties by name
+- **Object Drill-down** - Expand nested objects in Inspector
+- **Alternate Drag Style** - Ctrl+drag for secondary code generation style
+
+**Improvements:**
+- Scene Preview and Inspector converted to WebView-based UI
+- Better icon rendering in Scene Tree
+
+*Based on [godot-vscode-plugin](https://github.com/godotengine/godot-vscode-plugin) v2.5.1*
+
+---
+
 ### 2.5.2+csharp.1 (C# Fork)
 
 - **Active Scene Tree for C# projects** - View running scene nodes during C# debugging
