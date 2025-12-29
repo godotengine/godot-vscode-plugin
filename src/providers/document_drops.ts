@@ -211,6 +211,7 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 			let relativePath: string = nodeData.relativePath;
 			const unique: boolean = nodeData.unique === true || nodeData.unique === "true";
 			const scenePath: string = nodeData.scenePath;
+			const useSecondaryStyle: boolean = nodeData.useSecondaryStyle === true;
 
 			if (!className || !label) {
 				log.debug("WebView drop missing required data:", nodeData);
@@ -289,7 +290,10 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 				const line = document.lineAt(position.line);
 				if (line.text.trim() === "") {
 					const config = vscode.workspace.getConfiguration("godotTools.csharp");
-					const styleKey = config.get<string>("nodeReferenceStyle", DEFAULT_CSHARP_STYLE);
+					// Use secondary style if Ctrl+Shift was held during drag start
+					const styleKey = useSecondaryStyle
+						? config.get<string>("secondaryNodeReferenceStyle", "lazyField")
+						: config.get<string>("nodeReferenceStyle", DEFAULT_CSHARP_STYLE);
 					const style = CSHARP_STYLE_OPTIONS[styleKey] || CSHARP_STYLE_OPTIONS[DEFAULT_CSHARP_STYLE];
 					const code = style.generator(className, propertyName, fieldName, nodePath);
 					return new vscode.DocumentDropEdit(code);

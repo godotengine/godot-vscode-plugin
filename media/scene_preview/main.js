@@ -530,6 +530,9 @@
 		element.addEventListener("dragstart", (e) => {
 			element.classList.add("dragging");
 
+			// Check for Ctrl modifier to use secondary style (Shift conflicts with VSCode drag behavior)
+			const useSecondaryStyle = e.ctrlKey;
+
 			// Create drag data for the DocumentDropEditProvider
 			const dragData = JSON.stringify({
 				name: node.label,
@@ -538,6 +541,7 @@
 				relativePath: node.relativePath,
 				unique: node.unique,
 				scenePath: currentScenePath,
+				useSecondaryStyle: useSecondaryStyle,
 			});
 
 			// Set the custom MIME type that DocumentDropEditProvider will read
@@ -545,7 +549,7 @@
 			e.dataTransfer.setData("text/plain", node.label);
 			e.dataTransfer.effectAllowed = "copy";
 
-			// Create a drag image
+			// Create a drag image with visual feedback for secondary style
 			const dragImage = document.createElement("div");
 			dragImage.style.cssText = `
 				position: fixed;
@@ -557,7 +561,9 @@
 				pointer-events: none;
 				z-index: 10000;
 			`;
-			dragImage.textContent = `${node.label} (${node.className})`;
+			dragImage.textContent = useSecondaryStyle
+				? `${node.label} (${node.className}) [Alt Style]`
+				: `${node.label} (${node.className})`;
 			document.body.appendChild(dragImage);
 			e.dataTransfer.setDragImage(dragImage, 0, 0);
 

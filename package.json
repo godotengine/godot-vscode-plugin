@@ -433,7 +433,24 @@
 						"Type Name => GetNode<Type>(\"path\");"
 					],
 					"default": "exportPublic",
-					"markdownDescription": "Default C# code style when dragging nodes from Scene Preview to empty lines.\n\nChange this to instantly use your preferred style without a picker dialog."
+					"markdownDescription": "**Primary** C# code style when dragging nodes from Scene Preview to empty lines.\n\nUsed for normal drag operations."
+				},
+				"godotTools.csharp.secondaryNodeReferenceStyle": {
+					"type": "string",
+					"enum": [
+						"exportPrivate",
+						"exportPublic",
+						"lazyField",
+						"expressionBodied"
+					],
+					"enumDescriptions": [
+						"[Export] private Type _name { get; set; }",
+						"[Export] public Type Name { get; set; }",
+						"Type _name => field ??= GetNode<Type>(\"path\");  (C# 14)",
+						"Type Name => GetNode<Type>(\"path\");"
+					],
+					"default": "lazyField",
+					"markdownDescription": "**Secondary** C# code style when dragging nodes with **Ctrl** held.\n\nUse this for an alternate style without changing settings."
 				},
 				"godotTools.sceneTreeMonitor.port": {
 					"type": "number",
