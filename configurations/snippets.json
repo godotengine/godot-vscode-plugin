@@ -29,35 +29,35 @@
 	"_process method of Node": {
 		"prefix": "process",
 		"body": [
-			"func _process(delta) -> void:",
+			"func _process(delta: float) -> void:",
 			"\t${1:pass}"
 		]
 	},
 	"_physics_process method of Node": {
 		"prefix": "physics",
 		"body": [
-			"func _physics_process(delta) -> void:",
+			"func _physics_process(delta: float) -> void:",
 			"\t${1:pass}"
 		]
 	},
 	"_input method of Node": {
 		"prefix": "input",
 		"body": [
-			"func _input(event) -> void:",
+			"func _input(event: InputEvent) -> void:",
 			"\t${1:pass}"
 		]
 	},
 	"_input_event method of CollisionObject2D/3D": {
 		"prefix": "inpute",
 		"body": [
-			"func _input_event(event) -> void:",
+			"func _input_event(camera: Camera3D, event: InputEvent, event_position: Vector3, normal: Vector3, shape_idx: int) -> void:",
 			"\t${1:pass}"
 		]
 	},
 	"_unhandled_input method of Node": {
 		"prefix": "uinput",
 		"body": [
-			"func _unhandled_input(event) -> void:",
+			"func _unhandled_input(event: InputEvent) -> void:",
 			"\t${1:pass}"
 		]
 	},
@@ -71,7 +71,7 @@
 	"_gui_input method of Control": {
 		"prefix": "guii",
 		"body": [
-			"func _gui_input(event) -> void:",
+			"func _gui_input(event: InputEvent) -> void:",
 			"\t${1:pass}"
 		]
 	},
