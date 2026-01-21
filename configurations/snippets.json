@@ -47,8 +47,15 @@
 			"\t${1:pass}"
 		]
 	},
-	"_input_event method of CollisionObject2D/3D": {
-		"prefix": "inpute",
+	"_input_event method of CollisionObject2D": {
+		"prefix": "inpute2D",
+		"body": [
+			"func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:",
+			"\t${1:pass}"
+		]
+	},
+	"_input_event method of CollisionObject3D": {
+		"prefix": "inpute3D",
 		"body": [
 			"func _input_event(camera: Camera3D, event: InputEvent, event_position: Vector3, normal: Vector3, shape_idx: int) -> void:",
 			"\t${1:pass}"
