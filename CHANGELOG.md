@@ -1,5 +1,23 @@
 # Changelog
 
+### 2.6.0
+
+- [**Add support for `uid://` references to hovers and document links**](https://github.com/godotengine/godot-vscode-plugin/pull/841)
+- [Add a formatter option to optionally add two spaces before end-of-line comments](https://github.com/godotengine/godot-vscode-plugin/pull/855)
+- [Add ability to specify `editorPath` using an environment variable (#807) (#856)](https://github.com/godotengine/godot-vscode-plugin/pull/856)
+- [Improve "Debug Current File" action error message when scene and script name don't match](https://github.com/godotengine/godot-vscode-plugin/pull/836)
+- [Improve Debugger tool](https://github.com/godotengine/godot-vscode-plugin/pull/848)
+- [Update syntax highlighting](https://github.com/godotengine/godot-vscode-plugin/pull/877)
+  - Update annotation list.
+  - Remove the `abstract` keyword (does not exist in Godot 3 and Godot 4).
+  - Replace the `void` keyword with the `void` type. This changes the color used for `void` syntax highlighting.
+  - Add missing `Variant` type.
+- [Fix incorrect syntax highlighting on PascalCase class names ending with 2 or more uppercase characters](https://github.com/godotengine/godot-vscode-plugin/pull/908)
+- [Fix out of sync state by recreating the LSP client when needed](https://github.com/godotengine/godot-vscode-plugin/pull/872)
+- [Fix extension soft lock when inspecting Dictionary variables with Variant key types](https://github.com/godotengine/godot-vscode-plugin/pull/854)
+- [Fix parsing of inlay hint data which resulted in the wrong type being shown for enums](https://github.com/godotengine/godot-vscode-plugin/pull/896)
+- [Fix excessive CPU usage by reusing cached values for the project version and directory](https://github.com/godotengine/godot-vscode-plugin/pull/910)
+
 ### 2.5.1
 
 - [Fix "Request textDocument/documentSymbol failed" error when opening a GDScript file](https://github.com/godotengine/godot-vscode-plugin/pull/823)
