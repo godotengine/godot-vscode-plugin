@@ -9,21 +9,18 @@ Godot 3.2 or later.
 - [Features](#features)
 - [Download](#download)
 - [Commands](#commands)
-- [Configuration](#configuration)
-		- [Godot Editor](#godot-editor)
-		- [VS Code](#vs-code)
-- [GDScript Debugger](#gdscript-debugger)
-		- [*Configurations*](#configurations)
-	- [Issues and contributions](#issues-and-contributions)
+- [Configuration](#configuration) - [Godot Editor](#godot-editor) - [VS Code](#vs-code)
+- [GDScript Debugger](#gdscript-debugger) - [_Configurations_](#configurations)
+  - [Issues and contributions](#issues-and-contributions)
 - [Contributing](#contributing)
-	- [FAQ](#faq)
-		- [Why does it fail to connect to the language server?](#why-does-it-fail-to-connect-to-the-language-server)
-		- [Why isn't IntelliSense displaying script members?](#why-isnt-intellisense-displaying-script-members)
-
+  - [FAQ](#faq)
+    - [Why does it fail to connect to the language server?](#why-does-it-fail-to-connect-to-the-language-server)
+    - [Why isn't IntelliSense displaying script members?](#why-isnt-intellisense-displaying-script-members)
 
 # Features
 
 (**bold items** are new in Godot Tools `v2.0.0`)
+
 - **ALL FEATURES FULLY SUPPORT GODOT 4**
 - GDScript (`.gd`) language features:
   - syntax highlighting
@@ -92,12 +89,12 @@ You can set VS Code as your default script editor for Godot by following these s
 
 1. Open the **Editor Settings**
 2. Select **Text Editor > External**
-3. Check **Use External Editor** 
+3. Check **Use External Editor**
 4. Fill **Exec Path** with the path to your VS Code executable
-    * On macOS, this executable is typically located at: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
+   - On macOS, this executable is typically located at: `/Applications/Visual Studio Code.app/Contents/MacOS/Electron`
 5. Fill **Exec Flags** with `{project} --goto {file}:{line}:{col}`
 
-You can make Godot seamlessly reload VSCode-edited scripts by changing some additional settings. More details about each are available when hovering over the description in the Settings window: 
+You can make Godot seamlessly reload VSCode-edited scripts by changing some additional settings. More details about each are available when hovering over the description in the Settings window:
 
 - **Editor Settings > Text Editor > Behavior > Files > Auto Reload Scripts on External Change**
 - **Editor Settings > Interface > Editor > Save on Focus Loss**
@@ -113,7 +110,7 @@ You can use the following settings to configure Godot Tools:
 The path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
 
 - `godotTools.lsp.headless`
-  
+
 When using Godot >3.6 or >4.2, Headless LSP mode is available. In Headless mode, the extension will attempt to launch a windowless instance of the Godot editor to use as its Language Server.
 
 # GDScript Debugger
@@ -132,9 +129,10 @@ To configure the GDScript debugger:
 5. Change any relevant settings.
 6. Press F5 to launch.
 
-### *Configurations*
+### _Configurations_
 
 Minimal:
+
 ```json
 {
 	"name": "Launch",
@@ -144,6 +142,7 @@ Minimal:
 ```
 
 Everything:
+
 ```json
 {
 	"name": "Launch",
@@ -173,7 +172,7 @@ Everything:
 
 Godot's command flags are documented here: https://docs.godotengine.org/en/stable/tutorials/editor/command_line_tutorial.html
 
-*Usage*
+_Usage_
 
 - Stacktrace and variable dumps are the same as any regular debugger
 - The active scene tree can be refreshed with the Refresh icon in the top right.
@@ -220,3 +219,8 @@ Godot has some Editor Settings that can help you if your workflow involves chang
 - **Editor Settings > Text Editor > Behavior > Files > Auto Reload Scripts on External Change**
 - **Editor Settings > Interface > Editor > Save on Focus Loss**
 - **Editor Settings > Interface > Editor > Import Resources When Unfocused**
+
+### I'm using Linux and the drag + shift drop isn't working. Why?
+
+Most likely you're using Wayland as display server, and there's a limitation of support in VSCode. Try
+running `code` through the terminal in the project directory with the flag `--ozone-platform=x11`.
