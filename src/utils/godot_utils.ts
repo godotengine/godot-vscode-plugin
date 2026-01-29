@@ -23,27 +23,29 @@ export async function get_project_dir(): Promise<string | undefined> {
 		return projectDir;
 	}
 
-	let file = "";
+	let file: string | null = null;
 	if (vscode.workspace.workspaceFolders !== undefined) {
-		const files = await vscode.workspace.findFiles("**/project.godot", null);
+		// Iterate all workspace folders and look for first project.godot file
+		for (const folder of vscode.workspace.workspaceFolders) {
+			const files = await vscode.workspace.findFiles(
+				new vscode.RelativePattern(folder, "**/project.godot"),
+				null
+			);
 
-		if (files.length === 0) {
-			return undefined;
+			// If no project.godot files found, continue to next workspace folder
+			if (files.length === 0) {
+				continue;
+			}
+
+			const firstUri =
+				files.length === 1 ? files[0] : files.reduce(first_workspace_uri);
+
+			file = firstUri.fsPath;
+			break;
 		}
-		if (files.length === 1) {
-			file = files[0].fsPath;
-			if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-				return undefined;
-			}
-		} else if (files.length > 1) {
-			// if multiple project files, pick the top-most one
-			const best = files.reduce((a, b) => (a.fsPath.length <= b.fsPath.length ? a : b));
-			if (best) {
-				file = best.fsPath;
-				if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-					return undefined;
-				}
-			}
+
+		if (file == null) {
+			return undefined;
 		}
 	}
 	projectFile = file;
@@ -53,6 +55,35 @@ export async function get_project_dir(): Promise<string | undefined> {
 		projectDir = projectDir[0].toUpperCase() + projectDir.slice(1);
 	}
 	return projectDir;
+}
+
+/**
+ * Compare 2 Uris and prioritize which one is considered "first". Paths higher
+ * in the filesystem hierarchy are prioritized, and if they are at the same
+ * depth, lexicographical order is used.
+ * @param a the first Uri to compare
+ * @param b the second Uri to compare
+ * @returns The Uri that is considered "first"
+ */
+function first_workspace_uri(a: vscode.Uri, b: vscode.Uri): vscode.Uri {
+	// Compare by depth (number of segments)
+	const aDepth = a.fsPath.split(path.sep).length;
+	const bDepth = b.fsPath.split(path.sep).length;
+
+	if (aDepth < bDepth) {
+		return a;
+	}
+
+	if (aDepth > bDepth) {
+		return b;
+	}
+
+	// If same depth, compare filesystem order
+
+	if (a.fsPath < b.fsPath) {
+		return a;
+	}
+	return b;
 }
 
 export async function get_project_file(): Promise<string | undefined> {
@@ -99,7 +130,10 @@ export function find_project_file(start: string, depth = 20) {
 	// This function appears to be fast enough, but if speed is ever an issue,
 	// memoizing the result should be straightforward
 	if (start === ".") {
-		if (fs.existsSync("project.godot") && fs.statSync("project.godot").isFile()) {
+		if (
+			fs.existsSync("project.godot") &&
+			fs.statSync("project.godot").isFile()
+		) {
 			return "project.godot";
 		}
 		return null;
@@ -119,12 +153,19 @@ export function find_project_file(start: string, depth = 20) {
 	return find_project_file(folder, depth - 1);
 }
 
-export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
+export async function convert_resource_path_to_uri(
+	resPath: string
+): Promise<vscode.Uri | null> {
 	const dir = await get_project_dir();
-	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring("res://".length));
+	return vscode.Uri.joinPath(
+		vscode.Uri.file(dir),
+		resPath.substring("res://".length)
+	);
 }
 
-export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<string | null> {
+export async function convert_uri_to_resource_path(
+	uri: vscode.Uri
+): Promise<string | null> {
 	const project_dir = path.dirname(find_project_file(uri.fsPath));
 	if (project_dir === null) {
 		return;
@@ -137,7 +178,9 @@ export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<str
 
 const uidCache: Map<string, vscode.Uri | null> = new Map();
 
-export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, vscode.Uri>> {
+export async function convert_uids_to_uris(
+	uids: string[]
+): Promise<Map<string, vscode.Uri>> {
 	const not_found_uids: string[] = [];
 	const uris: Map<string, vscode.Uri> = new Map();
 
@@ -177,7 +220,10 @@ export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, 
 
 		const found_match = not_found_uids.indexOf(match[0]) >= 0;
 
-		const file_path = file.fsPath.substring(0, file.fsPath.length - ".uid".length);
+		const file_path = file.fsPath.substring(
+			0,
+			file.fsPath.length - ".uid".length
+		);
 		if (!fs.existsSync(file_path)) {
 			continue;
 		}
@@ -193,7 +239,9 @@ export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, 
 	return uris;
 }
 
-export async function convert_uid_to_uri(uid: string): Promise<vscode.Uri | undefined> {
+export async function convert_uid_to_uri(
+	uid: string
+): Promise<vscode.Uri | undefined> {
 	const uris = await convert_uids_to_uris([uid]);
 	return uris.get(uid);
 }
@@ -205,7 +253,10 @@ export type VERIFY_RESULT = {
 	version?: string;
 };
 
-export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
+export function verify_godot_version(
+	godotPath: string,
+	expectedVersion: "3" | "4" | string
+): VERIFY_RESULT {
 	let target = clean_godot_path(godotPath);
 
 	let output = "";
@@ -244,7 +295,7 @@ export function clean_godot_path(godotPath: string): string {
 	const pattern = /\$\{env:(.+?)\}/;
 	const match = godotPath.match(pattern);
 
-	if (match && match.length >= 2)	{
+	if (match && match.length >= 2) {
 		pathToClean = process.env[match[1]];
 	}
 
