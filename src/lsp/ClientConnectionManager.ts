@@ -10,6 +10,7 @@ import {
 	set_configuration,
 	set_context,
 	verify_godot_version,
+	get_godot_executable_for_project,
 } from "../utils";
 import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable } from "../utils/prompts";
 import { killSubProcesses, subProcess } from "../utils/subspawn";
@@ -116,10 +117,10 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
-		let godotPath = get_configuration(settingName);
 
-		const result = verify_godot_version(godotPath, projectVersion[0]);
-		godotPath = result.godotPath;
+		log.info(`Finding compatible Godot executable from settings`);
+		const result = await get_godot_executable_for_project(settingName);
+		let godotPath = result.godotPath;
 
 		switch (result.status) {
 			case "WRONG_VERSION": {

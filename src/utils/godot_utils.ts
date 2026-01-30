@@ -63,6 +63,7 @@ export async function get_project_file(): Promise<string | undefined> {
 }
 
 let projectVersion: string | undefined = undefined;
+let projectUsesCSharp: boolean | undefined = undefined;
 
 export async function get_project_version(): Promise<string | undefined> {
 	if (projectVersion) {
@@ -84,14 +85,27 @@ export async function get_project_version(): Promise<string | undefined> {
 	const match = text.match(/config\/features=PackedStringArray\((.*)\)/);
 	if (match) {
 		const line = match[0];
-		const version = line.match(/\"(4.[0-9]+)\"/);
-		if (version) {
-			godotVersion = version[1];
+		// Extract version number matching regex('\d+\.\d+')
+		const versionMatch = line.match(/"(\d+\.\d+)"/);
+		if (versionMatch) {
+			godotVersion = versionMatch[1];
 		}
+		// Check if C# feature is present
+		projectUsesCSharp = line.includes('"C#"');
 	}
 
 	projectVersion = godotVersion;
 	return projectVersion;
+}
+
+export async function get_project_uses_csharp(): Promise<boolean | undefined> {
+	if (projectUsesCSharp !== undefined) {
+		return projectUsesCSharp;
+	}
+
+	// Force parsing if not yet done
+	await get_project_version();
+	return projectUsesCSharp;
 }
 
 export function find_project_file(start: string, depth = 20) {
@@ -204,6 +218,163 @@ export type VERIFY_RESULT = {
 	godotPath: string;
 	version?: string;
 };
+
+export type COMPATIBLE_RESULT = {
+	status: "FOUND" | "NOT_FOUND";
+	godotPath: string | undefined;
+	version?: string;
+	isMono?: boolean;
+};
+
+export type GodotExecutableInfo = {
+	path: string;
+	version: string;
+	isMono: boolean;
+};
+
+/**
+ * Queries a Godot executable for its version and whether it's a Mono version.
+ * @param godotPath Path to the Godot executable
+ * @returns Object with version and isMono properties, or null if invalid
+ */
+export async function query_godot_executable(godotPath: string): Promise<GodotExecutableInfo | null> {
+	const target = clean_godot_path(godotPath);
+
+	try {
+		const output = execSync(`"${target}" --version`).toString().trim();
+		
+		// Parse version: e.g., "4.3.stable.mono" or "4.3.stable"
+		const versionPattern = /^(([34])\.([0-9]+)(?:\.[0-9]+)?)/m;
+		const versionMatch = output.match(versionPattern);
+		
+		if (!versionMatch) {
+			return null;
+		}
+
+		const version = versionMatch[1];
+		
+		// Check if it's a mono version
+		const isMono = output.toLowerCase().includes("mono");
+
+		return {
+			path: target,
+			version: version,
+			isMono: isMono
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Finds a compatible Godot executable from an array of paths.
+ * Chooses the first executable that strictly matches the project requirements.
+ * @param executablePaths Array of paths to Godot executables
+ * @param projectVersion The required major version (e.g., "3" or "4")
+ * @param projectVersionMinor Optional minor version requirement (e.g., "4.3")
+ * @param requiresMono Whether the project requires a Mono version
+ * @returns COMPATIBLE_RESULT with the selected executable or NOT_FOUND status
+ */
+export async function find_compatible_godot_executable(
+	executablePaths: string[],
+	projectVersion: string,
+	projectVersionMinor?: string,
+	requiresMono?: boolean
+): Promise<COMPATIBLE_RESULT> {
+	if (!executablePaths || executablePaths.length === 0) {
+		return { status: "NOT_FOUND", godotPath: undefined };
+	}
+
+	for (const godotPath of executablePaths) {
+		if (!godotPath || godotPath.trim() === "") {
+			continue;
+		}
+
+		const info = await query_godot_executable(godotPath);
+		
+		if (!info) {
+			continue;
+		}
+
+		// Check major version matches
+		if (!info.version.startsWith(projectVersion + ".")) {
+			continue;
+		}
+
+		// Check minor version if specified (strictly compatible)
+		if (projectVersionMinor && info.version !== projectVersionMinor) {
+			continue;
+		}
+
+		// Check mono requirement if specified
+		if (requiresMono !== undefined && info.isMono !== requiresMono) {
+			continue;
+		}
+
+		// Found a compatible executable
+		return {
+			status: "FOUND",
+			godotPath: info.path,
+			version: info.version,
+			isMono: info.isMono
+		};
+	}
+
+	// No compatible executable found
+	return { status: "NOT_FOUND", godotPath: undefined };
+}
+
+/**
+ * Gets the appropriate Godot executable path for the current project.
+ * Supports both single path and array of paths configuration.
+ * @param settingName The configuration setting name (e.g., "editorPath.godot4")
+ * @returns VERIFY_RESULT with the verified executable path
+ */
+export async function get_godot_executable_for_project(settingName: string): Promise<VERIFY_RESULT> {
+	const EXTENSION_PREFIX = "godotTools";
+	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(settingName, null);
+	
+	// If no value configured
+	if (configValue === null || configValue === undefined) {
+		return { status: "INVALID_EXE", godotPath: "" };
+	}
+
+	// If it's an array, use the new find_compatible_godot_executable function
+	if (Array.isArray(configValue) && configValue.length > 0) {
+		const projectVersion = await get_project_version();
+		const projectUsesCSharp = await get_project_uses_csharp();
+		
+		if (projectVersion === undefined) {
+			return { status: "INVALID_EXE", godotPath: "" };
+		}
+
+		const majorVersion = projectVersion[0];
+		const result = await find_compatible_godot_executable(
+			configValue,
+			majorVersion,
+			projectVersion,
+			projectUsesCSharp
+		);
+
+		if (result.status === "FOUND") {
+			return {
+				status: "SUCCESS",
+				godotPath: result.godotPath!,
+				version: result.version
+			};
+		} else {
+			return {
+				status: "WRONG_VERSION",
+				godotPath: configValue[0] || "",
+				version: projectVersion
+			};
+		}
+	}
+
+	// Single path (backward compatibility)
+	const singlePath = Array.isArray(configValue) ? configValue[0] : configValue;
+	return verify_godot_version(singlePath, projectVersion ? projectVersion[0] : "4");
+}
 
 export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
 	let target = clean_godot_path(godotPath);
