@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import {
 	createLogger,
 	get_configuration,
+	get_editor_path,
 	get_free_port,
 	get_project_dir,
 	get_project_version,
@@ -116,10 +117,8 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion[0]}`;
-		let godotPath = get_configuration(settingName);
-
+		const godotPath = get_editor_path(projectVersion[0]);
 		const result = verify_godot_version(godotPath, projectVersion[0]);
-		godotPath = result.godotPath;
 
 		switch (result.status) {
 			case "WRONG_VERSION": {
