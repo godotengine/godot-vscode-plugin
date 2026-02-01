@@ -59,7 +59,7 @@ class GodotPartialStackVars {
 		const scopeName = ["Locals", "Members", "Globals"][godotScopeIndex];
 		const scope = this[scopeName];
 		// const objectId = value instanceof ObjectId ? value : undefined; // won't work, unless the value is re-created through new ObjectId(godot_id)
-		const godot_id = type === 24 ? value.id : undefined;
+		const godot_id = type === 24 ? value?.id : undefined;
 		scope.push({ id: godot_id, name, value, type, sub_values } as GodotVariable);
 		this.remaining--;
 	}
@@ -453,7 +453,7 @@ export class ServerController {
 				// Variant:
 				// 	Variant value; 														// prop[5]
 				const rawObject = new RawObject(className);
-				let category = ""
+				let category = "";
 				for (const prop of properties) {
 					const [name, class_name, hint, hint_string, usage, value, ...tail]: [string, string, number, string, number, any] = prop;
 					if (usage === 128) {
@@ -465,9 +465,9 @@ export class ServerController {
 						var_name = `${category}/${name}`;
 					} else {
 						if (name.startsWith("Members/")) {
-							var_name = name.slice("Members/".length)
+							var_name = name.slice("Members/".length);
 						} else if (name.startsWith("Constants/")) {
-							var_name = name.slice("Constants/".length)
+							var_name = name.slice("Constants/".length);
 						} else if (name.includes("/")) {
 							var_name = name;
 						} else { // extra check for potential override values:

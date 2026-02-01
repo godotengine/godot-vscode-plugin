@@ -241,14 +241,14 @@ export class VariablesManager {
 			if (Array.isArray(value)) {
 				const stringify_if_can = async (v: any) => {
 					if (typeof v?.get_rendered_value === "function") {
-						return await v.get_rendered_value(this)
+						return await v.get_rendered_value(this);
 					}
 					if (typeof v?.stringify_value === "function") {
-						return v.stringify_value()
+						return v.stringify_value();
 					}
-					return v
-				}
-				const top_rendered_vals = await Promise.all(value.slice(0, 10).map(v => stringify_if_can(v)))
+					return v;
+				};
+				const top_rendered_vals = await Promise.all(value.slice(0, 10).map(v => stringify_if_can(v)));
 				rendered_value = `(${value.length}) [${top_rendered_vals.join(", ")}]`;
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
