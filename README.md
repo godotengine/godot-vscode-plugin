@@ -16,6 +16,7 @@ Godot 3.2 or later.
   - [FAQ](#faq)
     - [Why does it fail to connect to the language server?](#why-does-it-fail-to-connect-to-the-language-server)
     - [Why isn't IntelliSense displaying script members?](#why-isnt-intellisense-displaying-script-members)
+    - [I'm using Linux and the drag + shift drop isn't working. Why?](#im-using-linux-and-the-drag--shift-drop-isnt-working-why)
 
 # Features
 
