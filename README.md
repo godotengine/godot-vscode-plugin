@@ -222,5 +222,6 @@ Godot has some Editor Settings that can help you if your workflow involves chang
 
 ### I'm using Linux and the drag + shift drop isn't working. Why?
 
-Most likely you're using Wayland as display server, and there's a limitation of support in VSCode. Try
+Most likely you're using Wayland as display server, and there's a limitation of support in VS Code. Try
 running `code` through the terminal in the project directory with the flag `--ozone-platform=x11`.
+This will force VS Code to run through XWayland, where it works.
