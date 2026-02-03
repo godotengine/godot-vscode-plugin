@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.6.1
+
+- [Fix broken LSP connection handshake, which resulted in VS Code constantly trying to reconnect](https://github.com/godotengine/godot-vscode-plugin/pull/968)
+
 ### 2.6.0
 
 - [**Add support for `uid://` references to hovers and document links**](https://github.com/godotengine/godot-vscode-plugin/pull/841)
