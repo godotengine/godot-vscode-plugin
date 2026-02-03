@@ -23,6 +23,7 @@ import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers"
 import { VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
+import { VariablesManager } from "./variables/variables_manager";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -407,9 +408,12 @@ export class ServerController {
 				}
 				this.request_stack_dump();
 				this.request_scene_tree();
+				// variables_manager should be recreated for each "debug_enter"
+				this.session.variables_manager = new VariablesManager(this);
 				break;
 			}
 			case "debug_exit":
+				this.session.variables_manager = undefined;
 				break;
 			case "message:click_ctrl":
 				// TODO: what is this?
