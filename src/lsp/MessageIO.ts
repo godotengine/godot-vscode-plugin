@@ -51,10 +51,8 @@ export class MessageIO extends EventEmitter {
 			socket.on("data", (chunk: Buffer) => {
 				this.emit("data", chunk);
 			});
-			// socket.on("end", this.on_disconnected.bind(this));
 			socket.on("error", () => {
 				this.socket = null;
-				this.emit("disconnected");
 			});
 			socket.on("close", () => {
 				this.socket = null;
