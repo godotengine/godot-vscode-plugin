@@ -270,14 +270,14 @@
 					"description": "Whether to display the minimap for the Godot documentation viewer."
 				},
 				"godotTools.editorPath.godot3": {
-					"type": "string",
+					"type": ["string", "array"],
 					"default": "godot3",
-					"description": "Path to the Godot 3 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "Path to the Godot 3 editor executable. Can be a single path (string) or an array of paths. When an array is provided, the extension will automatically select the first compatible executable based on the project version and features (C# support). Supports environment variables using '${env:VAR_NAME}'."
 				},
 				"godotTools.editorPath.godot4": {
-					"type": "string",
+					"type": ["string", "array"],
 					"default": "godot",
-					"description": "Path to the Godot 4 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "Path to the Godot 4 editor executable. Can be a single path (string) or an array of paths. When an array is provided, the extension will automatically select the first compatible executable based on the project version and features (C# support). Supports environment variables using '${env:VAR_NAME}'."
 				},
 				"godotTools.editor.verbose": {
 					"type": "boolean",
