@@ -583,7 +583,7 @@ export class VariantDecoder {
 	}
 
 	private decode_Rect2i(model: BufferModel) {
-		return new Rect2i(this.decode_Vector2f(model), this.decode_Vector2f(model));
+		return new Rect2i(this.decode_Vector2i(model), this.decode_Vector2i(model));
 	}
 
 	private decode_String(model: BufferModel) {
