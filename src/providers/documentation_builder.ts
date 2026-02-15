@@ -236,6 +236,9 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 		if (symbol.children) {
 			for (const s of symbol.children as GodotNativeSymbol[]) {
 				const elements = make_symbol_elements(s);
+				if (!elements) {
+					continue;
+				}
 				switch (s.kind) {
 					case SymbolKind.Property:
 					case SymbolKind.Variable:
