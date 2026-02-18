@@ -375,6 +375,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+				},
+				"godotTools.workspace.overrideProjectDir": {
+					"type": "string",
+					"default": "",
+					"description": "Absolute path to a directory with a project.godot file. If set, this will override the auto-detected project directory."
 				}
 			}
 		},
