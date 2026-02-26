@@ -76,6 +76,7 @@ export class ClientConnectionManager {
 	private create_new_client() {
 		const port = this.client?.port ?? -1;
 		this.client?.events?.removeAllListeners();
+		this.client?.stop(); // fire and forget
 		this.client = new GDScriptLanguageClient();
 		this.client.port = port;
 		this.client.events.on("status", this.on_client_status_changed.bind(this));
@@ -328,6 +329,8 @@ export class ClientConnectionManager {
 	private retry_connect_client() {
 		const autoRetry = get_configuration("lsp.autoReconnect.enabled");
 		const maxAttempts = get_configuration("lsp.autoReconnect.attempts");
+		// const autoRetry = false; //get_configuration("lsp.autoReconnect.enabled");
+		// const maxAttempts = 1; //get_configuration("lsp.autoReconnect.attempts");
 		if (autoRetry && this.reconnectionAttempts <= maxAttempts - 1) {
 			this.reconnectionAttempts++;
 			this.client.connect(this.target);

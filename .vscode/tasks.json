@@ -15,6 +15,23 @@
 				"kind": "build",
 				"isDefault": true
 			}
-		}
+		},
+		{
+			"type": "npm",
+			"script": "test",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "package",
+			"label": "Package extension (vsix)",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			}
+		},
 	]
 }
