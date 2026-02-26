@@ -18,7 +18,7 @@ body:
     description: >
       Specify the Git commit hash if using a development or non-official build.
       If you use a custom build, please test if your issue is reproducible in official builds too.
-    placeholder: 4.3.stable, 4.4.dev1 (28a72fa43)
+    placeholder: 4.5.1.stable, 4.6.rc2 (78c6632eb)
   validations:
     required: true
 
@@ -29,7 +29,7 @@ body:
       Use the **Help > About** menu to see your current version.
       Specify the Git commit hash if using a development or non-official build.
       If you use a custom build, please test if your issue is reproducible in official builds too.
-    placeholder: "1.98.1"
+    placeholder: "1.108.1"
   validations:
     required: true
 
@@ -40,7 +40,7 @@ body:
       Open the **Extensions** side panel and click on the **godot-tools** extension to see your current version.
       Specify the Git commit hash if using a development or non-official build.
       If you use a custom build, please test if your issue is reproducible in official builds too.
-    placeholder: "2.5.1"
+    placeholder: "2.6.1"
   validations:
     required: true
 
@@ -49,7 +49,7 @@ body:
     label: System information
     description: |
       Specify the OS version, and when relevant hardware information.
-    placeholder: Windows 10
+    placeholder: Windows 11
   validations:
     required: true
 
