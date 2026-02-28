@@ -13,6 +13,7 @@ import {
 	get_free_port,
 	get_project_version,
 	verify_godot_version,
+	get_godot_executable_for_project,
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
 import { killSubProcesses, subProcess } from "../../utils/subspawn";
@@ -186,10 +187,8 @@ export class ServerController {
 			log.info("Using 'editorPath.godot4' from settings");
 
 			const settingName = "editorPath.godot4";
-			godotPath = get_configuration(settingName);
-
-			log.info(`Verifying version of '${godotPath}'`);
-			result = verify_godot_version(godotPath, "4");
+			log.info(`Finding compatible Godot executable from settings`);
+			result = await get_godot_executable_for_project(settingName);
 			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
