@@ -89,6 +89,10 @@ export class ServerController {
 		this.projectVersionPoint = versionParts[2] || 0;
 	}
 
+	private isVersion45OrHigher(): boolean {
+		return this.projectVersionMajor > 4 || (this.projectVersionMajor === 4 && this.projectVersionMinor >= 5);
+	}
+
 	public break() {
 		this.send_command("break");
 	}
@@ -120,7 +124,11 @@ export class ServerController {
 	}
 
 	public request_inspect_object(object_id: bigint) {
-		this.send_command("scene:inspect_object", [object_id]);
+		if (this.isVersion45OrHigher()) {
+			this.send_command("scene:inspect_objects", [[object_id], false]);
+		} else {
+			this.send_command("scene:inspect_object", [object_id]);
+		}
 	}
 
 	public request_scene_tree() {
@@ -425,10 +433,12 @@ export class ServerController {
 				this.session.sceneTree.fill_tree(tree);
 				break;
 			}
-			case "scene:inspect_object": {
-				let godot_id = BigInt(command.parameters[0]);
-				const className: string = command.parameters[1];
-				const properties: string[] = command.parameters[2];
+			case "scene:inspect_object":
+			case "scene:inspect_objects": {
+				const object = this.isVersion45OrHigher() ? command.parameters[0] : command.parameters;
+				let godot_id = BigInt(object[0]);
+				const className: string = object[1];
+				const properties: string[] = object[2];
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
@@ -444,15 +454,15 @@ export class ServerController {
 
 				// race condition here:
 				// 0. DebuggerStop1 happens
-				// 1. the DA may have sent the "inspect_object" message
+				// 1. the DA may have sent the "inspect_objects" message
 				// 2. the vscode hit "continue"
 				// 3. new breakpoint hit, DebuggerStop2 happens
-				// 4. the godot server will return response for `1.` with "scene:inspect_object"
-				// at this moment there is no way to tell if "scene:inspect_object" is for DebuggerStop1 or DebuggerStop2
+				// 4. the godot server will return response for `1.` with "scene:inspect_objects"
+				// at this moment there is no way to tell if "scene:inspect_objects" is for DebuggerStop1 or DebuggerStop2
 				try {
 					this.session.variables_manager?.resolve_variable(godot_id, className, sub_values);
 				} catch (error) {
-					log.error("Race condition error error in scene:inspect_object", error);
+					log.error("Race condition error error in scene:inspect_objects", error);
 				}
 				break;
 			}
