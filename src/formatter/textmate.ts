@@ -254,8 +254,8 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 	const options = _options ?? get_formatter_options();
 
-	let lastToken = null;
-	let lineTokens: vsctm.ITokenizeLineResult = null;
+	let lastToken = "";
+	let lineTokens: vsctm.ITokenizeLineResult;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {

@@ -215,7 +215,7 @@ export function verify_godot_version(godotPath: string, expectedVersion: "3" | "
 		if (path.isAbsolute(target)) {
 			return { status: "INVALID_EXE", godotPath: target };
 		}
-		const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+		const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || "";
 		target = path.resolve(workspacePath, target);
 		try {
 			output = execSync(`"${target}" --version`).toString().trim();
@@ -245,7 +245,7 @@ export function clean_godot_path(godotPath: string): string {
 	const match = godotPath.match(pattern);
 
 	if (match && match.length >= 2)	{
-		pathToClean = process.env[match[1]];
+		pathToClean = process.env[match[1]] || "";
 	}
 
 	// strip leading and trailing quotes

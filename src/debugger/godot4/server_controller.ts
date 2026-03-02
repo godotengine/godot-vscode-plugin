@@ -234,8 +234,8 @@ export class ServerController {
 			log.info(`Custom scene argument provided: ${args.scene}`);
 			let filename = args.scene;
 			if (args.scene === "current") {
-				let path = window.activeTextEditor.document.fileName;
-				if (path.endsWith(".gd")) {
+				let path = window.activeTextEditor?.document.fileName;
+				if (path?.endsWith(".gd")) {
 					path = path.replace(".gd", ".tscn");
 					if (!fs.existsSync(path)) {
 						const message = `Can't find associated scene file for ${path}`;

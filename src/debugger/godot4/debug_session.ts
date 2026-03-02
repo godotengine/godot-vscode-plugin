@@ -145,8 +145,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 			for (const l of client_lines) {
 				if (bp_lines.indexOf(l) === -1) {
-					const bp = args.breakpoints.find((bp_at_line) => bp_at_line.line === l);
-					if (!bp.condition) {
+					const bp = args.breakpoints?.find((bp_at_line) => bp_at_line.line === l);
+					if (bp === undefined || !bp.condition) {
 						this.debug_data.set_breakpoint(path, l);
 					}
 				}
@@ -217,6 +217,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments) {
 		log.info("scopesRequest", args);
+
+		if (this.variables_manager === null)
+			return; // not inside a debug_enter/debug_exit
+
 		// this.variables_manager.variablesFrameId = args.frameId;
 
 		// TODO: create scopes dynamically for a given frame
@@ -245,6 +249,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.VariablesArguments,
 	) {
 		log.info("variablesRequest", args);
+
+		if (this.variables_manager === null)
+			return; // not inside a debug_enter/debug_exit
+
 		try {
 			const variables = await this.variables_manager.get_vscode_object(args.variablesReference);
 
@@ -264,10 +272,13 @@ export class GodotDebugSession extends LoggingDebugSession {
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 		log.info("evaluateRequest", args);
 
+		if (this.variables_manager === null)
+			return; // not inside a debug_enter/debug_exit
+
 		try {
 			const parsed_variable = await this.variables_manager.get_vscode_variable_by_name(
 				args.expression,
-				args.frameId,
+				args.frameId || 0,
 			);
 			response.body = {
 				result: parsed_variable.value,

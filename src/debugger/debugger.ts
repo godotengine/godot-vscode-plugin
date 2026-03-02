@@ -58,7 +58,7 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 	additional_options: string;
 }
 
-export let pinnedScene: Uri;
+export let pinnedScene: Uri | undefined;
 
 class GDFileDecorationProvider implements FileDecorationProvider {
 	private emitter = new EventEmitter<Uri>();
@@ -70,7 +70,7 @@ class GDFileDecorationProvider implements FileDecorationProvider {
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "file") return undefined;
-		if (pinnedScene && uri.fsPath === pinnedScene.fsPath) {
+		if (pinnedScene !== undefined && uri.fsPath === pinnedScene.fsPath) {
 			return {
 				badge: "🖈",
 			};
@@ -100,8 +100,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.editValue", this.edit_value.bind(this)),
 			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
 			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
-			register_command("debugger.pinFile", this.pin_file.bind(this)),
-			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
+			register_command("debugger.pinFile", this.pinFile.bind(this)),
+			register_command("debugger.unpinFile", this.unpinFile.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 			this.inspector.view,
 			this.sceneTree.view,
@@ -113,7 +113,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const projectVersion = await get_project_version();
 		log.info(`Project version identified as ${projectVersion}`);
 
-		if (projectVersion.startsWith("4")) {
+		if (projectVersion?.startsWith("4")) {
 			this.session = new Godot4DebugSession(projectVersion);
 		} else {
 			this.session = new Godot3DebugSession();
@@ -168,13 +168,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public debug_current_file() {
 		log.info("Attempting to debug current file");
 		const configs: DebugConfiguration[] = workspace
-			.getConfiguration("launch", window.activeTextEditor.document.uri)
-			.get("configurations");
+			.getConfiguration("launch", window.activeTextEditor?.document.uri)
+			.get("configurations") || [];
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "current");
 
-		let path = window.activeTextEditor.document.fileName;
-		if (path.endsWith(".gd")) {
+		let path = window.activeTextEditor?.document.fileName;
+		if (path?.endsWith(".gd")) {
 			const scenePath = path.replace(".gd", ".tscn");
 			if (!fs.existsSync(scenePath)) {
 				const message = `Can't launch debug session: no associated scene for '${path}'. (Script and scene file must have the same name.)`;
@@ -196,12 +196,12 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		config.scene = path;
 
 		log.info(`Starting debug session for '${path}'`);
-		debug.startDebugging(workspace.workspaceFolders[0], config);
+		debug.startDebugging(workspace.workspaceFolders?.[0], config);
 	}
 
 	public debug_pinned_file() {
 		log.info("Attempting to debug pinned scene");
-		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations");
+		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations") || [];
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "pinned");
 
@@ -231,13 +231,17 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		config.scene = path;
 
 		log.info(`Starting debug session for '${path}'`);
-		debug.startDebugging(workspace.workspaceFolders[0], config);
+		debug.startDebugging(workspace.workspaceFolders?.[0], config);
 	}
 
-	public pin_file(uri: Uri) {
+	public pinFile(uri: Uri | undefined) {
 		let _uri = uri;
 		if (uri === undefined) {
-			_uri = window.activeTextEditor.document.uri;
+			_uri = window.activeTextEditor?.document.uri;
+		}
+		if (_uri === undefined) {
+			window.showWarningMessage("No active editor. Open a file to pin it.");
+			return;
 		}
 		log.info(`Pinning debug target file: '${_uri.fsPath}'`);
 		set_context("pinnedScene", [_uri.fsPath]);
@@ -249,7 +253,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.fileDecorations.update(_uri);
 	}
 
-	public unpin_file(uri: Uri) {
+	public unpinFile(uri: Uri) {
 		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
 		const previousPinnedScene = pinnedScene;
@@ -349,7 +353,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 					return;
 				}
 		}
-		if (property.changes_parent) {
+		if (property.changes_parent && property.parent !== undefined) {
 			const parents = [property.parent];
 			let idx = 0;
 			while (parents[idx].changes_parent) {

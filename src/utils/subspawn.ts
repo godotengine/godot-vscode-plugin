@@ -5,8 +5,8 @@ Original library copyright (c) 2022 Craig Wardman
 I had to vendor this library to fix the API in a couple places.
 */
 
-import { ChildProcess, execSync, spawn, SpawnOptions } from "node:child_process";
-import { createLogger } from ".";
+import { ChildProcess, execSync, spawn, SpawnOptionsWithoutStdio } from "node:child_process";
+import { createLogger } from "./index.js";
 
 const log = createLogger("subspawn");
 
@@ -55,7 +55,7 @@ process.on("SIGINT", gracefulExitHandler);
 process.on("SIGTERM", gracefulExitHandler);
 process.on("SIGQUIT", gracefulExitHandler);
 
-export function subProcess(owner: string, command: string, options?: SpawnOptions) {
+export function subProcess(owner: string, command: string, options?: SpawnOptionsWithoutStdio) {
 	const childProcess = spawn(command, options);
 
 	children[owner] = children[owner] || [];

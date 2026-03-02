@@ -111,14 +111,14 @@ export class ClientConnectionManager {
 		const projectVersion = await get_project_version();
 		let minimumVersion = "6";
 		let targetVersion = "3.6";
-		if (projectVersion.startsWith("4")) {
+		if (projectVersion?.startsWith("4")) {
 			minimumVersion = "2";
 			targetVersion = "4.2";
 		}
-		const settingName = `editorPath.godot${projectVersion[0]}`;
+		const settingName = `editorPath.godot${projectVersion?.[0] || ""}`;
 		let godotPath = get_configuration(settingName);
 
-		const result = verify_godot_version(godotPath, projectVersion[0]);
+		const result = verify_godot_version(godotPath, projectVersion?.[0] || "");
 		godotPath = result.godotPath;
 
 		switch (result.status) {
