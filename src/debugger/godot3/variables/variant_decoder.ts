@@ -98,7 +98,7 @@ export class VariantDecoder {
 			len: len,
 		};
 
-		const output = [];
+		const output: ReturnType<typeof this.decode_variant> = [];
 		output.push(len + 4);
 		do {
 			const value = this.decode_variant(model);

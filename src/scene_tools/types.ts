@@ -39,7 +39,7 @@ export class SceneNode extends TreeItem {
 
 	public parse_body() {
 		const lines = this.body.split("\n");
-		const newLines = [];
+		const newLines: string[] = [];
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i];
 			if (line.startsWith("tile_data")) {
@@ -50,7 +50,7 @@ export class SceneNode extends TreeItem {
 			}
 			if (line.startsWith("script = ExtResource")) {
 				this.hasScript = true;
-				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)[1];
+				this.scriptId = line.match(/script = ExtResource\(\s*"?([\w]+)"?\s*\)/)?.[1] ?? "";
 				this.contextValue += "hasScript";
 			}
 			if (line !== "") {
@@ -69,7 +69,7 @@ export interface GDResource {
 	type: string;
 	id: string;
 	uid: string;
-	body?: string;
+	body: string;
 	index: number;
 	line: number;
 }
@@ -82,4 +82,14 @@ export class Scene {
 	public externalResources: Map<string, GDResource> = new Map();
 	public subResources: Map<string, GDResource> = new Map();
 	public nodes: Map<string, SceneNode> = new Map();
+}
+
+export interface SceneResource {
+	path: string;
+	type: string;
+	uid: string;
+	id: string;
+	index: number;
+	line: number;
+	body: string;
 }

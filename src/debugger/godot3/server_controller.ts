@@ -47,7 +47,7 @@ export class ServerController {
 	private server?: net.Server;
 	private socket?: net.Socket;
 	private steppingOut = false;
-	private currentCommand: Command = undefined;
+	private currentCommand?: Command;
 	private didFirstOutput = false;
 	private connectedVersion = "";
 
@@ -99,7 +99,7 @@ export class ServerController {
 		this.send_command("get_stack_frame_vars", [frame_id]);
 	}
 
-	public set_object_property(objectId: bigint, label: string, newParsedValue) {
+	public set_object_property(objectId: bigint, label: string, newParsedValue: any) {
 		this.send_command("set_object_property", [objectId, label, newParsedValue]);
 	}
 
@@ -170,7 +170,7 @@ export class ServerController {
 			}
 		}
 
-		this.connectedVersion = result.version;
+		this.connectedVersion = result.version || "";
 
 		let command = `"${godotPath}" --path "${args.project}"`;
 		const address = args.address.replace("tcp://", "");
@@ -187,7 +187,14 @@ export class ServerController {
 			log.info(`Custom scene argument provided: ${args.scene}`);
 			let filename = args.scene;
 			if (args.scene === "current") {
-				let path = window.activeTextEditor.document.fileName;
+				let path = window.activeTextEditor?.document.fileName;
+				if (path === undefined) {
+					const message = "No active editor. Open a file to launch it.";
+					log.warn(message);
+					window.showErrorMessage(message, "Ok");
+					this.abort();
+					return;
+				}
 				if (path.endsWith(".gd")) {
 					path = path.replace(".gd", ".tscn");
 					if (!fs.existsSync(path)) {
@@ -238,7 +245,7 @@ export class ServerController {
 		debugProcess.on("close", (code) => {});
 	}
 
-	private stash: Buffer;
+	private stash?: Buffer;
 
 	private on_data(buffer: Buffer) {
 		if (this.stash) {
@@ -247,8 +254,7 @@ export class ServerController {
 		}
 
 		const buffers = split_buffers(buffer);
-		while (buffers.length > 0) {
-			const chunk = buffers.shift();
+		for (const chunk of buffers) {
 			const data = this.decoder.get_dataset(chunk)?.slice(1);
 			if (data === undefined) {
 				this.stash = Buffer.alloc(chunk.length);
@@ -338,7 +344,8 @@ export class ServerController {
 	private parse_message(dataset: any[]) {
 		if (!this.currentCommand || this.currentCommand.complete) {
 			this.currentCommand = new Command();
-			this.currentCommand.command = dataset.shift();
+			const cmd = dataset.shift();
+			this.currentCommand.command = cmd ?? "";
 		}
 
 		while (dataset && dataset.length > 0) {
@@ -402,7 +409,8 @@ export class ServerController {
 				const inspectedVariable = { name: "", value: rawObject };
 				build_sub_values(inspectedVariable);
 				if (this.session.inspect_callbacks.has(BigInt(id))) {
-					this.session.inspect_callbacks.get(BigInt(id))(inspectedVariable.name, inspectedVariable);
+					const callback = this.session.inspect_callbacks.get(BigInt(id));
+					callback?.(inspectedVariable.name, inspectedVariable);
 					this.session.inspect_callbacks.delete(BigInt(id));
 				}
 				this.session.set_inspection(id, inspectedVariable);
@@ -460,7 +468,7 @@ export class ServerController {
 			cond: params[7] as string,
 			msg: params[8] as string,
 			warning: params[9] as boolean,
-			stack: [],
+			stack: [] as { msg: string; extras: any }[],
 		};
 		const stackCount = command.parameters[1];
 		for (let i = 0; i < stackCount; i += 3) {
@@ -468,8 +476,9 @@ export class ServerController {
 			const func = command.parameters[i + 3];
 			const line = command.parameters[i + 4];
 			const msg = `${file}:${line} @ ${func}()`;
+			const uri = await convert_resource_path_to_uri(file);
 			const extras = {
-				source: { name: (await convert_resource_path_to_uri(file)).toString() },
+				source: { name: uri?.toString() ?? "" },
 				line: line,
 			};
 			e.stack.push({ msg: msg, extras: extras });
@@ -480,8 +489,9 @@ export class ServerController {
 		const color = e.warning ? "yellow" : "red";
 		const lang = e.file.startsWith("res://") ? "GDScript" : "C++";
 
+		const uri = await convert_resource_path_to_uri(e.file);
 		const extras = {
-			source: { name: (await convert_resource_path_to_uri(e.file)).toString() },
+			source: { name: uri?.toString() ?? "" },
 			line: e.line,
 			group: "startCollapsed",
 		};
@@ -540,7 +550,7 @@ export class ServerController {
 			if (error) {
 				log.error(error);
 			}
-			this.server.unref();
+			this.server?.unref();
 			this.server = undefined;
 		});
 	}
@@ -610,6 +620,9 @@ export class ServerController {
 
 		while (!this.draining && this.commandBuffer.length > 0) {
 			const command = this.commandBuffer.shift();
+			if (command === undefined) {
+				break;
+			}
 			this.draining = !this.socket.write(command);
 		}
 	}

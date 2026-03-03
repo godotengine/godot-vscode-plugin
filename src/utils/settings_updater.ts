@@ -40,7 +40,7 @@ export function updateOldStyleSettings() {
  */
 export function updateStoredVersion(context: vscode.ExtensionContext) {
 	const syncedVersion: string = vscode.extensions.getExtension(context.extension.id)
-		.packageJSON.version;
+		?.packageJSON.version;
 	context.globalState.update("previousVersion", syncedVersion);
 }
 

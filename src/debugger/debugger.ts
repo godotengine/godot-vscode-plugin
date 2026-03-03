@@ -259,11 +259,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const previousPinnedScene = pinnedScene;
 		pinnedScene = undefined;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
-		this.fileDecorations.update(previousPinnedScene);
+		if (previousPinnedScene) {
+			this.fileDecorations.update(previousPinnedScene);
+		}
 	}
 
 	public restore_pinned_file() {
-		pinnedScene = this.context.workspaceState.get("pinnedScene", undefined);
+		pinnedScene = this.context.workspaceState.get<Uri>("pinnedScene");
 		if (pinnedScene) {
 			log.info(`Restoring pinned debug target file: '${pinnedScene.fsPath}'`);
 			set_context("pinnedScene", [pinnedScene.fsPath]);
@@ -282,6 +284,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	private async fill_inspector(element: SceneNode | RemoteProperty, force_refresh = false) {
+		if (element.object_id === undefined) {
+			return;
+		}
+
 		if (this.session instanceof Godot4DebugSession) {
 			const godot_object = await this.session.variables_manager?.get_godot_object(
 				BigInt(element.object_id),
@@ -317,11 +323,17 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public async refresh_inspector() {
 		if (this.inspector.has_tree()) {
 			const item = this.inspector.get_top_item();
-			await this.fill_inspector(item, /*force_refresh*/ true);
+			if (item) {
+				await this.fill_inspector(item, /*force_refresh*/ true);
+			}
 		}
 	}
 
 	public async edit_value(property: RemoteProperty) {
+		if (property.object_id === undefined) {
+			log.error("Invalid property to edit (property.object_id === undefined)");
+			return;
+		}
 		const previous_value = property.value;
 		const type = typeof previous_value;
 		const is_float = type === "number" && !Number.isInteger(previous_value);
@@ -332,6 +344,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				new_parsed_value = value;
 				break;
 			case "number":
+				if (!value) {
+					return;
+				}
 				if (is_float) {
 					new_parsed_value = Number.parseFloat(value);
 					if (Number.isNaN(new_parsed_value)) {
@@ -345,6 +360,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				}
 				break;
 			case "boolean":
+				if (!value) {
+					return;
+				}
 				if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
 					new_parsed_value = value.toLowerCase() === "true";
 				} else if (value === "0" || value === "1") {
@@ -352,12 +370,16 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				} else {
 					return;
 				}
+				break;
 		}
 		if (property.changes_parent && property.parent !== undefined) {
 			const parents = [property.parent];
 			let idx = 0;
 			while (parents[idx].changes_parent) {
-				parents.push(parents[idx++].parent);
+				const parent = parents[idx++].parent;
+				if (parent) {
+					parents.push(parent);
+				}
 			}
 			const changed_value = this.inspector.get_changed_value(parents, property, new_parsed_value);
 			this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
@@ -366,9 +388,11 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 
 		const item = this.inspector.get_top_item();
-		await this.fill_inspector(item, /*force_refresh*/ true);
+		if (item) {
+			await this.fill_inspector(item, /*force_refresh*/ true);
+		}
 
 		// const res = await debug.activeDebugSession?.customRequest("refreshVariables"); // refresh vscode.debug variables
-		this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		this.session?.sendEvent(new InvalidatedEvent(["variables"]));
 	}
 }

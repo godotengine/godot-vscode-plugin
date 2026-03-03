@@ -31,8 +31,10 @@ import {
 	Signal,
 } from "./variants";
 
+export type DecodedVariant = string | number | bigint | boolean | DecodedVariant[] | Vector2 | Rect2 | Vector3 | Transform2D | Plane | Vector4 | Quat | AABB | Basis | Transform3D | Projection | Color | StringName | NodePath | ObjectId | Callable | Signal | Map<DecodedVariant, DecodedVariant> | undefined
+
 export class VariantDecoder {
-	public decode_variant(model: BufferModel) {
+	public decode_variant(model: BufferModel) : DecodedVariant {
 		const type = this.decode_UInt32(model);
 		switch (type & 0xff) {
 			case GDScriptTypes.BOOL:
@@ -180,6 +182,7 @@ export class VariantDecoder {
 			case GDScriptTypes.PACKED_COLOR_ARRAY:
 				return this.decode_PackedColorArray(model);
 			default:
+				console.error("Unknown type: " + type);
 				return undefined;
 		}
 	}
@@ -195,7 +198,7 @@ export class VariantDecoder {
 			len: len,
 		};
 
-		const output = [];
+		const output: DecodedVariant[] = [];
 		output.push(len + 4);
 		do {
 			const value = this.decode_variant(model);
@@ -229,9 +232,9 @@ export class VariantDecoder {
 	}
 
 	private decode_Array(model: BufferModel, type: GDScriptTypes) {
-		const output = [];
+		const output: DecodedVariant[] = [];
 
-		let arrayType = null;
+		let arrayType: number | string | undefined;
 		if (type & ENCODE_FLAG_TYPED_ARRAY_MASK) {
 			arrayType = this.decode_ContainerTypeFlag(model, type, 16);
 		}
@@ -272,10 +275,10 @@ export class VariantDecoder {
 	}
 
 	private decode_Dictionary(model: BufferModel, type: GDScriptTypes) {
-		const output = new Map();
+		const output = new Map<DecodedVariant, DecodedVariant>();
 
-		let keyType = null;
-		let valueType = null;
+		let keyType: number | string | undefined;
+		let valueType: number | string | undefined;
 		if (type & ENCODE_FLAG_TYPED_DICT_MASK) {
 			keyType = this.decode_ContainerTypeFlag(model, type, 16);
 			valueType = this.decode_ContainerTypeFlag(model, type, 18);

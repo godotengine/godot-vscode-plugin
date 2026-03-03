@@ -119,18 +119,21 @@ export function find_project_file(start: string, depth = 20) {
 	return find_project_file(folder, depth - 1);
 }
 
-export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri | null> {
+export async function convert_resource_path_to_uri(resPath: string): Promise<vscode.Uri> {
 	const dir = await get_project_dir();
+	if (!dir) {
+		throw new Error("Cannot convert resource path to uri: Could not find project directory");
+	}
 	return vscode.Uri.joinPath(vscode.Uri.file(dir), resPath.substring("res://".length));
 }
 
-export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<string | null> {
-	const project_dir = path.dirname(find_project_file(uri.fsPath));
-	if (project_dir === null) {
-		return;
+export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<string> {
+	const dir = await get_project_dir();
+	if (!dir) {
+		throw new Error("Cannot convert resource path to uri: Could not find project directory");
 	}
 
-	let relative_path = path.normalize(path.relative(project_dir, uri.fsPath));
+	let relative_path = path.normalize(path.relative(dir, uri.fsPath));
 	relative_path = relative_path.split(path.sep).join(path.posix.sep);
 	return `res://${relative_path}`;
 }
@@ -149,7 +152,7 @@ export async function convert_uids_to_uris(uids: string[]): Promise<Map<string, 
 
 		if (uidCache.has(uid)) {
 			const uri = uidCache.get(uid);
-			if (fs.existsSync(uri.fsPath)) {
+			if (uri && fs.existsSync(uri.fsPath)) {
 				uris.set(uid, uri);
 				continue;
 			}
@@ -244,7 +247,7 @@ export function clean_godot_path(godotPath: string): string {
 	const pattern = /\$\{env:(.+?)\}/;
 	const match = godotPath.match(pattern);
 
-	if (match && match.length >= 2)	{
+	if (match && match.length >= 2) {
 		pathToClean = process.env[match[1]] || "";
 	}
 

@@ -96,6 +96,9 @@ export class VariablesManager {
 				this.controller.request_inspect_object(godot_id);
 			}
 		}
+		if (!variable_promise) {
+			throw new Error(`Failed to create or retrieve variable promise for godot_id ${godot_id}`);
+		}
 		const godot_object = await variable_promise.promise;
 
 		return godot_object;
@@ -123,7 +126,7 @@ export class VariablesManager {
 					`Cannot retrieve path '${godot_id_with_path.toString()}'. Following subpath not found: '${godot_id_with_path.path.slice(0, idx + 1).join("/")}'.`,
 				);
 			}
-			sub_values = sub_val.sub_values;
+			sub_values = sub_val.sub_values || [];
 		}
 
 		const variables: DebugProtocol.Variable[] = [];
@@ -150,10 +153,10 @@ export class VariablesManager {
 		variable_name: string,
 		stack_frame_id: number,
 	): Promise<DebugProtocol.Variable> {
-		let variable: GodotVariable;
+		let variable: GodotVariable | undefined;
 
 		const variable_names = variable_name.split(".");
-		let parent_id: bigint;
+		let parent_id: bigint | undefined;
 
 		for (let i = 0; i < variable_names.length; i++) {
 			if (i === 0) {
@@ -174,11 +177,13 @@ export class VariablesManager {
 				}
 			} else {
 				// just look up the subpath using the current variable
-				if (variable.value instanceof ObjectId) {
-					const godot_object = await this.get_godot_object(variable.value.id);
-					variable = godot_object.sub_values.find((sv) => sv.name === variable_names[i]);
-				} else {
-					variable = variable.sub_values.find((sv) => sv.name === variable_names[i]);
+				if (variable) {
+					if (variable.value instanceof ObjectId) {
+						const godot_object = await this.get_godot_object(variable.value.id);
+						variable = godot_object.sub_values.find((sv) => sv.name === variable_names[i]);
+					} else {
+						variable = variable.sub_values?.find((sv) => sv.name === variable_names[i]);
+					}
 				}
 			}
 			if (variable === undefined) {
@@ -188,6 +193,9 @@ export class VariablesManager {
 			}
 		}
 
+		if (!variable || parent_id === undefined) {
+			throw new Error(`Variable ${variable_name} or its parent_id is undefined`);
+		}
 		const parsed_variable = await this.parse_variable(
 			variable,
 			undefined,
@@ -196,12 +204,14 @@ export class VariablesManager {
 			this.godot_id_to_vscode_id_mapper,
 		);
 		if (parsed_variable.variablesReference === undefined) {
-			const objectId = variable.value instanceof ObjectId ? variable.value : undefined;
-			const vscode_id =
-				objectId !== undefined
-					? this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(new GodotIdWithPath(objectId.id, []))
-					: 0;
-			parsed_variable.variablesReference = vscode_id;
+			if (variable && variable.value) {
+				const objectId = variable.value instanceof ObjectId ? variable.value : undefined;
+				const vscode_id =
+					objectId !== undefined
+						? this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(new GodotIdWithPath(objectId.id, []))
+						: 0;
+				parsed_variable.variablesReference = vscode_id;
+			}
 		}
 
 		return parsed_variable;
@@ -231,15 +241,19 @@ export class VariablesManager {
 		} else {
 			if (Array.isArray(value)) {
 				rendered_value = `(${value.length}) [${value.slice(0, 10).join(", ")}]`;
-				reference = mapper.get_or_create_vscode_id(
-					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
-				);
+				if (mapper && parent_godot_id !== undefined) {
+					reference = mapper.get_or_create_vscode_id(
+						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
+					);
+				}
 			} else if (value instanceof Map) {
 				// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 				rendered_value = value["class_name"] ?? `Dictionary(${value.size})`;
-				reference = mapper.get_or_create_vscode_id(
-					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
-				);
+				if (mapper && parent_godot_id !== undefined) {
+					reference = mapper.get_or_create_vscode_id(
+						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
+					);
+				}
 			} else if (value instanceof ObjectId) {
 				if (value.id === undefined) {
 					throw new Error("Invalid godot object: instanceof ObjectId but id is undefined");
@@ -249,16 +263,18 @@ export class VariablesManager {
 				const godot_object = await this.get_godot_object(value.id);
 				rendered_value = `${godot_object.type}${value.stringify_value()}`;
 				// rendered_value = `${value.type_name()}${value.stringify_value()}`;
-				reference = vscode_id;
+				reference = vscode_id || 0;
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;
 				} catch (e) {
 					rendered_value = `${value}`;
 				}
-				reference = mapper.get_or_create_vscode_id(
-					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
-				);
+				if (mapper && parent_godot_id !== undefined) {
+					reference = mapper.get_or_create_vscode_id(
+						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
+					);
+				}
 				// reference = vsode_id ? vsode_id : 0;
 			}
 		}

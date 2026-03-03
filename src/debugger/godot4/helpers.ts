@@ -33,7 +33,7 @@ export function split_buffers(buffer: Buffer) {
 }
 
 export function get_sub_values(value: any): GodotVariable[] {
-	let subValues: GodotVariable[] = undefined;
+	let subValues: GodotVariable[] = [];
 
 	if (value) {
 		if (Array.isArray(value)) {

@@ -45,7 +45,7 @@ export class GDHoverProvider implements HoverProvider {
 		return links;
 	}
 
-	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
+	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover | undefined> {
 		if (["gdresource", "gdscene"].includes(document.languageId)) {
 			const scene = this.parser.parse_scene(document);
 
@@ -54,8 +54,14 @@ export class GDHoverProvider implements HoverProvider {
 
 			if (word.startsWith("ExtResource")) {
 				const match = word.match(wordPattern);
+				if (!match) {
+					throw new Error("No match found for `ExtResource` in scene");
+				}
 				const id = match[1];
 				const resource = scene.externalResources.get(id);
+				if (!resource) {
+					throw new Error(`Resource not found in externalResources with id '${id}'`);
+				}
 				const definition = resource.body;
 				const links = await this.get_links(definition);
 
@@ -81,11 +87,18 @@ export class GDHoverProvider implements HoverProvider {
 
 			if (word.startsWith("SubResource")) {
 				const match = word.match(wordPattern);
+				if (!match) {
+					throw new Error("No match found for `ExtResource` in scene");
+				}
 				const id = match[1];
 
-				let definition = scene.subResources.get(id).body;
+				let definition = scene.subResources.get(id)?.body;
 				// don't display contents of giant arrays
 				definition = definition?.replace(/Array\([0-9,\.\- ]*\)/, "Array(...)");
+
+				if (definition === undefined) {
+					definition = `Definition not found for id ${id}`;
+				}
 
 				const contents = new MarkdownString();
 				contents.appendCodeblock(definition, "gdresource");
@@ -99,7 +112,7 @@ export class GDHoverProvider implements HoverProvider {
 			link = document.getText(document.getWordRangeAtPosition(position, /uid:\/\/[0-9a-z]*/));
 			if (link.startsWith("uid://")) {
 				const uri = await convert_uid_to_uri(link);
-				link = await convert_uri_to_resource_path(uri);
+				link = await convert_uri_to_resource_path(uri ?? Uri.parse(link));
 			}
 		}
 
@@ -116,7 +129,7 @@ export class GDHoverProvider implements HoverProvider {
 			} else if (link.endsWith(".png") || link.endsWith(".svg")) {
 				type = "image";
 			} else {
-				return;
+				throw new Error(`Unsupported link type '${link}'`);
 			}
 
 			const uri = await convert_resource_path_to_uri(link);
@@ -132,5 +145,7 @@ export class GDHoverProvider implements HoverProvider {
 			const hover = new Hover(contents);
 			return hover;
 		}
+
+		return undefined;
 	}
 }
