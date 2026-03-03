@@ -177,15 +177,16 @@ export class VariablesManager {
 				}
 			} else {
 				// just look up the subpath using the current variable
-				if (variable) {
-					if (variable.value instanceof ObjectId) {
-						const godot_object = await this.get_godot_object(variable.value.id);
-						variable = godot_object.sub_values.find((sv) => sv.name === variable_names[i]);
-					} else {
-						variable = variable.sub_values?.find((sv) => sv.name === variable_names[i]);
-					}
+				if (variable === undefined) {
+					throw new Error("Unexpected variable === undefined in get_vscode_variable_by_name");
 				}
-			}
+				if (variable.value instanceof ObjectId) {
+					const godot_object = await this.get_godot_object(variable.value.id);
+					variable = godot_object.sub_values.find((sv) => sv.name === variable_names[i]);
+				} else {
+					variable = variable.sub_values?.find((sv) => sv.name === variable_names[i]);
+				}
+				}
 			if (variable === undefined) {
 				throw new Error(
 					`Cannot retrieve path '${variable_name}'. Following subpath not found: '${variable_names.slice(0, i + 1).join(".")}'`,
