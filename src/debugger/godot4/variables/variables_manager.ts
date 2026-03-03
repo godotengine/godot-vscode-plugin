@@ -186,7 +186,7 @@ export class VariablesManager {
 				} else {
 					variable = variable.sub_values?.find((sv) => sv.name === variable_names[i]);
 				}
-				}
+			}
 			if (variable === undefined) {
 				throw new Error(
 					`Cannot retrieve path '${variable_name}'. Following subpath not found: '${variable_names.slice(0, i + 1).join(".")}'`,

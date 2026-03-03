@@ -31,10 +31,34 @@ import {
 	Signal,
 } from "./variants";
 
-export type DecodedVariant = string | number | bigint | boolean | DecodedVariant[] | Vector2 | Rect2 | Vector3 | Transform2D | Plane | Vector4 | Quat | AABB | Basis | Transform3D | Projection | Color | StringName | NodePath | ObjectId | Callable | Signal | Map<DecodedVariant, DecodedVariant> | undefined
+export type DecodedVariant =
+	| string
+	| number
+	| bigint
+	| boolean
+	| DecodedVariant[]
+	| Vector2
+	| Rect2
+	| Vector3
+	| Transform2D
+	| Plane
+	| Vector4
+	| Quat
+	| AABB
+	| Basis
+	| Transform3D
+	| Projection
+	| Color
+	| StringName
+	| NodePath
+	| ObjectId
+	| Callable
+	| Signal
+	| Map<DecodedVariant, DecodedVariant>
+	| undefined;
 
 export class VariantDecoder {
-	public decode_variant(model: BufferModel) : DecodedVariant {
+	public decode_variant(model: BufferModel): DecodedVariant {
 		const type = this.decode_UInt32(model);
 		switch (type & 0xff) {
 			case GDScriptTypes.BOOL:
@@ -181,8 +205,10 @@ export class VariantDecoder {
 				}
 			case GDScriptTypes.PACKED_COLOR_ARRAY:
 				return this.decode_PackedColorArray(model);
+			case GDScriptTypes.NIL:
+				return undefined;
 			default:
-				console.error(`Unknown type: ${type}`);
+				console.error(`Unknown type: ${type}!`);
 				return undefined;
 		}
 	}
