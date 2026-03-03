@@ -109,8 +109,8 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 
 					const snippet = new vscode.SnippetString();
 
-					const projectVersion = await get_project_version();
-					if (projectVersion && projectVersion.startsWith("4")) {
+					const projectVersion = await get_project_version() ?? "";
+					if (projectVersion.startsWith("4")) {
 						snippet.appendText("@");
 					}
 					snippet.appendText("onready var ");

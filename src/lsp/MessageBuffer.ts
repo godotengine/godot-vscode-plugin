@@ -19,7 +19,7 @@ export default class MessageBuffer {
 	private index = 0;
 	private buffer: Buffer = Buffer.allocUnsafe(DefaultSize);
 
-	private nextMessageLength: number = -1;
+	private nextMessageLength: number;
 	private messageToken: number;
 	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout = 10000;

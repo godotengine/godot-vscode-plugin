@@ -88,7 +88,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		data: vscode.DataTransfer,
 		token: vscode.CancellationToken,
 	): void | Thenable<void> {
-		if (source.length == 0)
+		if (source.length === 0)
 			return;
 		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
 		data.set("godot/node", new vscode.DataTransferItem(source[0]));

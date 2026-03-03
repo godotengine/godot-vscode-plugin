@@ -182,7 +182,7 @@ export class VariantDecoder {
 			case GDScriptTypes.PACKED_COLOR_ARRAY:
 				return this.decode_PackedColorArray(model);
 			default:
-				console.error("Unknown type: " + type);
+				console.error(`Unknown type: ${type}`);
 				return undefined;
 		}
 	}

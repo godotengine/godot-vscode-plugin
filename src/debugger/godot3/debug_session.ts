@@ -123,7 +123,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		if (this.all_scopes) {
 			try {
 				const variable = this.get_variable(args.expression, undefined, 0, undefined);
-				if (variable && variable.variable && variable.index !== undefined) {
+				if (variable.variable && variable.index !== undefined) {
 					const parsed_variable = parse_variable(variable.variable);
 					response.body = {
 						result: parsed_variable.value,

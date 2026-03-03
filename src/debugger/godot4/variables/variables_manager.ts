@@ -204,7 +204,7 @@ export class VariablesManager {
 			this.godot_id_to_vscode_id_mapper,
 		);
 		if (parsed_variable.variablesReference === undefined) {
-			if (variable && variable.value) {
+			if (variable.value) {
 				const objectId = variable.value instanceof ObjectId ? variable.value : undefined;
 				const vscode_id =
 					objectId !== undefined
