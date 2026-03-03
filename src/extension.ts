@@ -118,9 +118,7 @@ async function initial_setup() {
 
 export function deactivate(): Thenable<void> {
 	return new Promise<void>((resolve, reject) => {
-		if (globals.lsp) {
-			globals.lsp.client.stop();
-		}
+		globals.lsp?.client.stop();
 		resolve();
 	});
 }
@@ -141,9 +139,7 @@ async function copy_resource_path(uri: vscode.Uri) {
 }
 
 async function list_classes() {
-	if (globals.docsProvider) {
-		await globals.docsProvider.list_native_classes();
-	}
+	await globals.docsProvider?.list_native_classes();
 }
 
 async function switch_scene_script() {

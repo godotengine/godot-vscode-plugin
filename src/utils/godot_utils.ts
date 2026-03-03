@@ -130,7 +130,7 @@ export async function convert_resource_path_to_uri(resPath: string): Promise<vsc
 export async function convert_uri_to_resource_path(uri: vscode.Uri): Promise<string> {
 	const dir = await get_project_dir();
 	if (!dir) {
-		throw new Error("Cannot convert resource path to uri: Could not find project directory");
+		throw new Error("Cannot convert uri to resource path: Could not find project directory");
 	}
 
 	let relative_path = path.normalize(path.relative(dir, uri.fsPath));

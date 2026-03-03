@@ -219,16 +219,17 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_main_script() {
-		if (!this.currentScene)
+		if (!this.scene?.root?.hasScript) {
 			return;
-		if (!this.scene?.root?.hasScript)
-			return;
+		}
 		const path = this.scene.externalResources.get(this.scene.root.scriptId)?.path;
-		if (!path)
+		if (!path) {
 			return;
+		}
 		const uri = await convert_resource_path_to_uri(path);
-		if (!uri)
+		if (!uri) {
 			return;
+		}
 		vscode.window.showTextDocument(uri, { preview: true });
 	}
 
