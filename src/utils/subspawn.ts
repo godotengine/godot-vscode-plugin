@@ -6,7 +6,7 @@ I had to vendor this library to fix the API in a couple places.
 */
 
 import { ChildProcess, execSync, spawn, SpawnOptionsWithoutStdio } from "node:child_process";
-import { createLogger } from "./index.js";
+import { createLogger } from ".";
 
 const log = createLogger("subspawn");
 
