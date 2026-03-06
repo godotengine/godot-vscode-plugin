@@ -101,7 +101,7 @@ export class GodotDebugData {
 			id: this.breakpoint_id++,
 		};
 
-		let bps: GodotBreakpoint[] = this.breakpoints.get(bp.file);
+		let bps: GodotBreakpoint[] | undefined = this.breakpoints.get(bp.file);
 		if (!bps) {
 			bps = [];
 			this.breakpoints.set(bp.file, bps);

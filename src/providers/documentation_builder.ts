@@ -121,7 +121,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 	const classlink = make_link(symbol.native_class, undefined);
 
 	function make_function_signature(s: GodotNativeSymbol, with_class = false) {
-		const parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
+		const parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail ?? "");
 		if (!parts) {
 			return "";
 		}
@@ -141,9 +141,9 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			case SymbolKind.Property:
 			case SymbolKind.Variable: {
 				// var Control.anchor_left: float
-				const parts = /\.([A-z_0-9]+)\:\s(.*)$/.exec(s.detail);
+				const parts = /\.([A-z_0-9]+)\:\s(.*)$/.exec(s.detail ?? "");
 				if (!parts) {
-					return;
+					return { body: "" };
 				}
 				const type = make_link(parts[2], undefined);
 				const name = element("a", s.name, { href: `#${s.name}` });
@@ -158,9 +158,9 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			case SymbolKind.Constant: {
 				// const Control.FOCUS_ALL: FocusMode = 2
 				// const Control.NOTIFICATION_RESIZED = 40
-				const parts = /\.([A-Za-z_0-9]+)(\:\s*)?([A-z0-9_\.]+)?\s*=\s*(.*)$/.exec(s.detail);
+				const parts = /\.([A-Za-z_0-9]+)(\:\s*)?([A-z0-9_\.]+)?\s*=\s*(.*)$/.exec(s.detail ?? "");
 				if (!parts) {
-					return;
+					return { body: "" };
 				}
 				const type = make_link(parts[3] || "int", undefined);
 				const name = parts[1];
@@ -174,9 +174,9 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				};
 			}
 			case SymbolKind.Event: {
-				const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail);
+				const parts = /\.([A-z0-9]+)\((.*)?\)/.exec(s.detail ?? "");
 				if (!parts) {
-					return;
+					return { body: "" };
 				}
 				const args = (parts[2] || "").replace(
 					/\:\s([A-z0-9_]+)(\,\s*)?/g,
@@ -204,13 +204,13 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				};
 			}
 			default:
-				break;
+				return { body: "" };
 		}
 	}
 
 	if (symbol.kind === SymbolKind.Class) {
 		let doc = element("h2", `Class: ${symbol.name}`);
-		if (symbol.class_info.inherits) {
+		if (symbol.class_info?.inherits) {
 			const inherits = make_link(symbol.class_info.inherits, undefined);
 			doc += element("p", `Inherits: ${inherits}`);
 		}
@@ -239,7 +239,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				switch (s.kind) {
 					case SymbolKind.Property:
 					case SymbolKind.Variable:
-						properties_index += element("li", elements.index);
+						properties_index += element("li", elements.index ?? "");
 						propertyies += element("li", elements.body, { id: s.name });
 						break;
 					case SymbolKind.Constant:
@@ -250,7 +250,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 						break;
 					case SymbolKind.Method:
 					case SymbolKind.Function:
-						methods_index += element("li", elements.index);
+						methods_index += element("li", elements.index ?? "");
 						methods += element("li", elements.body, { id: s.name });
 						break;
 					default:
@@ -306,7 +306,7 @@ function element<K extends keyof HTMLElementTagNameMap>(
 	return `${indent || ""}<${tag} ${props_str}>${content}</${tag}>${new_line ? "\n" : ""}`;
 }
 
-function make_link(classname: string, symbol: string) {
+function make_link(classname: string, symbol: string | undefined) {
 	if (!symbol || symbol === classname) {
 		return element("a", classname, {
 			onclick: `inspect('${classname}')`,
@@ -321,7 +321,7 @@ function make_link(classname: string, symbol: string) {
 
 function make_codeblock(code: string, language: string) {
 	const lines = code.split("\n");
-	const indent = lines[0].match(/^\s*/)[0].length;
+	const indent = lines[0].match(/^\s*/)?.[0].length;
 	const _code = lines.map((line) => line.slice(indent)).join("\n");
 	return marked.parse(`\`\`\`${language}\n${_code}\n\`\`\``);
 }

@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import { basename, extname } from "node:path";
 import { TextDocument, Uri } from "vscode";
-import { SceneNode, Scene } from "./types";
+import { SceneNode, Scene, SceneResource } from "./types";
 import { createLogger } from "../utils";
 
 const log = createLogger("scenes.parser");
@@ -18,76 +18,81 @@ export class SceneParser {
 		SceneParser.instance = this;
 	}
 
-	public parse_scene(document: TextDocument) {
-		const path = document.uri.fsPath;
-		const stats = fs.statSync(path);
+	public parse_scene(document: TextDocument): Scene {
+		const filePath = document.uri.fsPath;
+		const stats = fs.statSync(filePath); // can throw
 
-		if (this.scenes.has(path)) {
-			const scene = this.scenes.get(path);
+		if (this.scenes.has(filePath)) {
+			const existingScene = this.scenes.get(filePath);
 
-			if (scene.mtime === stats.mtimeMs) {
-				return scene;
+			if (existingScene && existingScene.mtime === stats.mtimeMs) {
+				return existingScene;
 			}
 		}
 
 		const scene = new Scene();
-		scene.path = path;
+		scene.path = filePath;
 		scene.mtime = stats.mtimeMs;
-		scene.title = basename(path);
+		scene.title = basename(filePath);
 
-		this.scenes.set(path, scene);
+		this.scenes.set(filePath, scene);
 
 		const text = document.getText();
 
 		for (const match of text.matchAll(/\[ext_resource.*/g)) {
 			const line = match[0];
 			const type = line.match(/type="([\w]+)"/)?.[1];
-			const path = line.match(/path="([\w.:/]+)"/)?.[1];
+			const resPath = line.match(/path="([\w.:/]+)"/)?.[1];
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
 			const id = line.match(/ id="?([\w]+)"?/)?.[1];
 
-			scene.externalResources.set(id, {
-				body: line,
-				path: path,
-				type: type,
-				uid: uid,
-				id: id,
-				index: match.index,
-				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
-			});
+			if (id && match.index !== undefined) {
+				scene.externalResources.set(id, {
+					body: line,
+					path: resPath || "",
+					type: type || "",
+					uid: uid || "",
+					id: id,
+					index: match.index,
+					line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
+				});
+			}
 		}
 
-		let lastResource = null;
+		let lastResource: SceneResource | undefined = undefined;
 		for (const match of text.matchAll(/\[sub_resource.*/g)) {
 			const line = match[0];
 			const type = line.match(/type="([\w]+)"/)?.[1];
-			const path = line.match(/path="([\w.:/]+)"/)?.[1];
+			const resPath = line.match(/path="([\w.:/]+)"/)?.[1];
 			const uid = line.match(/uid="([\w:/]+)"/)?.[1];
 			const id = line.match(/ id="?([\w]+)"?/)?.[1];
-			const resource = {
-				path: path,
-				type: type,
-				uid: uid,
-				id: id,
+			const resource: SceneResource = {
+				path: resPath || "",
+				type: type || "",
+				uid: uid || "",
+				id: id || "",
 				index: match.index,
 				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
+				body: "",
 			};
 			if (lastResource) {
 				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
 			}
 
-			scene.subResources.set(id, resource);
+			if (id) {
+				scene.subResources.set(id, resource);
+			}
 			lastResource = resource;
 		}
 
 		let root = "";
-		const nodes = {};
-		let lastNode = null;
+		const nodes: Record<string, SceneNode> = {};
+		let lastNode: SceneNode | undefined = undefined;
 
 		const nodeRegex = /\[node.*/g;
 		for (const match of text.matchAll(nodeRegex)) {
 			const line = match[0];
-			const name = line.match(/name="([^.:@/"%]+)"/)?.[1];
+			const name = line.match(/name="([^.:@/"%]+)"/)?.[1] || "unknown";
 			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
 			let parent = line.match(/parent="(([^.:@/"%]|[\/.])+)"/)?.[1];
 			const instance = line.match(/instance=ExtResource\(\s*"?([\w]+)"?\s*\)/)?.[1];
@@ -102,6 +107,7 @@ export class SceneParser {
 			if (parent === undefined) {
 				root = name;
 				_path = name;
+				parent = "";
 			} else if (parent === ".") {
 				parent = root;
 				relativePath = name;
@@ -117,7 +123,7 @@ export class SceneParser {
 			}
 			if (lastResource) {
 				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
-				lastResource = null;
+				lastResource = undefined;
 			}
 
 			const node = new SceneNode(name, type);
@@ -164,7 +170,7 @@ export class SceneParser {
 		for (const match of text.matchAll(resourceRegex)) {
 			if (lastResource) {
 				lastResource.body = text.slice(lastResource.index, match.index).trimEnd();
-				lastResource = null;
+				lastResource = undefined;
 			}
 		}
 		return scene;

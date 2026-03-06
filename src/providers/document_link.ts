@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
 	Uri,
 	Range,
+	Position,
 	type TextDocument,
 	type CancellationToken,
 	DocumentLink,
@@ -40,7 +41,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 				const uri = Uri.from({
 					scheme: "file",
 					path: path,
-					fragment: `${scene.externalResources.get(id).line},0`,
+					fragment: `${scene.externalResources.get(id)?.line},0`,
 				});
 
 				const r = this.create_range(document, match);
@@ -54,7 +55,7 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 				const uri = Uri.from({
 					scheme: "file",
 					path: path,
-					fragment: `${scene.subResources.get(id).line},0`,
+					fragment: `${scene.subResources.get(id)?.line},0`,
 				});
 
 				const r = this.create_range(document, match);
@@ -90,6 +91,9 @@ export class GDDocumentLinkProvider implements DocumentLinkProvider {
 	}
 
 	private create_range(document: TextDocument, match: RegExpMatchArray) {
+		if (match.index === undefined) {
+			return new Range(new Position(0, 0), new Position(0, 0));
+		}
 		const start = document.positionAt(match.index);
 		const end = document.positionAt(match.index + match[0].length);
 		const r = new Range(start, end);

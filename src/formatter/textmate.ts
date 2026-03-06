@@ -5,15 +5,9 @@ import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
 import { get_configuration, get_extension_uri, createLogger, is_debug_mode } from "../utils";
+import { readFile } from "node:fs/promises";
 
 const log = createLogger("formatter.tm");
-
-// Promisify readFile
-function readFile(path) {
-	return new Promise((resolve, reject) => {
-		fs.readFile(path, (error, data) => (error ? reject(error) : resolve(data)));
-	});
-}
 
 const grammarPath = get_extension_uri("syntaxes/GDScript.tmLanguage.json").fsPath;
 const wasmPath = get_extension_uri("resources/onig.wasm").fsPath;
@@ -31,12 +25,13 @@ const registry = new vsctm.Registry({
 			},
 		};
 	}),
-	loadGrammar: (scopeName) => {
+	loadGrammar: async (scopeName) => {
 		if (scopeName === "source.gdscript") {
-			return readFile(grammarPath).then((data) => vsctm.parseRawGrammar(data.toString(), grammarPath));
+			const data = await readFile(grammarPath);
+			return vsctm.parseRawGrammar(data.toString(), grammarPath);
 		}
 		// console.log(`Unknown scope name: ${scopeName}`);
-		return null;
+		return undefined;
 	},
 });
 
@@ -157,7 +152,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if (options.denseFunctionParameters) {
 			if (prev === "-" || prev === "+") {
 				if (tokens[current - 2]?.value === "=") return "";
-				if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
+				if (["keyword", "symbol"].includes(tokens[current - 2]?.type ?? "")) {
 					return "";
 				}
 				if ([",", "("].includes(tokens[current - 2]?.value)) {
@@ -194,7 +189,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (prev === "-" || prev === "+") {
 		if (next === "(") return " ";
-		if (["keyword", "symbol"].includes(tokens[current - 2]?.type)) {
+		if (["keyword", "symbol"].includes(tokens[current - 2]?.type ?? "")) {
 			return "";
 		}
 		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
@@ -240,7 +235,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	return "";
 }
 
-let grammar = null;
+let grammar: vsctm.IGrammar | null = null;
 
 registry.loadGrammar("source.gdscript").then((g) => {
 	grammar = g;
@@ -259,8 +254,8 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 	const options = _options ?? get_formatter_options();
 
-	let lastToken = null;
-	let lineTokens: vsctm.ITokenizeLineResult = null;
+	let lastToken = "";
+	let lineTokens: vsctm.ITokenizeLineResult | undefined = undefined;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {

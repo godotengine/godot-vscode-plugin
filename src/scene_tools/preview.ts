@@ -37,7 +37,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	private scenePreviewLocked = false;
 	private currentScene = "";
 	public parser = new SceneParser();
-	public scene: Scene;
+	public scene: Scene | undefined;
 	watcher = workspace.createFileSystemWatcher("**/*.tscn");
 	uniqueDecorator = new UniqueDecorationProvider(this);
 	scriptDecorator = new ScriptDecorationProvider(this);
@@ -88,6 +88,8 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		data: vscode.DataTransfer,
 		token: vscode.CancellationToken,
 	): void | Thenable<void> {
+		if (source.length === 0)
+			return;
 		data.set("godot/scene", new vscode.DataTransferItem(this.currentScene));
 		data.set("godot/node", new vscode.DataTransferItem(source[0]));
 		data.set("godot/path", new vscode.DataTransferItem(source[0].path));
@@ -160,7 +162,7 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		const document = await vscode.workspace.openTextDocument(this.currentScene);
 		this.scene = this.parser.parse_scene(document);
 
-		this.tree.message = this.scene.title;
+		this.tree.message = this.scene?.title ?? "";
 
 		this.changeTreeEvent.fire();
 	}
@@ -198,10 +200,13 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_script(item: SceneNode) {
-		const path = this.scene.externalResources.get(item.scriptId).path;
-
-		const uri = await convert_resource_path_to_uri(path);
-		if (uri) {
+		if (this.scene && item.scriptId) {
+			const resource = this.scene.externalResources.get(item.scriptId);
+			if (!resource)
+				return;
+			const uri = await convert_resource_path_to_uri(resource.path);
+			if (!uri)
+				return;
 			vscode.window.showTextDocument(uri, { preview: true });
 		}
 	}
@@ -214,16 +219,18 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 	}
 
 	private async open_main_script() {
-		if (this.currentScene) {
-			const root = this.scene.root;
-			if (root?.hasScript) {
-				const path = this.scene.externalResources.get(root.scriptId).path;
-				const uri = await convert_resource_path_to_uri(path);
-				if (uri) {
-					vscode.window.showTextDocument(uri, { preview: true });
-				}
-			}
+		if (!this.scene?.root?.hasScript) {
+			return;
 		}
+		const path = this.scene.externalResources.get(this.scene.root.scriptId)?.path;
+		if (!path) {
+			return;
+		}
+		const uri = await convert_resource_path_to_uri(path);
+		if (!uri) {
+			return;
+		}
+		vscode.window.showTextDocument(uri, { preview: true });
 	}
 
 	private async go_to_definition(item: SceneNode) {
@@ -246,14 +253,14 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 		// editor.revealRange(range)
 	}
 
-	public getChildren(element?: SceneNode): ProviderResult<SceneNode[]> {
+	public async getChildren(element?: SceneNode): Promise<SceneNode[]> {
 		if (!element) {
 			if (!this.scene?.root) {
-				return Promise.resolve([]);
+				return [];
 			}
-			return Promise.resolve([this.scene?.root]);
+			return [this.scene.root];
 		}
-		return Promise.resolve(element.children);
+		return element.children;
 	}
 
 	public getTreeItem(element: SceneNode): TreeItem | Thenable<TreeItem> {
@@ -263,8 +270,10 @@ export class ScenePreviewProvider implements TreeDataProvider<SceneNode>, TreeDr
 			element.collapsibleState = TreeItemCollapsibleState.None;
 		}
 
-		this.uniqueDecorator.update(element.resourceUri);
-		this.scriptDecorator.update(element.resourceUri);
+		if (element.resourceUri) {
+			this.uniqueDecorator.update(element.resourceUri);
+			this.scriptDecorator.update(element.resourceUri);
+		}
 
 		return element;
 	}

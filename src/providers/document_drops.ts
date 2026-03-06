@@ -35,16 +35,23 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 		position: Position,
 		dataTransfer: DataTransfer,
 		token: CancellationToken,
-	): Promise<DocumentDropEdit> {
+	): Promise<DocumentDropEdit | undefined> {
 		// log.debug("provideDocumentDropEdits", document, dataTransfer);
 
 		const targetResPath = await convert_uri_to_resource_path(document.uri);
 
-		const originFsPath = dataTransfer.get("godot/scene").value;
+		const dataValue = dataTransfer.get("godot/scene")?.value;
+		if (!dataValue) {
+			return undefined;
+		}
+		const originFsPath = dataValue;
 		const originUri = vscode.Uri.file(originFsPath);
 
 		const originDocument = await vscode.workspace.openTextDocument(originUri);
 		const scene = await this.parser.parse_scene(originDocument);
+		if (!scene || !scene.root) {
+			return undefined;
+		}
 
 		let scriptId = "";
 		for (const res of scene.externalResources.values()) {
@@ -54,10 +61,10 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 			}
 		}
 
-		let nodePathOfTarget: SceneNode;
+		let nodePathOfTarget: SceneNode | undefined = undefined;
 		if (scriptId) {
 			const find_node = () => {
-				if (scene.root.scriptId === scriptId) {
+				if (scene.root && scene.root.scriptId === scriptId) {
 					return scene.root;
 				}
 				for (const node of scene.nodes.values()) {
@@ -69,7 +76,7 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 			nodePathOfTarget = find_node();
 		}
 
-		const className: string = dataTransfer.get("godot/class")?.value;
+		const className: string | undefined = dataTransfer.get("godot/class")?.value;
 		if (className) {
 			const nodePath: string = dataTransfer.get("godot/path")?.value;
 			let relativePath: string = dataTransfer.get("godot/relativePath")?.value;
@@ -77,7 +84,7 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 			const label: string = dataTransfer.get("godot/label")?.value;
 
 			if (nodePathOfTarget) {
-				const targetPath = path.normalize(path.relative(nodePathOfTarget?.path, nodePath));
+				const targetPath = path.normalize(path.relative(nodePathOfTarget.path, nodePath));
 				relativePath = targetPath.split(path.sep).join(path.posix.sep);
 			}
 
@@ -102,7 +109,8 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 
 					const snippet = new vscode.SnippetString();
 
-					if ((await get_project_version())?.startsWith("4")) {
+					const projectVersion = await get_project_version() ?? "";
+					if (projectVersion.startsWith("4")) {
 						snippet.appendText("@");
 					}
 					snippet.appendText("onready var ");
@@ -119,5 +127,6 @@ export class GDDocumentDropEditProvider implements DocumentDropEditProvider {
 				return new vscode.DocumentDropEdit(`GetNode<${className}>("${savePath}")`);
 			}
 		}
+		return undefined;
 	}
 }

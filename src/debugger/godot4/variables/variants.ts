@@ -476,7 +476,7 @@ export class Signal implements GDObject {
 	}
 
 	public sub_values(): GodotVariable[] {
-		return undefined;
+		return [];
 	}
 
 	public type_name(): string {

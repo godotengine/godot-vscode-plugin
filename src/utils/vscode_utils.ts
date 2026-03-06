@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
-import { globals } from "../extension";
 
 const EXTENSION_PREFIX = "godotTools";
 
 export function get_configuration(name: string, defaultValue?: any) {
 	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);
-	if (defaultValue && configValue === null) {
+	if (defaultValue !== undefined && configValue === null) {
 		return defaultValue;
 	}
 	return configValue;
@@ -26,5 +25,9 @@ export function register_command(command: string, callback: (...args: any[]) => 
 }
 
 export function get_extension_uri(...paths: string[]) {
-	return vscode.Uri.joinPath(vscode.extensions.getExtension("geequlim.godot-tools").extensionUri, ...paths ?? "");
+	const extension = vscode.extensions.getExtension("geequlim.godot-tools");
+	if (!extension) {
+		throw new Error("Extension 'geequlim.godot-tools' not found");
+	}
+	return vscode.Uri.joinPath(extension.extensionUri, ...paths);
 }
