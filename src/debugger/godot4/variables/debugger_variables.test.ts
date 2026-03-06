@@ -88,18 +88,18 @@ async function waitForBreakpoint(
 	ctx?: Mocha.Context,
 ): Promise<void> {
 	const t0 = performance.now();
-	console.log(
-		fmt(
-			`Waiting for breakpoint ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`,
-		),
-	);
+	// console.log(
+	// 	fmt(
+	// 		`Waiting for breakpoint ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`,
+	// 	),
+	// );
 	const res = await waitForActiveStackItemChange(timeoutMs);
 	const t1 = performance.now();
-	console.log(
-		fmt(
-			`Waiting for breakpoint completed ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}, took ${t1 - t0}ms`,
-		),
-	);
+	// console.log(
+	// 	fmt(
+	// 		`Waiting for breakpoint completed ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}, took ${t1 - t0}ms`,
+	// 	),
+	// );
 	const stackFrames = await getStackFrames();
 	if (
 		!stackFrames[0] || !stackFrames[0].source ||
@@ -202,10 +202,10 @@ async function startDebugging(
 		scene: scene,
 		additional_options: "--headless",
 	};
-	console.log(fmt(`Starting debugger for scene ${scene}`));
+	// console.log(fmt(`Starting debugger for scene ${scene}`));
 	const res = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], debugConfig);
 	const t1 = performance.now();
-	console.log(fmt(`Starting debugger for scene ${scene} completed, took ${t1 - t0}ms`));
+	// console.log(fmt(`Starting debugger for scene ${scene} completed, took ${t1 - t0}ms`));
 	if (!res) {
 		throw new Error(`Failed to start debugging for scene ${scene}`);
 	}
@@ -220,10 +220,11 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
 	suiteSetup(async function () {
 		this.timeout(20000); // enough time to do `godot --import`
-		console.log("Environment Variables:");
-		for (const [key, value] of Object.entries(process.env)) {
-			console.log(`${key}: ${value}`);
-		}
+        // TODO: maybe dump environment variables to file?
+		// console.log("Environment Variables:");
+		// for (const [key, value] of Object.entries(process.env)) {
+		// 	console.log(`${key}: ${value}`);
+		// }
 
 		// init the godot project by importing it in godot engine:
 		const config = vscode.workspace.getConfiguration("godotTools");
@@ -232,7 +233,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		const godot4_path = clean_godot_path(config.get<string>("editorPath.godot4") || "godot");
 
 		// get the path for currently opened project in vscode test instance:
-		console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
+		// console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
 		const exec_res = await execFileAsync(godot4_path, ["--headless", "--import", workspaceFolder], {
 			shell: true,
 			cwd: workspaceFolder,
@@ -240,9 +241,9 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		if (exec_res.stderr !== "") {
 			// TODO: was preventing tests from running
 			// throw new Error(exec_res.stderr);
-			console.log(exec_res.stderr);
+			// console.log(exec_res.stderr);
 		}
-		console.log(exec_res.stdout);
+		// console.log(exec_res.stdout);
 	});
 
 	setup(async function () {
@@ -259,7 +260,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		this.timeout(3000);
 		await sleep(1000);
 		if (vscode.debug.activeDebugSession !== undefined) {
-			console.log("Closing debug session");
+			// console.log("Closing debug session");
 			await vscode.debug.stopDebugging();
 			await sleep(1000);
 		}
@@ -279,7 +280,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		// corresponds to file://./debug_session.ts async scopesRequest
@@ -337,7 +338,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Globals);
@@ -354,7 +355,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Locals);
@@ -373,7 +374,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Members);
@@ -395,7 +396,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Locals);
@@ -436,7 +437,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const memberVariables = await getVariablesForScope(VariableScope.Members);

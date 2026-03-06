@@ -104,6 +104,11 @@ function parse_token(token: Token) {
 	if (token.value === "preload") {
 		return;
 	}
+	// "self" and "super" are highlighted as keywords but behaves like an identifier
+	if (token.value === "self" || token.value === "super") {
+		token.type = "variable";
+		return;
+	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
 		token.type = "keyword";
 		return;
