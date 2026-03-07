@@ -1,5 +1,6 @@
 export * from "./completions";
 export * from "./definition";
+export * from "./document_colors";
 export * from "./document_drops";
 export * from "./document_link";
 export * from "./documentation";
