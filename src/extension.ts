@@ -5,6 +5,7 @@ import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./ut
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
+	GDDocumentColorProvider,
 	GDDocumentDropEditProvider,
 	GDDocumentLinkProvider,
 	GDSemanticTokensProvider,
@@ -37,6 +38,7 @@ interface Extension {
 	lsp?: ClientConnectionManager;
 	debug?: GodotDebugger;
 	scenePreviewProvider?: ScenePreviewProvider;
+	colorProvider?: GDDocumentColorProvider;
 	linkProvider?: GDDocumentLinkProvider;
 	dropsProvider?: GDDocumentDropEditProvider;
 	hoverProvider?: GDHoverProvider;
@@ -58,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.lsp = new ClientConnectionManager(context);
 	globals.debug = new GodotDebugger(context);
 	globals.scenePreviewProvider = new ScenePreviewProvider(context);
+	globals.colorProvider = new GDDocumentColorProvider(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
 	globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
@@ -101,14 +104,14 @@ async function initial_setup() {
 			break;
 		}
 		case "WRONG_VERSION": {
-			const message = `The specified Godot executable, '${godotPath}' is the wrong version. 
+			const message = `The specified Godot executable, '${godotPath}' is the wrong version.
 				The current project uses Godot v${projectVersion}, but the specified executable is Godot v${result.version}.
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
 		}
 		case "INVALID_EXE": {
-			const message = `The specified Godot executable, '${godotPath}' is invalid. 
+			const message = `The specified Godot executable, '${godotPath}' is invalid.
 				Extension features will not work correctly unless this is fixed.`;
 			prompt_for_godot_executable(message, settingName);
 			break;
