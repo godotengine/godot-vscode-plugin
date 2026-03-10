@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://g5gqewj2i2xs"]
+[gd_scene load_steps=3 format=3 uid="uid://g5gqewj2i2xs"]
 
 [ext_resource type="Script" path="res://ScopeVars.gd" id="1_wtcpp"]
+[ext_resource type="PackedScene" uid="uid://dtrlo3v5mxrb2" path="res://CustomScene.tscn" id="2_rkljs"]
 
 [node name="RootNode" type="Node"]
 script = ExtResource("1_wtcpp")
@@ -9,3 +10,5 @@ script = ExtResource("1_wtcpp")
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Godot test project"
+
+[node name="CustomScene" parent="." instance=ExtResource("2_rkljs")]

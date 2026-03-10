@@ -98,6 +98,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 	async provideInlayHints(document: TextDocument, range: Range, token: CancellationToken): Promise<InlayHint[]> {
 		const hints: InlayHint[] = [];
 		const text = document.getText(range);
+		const textStartOffset = document.offsetAt(range.start);
 		log.debug("Inlay Hints: provideInlayHints");
 
 		if (document.fileName.endsWith(".gd")) {
@@ -137,7 +138,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 				}
 				// TODO: until godot supports nested document symbols, we need to send
 				// a hover request for each variable declaration that is nested
-				const start = document.positionAt(match.index + match[0].length - 1);
+				const start = document.positionAt(textStartOffset + match.index + match[0].length - 1);
 
 				if (hasDetail) {
 					const symbol = symbols.find((s) => s.name === match[3]);
@@ -148,7 +149,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 					}
 				}
 
-				const hoverPosition = document.positionAt(match.index + match[1].length);
+				const hoverPosition = document.positionAt(textStartOffset + match.index + match[1].length);
 				const detail = await addByHover(document, hoverPosition);
 				if (detail) {
 					const hint = this.buildHint(start, detail);
@@ -166,7 +167,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];
-			const end = document.positionAt(match.index + match[0].length);
+			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.externalResources.get(id);
 
 			const label = `${resource.type}: "${resource.path}"`;
@@ -178,7 +179,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 
 		for (const match of text.matchAll(/SubResource\(\s?"?(\w+)\s?"?\)/g)) {
 			const id = match[1];
-			const end = document.positionAt(match.index + match[0].length);
+			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.subResources.get(id);
 
 			const label = `${resource.type}`;
