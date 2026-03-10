@@ -93,18 +93,18 @@ async function waitForBreakpoint(
 	ctx?: Mocha.Context,
 ): Promise<void> {
 	const t0 = performance.now();
-	console.log(
-		fmt(
-			`Waiting for breakpoint ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`,
-		),
-	);
+	// console.log(
+	// 	fmt(
+	// 		`Waiting for breakpoint ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}`,
+	// 	),
+	// );
 	const res = await waitForActiveStackItemChange(timeoutMs);
 	const t1 = performance.now();
-	console.log(
-		fmt(
-			`Waiting for breakpoint completed ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}, took ${t1 - t0}ms`,
-		),
-	);
+	// console.log(
+	// 	fmt(
+	// 		`Waiting for breakpoint completed ${breakpoint.location.uri.path}:${breakpoint.location.range.start.line}, enabled: ${breakpoint.enabled}, took ${t1 - t0}ms`,
+	// 	),
+	// );
 	const stackFrames = await getStackFrames();
 	if (
 		stackFrames[0].source.path !== breakpoint.location.uri.fsPath ||
@@ -202,10 +202,10 @@ async function startDebugging(
 		scene: scene,
 		additional_options: "--headless",
 	};
-	console.log(fmt(`Starting debugger for scene ${scene}`));
+	// console.log(fmt(`Starting debugger for scene ${scene}`));
 	const res = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], debugConfig);
 	const t1 = performance.now();
-	console.log(fmt(`Starting debugger for scene ${scene} completed, took ${t1 - t0}ms`));
+	// console.log(fmt(`Starting debugger for scene ${scene} completed, took ${t1 - t0}ms`));
 	if (!res) {
 		throw new Error(`Failed to start debugging for scene ${scene}`);
 	}
@@ -220,10 +220,11 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
 	suiteSetup(async function () {
 		this.timeout(20000); // enough time to do `godot --import`
-		console.log("Environment Variables:");
-		for (const [key, value] of Object.entries(process.env)) {
-			console.log(`${key}: ${value}`);
-		}
+        // TODO: maybe dump environment variables to file?
+		// console.log("Environment Variables:");
+		// for (const [key, value] of Object.entries(process.env)) {
+		// 	console.log(`${key}: ${value}`);
+		// }
 
 		// init the godot project by importing it in godot engine:
 		const config = vscode.workspace.getConfiguration("godotTools");
@@ -232,7 +233,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		const godot4_path = clean_godot_path(config.get<string>("editorPath.godot4"));
 
 		// get the path for currently opened project in vscode test instance:
-		console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
+		// console.log("Executing", [godot4_path, "--headless", "--import", workspaceFolder]);
 		const exec_res = await execFileAsync(godot4_path, ["--headless", "--import", workspaceFolder], {
 			shell: true,
 			cwd: workspaceFolder,
@@ -240,13 +241,13 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		if (exec_res.stderr !== "") {
 			// TODO: was preventing tests from running
 			// throw new Error(exec_res.stderr);
-			console.log(exec_res.stderr);
+			// console.log(exec_res.stderr);
 		}
-		console.log(exec_res.stdout);
+		// console.log(exec_res.stdout);
 	});
 
 	setup(async function () {
-		console.log(`➤ Test '${this?.currentTest.title}' starting`);
+		// console.log(`➤ Test '${this?.currentTest.title}' starting`);
 		await vscode.commands.executeCommand("workbench.action.closeAllEditors");
 		if (vscode.debug.breakpoints) {
 			await vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
@@ -259,13 +260,13 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		this.timeout(3000);
 		await sleep(1000);
 		if (vscode.debug.activeDebugSession !== undefined) {
-			console.log("Closing debug session");
+			// console.log("Closing debug session");
 			await vscode.debug.stopDebugging();
 			await sleep(1000);
 		}
-		console.log(
-			`⬛ Test '${this.currentTest.title}' result: ${this.currentTest.state}, duration: ${performance.now() - this.testStart}ms`,
-		);
+		// console.log(
+		// 	`⬛ Test '${this.currentTest.title}' result: ${this.currentTest.state}, duration: ${performance.now() - this.testStart}ms`,
+		// );
 	});
 
 	test("should return correct scopes", async () => {
@@ -279,7 +280,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		// corresponds to file://./debug_session.ts async scopesRequest
@@ -315,14 +316,14 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
 		const vars_frame0_locals = await getVariablesForVSCodeID(stack_scopes_map[0].Locals);
 		expect(vars_frame0_locals).to.containSubset([
-			{ name: "str_var", value: "ScopeVars::ClassFoo::test_function::local::str_var" },
+			{ name: "str_var", value: "'ScopeVars::ClassFoo::test_function::local::str_var'" },
 		]);
 
 		const vars_frame1_locals = await getVariablesForVSCodeID(stack_scopes_map[1].Locals);
-		expect(vars_frame1_locals).to.containSubset([{ name: "str_var", value: "ScopeVars::test::local::str_var" }]);
+		expect(vars_frame1_locals).to.containSubset([{ name: "str_var", value: "'ScopeVars::test::local::str_var'" }]);
 
 		const vars_frame2_locals = await getVariablesForVSCodeID(stack_scopes_map[2].Locals);
-		expect(vars_frame2_locals).to.containSubset([{ name: "str_var", value: "ScopeVars::_ready::local::str_var" }]);
+		expect(vars_frame2_locals).to.containSubset([{ name: "str_var", value: "'ScopeVars::_ready::local::str_var'" }]);
 	})?.timeout(10000);
 
 	test("should return global variables", async () => {
@@ -334,7 +335,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Globals);
@@ -351,13 +352,14 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Locals);
-		expect(variables.length).to.equal(2);
+		expect(variables.length).to.equal(3);
 		expect(variables).to.containSubset([{ name: "str_var" }]);
 		expect(variables).to.containSubset([{ name: "self_var" }]);
+		expect(variables).to.containSubset([{ name: "test_link" }]);
 	})?.timeout(10000);
 
 	test("should return all member variables", async () => {
@@ -370,16 +372,16 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Members);
 		expect(variables.length).to.equal(4);
 		expect(variables).to.containSubset([{ name: "self" }]);
 		expect(variables).to.containSubset([{ name: "member1" }]);
-		expect(variables).to.containSubset([{ name: "str_var", value: "ScopeVars::member::str_var" }]);
+		expect(variables).to.containSubset([{ name: "str_var", value: "'ScopeVars::member::str_var'" }]);
 		expect(variables).to.containSubset([
-			{ name: "str_var_member_only", value: "ScopeVars::member::str_var_member_only" },
+			{ name: "str_var_member_only", value: "'ScopeVars::member::str_var_member_only'" },
 		]);
 	})?.timeout(10000);
 
@@ -392,7 +394,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const variables = await getVariablesForScope(VariableScope.Locals);
@@ -400,16 +402,21 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		expect(variables).to.containSubset([{ name: "int_var", value: "42" }]);
 		expect(variables).to.containSubset([{ name: "float_var", value: "3.14" }]);
 		expect(variables).to.containSubset([{ name: "bool_var", value: "true" }]);
-		expect(variables).to.containSubset([{ name: "string_var", value: "Hello, Godot!" }]);
+		expect(variables).to.containSubset([{ name: "string_var", value: "'Hello, Godot!'" }]);
+		expect(variables).to.containSubset([{ name: "string_name_var", value: "&'StringName var'" }]);
 		expect(variables).to.containSubset([{ name: "nil_var", value: "null" }]);
 		expect(variables).to.containSubset([{ name: "vector2", value: "Vector2(10, 20)" }]);
+		expect(variables).to.containSubset([{ name: "vector2i", value: "Vector2i(10, 20)" }]);
 		expect(variables).to.containSubset([{ name: "vector3", value: "Vector3(1, 2, 3)" }]);
 		expect(variables).to.containSubset([{ name: "rect2", value: "Rect2((0, 0) - (100, 50))" }]);
+		expect(variables).to.containSubset([{ name: "rect2i", value: "Rect2i((1, 2) - (3, 4))" }]);
 		expect(variables).to.containSubset([{ name: "quaternion", value: "Quat(0, 0, 0, 1)" }]);
 		expect(variables).to.containSubset([{ name: "simple_array", value: "(3) [1, 2, 3]" }]);
+		expect(variables).to.containSubset([{ name: "vector2i_array", value: "(2) [(11, 12), (21, 22)]" }]);
 		// expect(variables).to.containSubset([{ name: "nested_dict.nested_key", value: `"Nested Value"` }]);
 		// expect(variables).to.containSubset([{ name: "nested_dict.sub_dict.sub_key", value: "99" }]);
 		expect(variables).to.containSubset([{ name: "nested_dict", value: "Dictionary(2)" }]);
+		expect(variables).to.containSubset([{ name: "typed_dict", value: "Dictionary(1)" }]);
 		expect(variables).to.containSubset([{ name: "byte_array", value: "(4) [0, 1, 2, 255]" }]);
 		expect(variables).to.containSubset([{ name: "int32_array", value: "(3) [100, 200, 300]" }]);
 		expect(variables).to.containSubset([{ name: "color_var", value: "Color(1, 0, 0, 1)" }]);
@@ -433,7 +440,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
-		console.log("Sleeping for 2 seconds");
+		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
 		const memberVariables = await getVariablesForScope(VariableScope.Members);
@@ -452,7 +459,7 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 			{ name: "local_self_var_through_label", value: /Node2D<\d+>/ },
 			{ name: "local_classA", value: /RefCounted<\d+>/ },
 			{ name: "local_classB", value: /RefCounted<\d+>/ },
-			{ name: "str_var", value: /^ExtensiveVars::_ready::local::str_var$/ },
+			{ name: "str_var", value: /^'ExtensiveVars::_ready::local::str_var'$/ },
 		];
 		expect(localVariables.length).to.equal(expectedLocalVariables.length, "Incorrect local variables count");
 		expect(localVariables).to.containSubset(expectedLocalVariables.map((v) => ({ name: v.name })));
