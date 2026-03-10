@@ -28,6 +28,7 @@ import {
 	get_project_version,
 	verify_godot_version,
 	convert_uri_to_resource_path,
+	get_godot_executable_for_project,
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
 import { killSubProcesses, subProcess } from "./utils/subspawn";
@@ -93,7 +94,7 @@ async function initial_setup() {
 		return;
 	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
+	const result = await get_godot_executable_for_project(settingName);
 	const godotPath = result.godotPath;
 
 	switch (result.status) {
@@ -157,7 +158,7 @@ async function open_workspace_with_editor() {
 	const projectVersion = await get_project_version();
 
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
+	const result = await get_godot_executable_for_project(settingName);
 	const godotPath = result.godotPath;
 
 	switch (result.status) {
@@ -241,7 +242,11 @@ async function get_godot_path(): Promise<string | undefined> {
 		return undefined;
 	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	return clean_godot_path(get_configuration(settingName));
+	const result = await get_godot_executable_for_project(settingName);
+	if (result.status === "SUCCESS") {
+		return clean_godot_path(result.godotPath);
+	}
+	return undefined;
 }
 
 class GodotEditorTerminal implements vscode.Pseudoterminal {
