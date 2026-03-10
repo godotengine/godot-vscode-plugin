@@ -120,6 +120,12 @@ export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSy
 export function make_symbol_document(symbol: GodotNativeSymbol): string {
 	const classlink = make_link(symbol.native_class, undefined);
 
+	function get_symbol_id(s: GodotNativeSymbol): string {
+        // operators and constructors can have spaces in their names
+        // replace them with underscores for the id
+		return s.name.replace(/\s+/g, "_");
+	}
+
 	function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 		const parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail);
 		if (!parts) {
@@ -132,8 +138,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 		);
 		args = args.replace(/\s=\s(.*?)[\,\)]/g, "");
 		return `${ret_type} ${with_class ? `${classlink}.` : ""}${element("a", s.name, {
-			// operators can have spaces in their names, replace with underscores for the id
-			href: `#${s.name.replace(/\s+/g, "_")}`,
+			href: `#${get_symbol_id(s)}`,
 		})}( ${args} )`;
 	}
 
