@@ -1,4 +1,6 @@
 import { GodotVariable } from "../../debug_runtime";
+import { GodotObject } from "./godot_object_promise";
+import { VariablesManager } from "./variables_manager";
 
 export enum GDScriptTypes {
 	NIL = 0,
@@ -279,6 +281,13 @@ export class ObjectId implements GDObject {
 		return `<${this.id}>`;
 	}
 
+	public async get_rendered_value(variables_manager: VariablesManager): Promise<string> {
+		const godot_object: GodotObject = await variables_manager.get_godot_object(this.id);
+		const __repr__ = godot_object.sub_values.find((sv) => sv.name === "__repr__");
+		const rendered_value = __repr__ !== undefined ? __repr__.value : `${godot_object.type}${this.stringify_value()}`;
+		return rendered_value;
+	}
+
 	public sub_values(): GodotVariable[] {
 		return [{ name: "id", value: this.id }];
 	}
@@ -441,6 +450,11 @@ export class StringName implements GDObject {
 
 	public stringify_value(): string {
 		return this.value;
+	}
+
+	public async get_rendered_value(variables_manager: VariablesManager): Promise<string> {
+		const rendered_value = `&'${this.stringify_value()}'`;
+		return rendered_value
 	}
 
 	public sub_values(): GodotVariable[] {

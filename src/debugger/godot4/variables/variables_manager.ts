@@ -3,7 +3,7 @@ import { GodotVariable } from "../../debug_runtime";
 import { ServerController } from "../server_controller";
 import { GodotIdToVscodeIdMapper, GodotIdWithPath } from "./godot_id_to_vscode_id_mapper";
 import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
-import { ObjectId } from "./variants";
+import { ObjectId, StringName } from "./variants";
 
 export interface VsCodeScopeIDs {
 	Locals: number;
@@ -128,6 +128,13 @@ export class VariablesManager {
 
 		const variables: DebugProtocol.Variable[] = [];
 		for (const va of sub_values) {
+			// TODO: here we might have `va.id` (godot object id) coming from get_sub_values()
+			// and `va.value` which is ObjectId, hence `va.value.id`. Consider refactoring to remove the duplicate.
+			if (va.id !== undefined || va.value instanceof ObjectId) {
+				if (va.id !== va.value.id) {
+					console.error("id and value.id mismatch");
+				}
+			}
 			const godot_id_with_path_sub = va.id !== undefined ? new GodotIdWithPath(va.id, []) : undefined;
 			const vscode_id =
 				godot_id_with_path_sub !== undefined
@@ -224,13 +231,25 @@ export class VariablesManager {
 			} else {
 				rendered_value = `${Number.parseFloat(value.toFixed(5))}`;
 			}
-		} else if (typeof value === "bigint" || typeof value === "boolean" || typeof value === "string") {
+		} else if (typeof value === "bigint" || typeof value === "boolean") {
 			rendered_value = `${value}`;
+		} else if (typeof value === "string") {
+			rendered_value = `'${value}'`;
 		} else if (typeof value === "undefined") {
 			rendered_value = "null";
 		} else {
 			if (Array.isArray(value)) {
-				rendered_value = `(${value.length}) [${value.slice(0, 10).join(", ")}]`;
+				const stringify_if_can = async (v: any) => {
+					if (typeof v?.get_rendered_value === "function") {
+						return await v.get_rendered_value(this);
+					}
+					if (typeof v?.stringify_value === "function") {
+						return v.stringify_value();
+					}
+					return v;
+				};
+				const top_rendered_vals = await Promise.all(value.slice(0, 10).map(v => stringify_if_can(v)));
+				rendered_value = `(${value.length}) [${top_rendered_vals.join(", ")}]`;
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
@@ -240,16 +259,11 @@ export class VariablesManager {
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
-			} else if (value instanceof ObjectId) {
-				if (value.id === undefined) {
-					throw new Error("Invalid godot object: instanceof ObjectId but id is undefined");
+			} else if (typeof value?.get_rendered_value === "function") { // (key instanceof ObjectId), (key instanceof StringName)
+				rendered_value = await value.get_rendered_value(this);
+				if (value instanceof ObjectId) {
+					reference = vscode_id;
 				}
-				// Godot returns only ID for the object.
-				// In order to retrieve the class name, we need to request the object
-				const godot_object = await this.get_godot_object(value.id);
-				rendered_value = `${godot_object.type}${value.stringify_value()}`;
-				// rendered_value = `${value.type_name()}${value.stringify_value()}`;
-				reference = vscode_id;
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;

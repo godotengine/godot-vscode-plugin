@@ -5,7 +5,7 @@ export function prompt_for_reload() {
 	const message = "Reload VSCode to apply settings";
 	vscode.window.showErrorMessage(message, "Reload").then(item => {
 		if (item === "Reload") {
-			vscode.commands.executeCommand("workbench.action.reloadWindow");
+			vscode.commands.executeCommand("workbench.action.restartExtensionHost");
 		}
 	});
 }
