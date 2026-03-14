@@ -118,7 +118,7 @@ function parse_token(token: Token) {
 		token.type = "keyword";
 		return;
 	}
-	if (token.scopes.includes("constant.language.gdscript")) {
+	if (token.scopes.includes("constant.language.gdscript") || token.scopes.includes("constant.language.literal.gdscript")) {
 		token.type = "constant";
 		return;
 	}
