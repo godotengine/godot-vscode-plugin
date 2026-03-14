@@ -375,6 +375,21 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+				},
+				"godotTools.colorPicker.precision": {
+					"type": "integer",
+					"default": 3,
+					"description": "Amount of decimals to include when using the color picker. 0 for arbitrary precision."
+				},
+				"godotTools.colorPicker.padValues": {
+					"type": "boolean",
+					"default": false,
+					"description": "Write either 1.2 (unpadded) or either 1.200 (padded)."
+				},
+				"godotTools.colorPicker.uppercaseHex": {
+					"type": "boolean",
+					"default": false,
+					"description": "Write either 0x008b8bff or either 0x008B8BFF."
 				}
 			}
 		},
