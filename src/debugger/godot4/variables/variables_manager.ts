@@ -252,19 +252,13 @@ export class VariablesManager {
 				reference = mapper.get_or_create_vscode_id(
 					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
 				);
-			} else if (value instanceof ObjectId) {
-				if (value.id === undefined) {
-					throw new Error("Invalid godot object: instanceof ObjectId but id is undefined");
+			} else if (typeof value?.get_rendered_value === "function") { // (key instanceof ObjectId), (key instanceof StringName)
+				rendered_value = await value.get_rendered_value(this);
+				if (value instanceof ObjectId) {
+					reference = mapper.get_or_create_vscode_id(
+						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
+					);
 				}
-				// Godot returns only ID for the object.
-				// In order to retrieve the class name, we need to request the object
-				const godot_object = await this.get_godot_object(value.id);
-				rendered_value = `${godot_object.type}${value.stringify_value()}`;
-				// rendered_value = `${value.type_name()}${value.stringify_value()}`;
-
-				const godot_id_with_path = new GodotIdWithPath(value.id, []);
-				const va_vscode_id = this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(godot_id_with_path);
-				reference = va_vscode_id;
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;
