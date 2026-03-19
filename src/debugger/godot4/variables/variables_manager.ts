@@ -256,7 +256,7 @@ export class VariablesManager {
 				rendered_value = await value.get_rendered_value(this);
 				if (value instanceof ObjectId) {
 					reference = mapper.get_or_create_vscode_id(
-						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
+						new GodotIdWithPath(value.id, relative_path || []),
 					);
 				}
 			} else {

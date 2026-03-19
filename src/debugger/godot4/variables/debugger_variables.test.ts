@@ -388,6 +388,39 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		]);
 	})?.timeout(10000);
 
+	test("should return return inner (expanded) variables on subsequent request", async () => {
+		/** {@link file://./../../../../test_projects/test-dap-project-godot4/ScopeVars.gd"} */
+		const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
+		const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
+		vscode.debug.addBreakpoints([breakpoint]);
+
+		await startDebugging("ScopeVars.tscn");
+		await waitForBreakpoint(breakpoint, 2000);
+
+		// TODO: current DAP needs a delay before it will return variables
+		// console.log("Sleeping for 2 seconds");
+		await sleep(2000);
+
+		const variables = await getVariablesForScope(VariableScope.Locals);
+		expect(variables.length).to.equal(3);
+		expect(variables).to.containSubset([{ name: "self_var" }]);
+
+		const self_var = variables.find(va => va.name === "self_var");
+		if (!self_var) {
+			throw new Error("self_var not found");
+		}
+		// request variable using variableReference of self_var:
+		const inner_vars = await getVariablesForVSCodeID(self_var.variablesReference);
+		// `inner_vars` is similar to `self` but doesn't contain `self` and contains many members from parent classes
+		// expect(inner_vars).to.containSubset([{ name: "self" }]);
+		expect(inner_vars).to.containSubset([{ name: "member1" }]);
+		expect(inner_vars).to.containSubset([{ name: "str_var", value: "'ScopeVars::member::str_var'" }]);
+		expect(inner_vars).to.containSubset([
+			{ name: "str_var_member_only", value: "'ScopeVars::member::str_var_member_only'" },
+		]);
+	})?.timeout(10000);
+
+
 	test("should retrieve all built-in types correctly", async () => {
 		const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "BuiltInTypes.gd"));
 		const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::BuiltInTypes::_ready"]);
