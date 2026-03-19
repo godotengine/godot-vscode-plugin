@@ -51,7 +51,7 @@ export class VariablesManager {
 	 * @param godot_id the id of the object
 	 * @returns a promise that resolves to the requested object
 	 */
-	public async get_godot_object(godot_id: bigint, force_refresh = false) {
+	public async get_godot_object(godot_id: bigint, force_refresh = false): Promise<GodotObject> {
 		if (force_refresh) {
 			// delete the object
 			this.godot_object_promises.delete(godot_id);
@@ -138,14 +138,8 @@ export class VariablesManager {
 					console.error("id and value.id mismatch");
 				}
 			}
-			const godot_id_with_path_sub = va.id !== undefined ? new GodotIdWithPath(va.id, []) : undefined;
-			const vscode_id =
-				godot_id_with_path_sub !== undefined
-					? this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(godot_id_with_path_sub)
-					: 0;
 			const variable: DebugProtocol.Variable = await this.parse_variable(
 				va,
-				vscode_id,
 				godot_id_with_path.godot_id,
 				godot_id_with_path.path,
 				this.godot_id_to_vscode_id_mapper,
@@ -206,31 +200,19 @@ export class VariablesManager {
 		}
 		const parsed_variable = await this.parse_variable(
 			variable,
-			undefined,
 			parent_id,
 			[],
 			this.godot_id_to_vscode_id_mapper,
 		);
-		if (parsed_variable.variablesReference === undefined) {
-			if (variable.value) {
-				const objectId = variable.value instanceof ObjectId ? variable.value : undefined;
-				const vscode_id =
-					objectId !== undefined
-						? this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(new GodotIdWithPath(objectId.id, []))
-						: 0;
-				parsed_variable.variablesReference = vscode_id;
-			}
-		}
 
 		return parsed_variable;
 	}
 
 	private async parse_variable(
 		va: GodotVariable,
-		vscode_id?: number,
-		parent_godot_id?: bigint,
-		relative_path?: string[],
-		mapper?: GodotIdToVscodeIdMapper,
+		parent_godot_id: bigint,
+		relative_path: string[],
+		mapper: GodotIdToVscodeIdMapper,
 	): Promise<DebugProtocol.Variable> {
 		const value = va.value;
 		let rendered_value = "";
@@ -279,7 +261,10 @@ export class VariablesManager {
 				const godot_object = await this.get_godot_object(value.id);
 				rendered_value = `${godot_object.type}${value.stringify_value()}`;
 				// rendered_value = `${value.type_name()}${value.stringify_value()}`;
-				reference = vscode_id;
+
+				const godot_id_with_path = new GodotIdWithPath(value.id, []);
+				const va_vscode_id = this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(godot_id_with_path);
+				reference = va_vscode_id;
 			} else {
 				try {
 					rendered_value = `${value.type_name()}${value.stringify_value()}`;
