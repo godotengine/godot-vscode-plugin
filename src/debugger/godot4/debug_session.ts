@@ -27,7 +27,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	private configuration_done: Subject = new Subject();
 	private mode: "launch" | "attach" | "" = "";
 
-	public variables_manager = new VariablesManager(this.controller);
+	public variables_manager?: VariablesManager; // defined only between DAP debug_enter/debug_exit events
 
 	public constructor(projectVersion: string) {
 		super();
@@ -218,7 +218,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	protected async scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments) {
 		log.info("scopesRequest", args);
 
-		if (this.variables_manager === null)
+		if (this.variables_manager === undefined)
 			return; // not inside a debug_enter/debug_exit
 
 		// this.variables_manager.variablesFrameId = args.frameId;
@@ -250,7 +250,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	) {
 		log.info("variablesRequest", args);
 
-		if (this.variables_manager === null)
+		if (this.variables_manager === undefined)
 			return; // not inside a debug_enter/debug_exit
 
 		try {
@@ -272,7 +272,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 		log.info("evaluateRequest", args);
 
-		if (this.variables_manager === null)
+		if (this.variables_manager === undefined)
 			return; // not inside a debug_enter/debug_exit
 
 		try {

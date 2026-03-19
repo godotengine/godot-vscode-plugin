@@ -23,6 +23,7 @@ import { get_sub_values, parse_next_scene_node, split_buffers } from "./helpers"
 import { DecodedVariant, VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
+import { VariablesManager } from "./variables/variables_manager";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
@@ -58,7 +59,7 @@ class GodotPartialStackVars {
 		const scopeName = ["Locals", "Members", "Globals"][godotScopeIndex];
 		const scope = this[scopeName];
 		// const objectId = value instanceof ObjectId ? value : undefined; // won't work, unless the value is re-created through new ObjectId(godot_id)
-		const godot_id = type === 24 ? value.id : undefined;
+		const godot_id = type === 24 ? value?.id : undefined;
 		scope.push({ id: godot_id, name, value, type, sub_values } as GodotVariable);
 		this.remaining--;
 	}
@@ -413,9 +414,12 @@ export class ServerController {
 				}
 				this.request_stack_dump();
 				this.request_scene_tree();
+				// variables_manager should be recreated for each "debug_enter"
+				this.session.variables_manager = new VariablesManager(this);
 				break;
 			}
 			case "debug_exit":
+				this.session.variables_manager = undefined;
 				break;
 			case "message:click_ctrl":
 				// TODO: what is this?
@@ -432,9 +436,13 @@ export class ServerController {
 				break;
 			}
 			case "scene:inspect_object": {
+				if (this.session.variables_manager === undefined) {
+					log.error("Unexpected 'scene:inspect_object' received. Should be inside 'debug_enter' / 'debug_exit'.");
+					return;
+				}
 				let godot_id = BigInt(command.parameters[0] as number);
 				const className: string = command.parameters[1] as string;
-				const properties: string[] = command.parameters[2] as string[];
+				const properties: [string, string, number, string, number, any][] = command.parameters[2] as [string, string, number, string, number, any][];
 
 				// message:inspect_object returns the id as an unsigned 64 bit integer, but it is decoded as a signed 64 bit integer,
 				// thus we need to convert it to its equivalent unsigned value here.
@@ -442,11 +450,43 @@ export class ServerController {
 					godot_id = godot_id + BigInt(2) ** BigInt(64);
 				}
 
+				// SceneDebuggerProperty is Pair<PropertyInfo, Variant>
+				// PropertyInfo:
+				// 	Variant::Type type = Variant::NIL;
+				// 	String name; 															// prop[0]
+				// 	StringName class_name; // For classes
+				// 	PropertyHint hint = PROPERTY_HINT_NONE;
+				// 	String hint_string;
+				// 	uint32_t usage = PROPERTY_USAGE_DEFAULT;  // propp[4]
+				// Variant:
+				// 	Variant value; 														// prop[5]
 				const rawObject = new RawObject(className);
+				let category = "";
 				for (const prop of properties) {
-					rawObject.set(prop[0], prop[5]);
+					const [name, class_name, hint, hint_string, usage, value, ...tail]: [string, string, number, string, number, any] = prop;
+					if (usage === 128) {
+						category = name;
+						continue; // not a variable - just a category grouping element for UI for subsequent items
+					}
+					let var_name: string;
+					if (category !== "") {
+						var_name = `${category}/${name}`;
+					} else {
+						if (name.startsWith("Members/")) {
+							var_name = name.slice("Members/".length);
+						} else if (name.startsWith("Constants/")) {
+							var_name = name.slice("Constants/".length);
+						} else if (name.includes("/")) {
+							var_name = name;
+						} else { // extra check for potential override values:
+							log.error(`Unknown property name: '${name}'. Expected it to start with "Members/" or "Constants/" or contain "/"`);
+							var_name = name;
+						}
+					}
+
+					rawObject.set(var_name, value);
 				}
-				const sub_values = get_sub_values(rawObject);
+				const sub_values = await get_sub_values(rawObject, this.session.variables_manager);
 
 				// race condition here:
 				// 0. DebuggerStop1 happens
@@ -494,6 +534,10 @@ export class ServerController {
 					log.error("Unexpected 'stack_frame_var' received. Should have received 'stack_frame_vars' first.");
 					return;
 				}
+				if (this.session.variables_manager === undefined) {
+					log.error("Unexpected 'stack_frame_var' received. Should be inside 'debug_enter' / 'debug_exit'.");
+					return;
+				}
 				if (typeof command.parameters[0] !== "string") {
 					log.error(
 						`Unexpected parameter type for 'stack_frame_var'. Expected string for name, got ${typeof command.parameters[0]}`,
@@ -519,7 +563,7 @@ export class ServerController {
 				const scope: 0 | 1 | 2 = command.parameters[1]; // 0 = locals, 1 = members, 2 = globals
 				const type: number = command.parameters[2];
 				const value: any = command.parameters[3];
-				const subValues: GodotVariable[] = get_sub_values(value);
+				const subValues: GodotVariable[] = await get_sub_values(value, this.session.variables_manager);
 				this.partialStackVars.append(name, scope, type, value, subValues);
 
 				if (this.partialStackVars.remaining === 0) {
