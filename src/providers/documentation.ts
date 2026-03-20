@@ -52,9 +52,12 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 						inherits: "",
 					});
 				}
-				const extended_classes = this.classInfo.get(gdclass.inherits).extended_classes || [];
-				extended_classes.push(gdclass.name);
-				this.classInfo.get(gdclass.inherits).extended_classes = extended_classes;
+				const baseClass = this.classInfo.get(gdclass.inherits);
+				if (baseClass) {
+					const extended_classes = baseClass.extended_classes || [];
+					extended_classes.push(gdclass.name);
+					baseClass.extended_classes = extended_classes;
+				}
 			}
 		}
 		this.ready = true;
@@ -85,7 +88,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 	): Promise<void> {
 		const className = document.uri.path.split(".")[0];
 		const target = document.uri.fragment;
-		let symbol: GodotNativeSymbol = null;
+		let symbol: GodotNativeSymbol | undefined = undefined;
 
 		panel.webview.options = {
 			enableScripts: true,
@@ -103,26 +106,31 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 				symbol_name: className,
 			};
 
-			const response = await globals.lsp.client.send_request("textDocument/nativeSymbol", params);
-
-			symbol = response as GodotNativeSymbol;
-			symbol.class_info = this.classInfo.get(symbol.name);
-			this.symbolDb.set(symbol.name, symbol);
+			const response = await globals.lsp?.client.sendRequest("textDocument/nativeSymbol", params);
+			if (response) {
+				symbol = response as GodotNativeSymbol;
+				symbol.class_info = this.classInfo.get(symbol.name);
+				this.symbolDb.set(symbol.name, symbol);
+			}
 		}
-		if (!this.htmlDb.has(className)) {
+		if (symbol && !this.htmlDb.has(className)) {
 			this.htmlDb.set(className, make_html_content(panel.webview, symbol, target));
 		}
 
-		const scaleFactor = get_configuration("documentation.pageScale");
-		panel.webview.html = this.htmlDb.get(className).replaceAll("scaleFactor", scaleFactor);
+		let classHtml = this.htmlDb.get(className);
+		if (classHtml) {
+			const scaleFactor = get_configuration("documentation.pageScale");
+			classHtml = classHtml.replaceAll("scaleFactor", scaleFactor);
 
-		const displayMinimap = get_configuration("documentation.displayMinimap");
-		if (displayMinimap) {
-			panel.webview.html = this.htmlDb.get(className).replace("displayMinimap", "initial;");
-			panel.webview.html = this.htmlDb.get(className).replace("bodyMargin", "200px;");
-		} else {
-			panel.webview.html = this.htmlDb.get(className).replace("bodyMargin", "0px;");
-			panel.webview.html = this.htmlDb.get(className).replace("displayMinimap", "none;");
+			const displayMinimap = get_configuration("documentation.displayMinimap");
+			if (displayMinimap) {
+				classHtml = classHtml.replace("displayMinimap", "initial;");
+				classHtml = classHtml.replace("bodyMargin", "200px;");
+			} else {
+				classHtml = classHtml.replace("bodyMargin", "0px;");
+				classHtml = classHtml.replace("displayMinimap", "none;");
+			}
+			panel.webview.html = classHtml;
 		}
 
 		panel.iconPath = get_extension_uri("resources/godot_icon.svg");

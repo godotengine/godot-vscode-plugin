@@ -51,8 +51,9 @@ export class GDSemanticTokensProvider implements DocumentSemanticTokensProvider 
 	}
 
 	private create_range(document: TextDocument, match: RegExpMatchArray) {
-		const start = document.positionAt(match.index);
-		const end = document.positionAt(match.index + match[0].length);
+		const startIndex = match.index ?? 0;
+		const start = document.positionAt(startIndex);
+		const end = document.positionAt(startIndex + match[0].length);
 		const r = new Range(start, end);
 		return r;
 	}

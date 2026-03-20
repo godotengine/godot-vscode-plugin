@@ -101,7 +101,7 @@ function parse_test_file(content: string): Test[] {
 	let defaultConfigString: string[] = [];
 
 	const tests: Test[] = [];
-	let mode = null;
+	let mode = "";
 	let test = new TestLines();
 
 	for (const _line of content.split("\n")) {

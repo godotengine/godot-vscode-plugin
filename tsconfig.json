@@ -15,7 +15,8 @@
 		"strict": false,
 		"skipLibCheck": true,
 		"allowJs": true,
-		"strictBindCallApply": true
+		"strictBindCallApply": true,
+		"strictNullChecks": true,
 	},
 	"exclude": [
 		"node_modules",

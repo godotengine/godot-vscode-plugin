@@ -5,7 +5,7 @@ import { get_extension_uri } from "../utils";
 const iconDir = get_extension_uri("resources", "godot_icons").fsPath;
 
 export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
-	private changeTreeEvent = new EventEmitter<SceneNode>();
+	private changeTreeEvent = new EventEmitter<void>();
 	onDidChangeTreeData = this.changeTreeEvent.event;
 
 	private root: SceneNode | undefined;
@@ -23,13 +23,13 @@ export class SceneTreeProvider implements TreeDataProvider<SceneNode> {
 
 		if (this.root) {
 			this.root = undefined;
-			this.changeTreeEvent.fire(undefined);
+			this.changeTreeEvent.fire();
 		}
 	}
 
 	public fill_tree(node: SceneNode) {
 		this.root = node;
-		this.changeTreeEvent.fire(undefined);
+		this.changeTreeEvent.fire();
 	}
 
 	public getChildren(element?: SceneNode): SceneNode[] {

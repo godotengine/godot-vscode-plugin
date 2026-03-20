@@ -37,7 +37,7 @@ export function is_variable_built_in_type(va: GodotVariable) {
 export function build_sub_values(va: GodotVariable) {
 	const value = va.value;
 
-	let subValues: GodotVariable[] = undefined;
+	let subValues: GodotVariable[] | undefined = undefined;
 
 	if (value && Array.isArray(value)) {
 		subValues = value.map((va, i) => {
@@ -73,7 +73,7 @@ export function parse_variable(va: GodotVariable, i?: number) {
 	let rendered_value = "";
 	let reference = 0;
 	let array_size = 0;
-	let array_type = undefined;
+	let array_type: "indexed" | "named" | undefined = undefined;
 
 	if (typeof value === "number") {
 		if (Number.isInteger(value)) {
