@@ -12,6 +12,7 @@ class ClassA:
   var member_classB
   var member_self := self
   var str_var := "ExtensiveVars::ClassA::member::str_var"
+  var member_objects_in_array = []
   func test_function(delta: float) -> void:
     var str_var := "ExtensiveVars::ClassA::test_function::local::str_var"
     var local_self := self.member_self;
@@ -21,14 +22,19 @@ class ClassA:
 class ClassB:
   var member_classA
 
+var member_objects_in_array: Array
+
 func _ready() -> void:
   var local_label := label
   var local_self_var_through_label := label.parent_var
   
   var local_classA = ClassA.new()
   var local_classB = ClassB.new()
+  local_classA.member_objects_in_array = [local_classA, local_classB]
   local_classA.member_classB = local_classB
   local_classB.member_classA = local_classA
+
+  self.member_objects_in_array = [local_classA, local_classB]
 
   var str_var := "ExtensiveVars::_ready::local::str_var"
 

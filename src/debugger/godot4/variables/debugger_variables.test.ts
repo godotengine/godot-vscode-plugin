@@ -388,36 +388,58 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 		]);
 	})?.timeout(10000);
 
-	test("should return return inner (expanded) variables on subsequent request", async () => {
-		/** {@link file://./../../../../test_projects/test-dap-project-godot4/ScopeVars.gd"} */
-		const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ScopeVars.gd"));
-		const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ScopeVars::_ready"]);
+	test("should return inner (expanded) variables on subsequent request", async () => {
+		const breakpointLocations = await getBreakpointLocations(path.join(workspaceFolder, "ExtensiveVars.gd"));
+		const breakpoint = new vscode.SourceBreakpoint(breakpointLocations["breakpoint::ExtensiveVars::_ready"]);
 		vscode.debug.addBreakpoints([breakpoint]);
 
-		await startDebugging("ScopeVars.tscn");
+		await startDebugging("ExtensiveVars.tscn");
 		await waitForBreakpoint(breakpoint, 2000);
 
 		// TODO: current DAP needs a delay before it will return variables
 		// console.log("Sleeping for 2 seconds");
 		await sleep(2000);
 
-		const variables = await getVariablesForScope(VariableScope.Locals);
-		expect(variables.length).to.equal(3);
-		expect(variables).to.containSubset([{ name: "self_var" }]);
+		const memberVariables = await getVariablesForScope(VariableScope.Members);
 
-		const self_var = variables.find(va => va.name === "self_var");
-		if (!self_var) {
-			throw new Error("self_var not found");
+		expect(memberVariables.length).to.equal(4, "Incorrect member variables count");
+		expect(memberVariables).to.containSubset([{ name: "member_objects_in_array" },]);
+		
+		// objects in array tests:
+		const member_objects_in_array = memberVariables.find((v) => v.name === "member_objects_in_array");
+		if (!member_objects_in_array) {
+			throw new Error("member_objects_in_array not found");
 		}
-		// request variable using variableReference of self_var:
-		const inner_vars = await getVariablesForVSCodeID(self_var.variablesReference);
-		// `inner_vars` is similar to `self` but doesn't contain `self` and contains many members from parent classes
-		// expect(inner_vars).to.containSubset([{ name: "self" }]);
-		expect(inner_vars).to.containSubset([{ name: "member1" }]);
-		expect(inner_vars).to.containSubset([{ name: "str_var", value: "'ScopeVars::member::str_var'" }]);
-		expect(inner_vars).to.containSubset([
-			{ name: "str_var_member_only", value: "'ScopeVars::member::str_var_member_only'" },
-		]);
+		expect(member_objects_in_array.value).to.match(/\(2\) \[.*\]/);
+
+		// # Request the array:
+		const array_vars = await getVariablesForVSCodeID(member_objects_in_array.variablesReference);
+		expect(array_vars.length).to.equal(2);
+		// # # validate the first element:
+		const first_element = array_vars[0];
+		expect(first_element.name).to.equal("0");
+		expect(first_element.value).to.match(/RefCounted<\d+>/);
+		
+		// # # # Request the first element data:
+		const first_element_vars = await getVariablesForVSCodeID(first_element.variablesReference);
+		expect(first_element_vars.length).to.equal(5); // there are 4 variables in ClassA + 1 variable coming with `RefCounted/script`
+		expect(first_element_vars).to.containSubset([{ name: "member_classB" }]);
+		expect(first_element_vars).to.containSubset([{ name: "member_self" }]);
+		expect(first_element_vars).to.containSubset([{ name: "str_var" }]);
+		expect(first_element_vars).to.containSubset([{ name: "member_objects_in_array" }]);
+		expect(first_element_vars).to.containSubset([{ name: "RefCounted/script" }]);
+		const member_objects_in_array2 = first_element_vars.find((v) => v.name === "member_objects_in_array");
+		if (!member_objects_in_array2) {
+			throw new Error("member_objects_in_array2 not found");
+		}
+		expect(member_objects_in_array2.value).to.match(/\(2\) \[.*\]/);
+
+		// # #  validate the second element
+		const second_element = array_vars[1];
+		expect(second_element.name).to.equal("1");
+		expect(second_element.value).to.match(/RefCounted<\d+>/);
+		const second_element_vars = await getVariablesForVSCodeID(second_element.variablesReference);
+		expect(second_element_vars.length).to.equal(2);
 	})?.timeout(10000);
 
 
@@ -481,10 +503,11 @@ suite("DAP Integration Tests - Variable Scopes", () => {
 
 		const memberVariables = await getVariablesForScope(VariableScope.Members);
 
-		expect(memberVariables.length).to.equal(3, "Incorrect member variables count");
+		expect(memberVariables.length).to.equal(4, "Incorrect member variables count");
 		expect(memberVariables).to.containSubset([{ name: "self" }]);
 		expect(memberVariables).to.containSubset([{ name: "self_var" }]);
 		expect(memberVariables).to.containSubset([{ name: "label" }]);
+		expect(memberVariables).to.containSubset([{ name: "member_objects_in_array" },]);
 		const self = memberVariables.find((v) => v.name === "self");
 		const self_var = memberVariables.find((v) => v.name === "self_var");
 		if (!self || !self_var) {
