@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { Color8, hex, NAMED_COLORS, to_html, to_rgba32 } from "../utils/colors";
 import { EXTENSION_PREFIX } from "../utils";
+import { Color8, NAMED_COLORS, hex, to_html, to_rgba32 } from "../utils/colors";
 
 type Arg =
 	| ArgString
@@ -144,9 +144,7 @@ export class GDDocumentColorProvider implements vscode.DocumentColorProvider {
 			if (color) {
 				colors.push({ color, range });
 			}
-			// allow for early bail out
-			await Promise.resolve();
-			if (token.isCancellationRequested) {
+			if (await isCancelled(token)) {
 				return colors;
 			}
 		}
@@ -159,9 +157,7 @@ export class GDDocumentColorProvider implements vscode.DocumentColorProvider {
 			if (color) {
 				colors.push({ color, range });
 			}
-			// allow for early bail out
-			await Promise.resolve();
-			if (token.isCancellationRequested) {
+			if (await isCancelled(token)) {
 				return colors;
 			}
 		}
@@ -542,4 +538,11 @@ function parseCode(code: string): vscode.Color {
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(value, max));
+}
+
+/**
+ * To be used within a loop to not monopolize the eventloop and check for cancellation.
+ */
+function isCancelled(token: vscode.CancellationToken): Promise<boolean> {
+	return new Promise(resolve => setImmediate(() => resolve(token.isCancellationRequested)));
 }
