@@ -24,7 +24,7 @@ export default class MessageBuffer {
 	private partialMessageTimer: NodeJS.Timeout | undefined;
 	private _partialMessageTimeout = 10000;
 
-	constructor(private reader) {}
+	constructor(private reader: any) {}
 
 	public append(chunk: Buffer | string): void {
 		let toAppend: Buffer = <Buffer>chunk;
@@ -92,21 +92,21 @@ export default class MessageBuffer {
 		return result;
 	}
 
-	public ready() {
+	public ready(): string | undefined {
 		if (this.nextMessageLength === -1) {
 			const headers = this.tryReadHeaders();
 			if (!headers) {
-				return;
+				return undefined;
 			}
 			const contentLength = headers["Content-Length"];
 			if (!contentLength) {
 				log.warn("Header must provide a Content-Length property.");
-				return;
+				return undefined;
 			}
 			const length = Number.parseInt(contentLength);
 			if (Number.isNaN(length)) {
 				log.warn("Content-Length value must be a number.");
-				return;
+				return undefined;
 			}
 			this.nextMessageLength = length;
 		}
@@ -114,7 +114,7 @@ export default class MessageBuffer {
 		if (!msg) {
 			log.warn("haven't recieved full message");
 			this.setPartialMessageTimer();
-			return;
+			return undefined;
 		}
 		this.clearPartialMessageTimer();
 		this.nextMessageLength = -1;

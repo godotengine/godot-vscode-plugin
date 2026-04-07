@@ -26,13 +26,13 @@ export class MessageIO extends EventEmitter {
 	responseFilter: (msg: ResponseMessage) => ResponseMessage | false = (msg) => msg;
 	notificationFilter: (msg: NotificationMessage) => NotificationMessage | false = (msg) => msg;
 
-	socket: Socket = null;
+	socket?: Socket;
 	messageCache: string[] = [];
 
 	async connect(host: string, port: number): Promise<void> {
 		log.debug(`connecting to ${host}:${port}`);
 		return new Promise((resolve, reject) => {
-			this.socket = null;
+			this.socket = undefined;
 
 			const socket = new Socket();
 			socket.connect(port, host);
@@ -42,6 +42,9 @@ export class MessageIO extends EventEmitter {
 
 				while (this.messageCache.length > 0) {
 					const msg = this.messageCache.shift();
+					if (msg === undefined) {
+						break;
+					}
 					this.socket.write(msg);
 				}
 
@@ -52,10 +55,10 @@ export class MessageIO extends EventEmitter {
 				this.emit("data", chunk);
 			});
 			socket.on("error", () => {
-				this.socket = null;
+				this.socket = undefined;
 			});
 			socket.on("close", () => {
-				this.socket = null;
+				this.socket = undefined;
 				this.emit("disconnected");
 			});
 		});
@@ -86,7 +89,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 		this.io.on("data", this.on_data.bind(this));
 		this.io.on("error", this.fireError.bind(this));
 		this.io.on("close", this.fireClose.bind(this));
-		return;
+		return { dispose() {} };
 	}
 
 	private on_data(data: Buffer | string): void {
@@ -98,7 +101,7 @@ export class MessageIOReader extends AbstractMessageReader implements MessageRea
 			}
 			const json = JSON.parse(msg);
 			// allow message to be modified
-			let modified: ResponseMessage | NotificationMessage | false;
+			let modified: ResponseMessage | NotificationMessage | false = false;
 			if ("id" in json) {
 				modified = this.io.responseFilter(json);
 			} else if ("method" in json) {

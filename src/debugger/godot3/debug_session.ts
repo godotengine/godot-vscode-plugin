@@ -22,13 +22,13 @@ import { ObjectId } from "./variables/variants";
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
 interface Variable {
-	variable: GodotVariable;
-	index: number;
-	object_id: number;
+	variable: GodotVariable | undefined;
+	index: number | undefined;
+	object_id: number | undefined;
 }
 
 export class GodotDebugSession extends LoggingDebugSession {
-	private all_scopes: GodotVariable[];
+	private all_scopes: (GodotVariable | undefined)[];
 	public controller = new ServerController(this);
 	public debug_data = new GodotDebugData(this);
 	public sceneTree: SceneTreeProvider;
@@ -118,19 +118,21 @@ export class GodotDebugSession extends LoggingDebugSession {
 	}
 
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
-		await debug.activeDebugSession.customRequest("scopes", { frameId: 0 });
+		await debug.activeDebugSession?.customRequest("scopes", { frameId: 0 });
 
 		if (this.all_scopes) {
 			try {
-				const variable = this.get_variable(args.expression, null, null, null);
-				const parsed_variable = parse_variable(variable.variable);
-				response.body = {
-					result: parsed_variable.value,
-					variablesReference: !is_variable_built_in_type(variable.variable) ? variable.index : 0,
-				};
+				const variable = this.get_variable(args.expression, undefined, 0, undefined);
+				if (variable.variable && variable.index !== undefined) {
+					const parsed_variable = parse_variable(variable.variable);
+					response.body = {
+						result: parsed_variable.value,
+						variablesReference: !is_variable_built_in_type(variable.variable) ? variable.index : 0,
+					};
+				}
 			} catch (error) {
 				response.success = false;
-				response.message = error.toString();
+				response.message = (error as Error).toString();
 			}
 		}
 
@@ -172,10 +174,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		response: DebugProtocol.SetBreakpointsResponse,
 		args: DebugProtocol.SetBreakpointsArguments,
 	) {
-		const path = (args.source.path as string).replace(/\\/g, "/");
+		const path = (args.source.path as string)?.replace(/\\/g, "/");
 		const client_lines = args.lines || [];
 
-		if (fs.existsSync(path)) {
+		if (path && fs.existsSync(path)) {
 			let bps = this.debug_data.get_breakpoints(path);
 			const bp_lines = bps.map((bp) => bp.line);
 
@@ -186,8 +188,8 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 			for (const l of client_lines) {
 				if (bp_lines.indexOf(l) === -1) {
-					const bp = args.breakpoints.find((bp_at_line) => bp_at_line.line === l);
-					if (!bp.condition) {
+					const bp = args.breakpoints?.find((bp_at_line) => bp_at_line.line === l);
+					if (bp && !bp.condition) {
 						this.debug_data.set_breakpoint(path, l);
 					}
 				}
@@ -263,7 +265,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		const reference = this.all_scopes[args.variablesReference];
 		let variables: DebugProtocol.Variable[];
 
-		if (!reference.sub_values) {
+		if (!reference || !reference.sub_values) {
 			variables = [];
 		} else {
 			variables = reference.sub_values.map((va) => {
@@ -281,7 +283,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 						),
 					);
 				}
-			});
+			}).filter(v => v !== undefined);
 		}
 
 		response.body = {
@@ -343,8 +345,10 @@ export class GodotDebugSession extends LoggingDebugSession {
 		for (const va of variables) {
 			const index = this.all_scopes.findIndex((va_id) => va_id === va);
 			const old = this.all_scopes.splice(index, 1);
-			replacement.name = old[0].name;
-			replacement.scope_path = old[0].scope_path;
+			if (old[0]) {
+				replacement.name = old[0].name;
+				replacement.scope_path = old[0].scope_path;
+			}
 			this.append_variable(replacement, index);
 		}
 
@@ -379,14 +383,14 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	protected get_variable(
 		expression: string,
-		root: GodotVariable = null,
+		root?: GodotVariable,
 		index = 0,
-		object_id: number = null,
+		object_id?: number,
 	): Variable {
 		let result: Variable = {
-			variable: null,
-			index: null,
-			object_id: null,
+			variable: undefined,
+			index: undefined,
+			object_id: undefined,
 		};
 
 		if (!root) {
@@ -395,7 +399,12 @@ export class GodotDebugSession extends LoggingDebugSession {
 			}
 
 			root = this.all_scopes.find((x) => x && x.name === "self");
-			object_id = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self").value;
+			const idVar = this.all_scopes.find((x) => x && x.name === "id" && x.scope_path === "@.member.self");
+			object_id = idVar ? idVar.value : undefined;
+		}
+
+		if (!root) {
+			throw new Error("Could not find root scope");
 		}
 
 		const items = expression.split(".");
@@ -457,11 +466,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		const sanitized_all_scopes = this.all_scopes
-			.filter((x) => x)
+			.filter((x) => x !== undefined)
 			.map((x) => ({
 				sanitized: {
 					name: sanitizeName(x.name),
-					scope_path: sanitizeScopePath(x.scope_path),
+					scope_path: sanitizeScopePath(x.scope_path || ""),
 				},
 				real: x,
 			}));
@@ -473,22 +482,23 @@ export class GodotDebugSession extends LoggingDebugSession {
 			throw new Error(`Could not find: ${propertyName}`);
 		}
 
-		if (root.value.entries) {
-			if (result.variable.name === "self") {
-				result.object_id = this.all_scopes.find(
+		if (root.value && typeof root.value.entries === "function") {
+			if (result.variable && result.variable.name === "self") {
+				const idVar = this.all_scopes.find(
 					(x) => x && x.name === "id" && x.scope_path === "@.member.self",
-				).value;
+				);
+				result.object_id = idVar ? idVar.value : undefined;
 			} else if (key) {
 				const collection = path.split(".")[path.split(".").length - 1];
-				const collection_items = Array.from(root.value.entries()).find(
-					(x) => x && x[0].split("Members/").join("").split("Locals/").join("") === collection,
-				)[1];
+				const collection_items = Array.from((root.value as any).entries()).find(
+					(x: any) => x && x[0].split("Members/").join("").split("Locals/").join("") === collection,
+				)?.[1];
 				result.object_id = collection_items.get ? collection_items.get(key)?.id : collection_items[key]?.id;
 			} else {
 				const item = Array.from(root.value.entries()).find(
-					(x) => x && x[0].split("Members/").join("").split("Locals/").join("") === propertyName,
+					(x: any) => x && x[0].split("Members/").join("").split("Locals/").join("") === propertyName,
 				);
-				result.object_id = item?.[1].id;
+				result.object_id = (item as any)?.[1].id;
 			}
 		}
 
@@ -496,9 +506,11 @@ export class GodotDebugSession extends LoggingDebugSession {
 			result.object_id = object_id;
 		}
 
-		result.index = this.all_scopes.findIndex(
-			(x) => x && x.name === result.variable.name && x.scope_path === result.variable.scope_path,
-		);
+		if (result.variable) {
+			result.index = this.all_scopes.findIndex(
+				(x) => x && x.name === result.variable?.name && x.scope_path === result.variable?.scope_path,
+			);
+		}
 
 		if (items.length > 2 && index < items.length - 2) {
 			result = this.get_variable(items.join("."), result.variable, index + 1, result.object_id);
