@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-const EXTENSION_PREFIX = "godotTools";
+export const EXTENSION_PREFIX = "godotTools";
 
 export function get_configuration(name: string, defaultValue?: any) {
 	const configValue = vscode.workspace.getConfiguration(EXTENSION_PREFIX).get(name, null);

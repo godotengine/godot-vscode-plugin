@@ -5,6 +5,7 @@ import { attemptSettingsUpdate, get_extension_uri, clean_godot_path } from "./ut
 import {
 	GDInlayHintsProvider,
 	GDHoverProvider,
+	GDDocumentColorProvider,
 	GDDocumentDropEditProvider,
 	GDDocumentLinkProvider,
 	GDSemanticTokensProvider,
@@ -37,6 +38,7 @@ interface Extension {
 	lsp?: ClientConnectionManager;
 	debug?: GodotDebugger;
 	scenePreviewProvider?: ScenePreviewProvider;
+	colorProvider?: GDDocumentColorProvider;
 	linkProvider?: GDDocumentLinkProvider;
 	dropsProvider?: GDDocumentDropEditProvider;
 	hoverProvider?: GDHoverProvider;
@@ -58,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.lsp = new ClientConnectionManager(context);
 	globals.debug = new GodotDebugger(context);
 	globals.scenePreviewProvider = new ScenePreviewProvider(context);
+	globals.colorProvider = new GDDocumentColorProvider(context);
 	globals.linkProvider = new GDDocumentLinkProvider(context);
 	globals.dropsProvider = new GDDocumentDropEditProvider(context);
 	globals.hoverProvider = new GDHoverProvider(context);
