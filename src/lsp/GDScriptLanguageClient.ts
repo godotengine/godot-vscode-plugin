@@ -151,14 +151,6 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		this.io.connect(host, port);
 	}
 
-	async send_request<R>(method: string, params): Promise<R> {
-		try {
-			return this.sendRequest(method, params);
-		} catch {
-			log.warn("sending request failed!");
-		}
-	}
-
 	handleFailedRequest<T>(
 		type: MessageSignature,
 		token: vscode.CancellationToken | undefined,
@@ -275,10 +267,10 @@ export default class GDScriptLanguageClient extends LanguageClient {
 
 	private async check_workspace(message: ChangeWorkspaceNotification) {
 		const server_path = path.normalize(message.params.path);
-		const client_path = path.normalize(await get_project_dir());
+		const client_path = path.normalize(await get_project_dir() ?? "");
 		if (server_path !== client_path) {
 			log.warn("Connected LSP is a different workspace");
-			this.io.socket.resetAndDestroy();
+			this.io.socket?.resetAndDestroy();
 			this.rejected = true;
 		}
 	}
@@ -288,7 +280,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			this.check_workspace(message as ChangeWorkspaceNotification);
 		}
 		if (message.method === "gdscript/capabilities") {
-			globals.docsProvider.register_capabilities(message);
+			globals.docsProvider?.register_capabilities(message);
 		}
 
 		// if (message.method === "textDocument/publishDiagnostics") {
@@ -315,7 +307,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 			textDocument: { uri: uri.toString() },
 			position: { line: position.line, character: position.character },
 		};
-		const response = await this.send_request("textDocument/hover", params);
+		const response = await this.sendRequest("textDocument/hover", params);
 		return this.parse_hover_result(response as HoverResult);
 	}
 
@@ -333,8 +325,8 @@ export default class GDScriptLanguageClient extends LanguageClient {
 		}
 		decl = decl.split("\n")[0].trim();
 
-		let match: RegExpMatchArray;
-		let result = undefined;
+		let match: RegExpMatchArray | null;
+		let result: string | undefined = undefined;
 		match = decl.match(/(?:func|const) (@?\w+)\.(\w+)/);
 		if (match) {
 			result = `${match[1]}.${match[2]}`;

@@ -34,7 +34,7 @@ export function split_buffers(buffer: Buffer) {
 }
 
 export async function get_sub_values(value: any, variables_manager: VariablesManager): Promise<GodotVariable[]> {
-	let subValues: GodotVariable[] = undefined;
+	let subValues: GodotVariable[] = [];
 
 	if (value) {
 		if (Array.isArray(value)) {

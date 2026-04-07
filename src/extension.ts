@@ -121,26 +121,34 @@ async function initial_setup() {
 
 export function deactivate(): Thenable<void> {
 	return new Promise<void>((resolve, reject) => {
-		globals.lsp.client.stop();
+		globals.lsp?.client.stop();
 		resolve();
 	});
 }
 
 async function copy_resource_path(uri: vscode.Uri) {
 	if (!uri) {
-		uri = vscode.window.activeTextEditor.document.uri;
+		if (vscode.window.activeTextEditor) {
+			uri = vscode.window.activeTextEditor.document.uri;
+		} else {
+			return;
+		}
 	}
 
 	const relative_path = await convert_uri_to_resource_path(uri);
-
-	vscode.env.clipboard.writeText(relative_path);
+	if (relative_path) {
+		vscode.env.clipboard.writeText(relative_path);
+	}
 }
 
 async function list_classes() {
-	await globals.docsProvider.list_native_classes();
+	await globals.docsProvider?.list_native_classes();
 }
 
 async function switch_scene_script() {
+	if (!vscode.window.activeTextEditor) {
+		return;
+	}
 	let path = vscode.window.activeTextEditor.document.uri.fsPath;
 
 	if (path.endsWith(".tscn")) {
@@ -158,6 +166,9 @@ async function switch_scene_script() {
 async function open_workspace_with_editor() {
 	const projectDir = await get_project_dir();
 	const projectVersion = await get_project_version();
+	if (!projectDir || !projectVersion) {
+		return;
+	}
 
 	const settingName = `editorPath.godot${projectVersion[0]}`;
 	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
@@ -202,7 +213,7 @@ async function open_godot_editor_settings() {
 	const dir = get_editor_data_dir();
 	const files = fs.readdirSync(dir).filter((v) => v.endsWith(".tres"));
 
-	const ver = await get_project_version();
+	const ver = await get_project_version() ?? "";
 
 	for (const file of files) {
 		if (file.includes(ver)) {

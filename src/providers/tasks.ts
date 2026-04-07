@@ -25,6 +25,9 @@ export class GDTaskProvider implements TaskProvider {
 	public provideTasks() {
 		const tasks: Task[] = [];
 
+		if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+			return tasks;
+		}
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		const taskName = "test";
 		const kind: GDTaskDefinition = {

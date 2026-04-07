@@ -44,7 +44,10 @@ type HoverResult = {
 };
 
 async function addByHover(document: TextDocument, hoverPosition: vscode.Position): Promise<string | undefined> {
-	const response = (await globals.lsp.client.send_request("textDocument/hover", {
+	if (!globals.lsp) {
+		return undefined;
+	}
+	const response = (await globals.lsp.client.sendRequest("textDocument/hover", {
 		textDocument: { uri: document.uri.toString() },
 		position: {
 			line: hoverPosition.line,
@@ -56,7 +59,7 @@ async function addByHover(document: TextDocument, hoverPosition: vscode.Position
 	if (Array.isArray(response.contents) && response.contents.length === 0) {
 		return undefined;
 	}
-	return response.contents.value;
+	return response.contents?.value;
 }
 
 export class GDInlayHintsProvider implements InlayHintsProvider {
@@ -75,7 +78,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		];
 		context.subscriptions.push(vscode.languages.registerInlayHintsProvider(selector, this));
 
-		globals.lsp.onStatusChanged((status) => {
+		globals.lsp?.onStatusChanged((status) => {
 			this._onDidChangeInlayHints.fire();
 			if (status === ManagerStatus.CONNECTED) {
 				setTimeout(() => {
@@ -106,11 +109,11 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 				return hints;
 			}
 
-			if (!globals.lsp.client.isRunning()) {
+			if (!globals.lsp || !globals.lsp.client.isRunning()) {
 				return hints;
 			}
 
-			const symbolsRequest = (await globals.lsp.client.send_request("textDocument/documentSymbol", {
+			const symbolsRequest = (await globals.lsp.client.sendRequest("textDocument/documentSymbol", {
 				textDocument: { uri: document.uri.toString() },
 			})) as DocumentSymbol[];
 
@@ -170,7 +173,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.externalResources.get(id);
 
-			const label = `${resource.type}: "${resource.path}"`;
+			const label = `${resource?.type}: "${resource?.path}"`;
 
 			const hint = new InlayHint(end, label, InlayHintKind.Type);
 			hint.paddingLeft = true;
@@ -182,7 +185,7 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.subResources.get(id);
 
-			const label = `${resource.type}`;
+			const label = `${resource?.type}`;
 
 			const hint = new InlayHint(end, label, InlayHintKind.Type);
 			hint.paddingLeft = true;

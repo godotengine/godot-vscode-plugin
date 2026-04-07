@@ -454,7 +454,7 @@ export class StringName implements GDObject {
 
 	public async get_rendered_value(variables_manager: VariablesManager): Promise<string> {
 		const rendered_value = `&'${this.stringify_value()}'`;
-		return rendered_value
+		return rendered_value;
 	}
 
 	public sub_values(): GodotVariable[] {
@@ -490,7 +490,7 @@ export class Signal implements GDObject {
 	}
 
 	public sub_values(): GodotVariable[] {
-		return undefined;
+		return [];
 	}
 
 	public type_name(): string {

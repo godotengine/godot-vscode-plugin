@@ -58,7 +58,7 @@ export interface AttachRequestArguments extends DebugProtocol.AttachRequestArgum
 	additional_options: string;
 }
 
-export let pinnedScene: Uri;
+export let pinnedScene: Uri | undefined;
 
 class GDFileDecorationProvider implements FileDecorationProvider {
 	private emitter = new EventEmitter<Uri>();
@@ -70,7 +70,7 @@ class GDFileDecorationProvider implements FileDecorationProvider {
 
 	provideFileDecoration(uri: Uri, token: CancellationToken): FileDecoration | undefined {
 		if (uri.scheme !== "file") return undefined;
-		if (pinnedScene && uri.fsPath === pinnedScene.fsPath) {
+		if (pinnedScene !== undefined && uri.fsPath === pinnedScene.fsPath) {
 			return {
 				badge: "🖈",
 			};
@@ -100,8 +100,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 			register_command("debugger.editValue", this.edit_value.bind(this)),
 			register_command("debugger.debugCurrentFile", this.debug_current_file.bind(this)),
 			register_command("debugger.debugPinnedFile", this.debug_pinned_file.bind(this)),
-			register_command("debugger.pinFile", this.pin_file.bind(this)),
-			register_command("debugger.unpinFile", this.unpin_file.bind(this)),
+			register_command("debugger.pinFile", this.pinFile.bind(this)),
+			register_command("debugger.unpinFile", this.unpinFile.bind(this)),
 			register_command("debugger.openPinnedFile", this.open_pinned_file.bind(this)),
 			this.inspector.view,
 			this.sceneTree.view,
@@ -113,7 +113,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const projectVersion = await get_project_version();
 		log.info(`Project version identified as ${projectVersion}`);
 
-		if (projectVersion.startsWith("4")) {
+		if (projectVersion?.startsWith("4")) {
 			this.session = new Godot4DebugSession(projectVersion);
 		} else {
 			this.session = new Godot3DebugSession();
@@ -168,13 +168,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public debug_current_file() {
 		log.info("Attempting to debug current file");
 		const configs: DebugConfiguration[] = workspace
-			.getConfiguration("launch", window.activeTextEditor.document.uri)
-			.get("configurations");
+			.getConfiguration("launch", window.activeTextEditor?.document.uri)
+			.get("configurations") || [];
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "current");
 
-		let path = window.activeTextEditor.document.fileName;
-		if (path.endsWith(".gd")) {
+		let path = window.activeTextEditor?.document.fileName;
+		if (path?.endsWith(".gd")) {
 			const scenePath = path.replace(".gd", ".tscn");
 			if (!fs.existsSync(scenePath)) {
 				const message = `Can't launch debug session: no associated scene for '${path}'. (Script and scene file must have the same name.)`;
@@ -196,12 +196,12 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		config.scene = path;
 
 		log.info(`Starting debug session for '${path}'`);
-		debug.startDebugging(workspace.workspaceFolders[0], config);
+		debug.startDebugging(workspace.workspaceFolders?.[0], config);
 	}
 
 	public debug_pinned_file() {
 		log.info("Attempting to debug pinned scene");
-		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations");
+		const configs: DebugConfiguration[] = workspace.getConfiguration("launch", pinnedScene).get("configurations") || [];
 		const launches = configs.filter((c) => c.request === "launch");
 		const currents = configs.filter((c) => c.scene === "pinned");
 
@@ -231,13 +231,17 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		config.scene = path;
 
 		log.info(`Starting debug session for '${path}'`);
-		debug.startDebugging(workspace.workspaceFolders[0], config);
+		debug.startDebugging(workspace.workspaceFolders?.[0], config);
 	}
 
-	public pin_file(uri: Uri) {
+	public pinFile(uri: Uri | undefined) {
 		let _uri = uri;
 		if (uri === undefined) {
-			_uri = window.activeTextEditor.document.uri;
+			_uri = window.activeTextEditor?.document.uri;
+		}
+		if (_uri === undefined) {
+			window.showWarningMessage("No active editor. Open a file to pin it.");
+			return;
 		}
 		log.info(`Pinning debug target file: '${_uri.fsPath}'`);
 		set_context("pinnedScene", [_uri.fsPath]);
@@ -249,17 +253,19 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		this.fileDecorations.update(_uri);
 	}
 
-	public unpin_file(uri: Uri) {
+	public unpinFile(uri: Uri) {
 		log.info(`Unpinning debug target file: '${pinnedScene}'`);
 		set_context("pinnedScene", []);
 		const previousPinnedScene = pinnedScene;
 		pinnedScene = undefined;
 		this.context.workspaceState.update("pinnedScene", pinnedScene);
-		this.fileDecorations.update(previousPinnedScene);
+		if (previousPinnedScene) {
+			this.fileDecorations.update(previousPinnedScene);
+		}
 	}
 
 	public restore_pinned_file() {
-		pinnedScene = this.context.workspaceState.get("pinnedScene", undefined);
+		pinnedScene = this.context.workspaceState.get<Uri>("pinnedScene");
 		if (pinnedScene) {
 			log.info(`Restoring pinned debug target file: '${pinnedScene.fsPath}'`);
 			set_context("pinnedScene", [pinnedScene.fsPath]);
@@ -278,6 +284,10 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	}
 
 	private async fill_inspector(element: SceneNode | RemoteProperty, force_refresh = false) {
+		if (element.object_id === undefined) {
+			return;
+		}
+
 		if (this.session instanceof Godot4DebugSession) {
 			const godot_object = await this.session.variables_manager?.get_godot_object(
 				BigInt(element.object_id),
@@ -313,11 +323,17 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 	public async refresh_inspector() {
 		if (this.inspector.has_tree()) {
 			const item = this.inspector.get_top_item();
-			await this.fill_inspector(item, /*force_refresh*/ true);
+			if (item) {
+				await this.fill_inspector(item, /*force_refresh*/ true);
+			}
 		}
 	}
 
 	public async edit_value(property: RemoteProperty) {
+		if (property.object_id === undefined) {
+			log.error("Invalid property to edit (property.object_id === undefined)");
+			return;
+		}
 		const previous_value = property.value;
 		const type = typeof previous_value;
 		const is_float = type === "number" && !Number.isInteger(previous_value);
@@ -328,6 +344,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				new_parsed_value = value;
 				break;
 			case "number":
+				if (!value) {
+					return;
+				}
 				if (is_float) {
 					new_parsed_value = Number.parseFloat(value);
 					if (Number.isNaN(new_parsed_value)) {
@@ -341,6 +360,9 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				}
 				break;
 			case "boolean":
+				if (!value) {
+					return;
+				}
 				if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
 					new_parsed_value = value.toLowerCase() === "true";
 				} else if (value === "0" || value === "1") {
@@ -348,12 +370,16 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				} else {
 					return;
 				}
+				break;
 		}
-		if (property.changes_parent) {
+		if (property.changes_parent && property.parent !== undefined) {
 			const parents = [property.parent];
 			let idx = 0;
 			while (parents[idx].changes_parent) {
-				parents.push(parents[idx++].parent);
+				const parent = parents[idx++].parent;
+				if (parent) {
+					parents.push(parent);
+				}
 			}
 			const changed_value = this.inspector.get_changed_value(parents, property, new_parsed_value);
 			this.session?.controller.set_object_property(BigInt(property.object_id), parents[idx].label, changed_value);
@@ -362,9 +388,11 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		}
 
 		const item = this.inspector.get_top_item();
-		await this.fill_inspector(item, /*force_refresh*/ true);
+		if (item) {
+			await this.fill_inspector(item, /*force_refresh*/ true);
+		}
 
 		// const res = await debug.activeDebugSession?.customRequest("refreshVariables"); // refresh vscode.debug variables
-		this.session.sendEvent(new InvalidatedEvent(["variables"]));
+		this.session?.sendEvent(new InvalidatedEvent(["variables"]));
 	}
 }
