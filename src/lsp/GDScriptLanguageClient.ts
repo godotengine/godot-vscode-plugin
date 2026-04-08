@@ -14,6 +14,7 @@ import {
 import { globals } from "../extension";
 import { createLogger, get_configuration, get_project_dir } from "../utils";
 import { MessageIO } from "./MessageIO";
+import { LSPMiddleware } from "./LSPMiddleware";
 
 const log = createLogger("lsp.client", { output: "Godot LSP" });
 
@@ -116,6 +117,7 @@ export default class GDScriptLanguageClient extends LanguageClient {
 				{ scheme: "file", language: "gdscript" },
 				{ scheme: "untitled", language: "gdscript" },
 			],
+			middleware: new LSPMiddleware()
 		};
 
 		super("GDScriptLanguageClient", serverOptions, clientOptions);
