@@ -3,6 +3,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import { execSync } from "node:child_process";
+import { get_configuration, get_configuration_with_scope } from "./vscode_utils";
 
 export function get_editor_data_dir(): string {
 	// from: https://stackoverflow.com/a/26227660
@@ -18,13 +19,84 @@ export function get_editor_data_dir(): string {
 let projectDir: string | undefined = undefined;
 let projectFile: string | undefined = undefined;
 
+// Returns the workspace folder that contains the currently opened file, or undefined if no file is opened
+async function get_current_workspace_folder(): Promise<vscode.WorkspaceFolder | undefined> {
+	if (vscode.workspace.workspaceFolders === undefined) {
+		return undefined;
+	}
+	const editor = vscode.window.activeTextEditor;
+	if (editor) {
+		const open_file = editor.document.uri.fsPath;
+		for (const folder of vscode.workspace.workspaceFolders) {
+			if (open_file.startsWith(folder.uri.fsPath)) {
+				return folder;
+			}
+		}
+	}
+	return undefined;
+}
+
+function substitute_variables(file: string, folder: vscode.WorkspaceFolder | undefined): string {
+	if (file.includes("${userHome}")) {
+		file = file.replace("${userHome}", os.homedir());
+	}
+	if (file.includes("${fileWorkspaceFolder}")) {
+		file = file.replace("${fileWorkspaceFolder}", folder.uri.fsPath);
+	}
+	if (file.includes("${workspaceFolder}")) {
+		file = file.replace("${workspaceFolder}", folder.uri.fsPath);
+	}
+	if (file.includes("${workspaceFolderBasename}")) {
+		file = file.replace("${workspaceFolderBasename}", folder.name);
+	}
+	if (!path.isAbsolute(file)) {
+		file = path.join(folder.uri.fsPath, file);
+	}
+	return file;
+}
+
+async function get_override_project_file(): Promise<string | undefined> {
+	if (!get_configuration("workspace.overrideProjectDir")) {
+		return undefined;
+	}
+	if (vscode.workspace.workspaceFolders !== undefined) {
+		const current_folder = await get_current_workspace_folder();
+		if (current_folder) {
+			let file = get_configuration_with_scope("workspace.overrideProjectDir", current_folder);
+			if (file) {
+				if (!file.endsWith("project.godot")) {
+					file = path.join(file, "project.godot");
+				}
+				file = substitute_variables(file, current_folder);
+				if (fs.existsSync(file) && fs.statSync(file).isFile()) {
+					return file;
+				}
+			}
+		}
+		for (const folder of vscode.workspace.workspaceFolders) {
+			let file = get_configuration_with_scope("workspace.overrideProjectDir", folder);
+			if (file) {
+				if (!file.endsWith("project.godot")) {
+					file = path.join(file, "project.godot");
+				}
+				file = substitute_variables(file, folder);
+				if (fs.existsSync(file) && fs.statSync(file).isFile()) {
+					return file;
+				}
+			}
+		}
+	}
+
+	return undefined;
+}
+
 export async function get_project_dir(): Promise<string | undefined> {
 	if (projectDir && projectFile) {
 		return projectDir;
 	}
 
-	let file = "";
-	if (vscode.workspace.workspaceFolders !== undefined) {
+	let file = await get_override_project_file();
+	if (!file && vscode.workspace.workspaceFolders !== undefined) {
 		const files = await vscode.workspace.findFiles("**/project.godot", null);
 
 		if (files.length === 0) {
