@@ -250,7 +250,7 @@
 		},
 		"letter": {
 			"match": "\\b(?:true|false|null)\\b",
-			"name": "constant.language.gdscript"
+            "name": "constant.language.literal.gdscript"
 		},
 		"numbers": {
 			"patterns": [
