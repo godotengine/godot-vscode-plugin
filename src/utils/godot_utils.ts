@@ -2,7 +2,11 @@ import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import * as os from "node:os";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
+import { GodotVersion } from "./godot_version";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
 
 export function get_editor_data_dir(): string {
 	// from: https://stackoverflow.com/a/26227660
@@ -92,6 +96,14 @@ export async function get_project_version(): Promise<string | undefined> {
 
 	projectVersion = godotVersion;
 	return projectVersion;
+}
+
+export function parseGodotVersionOrDefault(versionString: string | undefined, defaultVersion = "4.5.1"): GodotVersion {
+	const v = (versionString ? GodotVersion.parse(versionString) : undefined) ?? GodotVersion.parse(defaultVersion);
+	if (!v) {
+		throw new Error(`Could not parse project version '${versionString}' or defaultVersion '${defaultVersion}'`);
+	}
+	return v;
 }
 
 export function find_project_file(start: string, depth = 20) {
@@ -208,12 +220,13 @@ export type VERIFY_RESULT = {
 	version?: string;
 };
 
-export function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): VERIFY_RESULT {
+export async function verify_godot_version(godotPath: string, expectedVersion: "3" | "4" | string): Promise<VERIFY_RESULT> {
 	let target = clean_godot_path(godotPath);
 
 	let output = "";
 	try {
-		output = execSync(`"${target}" --version`).toString().trim();
+		const { stdout, stderr } = await execAsync(`"${target}" --version`);
+		output = stdout.trim();
 	} catch {
 		if (path.isAbsolute(target)) {
 			return { status: "INVALID_EXE", godotPath: target };
@@ -221,7 +234,8 @@ export function verify_godot_version(godotPath: string, expectedVersion: "3" | "
 		const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || "";
 		target = path.resolve(workspacePath, target);
 		try {
-			output = execSync(`"${target}" --version`).toString().trim();
+			const { stdout, stderr } = await execAsync(`"${target}" --version`);
+			output = stdout.trim();
 		} catch {
 			return { status: "INVALID_EXE", godotPath: target };
 		}

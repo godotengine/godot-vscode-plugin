@@ -10,12 +10,13 @@ import { DebugProtocol } from "@vscode/debugprotocol";
 import { Subject } from "await-notify";
 import * as fs from "node:fs";
 import { createLogger } from "../../utils";
-import { GodotDebugData } from "../debug_runtime";
+import { GodotDebugData, GodotVariable } from "../debug_runtime";
 import { AttachRequestArguments, LaunchRequestArguments } from "../debugger";
 import { InspectorProvider } from "../inspector_provider";
 import { SceneTreeProvider } from "../scene_tree_provider";
 import { ServerController } from "./server_controller";
 import { VariablesManager } from "./variables/variables_manager";
+import { GodotVersion } from "../../utils/godot_version";
 
 const log = createLogger("debugger.session", { output: "Godot Debugger" });
 
@@ -29,7 +30,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 
 	public variables_manager?: VariablesManager; // defined only between DAP debug_enter/debug_exit events
 
-	public constructor(projectVersion: string) {
+	public constructor(projectVersion: GodotVersion) {
 		super();
 
 		this.setDebuggerLinesStartAt1(false);
@@ -276,10 +277,25 @@ export class GodotDebugSession extends LoggingDebugSession {
 			return; // not inside a debug_enter/debug_exit
 
 		try {
-			const parsed_variable = await this.variables_manager.get_vscode_variable_by_name(
-				args.expression,
-				args.frameId || 0,
-			);
+			let parsed_variable: DebugProtocol.Variable;
+
+			if (this.controller.projectVersion.compare(GodotVersion.fromNumbers(4, 6, 0)) >= 0) {
+				// request evaluation from server
+				const decodedVariant = await this.controller.evaluate(args.expression, args.frameId || 0);
+				parsed_variable = await this.variables_manager.parse_variable(
+					{name: args.expression, value: decodedVariant} satisfies GodotVariable,
+					VariablesManager.EVALUATE_SCOPE_GODOT_ID,
+					[],
+					this.variables_manager.godot_id_to_vscode_id_mapper,
+				);
+			} else {
+				// old version fallback: look up in already resolved variables
+				parsed_variable = await this.variables_manager.get_vscode_variable_by_name(
+					args.expression,
+					args.frameId || 0,
+				);
+			}
+
 			response.body = {
 				result: parsed_variable.value,
 				variablesReference: parsed_variable.variablesReference,

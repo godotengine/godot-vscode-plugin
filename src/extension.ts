@@ -20,7 +20,6 @@ import { FormattingProvider } from "./formatter";
 import {
 	get_configuration,
 	find_file,
-	find_project_file,
 	register_command,
 	set_context,
 	get_editor_data_dir,
@@ -93,7 +92,7 @@ async function initial_setup() {
 		return;
 	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
+	const result = await verify_godot_version(get_configuration(settingName), projectVersion[0]);
 	const godotPath = result.godotPath;
 
 	switch (result.status) {
@@ -168,7 +167,7 @@ async function open_workspace_with_editor() {
 	}
 
 	const settingName = `editorPath.godot${projectVersion[0]}`;
-	const result = verify_godot_version(get_configuration(settingName), projectVersion[0]);
+	const result = await verify_godot_version(get_configuration(settingName), projectVersion[0]);
 	const godotPath = result.godotPath;
 
 	switch (result.status) {

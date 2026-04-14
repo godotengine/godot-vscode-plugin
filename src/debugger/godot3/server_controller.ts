@@ -116,7 +116,7 @@ export class ServerController {
 			log.info("Using 'editor_path' variable from launch.json");
 
 			log.info(`Verifying version of '${args.editor_path}'`);
-			result = verify_godot_version(args.editor_path, "3");
+			result = await verify_godot_version(args.editor_path, "3");
 			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
@@ -147,7 +147,7 @@ export class ServerController {
 			godotPath = get_configuration(settingName);
 
 			log.info(`Verifying version of '${godotPath}'`);
-			result = verify_godot_version(godotPath, "3");
+			result = await verify_godot_version(godotPath, "3");
 			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 

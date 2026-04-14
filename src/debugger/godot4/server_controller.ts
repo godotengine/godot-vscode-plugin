@@ -12,6 +12,7 @@ import {
 	get_configuration,
 	get_free_port,
 	get_project_version,
+	parseGodotVersionOrDefault,
 	verify_godot_version,
 } from "../../utils";
 import { prompt_for_godot_executable } from "../../utils/prompts";
@@ -24,13 +25,15 @@ import { DecodedVariant, VariantDecoder } from "./variables/variant_decoder";
 import { VariantEncoder } from "./variables/variant_encoder";
 import { RawObject } from "./variables/variants";
 import { VariablesManager } from "./variables/variables_manager";
+import { GodotRequestResponseManager} from "./variables/godot_request_response_manager";
+import { GodotVersion } from "../../utils/godot_version";
 
 const log = createLogger("debugger.controller", { output: "Godot Debugger" });
 const socketLog = createLogger("debugger.socket");
 //initialize bbcodeParser and set default output color to grey
 const bbcodeParser = new BBCodeToAnsi("\u001b[38;2;211;211;211m");
 
-class Command {
+export class Command {
 	public command = "";
 	public paramCount = -1;
 	public parameters: DecodedVariant[] = [];
@@ -57,10 +60,10 @@ class GodotPartialStackVars {
 
 	public append(name: string, godotScopeIndex: 0 | 1 | 2, type: number, value: any, sub_values?: GodotVariable[]) {
 		const scopeName = ["Locals", "Members", "Globals"][godotScopeIndex];
-		const scope = this[scopeName];
+		const scope: GodotVariable[] = this[scopeName];
 		// const objectId = value instanceof ObjectId ? value : undefined; // won't work, unless the value is re-created through new ObjectId(godot_id)
 		const godot_id = type === 24 ? value?.id : undefined;
-		scope.push({ id: godot_id, name, value, type, sub_values } as GodotVariable);
+		scope.push({ id: godot_id, name, value, type, sub_values } satisfies GodotVariable);
 		this.remaining--;
 	}
 }
@@ -77,17 +80,12 @@ export class ServerController {
 	private steppingOut = false;
 	private didFirstOutput = false;
 	private partialStackVars?: GodotPartialStackVars;
-	private projectVersionMajor: number;
-	private projectVersionMinor: number;
-	private projectVersionPoint: number;
+	public projectVersion: GodotVersion;
 
 	public constructor(public session: GodotDebugSession) {}
 
-	public setProjectVersion(projectVersion: string) {
-		const versionParts = projectVersion.split(".").map(Number);
-		this.projectVersionMajor = versionParts[0] || 0;
-		this.projectVersionMinor = versionParts[1] || 0;
-		this.projectVersionPoint = versionParts[2] || 0;
+	public setProjectVersion(projectVersion: GodotVersion) {
+		this.projectVersion = projectVersion;
 	}
 
 	public break() {
@@ -142,6 +140,34 @@ export class ServerController {
 		this.send_command("get_stack_frame_vars", [stack_frame_id]);
 	}
 
+	private godotRequestResponseManager = new GodotRequestResponseManager();
+
+	public async evaluate(expression: string, frameId: number): Promise<DecodedVariant> {
+		// https://github.com/godotengine/godot/blob/780b49ca3b568e3a44c5b43c9e3e2ef901bf846e/core/debugger/remote_debugger.cpp#L549
+		// String expression_str = data[0];
+		// int frame = data[1];
+		this.send_command("evaluate", [expression, frameId]);
+
+		// https://github.com/godotengine/godot/blob/780b49ca3b568e3a44c5b43c9e3e2ef901bf846e/core/debugger/remote_debugger.cpp#L618
+		// DebuggerMarshalls::ScriptStackVariable stvar;
+		// stvar.name = expression_str;
+		// stvar.value = return_val;
+		// stvar.type = 3;
+		// [Array DebuggerMarshalls::ScriptStackVariable::serialize(int max_size) {](https://github.com/godotengine/godot/blob/780b49ca3b568e3a44c5b43c9e3e2ef901bf846e/core/debugger/debugger_marshalls.cpp#L65)
+		var response = await this.godotRequestResponseManager.get_server_response("evaluation_return", command => {
+			const [expression_str, type, type_hint, value] = command.parameters as [string, number, number, DecodedVariant];
+			// return expression_str == expression ? { handled: true, value: {expression_str, value, type} } : { handled: false };
+			return { handled: expression_str == expression, value: {expression_str, type, type_hint, value, complete: command.complete} };
+		});
+
+		// response.complete is always false. It does not reflect if the evaluation was successful.
+		// if (!response.complete) {
+		// 	throw new Error(`Evaluation '${expression}' returned complete == false`);
+		// }
+		
+		return response.value;
+	}
+
 	public set_object_property(objectId: bigint, label: string, newParsedValue) {
 		this.send_command("scene:set_object_property", [objectId, label, newParsedValue]);
 	}
@@ -159,7 +185,7 @@ export class ServerController {
 			log.info("Using 'editor_path' variable from launch.json");
 
 			log.info(`Verifying version of '${args.editor_path}'`);
-			result = verify_godot_version(args.editor_path, "4");
+			result = await verify_godot_version(args.editor_path, "4");
 			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
@@ -190,7 +216,7 @@ export class ServerController {
 			godotPath = get_configuration(settingName);
 
 			log.info(`Verifying version of '${godotPath}'`);
-			result = verify_godot_version(godotPath, "4");
+			result = await verify_godot_version(godotPath, "4");
 			godotPath = result.godotPath;
 			log.info(`Verification result: ${result.status}, version: "${result.version}"`);
 
@@ -213,7 +239,8 @@ export class ServerController {
 			}
 		}
 
-		this.setProjectVersion(result.version || "");
+		const parsedVersion = parseGodotVersionOrDefault(result.version);
+		this.setProjectVersion(parsedVersion);
 
 		let command = `"${godotPath}" --path "${args.project}"`;
 		const address = args.address.replace("tcp://", "");
@@ -396,7 +423,7 @@ export class ServerController {
 		const command = new Command();
 		let i = 0;
 		command.command = dataset[i++] as string;
-		if (this.projectVersionMinor >= 2) {
+		if (this.projectVersion.compare(GodotVersion.fromNumbers(4, 2, 0)) >= 0) {
 			command.threadId = dataset[i++] as number;
 		}
 		command.parameters = dataset[i++] as DecodedVariant[];
@@ -590,6 +617,10 @@ export class ServerController {
 				}
 				break;
 			}
+			case "evaluation_return": {
+				this.godotRequestResponseManager.resolve("evaluation_return", command, true);
+				break;
+			}
 			case "output": {
 				if (!this.didFirstOutput) {
 					this.didFirstOutput = true;
@@ -770,7 +801,7 @@ export class ServerController {
 
 	private send_command(command: string, parameters?: any[]) {
 		const commandArray: any[] = [command];
-		if (this.projectVersionMinor >= 2) {
+		if (this.projectVersion.compare(GodotVersion.fromNumbers(4, 2, 0)) >= 0) {
 			commandArray.push(this.threadId);
 		}
 		commandArray.push(parameters ?? []);

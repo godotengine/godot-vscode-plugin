@@ -20,7 +20,7 @@ import {
 	window,
 	workspace,
 } from "vscode";
-import { createLogger, get_project_version, register_command, set_context } from "../utils";
+import { createLogger, get_project_version, parseGodotVersionOrDefault, register_command, set_context } from "../utils";
 import { GodotVariable } from "./debug_runtime";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
@@ -114,7 +114,8 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		log.info(`Project version identified as ${projectVersion}`);
 
 		if (projectVersion?.startsWith("4")) {
-			this.session = new Godot4DebugSession(projectVersion);
+			const parsedVersion = parseGodotVersionOrDefault(projectVersion);
+			this.session = new Godot4DebugSession(parsedVersion);
 		} else {
 			this.session = new Godot3DebugSession();
 		}
@@ -313,7 +314,7 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 				stringify_value: () => `<${godot_object.godot_id}>`,
 				sub_values: () => godot_object.sub_values,
 			},
-		} as GodotVariable;
+		} as GodotVariable; // TODO: why not `satisfies GodotVariable`
 	}
 
 	public refresh_scene_tree() {

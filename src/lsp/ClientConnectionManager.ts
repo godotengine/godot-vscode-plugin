@@ -120,7 +120,7 @@ export class ClientConnectionManager {
 		const settingName = `editorPath.godot${projectVersion?.[0] || ""}`;
 		let godotPath = get_configuration(settingName);
 
-		const result = verify_godot_version(godotPath, projectVersion?.[0] || "");
+		const result = await verify_godot_version(godotPath, projectVersion?.[0] || "");
 		godotPath = result.godotPath;
 
 		switch (result.status) {
