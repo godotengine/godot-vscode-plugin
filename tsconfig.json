@@ -17,11 +17,12 @@
 		"allowJs": true,
 		"strictBindCallApply": true,
 		"strictNullChecks": true,
+		"types": ["mocha"],
 	},
 	"exclude": [
 		"node_modules",
 		"out",
 		"tools",
-		"media"
+		"media",
 	]
 }

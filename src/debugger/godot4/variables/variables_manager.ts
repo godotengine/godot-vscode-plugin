@@ -2,8 +2,10 @@ import { DebugProtocol } from "@vscode/debugprotocol";
 import { GodotVariable } from "../../debug_runtime";
 import { ServerController } from "../server_controller";
 import { GodotIdToVscodeIdMapper, GodotIdWithPath } from "./godot_id_to_vscode_id_mapper";
-import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
-import { ObjectId, StringName } from "./variants";
+import { GodotObject, GodotResponsePromise } from "./godot_object_promise";
+import { ObjectId } from "./variants";
+import { get_sub_values } from "../helpers";
+import { DecodedVariant } from "./variant_decoder";
 
 export interface VsCodeScopeIDs {
 	Locals: number;
@@ -14,10 +16,11 @@ export interface VsCodeScopeIDs {
 export class VariablesManager {
 	constructor(public controller: ServerController) {}
 
-	public godot_object_promises: Map<bigint, GodotObjectPromise> = new Map();
+	public godot_object_promises: Map<bigint, GodotResponsePromise<GodotObject>> = new Map();
 	public godot_id_to_vscode_id_mapper = new GodotIdToVscodeIdMapper();
 
-	// variablesFrameId: number;
+	// special ID for scope which stores evaluation results
+	public static readonly EVALUATE_SCOPE_GODOT_ID = -9999n;
 
 	private frame_id_to_scopes_map: Map<number, VsCodeScopeIDs> = new Map();
 
@@ -81,16 +84,16 @@ export class VariablesManager {
 				const local_scopes_godot_id = -requested_stack_frame_id * 3n - 1n;
 				const member_scopes_godot_id = -requested_stack_frame_id * 3n - 2n;
 				const global_scopes_godot_id = -requested_stack_frame_id * 3n - 3n;
-				this.godot_object_promises.set(local_scopes_godot_id, new GodotObjectPromise());
-				this.godot_object_promises.set(member_scopes_godot_id, new GodotObjectPromise());
-				this.godot_object_promises.set(global_scopes_godot_id, new GodotObjectPromise());
+				this.godot_object_promises.set(local_scopes_godot_id, new GodotResponsePromise());
+				this.godot_object_promises.set(member_scopes_godot_id, new GodotResponsePromise());
+				this.godot_object_promises.set(global_scopes_godot_id, new GodotResponsePromise());
 				variable_promise = this.godot_object_promises.get(godot_id);
 				// request stack vars from godot server, which will resolve variable promises 1,2 & 3
 				// see file://../server_controller.ts 'case "stack_frame_vars":'
 				this.controller.request_stack_frame_vars(Number(requested_stack_frame_id));
 			} else {
 				this.godot_id_to_vscode_id_mapper.get_or_create_vscode_id(new GodotIdWithPath(godot_id, []));
-				variable_promise = new GodotObjectPromise();
+				variable_promise = new GodotResponsePromise();
 				this.godot_object_promises.set(godot_id, variable_promise);
 				// request the object from godot server. Once godot server responds, the controller will resolve the variable_promise
 				this.controller.request_inspect_object(godot_id);
@@ -208,7 +211,7 @@ export class VariablesManager {
 		return parsed_variable;
 	}
 
-	private async parse_variable(
+	public async parse_variable(
 		va: GodotVariable,
 		parent_godot_id: bigint,
 		relative_path: string[],
@@ -217,6 +220,7 @@ export class VariablesManager {
 		const value = va.value;
 		let rendered_value = "";
 		let reference = 0;
+		let godotIdWithPath: GodotIdWithPath | undefined;
 
 		if (typeof value === "number") {
 			if (Number.isInteger(value)) {
@@ -243,21 +247,18 @@ export class VariablesManager {
 				};
 				const top_rendered_vals = await Promise.all(value.slice(0, 10).map(v => stringify_if_can(v)));
 				rendered_value = `(${value.length}) [${top_rendered_vals.join(", ")}]`;
-				reference = mapper.get_or_create_vscode_id(
-					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
-				);
+				godotIdWithPath = new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]);
+				reference = mapper.get_or_create_vscode_id(godotIdWithPath);
 			} else if (value instanceof Map) {
 				// biome-ignore lint/complexity/useLiteralKeys: <explanation>
 				rendered_value = value["class_name"] ?? `Dictionary(${value.size})`;
-				reference = mapper.get_or_create_vscode_id(
-					new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]),
-				);
+				godotIdWithPath = new GodotIdWithPath(parent_godot_id, [...relative_path, va.name]);
+				reference = mapper.get_or_create_vscode_id(godotIdWithPath);
 			} else if (typeof value?.get_rendered_value === "function") { // (key instanceof ObjectId), (key instanceof StringName)
 				rendered_value = await value.get_rendered_value(this);
 				if (value instanceof ObjectId) {
-					reference = mapper.get_or_create_vscode_id(
-						new GodotIdWithPath(value.id, []),
-					);
+					godotIdWithPath = new GodotIdWithPath(value.id, []);
+					reference = mapper.get_or_create_vscode_id(godotIdWithPath);
 				}
 			} else {
 				try {
@@ -265,13 +266,14 @@ export class VariablesManager {
 				} catch (e) {
 					rendered_value = `${value}`;
 				}
-				if (parent_godot_id !== undefined) {
-					reference = mapper.get_or_create_vscode_id(
-						new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]),
-					);
-				}
-				// reference = vsode_id ? vsode_id : 0;
+				godotIdWithPath = new GodotIdWithPath(parent_godot_id, [...(relative_path || []), va.name]);
+				reference = mapper.get_or_create_vscode_id(godotIdWithPath);
 			}
+		}
+
+		if (godotIdWithPath?.godot_id === VariablesManager.EVALUATE_SCOPE_GODOT_ID && godotIdWithPath.path.length === 1) {
+			// store the variable in the evaluate scope only if it is a top-level variable
+			this.store_eval_result_in_eval_scope(va.name, value);
 		}
 
 		const variable: DebugProtocol.Variable = {
@@ -286,11 +288,29 @@ export class VariablesManager {
 	public resolve_variable(godot_id: bigint, className: string, sub_values: GodotVariable[]) {
 		const variable_promise = this.godot_object_promises.get(godot_id);
 		if (variable_promise === undefined) {
-			throw new Error(
-				`Received 'inspect_object' for godot_id ${godot_id} but no variable promise to resolve found`,
-			);
+			throw new Error(`Received 'inspect_object' for godot_id ${godot_id} but no variable promise to resolve found`);
 		}
 
-		variable_promise.resolve({ godot_id: godot_id, type: className, sub_values: sub_values } as GodotObject);
+		variable_promise.resolve({ godot_id: godot_id, type: className, sub_values: sub_values } satisfies GodotObject);
+	}
+
+	public async store_eval_result_in_eval_scope(name: string, decodedVariant: DecodedVariant) {
+		// in case if variableReference is not 0 and path is not empty, we need to store the variable for it to be retrieved later
+		const subValues = await get_sub_values(decodedVariant, this);
+		const godotVar: GodotVariable = {
+			name: name,
+			value: undefined, // not used
+			sub_values: subValues
+		};
+
+		let evalScopePromise = this.godot_object_promises.get(VariablesManager.EVALUATE_SCOPE_GODOT_ID);
+		if (!evalScopePromise) {
+			evalScopePromise = new GodotResponsePromise();
+			this.godot_object_promises.set(VariablesManager.EVALUATE_SCOPE_GODOT_ID, evalScopePromise);
+			this.resolve_variable(VariablesManager.EVALUATE_SCOPE_GODOT_ID, "EvalScope", [godotVar]);
+		} else {
+			const evalScopeObject = await evalScopePromise.promise;
+			evalScopeObject.sub_values.push(godotVar);
+		}
 	}
 }

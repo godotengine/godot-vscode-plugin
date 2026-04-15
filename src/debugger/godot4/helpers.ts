@@ -40,7 +40,7 @@ export async function get_sub_values(value: any, variables_manager: VariablesMan
 		if (Array.isArray(value)) {
 			subValues = value.map((val, i) => {
 				const godot_id = val instanceof ObjectId ? val.id : undefined;
-				return { id: godot_id, name: `${i}`, value: val } as GodotVariable;
+				return { id: godot_id, name: `${i}`, value: val } satisfies GodotVariable;
 			});
 		} else if (value instanceof Map) {
 			subValues = [];
@@ -55,11 +55,11 @@ export async function get_sub_values(value: any, variables_manager: VariablesMan
 							: `${key}`;
 				}
 				const godot_id = val instanceof ObjectId ? val.id : undefined;
-				subValues.push({ id: godot_id, name: key_name, value: val } as GodotVariable);
+				subValues.push({ id: godot_id, name: key_name, value: val } satisfies GodotVariable);
 			}
 		} else if (typeof value.sub_values === "function") {
 			subValues = value.sub_values()?.map((sva) => {
-				return { name: sva.name, value: sva.value } as GodotVariable;
+				return { name: sva.name, value: sva.value } satisfies GodotVariable;
 			});
 		}
 	}
