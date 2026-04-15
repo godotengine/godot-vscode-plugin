@@ -154,10 +154,10 @@ export class ServerController {
 		// stvar.value = return_val;
 		// stvar.type = 3;
 		// [Array DebuggerMarshalls::ScriptStackVariable::serialize(int max_size) {](https://github.com/godotengine/godot/blob/780b49ca3b568e3a44c5b43c9e3e2ef901bf846e/core/debugger/debugger_marshalls.cpp#L65)
-		var response = await this.godotRequestResponseManager.get_server_response("evaluation_return", command => {
+		const response = await this.godotRequestResponseManager.get_server_response("evaluation_return", command => {
 			const [expression_str, type, type_hint, value] = command.parameters as [string, number, number, DecodedVariant];
 			// return expression_str == expression ? { handled: true, value: {expression_str, value, type} } : { handled: false };
-			return { handled: expression_str == expression, value: {expression_str, type, type_hint, value, complete: command.complete} };
+			return { handled: expression_str === expression, value: {expression_str, type, type_hint, value, complete: command.complete} };
 		});
 
 		// response.complete is always false. It does not reflect if the evaluation was successful.

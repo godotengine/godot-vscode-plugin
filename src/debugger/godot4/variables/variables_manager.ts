@@ -6,7 +6,6 @@ import { GodotObject, GodotResponsePromise } from "./godot_object_promise";
 import { ObjectId } from "./variants";
 import { get_sub_values } from "../helpers";
 import { DecodedVariant } from "./variant_decoder";
-import assert from "assert";
 
 export interface VsCodeScopeIDs {
 	Locals: number;
@@ -272,8 +271,8 @@ export class VariablesManager {
 			}
 		}
 
-		if (godotIdWithPath?.godot_id === VariablesManager.EVALUATE_SCOPE_GODOT_ID) {
-			assert(godotIdWithPath.path.length === 1, "The eval scope can be only one level deep.");
+		if (godotIdWithPath?.godot_id === VariablesManager.EVALUATE_SCOPE_GODOT_ID && godotIdWithPath.path.length === 1) {
+			// store the variable in the evaluate scope only if it is a top-level variable
 			this.store_eval_result_in_eval_scope(va.name, value);
 		}
 
@@ -292,18 +291,26 @@ export class VariablesManager {
 			throw new Error(`Received 'inspect_object' for godot_id ${godot_id} but no variable promise to resolve found`);
 		}
 
-		variable_promise.resolve({ godot_id: godot_id, type: className, sub_values: sub_values } as GodotObject);
+		variable_promise.resolve({ godot_id: godot_id, type: className, sub_values: sub_values } satisfies GodotObject);
 	}
 
 	public async store_eval_result_in_eval_scope(name: string, decodedVariant: DecodedVariant) {
 		// in case if variableReference is not 0 and path is not empty, we need to store the variable for it to be retrieved later
-		this.godot_object_promises.set(VariablesManager.EVALUATE_SCOPE_GODOT_ID, new GodotResponsePromise());
 		const subValues = await get_sub_values(decodedVariant, this);
 		const godotVar: GodotVariable = {
 			name: name,
 			value: undefined, // not used
 			sub_values: subValues
 		};
-		this.resolve_variable(VariablesManager.EVALUATE_SCOPE_GODOT_ID, "", [godotVar]);
+
+		let evalScopePromise = this.godot_object_promises.get(VariablesManager.EVALUATE_SCOPE_GODOT_ID);
+		if (!evalScopePromise) {
+			evalScopePromise = new GodotResponsePromise();
+			this.godot_object_promises.set(VariablesManager.EVALUATE_SCOPE_GODOT_ID, evalScopePromise);
+			this.resolve_variable(VariablesManager.EVALUATE_SCOPE_GODOT_ID, "EvalScope", [godotVar]);
+		} else {
+			const evalScopeObject = await evalScopePromise.promise;
+			evalScopeObject.sub_values.push(godotVar);
+		}
 	}
 }
