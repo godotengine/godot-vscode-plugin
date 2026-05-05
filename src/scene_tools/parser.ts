@@ -71,8 +71,8 @@ export class SceneParser {
 				type: type || "",
 				uid: uid || "",
 				id: id || "",
-				index: match.index,
-				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
+				index: match.index!,
+				line: document.lineAt(document.positionAt(match.index!)).lineNumber + 1,
 				body: "",
 			};
 			if (lastResource) {
@@ -132,7 +132,7 @@ export class SceneParser {
 			node.relativePath = relativePath;
 			node.parent = parent;
 			node.text = match[0];
-			node.position = match.index;
+			node.position = match.index!;
 			node.resourceUri = Uri.from({
 				scheme: "godot",
 				path: _path,
