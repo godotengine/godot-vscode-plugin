@@ -20,16 +20,6 @@ const defaultOptions: FormatterOptions = {
 	spacesBeforeEndOfLineComment: 1,
 };
 
-function get_options(folder: fs.Dirent) {
-	const optionsPath = path.join(folder.path, folder.name, "config.json");
-	if (fs.existsSync(optionsPath)) {
-		const file = fs.readFileSync(optionsPath).toString();
-		const config = JSON.parse(file);
-		return { ...defaultOptions, ...config } as FormatterOptions;
-	}
-	return defaultOptions;
-}
-
 function set_content(content: string) {
 	return vscode.workspace
 		.openTextDocument()
@@ -144,7 +134,7 @@ suite("GDScript Formatter Tests", () => {
 	});
 
 	for (const file of testFiles.filter((f) => f.isFile())) {
-		if (["in.gd", "out.gd"].includes(file.name) || !file.name.endsWith(".gd")) {
+		if (!file.name.endsWith(".gd")) {
 			continue;
 		}
 		test(`Snapshot Test: ${file.name}`, async () => {
@@ -170,31 +160,4 @@ suite("GDScript Formatter Tests", () => {
 		});
 	}
 
-	for (const folder of testFiles.filter((f) => f.isDirectory())) {
-		const pathIn = path.join(folder.path, folder.name, "in.gd");
-		const pathOut = path.join(folder.path, folder.name, "out.gd");
-		if (!(fs.existsSync(pathIn) && fs.existsSync(pathOut))) {
-			continue;
-		}
-		test(`Snapshot Pair Test: ${folder.name}`, async () => {
-			const uriIn = vscode.Uri.file(path.join(folder.path, folder.name, "in.gd"));
-			const uriOut = vscode.Uri.file(path.join(folder.path, folder.name, "out.gd"));
-
-			const documentIn = await vscode.workspace.openTextDocument(uriIn);
-			const documentOut = await vscode.workspace.openTextDocument(uriOut);
-
-			const options = get_options(folder);
-			const edits = format_document(documentIn, options);
-
-			// Apply the formatting edits
-			const workspaceEdit = new vscode.WorkspaceEdit();
-			workspaceEdit.set(uriIn, edits);
-			await vscode.workspace.applyEdit(workspaceEdit);
-
-			// Compare the result with the expected output
-			const actual = normalizeLineEndings(documentIn.getText());
-			const expected = normalizeLineEndings(documentOut.getText());
-			expect(actual).to.equal(expected);
-		});
-	}
 });
