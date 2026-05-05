@@ -195,6 +195,9 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
+		if (tokens[current - 2]?.value === "=") {
+			return "";
+		}
 		if (nextToken.identifier) return " ";
 		if (current === 1) return "";
 	}
