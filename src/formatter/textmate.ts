@@ -49,14 +49,17 @@ interface Token {
 }
 
 export interface FormatterOptions {
-	maxEmptyLines: 0 | 1 | 2;
+	maxEmptyLines: number;
 	denseFunctionParameters: boolean;
 	spacesBeforeEndOfLineComment: 1 | 2;
 }
 
 function get_formatter_options() {
+	const rawMaxEmptyLines = get_configuration("formatter.maxEmptyLines");
+	const maxEmptyLines = typeof rawMaxEmptyLines === "number" ? Math.max(0, Math.round(rawMaxEmptyLines)) : 2;
+
 	const options: FormatterOptions = {
-		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
+		maxEmptyLines: maxEmptyLines,
 		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
 		spacesBeforeEndOfLineComment: get_configuration("formatter.spacesBeforeEndOfLineComment") === "1" ? 1 : 2,
 	};
