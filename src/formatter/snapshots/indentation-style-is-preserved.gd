@@ -1,3 +1,4 @@
+# --- IN ---
 func test():
   if true:
     pass
