@@ -6,3 +6,4 @@ workspace.code-workspace
 .history
 .godot
 *.tmp
+lode/
