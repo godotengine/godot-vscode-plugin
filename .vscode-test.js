@@ -5,7 +5,7 @@ module.exports = defineConfig(
 		// version: '1.96.4',
 		label: 'unitTests',
 		files: 'out/**/*.test.js',
-		launchArgs: ['--disable-extensions'],
+		launchArgs: ['--disable-extensions', '--ozone-platform=x11'],
 		workspaceFolder: './test_projects/test-dap-project-godot4',
 	}
 );
