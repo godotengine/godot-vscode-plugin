@@ -61,6 +61,9 @@ export class SceneParser {
 
 		let lastResource: SceneResource | undefined = undefined;
 		for (const match of text.matchAll(/\[sub_resource.*/g)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const line = match[0];
 			const type = line.match(/type="([\w]+)"/)?.[1];
 			const resPath = line.match(/path="([\w.:/]+)"/)?.[1];
@@ -71,8 +74,8 @@ export class SceneParser {
 				type: type || "",
 				uid: uid || "",
 				id: id || "",
-				index: match.index!,
-				line: document.lineAt(document.positionAt(match.index!)).lineNumber + 1,
+				index: match.index,
+				line: document.lineAt(document.positionAt(match.index)).lineNumber + 1,
 				body: "",
 			};
 			if (lastResource) {
@@ -91,6 +94,9 @@ export class SceneParser {
 
 		const nodeRegex = /\[node.*/g;
 		for (const match of text.matchAll(nodeRegex)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const line = match[0];
 			const name = line.match(/name="([^.:@/"%]+)"/)?.[1] || "unknown";
 			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";
@@ -132,7 +138,7 @@ export class SceneParser {
 			node.relativePath = relativePath;
 			node.parent = parent;
 			node.text = match[0];
-			node.position = match.index!;
+			node.position = match.index;
 			node.resourceUri = Uri.from({
 				scheme: "godot",
 				path: _path,
