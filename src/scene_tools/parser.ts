@@ -61,6 +61,9 @@ export class SceneParser {
 
 		let lastResource: SceneResource | undefined = undefined;
 		for (const match of text.matchAll(/\[sub_resource.*/g)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const line = match[0];
 			const type = line.match(/type="([\w]+)"/)?.[1];
 			const resPath = line.match(/path="([\w.:/]+)"/)?.[1];
@@ -91,6 +94,9 @@ export class SceneParser {
 
 		const nodeRegex = /\[node.*/g;
 		for (const match of text.matchAll(nodeRegex)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const line = match[0];
 			const name = line.match(/name="([^.:@/"%]+)"/)?.[1] || "unknown";
 			const type = line.match(/type="([\w]+)"/)?.[1] ?? "PackedScene";

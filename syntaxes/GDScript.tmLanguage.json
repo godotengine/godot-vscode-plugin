@@ -21,7 +21,7 @@
 					"match": "\\b(?<!\\.)(class)\\b"
 				},
 				{
-					"match": "(?x)\n  ^\\s*(\n    case | match\n  )(?=\\s*([-+\\w\\d(\\[{'\":#]|$))\\b\n",
+					"match": "(?x)\n  (?:^|:)\\s*(\n    case | match\n  )(?=\\s*([-+\\w\\d(\\[{'\":#]|$))\\b\n",
 					"captures": { "1": { "name": "keyword.control.flow.gdscript" } }
 				}
 			]
@@ -241,8 +241,8 @@
 			"name": "keyword.control.gdscript"
 		},
 		"match_keyword": {
-			"match": "^\n\\s*(match)",
-			"captures": { "1": { "name": "keyword.control.gdscript" } }
+			"match": "(?:^|:)\\s*(match)\\b",
+			"captures": { "1": { "name": "keyword.control.flow.gdscript" } }
 		},
 		"keywords": {
 			"match": "\\b(?:class|class_name|is|onready|tool|static|export|as|enum|assert|breakpoint|sync|remote|master|puppet|slave|remotesync|mastersync|puppetsync|trait|namespace|super|self)\\b",
@@ -624,8 +624,8 @@
 		},
 		"function_call": {
 			"name": "meta.function-call.gdscript",
-			"comment": "Regular function call of the type \"name(args)\"",
-			"begin": "(?=\\b[a-zA-Z_]\\w*\\b\\()",
+			"comment": "Regular function call of the type \"name(args)\" — allows optional whitespace between name and parens",
+			"begin": "(?=\\b[a-zA-Z_]\\w*\\b\\s*\\()",
 			"end": "(\\))",
 			"endCaptures": { "1": { "name": "punctuation.definition.arguments.end.gdscript" } },
 			"patterns": [

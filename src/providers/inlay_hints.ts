@@ -139,6 +139,9 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 				if (token.isCancellationRequested) {
 					break;
 				}
+				if (match.index === undefined) {
+					continue;
+				}
 				// TODO: until godot supports nested document symbols, we need to send
 				// a hover request for each variable declaration that is nested
 				const start = document.positionAt(textStartOffset + match.index + match[0].length - 1);
@@ -169,6 +172,9 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		const scene = this.parser.parse_scene(document);
 
 		for (const match of text.matchAll(/ExtResource\(\s?"?(\w+)\s?"?\)/g)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const id = match[1];
 			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.externalResources.get(id);
@@ -181,6 +187,9 @@ export class GDInlayHintsProvider implements InlayHintsProvider {
 		}
 
 		for (const match of text.matchAll(/SubResource\(\s?"?(\w+)\s?"?\)/g)) {
+			if (match.index === undefined) {
+				continue;
+			}
 			const id = match[1];
 			const end = document.positionAt(textStartOffset + match.index + match[0].length);
 			const resource = scene.subResources.get(id);

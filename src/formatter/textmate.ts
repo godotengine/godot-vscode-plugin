@@ -49,14 +49,17 @@ interface Token {
 }
 
 export interface FormatterOptions {
-	maxEmptyLines: 0 | 1 | 2;
+	maxEmptyLines: number;
 	denseFunctionParameters: boolean;
 	spacesBeforeEndOfLineComment: 1 | 2;
 }
 
 function get_formatter_options() {
+	const rawMaxEmptyLines = get_configuration("formatter.maxEmptyLines");
+	const maxEmptyLines = typeof rawMaxEmptyLines === "number" ? Math.max(0, Math.round(rawMaxEmptyLines)) : 2;
+
 	const options: FormatterOptions = {
-		maxEmptyLines: get_configuration("formatter.maxEmptyLines") === "1" ? 1 : 2,
+		maxEmptyLines: maxEmptyLines,
 		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
 		spacesBeforeEndOfLineComment: get_configuration("formatter.spacesBeforeEndOfLineComment") === "1" ? 1 : 2,
 	};
@@ -92,21 +95,36 @@ function parse_token(token: Token) {
 		token.type = "keyword";
 		return;
 	}
+	// "preload" is highlighted as a keyword but it behaves like a function
+	if (token.value === "preload") {
+		return;
+	}
+	// "self" and "super" are highlighted as keywords but behave like identifiers
+	if (token.value === "self" || token.value === "super") {
+		token.type = "variable";
+		return;
+	}
+	// "signal" is a keyword in declarations but a value reference in expressions
+	// (e.g. yield(signal, "completed")). Trust the grammar scope.
+	if (token.value === "signal") {
+		if (token.scopes.includes("keyword.language.gdscript")) {
+			token.type = "keyword";
+		} else {
+			token.type = "variable";
+		}
+		return;
+	}
+	// "yield" is a keyword but behaves like a function call — no space before (
+	if (token.value === "yield") {
+		token.type = "keyword";
+		return;
+	}
 	if (keywords.includes(token.value)) {
 		token.type = "keyword";
 		return;
 	}
 	if (symbols.includes(token.value)) {
 		token.type = "symbol";
-		return;
-	}
-	// "preload" is highlighted as a keyword but it behaves like a function
-	if (token.value === "preload") {
-		return;
-	}
-	// "self" and "super" are highlighted as keywords but behaves like an identifier
-	if (token.value === "self" || token.value === "super") {
-		token.type = "variable";
 		return;
 	}
 	if (token.scopes.includes("keyword.language.gdscript")) {
@@ -195,6 +213,9 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if ([",", "(", "["].includes(tokens[current - 2]?.value)) {
 			return "";
 		}
+		if (tokens[current - 2]?.value === "=") {
+			return "";
+		}
 		if (nextToken.identifier) return " ";
 		if (current === 1) return "";
 	}
@@ -204,6 +225,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 		if (prev === "export") return "";
 		if (prev === "func") return "";
 		if (prev === "assert") return "";
+		if (prev === "yield") return "";
 	}
 
 	if (prev === ")" && nextToken.type === "keyword") return " ";

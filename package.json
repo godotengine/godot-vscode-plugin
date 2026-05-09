@@ -41,7 +41,8 @@
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
 		"generate-icons": "ts-node tools/generate_icons.ts",
-		"test": "vscode-test"
+		"test": "vscode-test",
+		"test:headless": "WAYLAND_DISPLAY= xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24 -ac +extension GLX' npm test"
 	},
 	"contributes": {
 		"customEditors": [
@@ -290,16 +291,9 @@
 					"description": "Whether to reveal the terminal when launching the Godot Editor"
 				},
 				"godotTools.formatter.maxEmptyLines": {
-					"type": "string",
-					"enum": [
-						"1",
-						"2"
-					],
-					"enumDescriptions": [
-						"1 empty line. A more compact style.",
-						"2 empty lines. Conforms to the official GDScript style guide."
-					],
-					"default": "2",
+					"type": "number",
+					"default": 2,
+					"minimum": 0,
 					"description": "Number of empty lines allowed anywhere in the file"
 				},
 				"godotTools.formatter.denseFunctionParameters": {

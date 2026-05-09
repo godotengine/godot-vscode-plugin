@@ -268,7 +268,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		if (!reference || !reference.sub_values) {
 			variables = [];
 		} else {
-			variables = reference.sub_values.map((va) => {
+			variables = reference.sub_values.map((va): DebugProtocol.Variable | undefined => {
 				const sva = this.all_scopes.find(
 					(sva) => sva && sva.scope_path === va.scope_path && sva.name === va.name,
 				);
@@ -283,7 +283,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 						),
 					);
 				}
-			}).filter(v => v !== undefined);
+			}).filter((v): v is DebugProtocol.Variable => v !== undefined);
 		}
 
 		response.body = {
@@ -466,7 +466,7 @@ export class GodotDebugSession extends LoggingDebugSession {
 		}
 
 		const sanitized_all_scopes = this.all_scopes
-			.filter((x) => x !== undefined)
+			.filter((x): x is NonNullable<typeof x> => x !== undefined)
 			.map((x) => ({
 				sanitized: {
 					name: sanitizeName(x.name),
