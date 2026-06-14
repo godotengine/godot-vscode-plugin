@@ -435,6 +435,16 @@
 				"path": "./syntaxes/GDScript.tmLanguage.json"
 			},
 			{
+				"scopeName": "markdown.gdscript.codeblock",
+				"path": "./syntaxes/GDScriptMarkdown.tmLanguage.json",
+				"injectTo": [
+					"text.html.markdown"
+				],
+				"embeddedLanguages": {
+					"meta.embedded.block.gdscript": "gdscript"
+				}
+			},
+			{
 				"language": "gdresource",
 				"scopeName": "source.gdresource",
 				"path": "./syntaxes/GDResource.tmLanguage.json"

@@ -1,5 +1,9 @@
 # Changelog
 
+### Unreleased
+
+- [Add GDScript syntax highlighting inside Markdown fenced code blocks](https://github.com/godotengine/godot-vscode-plugin/pull/1022)
+
 ### 2.6.1
 
 - [Fix broken LSP connection handshake, which resulted in VS Code constantly trying to reconnect](https://github.com/godotengine/godot-vscode-plugin/pull/968)
