@@ -12,6 +12,7 @@ import {
 	GDDocumentationProvider,
 	GDDefinitionProvider,
 	GDTaskProvider,
+	GDCodeActionProvider,
 } from "./providers";
 import { ClientConnectionManager } from "./lsp";
 import { ScenePreviewProvider } from "./scene_tools";
@@ -47,6 +48,7 @@ interface Extension {
 	semanticTokensProvider?: GDSemanticTokensProvider;
 	completionProvider?: GDCompletionItemProvider;
 	tasksProvider?: GDTaskProvider;
+	codeActionProvider?: GDCodeActionProvider;
 }
 
 export const globals: Extension = {};
@@ -65,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 	globals.formattingProvider = new FormattingProvider(context);
 	globals.docsProvider = new GDDocumentationProvider(context);
 	globals.definitionProvider = new GDDefinitionProvider(context);
+	globals.codeActionProvider = new GDCodeActionProvider(context);
 	// globals.semanticTokensProvider = new GDSemanticTokensProvider(context);
 	// globals.completionProvider = new GDCompletionItemProvider(context);
 	// globals.tasksProvider = new GDTaskProvider(context);
