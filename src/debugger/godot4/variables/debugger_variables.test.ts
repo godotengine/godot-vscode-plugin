@@ -2,14 +2,8 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { DebugProtocol } from "@vscode/debugprotocol";
-import chai, { assert } from "chai";
-import chaiSubset from "chai-subset";
-const chaiAsPromised = import("chai-as-promised");
-// const chaiAsPromised = await import("chai-as-promised"); // TODO: use after migration to ECMAScript modules
-
-chaiAsPromised.then((module) => {
-	chai.use(module.default);
-});
+import { use as chai_use, expect, assert, Assertion, AssertionError } from "chai";
+import chaiAsPromised from "chai-as-promised";
 
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
@@ -17,10 +11,9 @@ import { clean_godot_path } from "../../../utils";
 
 const execFileAsync = promisify(execFile);
 
-chai.use(chaiSubset);
-const { expect } = chai;
+chai_use(chaiAsPromised);
 
-async function sleep(ms) {
+function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -176,10 +169,10 @@ declare global {
 	}
 }
 
-chai.Assertion.addProperty("unique", function () {
+Assertion.addProperty("unique", function () {
 	const actual = this._obj; // The object being tested
 	if (!Array.isArray(actual)) {
-		throw new chai.AssertionError("Expected value to be an array");
+		throw new AssertionError("Expected value to be an array");
 	}
 	const uniqueArray = [...new Set(actual)];
 	this.assert(

@@ -1,17 +1,11 @@
+import { use as chai_use, expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import chai from "chai";
-import { GodotObject, GodotObjectPromise } from "./godot_object_promise";
-// import chaiAsPromised from "chai-as-promised";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const chaiAsPromised = import("chai-as-promised");
-// const chaiAsPromised = await import("chai-as-promised"); // TODO: use after migration to ECMAScript modules
+import { GodotObject, GodotResponsePromise } from "./godot_object_promise";
 
-chaiAsPromised.then((module) => {
-	chai.use(module.default);
-});
-const { expect } = chai;
+chai_use(chaiAsPromised);
 
-suite("GodotObjectPromise", () => {
+suite("GodotResponsePromise", () => {
 	let clock: sinon.SinonFakeTimers;
 
 	setup(() => {
@@ -29,14 +23,14 @@ suite("GodotObjectPromise", () => {
 			sub_values: [],
 		};
 
-		const promise = new GodotObjectPromise();
+		const promise = new GodotResponsePromise();
 		setTimeout(() => promise.resolve(godotObject), 10);
 		clock.tick(10); // Fast-forward time
 		await expect(promise.promise).to.eventually.equal(godotObject);
 	});
 
 	test("rejects with an error when explicitly called", async () => {
-		const promise = new GodotObjectPromise();
+		const promise = new GodotResponsePromise();
 		const error = new Error("Test rejection");
 		setTimeout(() => promise.reject(error), 10);
 		clock.tick(10); // Fast-forward time
@@ -44,9 +38,9 @@ suite("GodotObjectPromise", () => {
 	});
 
 	test("rejects due to timeout", async () => {
-		const promise = new GodotObjectPromise(50);
+		const promise = new GodotResponsePromise(50);
 		clock.tick(50); // Fast-forward time
-		await expect(promise.promise).to.be.rejectedWith("GodotObjectPromise timed out");
+		await expect(promise.promise).to.be.rejectedWith("GodotResponsePromise timed out");
 	});
 
 	test("does not reject if resolved before timeout", async () => {
@@ -56,21 +50,21 @@ suite("GodotObjectPromise", () => {
 			sub_values: [],
 		};
 
-		const promise = new GodotObjectPromise(100);
+		const promise = new GodotResponsePromise(100);
 		setTimeout(() => promise.resolve(godotObject), 10);
 		clock.tick(10); // Fast-forward time
 		await expect(promise.promise).to.eventually.equal(godotObject);
 	});
 
 	test("clears timeout when resolved", async () => {
-		const promise = new GodotObjectPromise(1000);
+		const promise = new GodotResponsePromise(1000);
 		promise.resolve({ godot_id: BigInt(3), type: "ResolvedType", sub_values: [] });
 		clock.tick(1000); // Fast-forward time
 		await expect(promise.promise).to.eventually.be.fulfilled;
 	});
 
 	test("clears timeout when rejected", async () => {
-		const promise = new GodotObjectPromise(1000);
+		const promise = new GodotResponsePromise(1000);
 		promise.reject(new Error("Rejected"));
 		clock.tick(1000); // Fast-forward time
 		await expect(promise.promise).to.be.rejectedWith("Rejected");
