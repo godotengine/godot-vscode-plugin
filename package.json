@@ -929,7 +929,7 @@
 		"vscode-languageclient": "^9.0.1",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.0.0",
-		"ws": "^8.17.1",
+		"ws": "^8.21.0",
 		"ya-bbcode": "^4.0.0"
 	}
 }
