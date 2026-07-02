@@ -35,7 +35,7 @@ jobs:
           echo "C:\fgvm" | Out-File -Encoding ascii -FilePath $env:GITHUB_PATH
 
       - name: Cache Godot installations
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/fgvm/fgvm/installations
           key: fgvm-${{ matrix.os }}-${{ matrix.godot_version }}
