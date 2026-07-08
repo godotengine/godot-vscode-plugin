@@ -16,7 +16,7 @@ import type {
 	GodotCapabilities,
 } from "./documentation_types";
 import { make_html_content } from "./documentation_builder";
-import { createLogger, get_configuration, get_extension_uri, make_docs_uri } from "../utils";
+import { createLogger, get_configuration, get_extension_uri, make_docs_uri, get_project_version } from "../utils";
 import { globals } from "../extension";
 
 const log = createLogger("providers.docs");
@@ -78,7 +78,7 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 		openContext: CustomDocumentOpenContext,
 		token: CancellationToken,
 	): CustomDocument {
-		return { uri: uri, dispose: () => {} };
+		return { uri: uri, dispose: () => { } };
 	}
 
 	public async resolveCustomEditor(
@@ -88,6 +88,27 @@ export class GDDocumentationProvider implements CustomReadonlyEditorProvider {
 	): Promise<void> {
 		const className = document.uri.path.split(".")[0];
 		const target = document.uri.fragment;
+
+		const shouldOpenInExternalBrowser = get_configuration("documentation.openDocumentationInBrowser")
+		if (shouldOpenInExternalBrowser) {
+			let classLower = className.toLowerCase()
+			let classNoSymbols = classLower.replaceAll(/\W/g, "")
+			let privateStringAsNeeded = ""
+			let noUnderscores = target
+			if (target.startsWith("_")) {
+				noUnderscores = noUnderscores.replace("_", "")
+				privateStringAsNeeded = "-private"
+			}
+			noUnderscores = noUnderscores.replaceAll("_", "-")
+			let godotVersion = await get_project_version()
+			await vscode.env.openExternal(
+				vscode.Uri.parse(`https://docs.godotengine.org/en/${godotVersion}/classes/class_${className.toLowerCase()}.html#class-${classNoSymbols}${privateStringAsNeeded}-method-${noUnderscores}`)
+			);
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+			return
+		}
+
 		let symbol: GodotNativeSymbol | undefined = undefined;
 
 		panel.webview.options = {

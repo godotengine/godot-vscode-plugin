@@ -271,6 +271,11 @@
 					"default": true,
 					"description": "Whether to display the minimap for the Godot documentation viewer."
 				},
+				"godotTools.documentation.openDocumentationInBrowser": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to open documentation in an external browser."
+				},
 				"godotTools.editorPath.godot3": {
 					"type": "string",
 					"default": "godot3",
