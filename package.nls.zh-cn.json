@@ -1,0 +1,32 @@
+{
+	"config.title": "Godot 工具",
+
+	"config.documentation.pageScale.description": "应用于 Godot 文档查看器的缩放比例（%）。",
+	"config.documentation.displayMinimap.description": "是否在 Godot 文档查看器中显示小地图。",
+
+	"config.editorPath.godot3.description": "Godot 3 编辑器可执行文件的路径。支持使用 '${env:VAR_NAME}' 形式的环境变量。",
+	"config.editorPath.godot4.description": "Godot 4 编辑器可执行文件的路径。支持使用 '${env:VAR_NAME}' 形式的环境变量。",
+	"config.editor.verbose.description": "启动 Godot 编辑器时是否添加 --verbose 标志",
+	"config.editor.revealTerminal.description": "启动 Godot 编辑器时是否显示终端",
+
+	"config.formatter.maxEmptyLines.description": "文件中任意位置允许的空行数",
+	"config.formatter.denseFunctionParameters.description": "是否移除函数参数列表中多余的空格",
+	"config.formatter.spacesBeforeEndOfLineComment.description": "行尾注释前的空格数量",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "行尾注释前留 1 个空格 # 像这样。",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "行尾注释前留 2 个空格  # 像这样。",
+
+	"config.lsp.serverHost.description": "GDScript 语言服务器的地址",
+	"config.lsp.serverPort.description": "GDScript 语言服务器的端口",
+	"config.lsp.headless.description": "是否以无头子进程方式启动 LSP",
+	"config.lsp.autoReconnect.enabled.description": "插件是否应尝试重新连接 GDScript 语言服务器",
+	"config.lsp.autoReconnect.cooldown.description": "尝试重新连接前等待的毫秒数",
+	"config.lsp.autoReconnect.attempts.description": "客户端尝试重新连接的次数",
+
+	"config.scenePreview.previewRelatedScenes.description": "控制查看脚本文件时场景预览在何处搜索相关场景。",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.anyFolder": "尝试从工作区的任意位置预览相关场景。",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.sameFolder": "尝试从同一文件夹预览相关场景。",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.off": "不尝试预览相关场景。",
+
+	"config.inlayHints.gdscript.description": "是否在 GDScript 文件中启用内联提示（实验性）",
+	"config.inlayHints.gdresource.description": "是否在 GDResource（.tscn、.tres 等）文件中启用内联提示"
+}

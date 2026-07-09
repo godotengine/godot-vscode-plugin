@@ -1,0 +1,32 @@
+{
+	"config.title": "Godot Tools",
+
+	"config.documentation.pageScale.description": "Scale factor (%) to apply to the Godot documentation viewer.",
+	"config.documentation.displayMinimap.description": "Whether to display the minimap for the Godot documentation viewer.",
+
+	"config.editorPath.godot3.description": "Path to the Godot 3 editor executable. Supports environment variables using '${env:VAR_NAME}'.",
+	"config.editorPath.godot4.description": "Path to the Godot 4 editor executable. Supports environment variables using '${env:VAR_NAME}'.",
+	"config.editor.verbose.description": "Whether to launch the Godot Editor with the --verbose flag",
+	"config.editor.revealTerminal.description": "Whether to reveal the terminal when launching the Godot Editor",
+
+	"config.formatter.maxEmptyLines.description": "Number of empty lines allowed anywhere in the file",
+	"config.formatter.denseFunctionParameters.description": "Whether extra space should be removed from function parameter lists",
+	"config.formatter.spacesBeforeEndOfLineComment.description": "Number of spaces before an end-of-line comment",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "1 space before EOL comments # Like this.",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "2 spaces before EOL comments  # Like this.",
+
+	"config.lsp.serverHost.description": "The server host of the GDScript language server",
+	"config.lsp.serverPort.description": "The server port of the GDScript language server",
+	"config.lsp.headless.description": "Whether to launch the LSP as a headless child process",
+	"config.lsp.autoReconnect.enabled.description": "Whether the plugin should attempt to reconnect to the GDScript language server",
+	"config.lsp.autoReconnect.cooldown.description": "The number of milliseconds to wait before attempting to reconnect",
+	"config.lsp.autoReconnect.attempts.description": "How many times the client will attempt to reconnect",
+
+	"config.scenePreview.previewRelatedScenes.description": "Controls where the Scene Preview will search for related scenes when viewing a script file.",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.anyFolder": "Attempt to preview a related scene from anywhere in the workspace.",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.sameFolder": "Attempt to preview a related scene from the same folder.",
+	"config.scenePreview.previewRelatedScenes.enumDescriptions.off": "Do not attempt to preview a related scene.",
+
+	"config.inlayHints.gdscript.description": "Whether to enable inlay hints in GDScript files (experimental)",
+	"config.inlayHints.gdresource.description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+}

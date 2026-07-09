@@ -8,6 +8,7 @@
 !configurations/
 !package.json
 !package.nls.json
+!package.nls.zh-cn.json
 !README.md
 !icon.png
 !CHANGELOG.md
