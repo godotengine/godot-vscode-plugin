@@ -49,7 +49,7 @@
 		"customEditors": [
 			{
 				"viewType": "gddoc",
-				"displayName": "Godot Documentation",
+				"displayName": "%customEditors.gddoc.displayName%",
 				"selector": [
 					{
 						"filenamePattern": "*.gddoc"
@@ -59,193 +59,193 @@
 		],
 		"commands": [
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.openEditor",
-				"title": "Open workspace with Godot editor"
+				"title": "%command.openEditor.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.openEditorSettings",
-				"title": "Open EditorSettings File"
+				"title": "%command.openEditorSettings.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.startLanguageServer",
-				"title": "Start the GDScript Language Server for this workspace"
+				"title": "%command.startLanguageServer.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.stopLanguageServer",
-				"title": "Stop the GDScript Language Server for this workspace"
+				"title": "%command.stopLanguageServer.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.listGodotClasses",
-				"title": "List Godot classes"
+				"title": "%command.listGodotClasses.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.inspectNode",
-				"title": "Inspect Remote Node",
+				"title": "%command.debugger.inspectNode.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/GuiVisibilityVisible.svg",
 					"dark": "resources/godot_icons/dark/GuiVisibilityVisible.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.refreshSceneTree",
-				"title": "Refresh",
+				"title": "%command.debugger.refreshSceneTree.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Reload.svg",
 					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.refreshInspector",
-				"title": "Refresh",
+				"title": "%command.debugger.refreshInspector.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Reload.svg",
 					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.editValue",
-				"title": "Edit value",
+				"title": "%command.debugger.editValue.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Edit.svg",
 					"dark": "resources/godot_icons/dark/Edit.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.debugCurrentFile",
-				"title": "Debug Current File",
+				"title": "%command.debugger.debugCurrentFile.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/PlayScene.svg",
 					"dark": "resources/godot_icons/dark/PlayScene.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.debugPinnedFile",
-				"title": "Debug Pinned File",
+				"title": "%command.debugger.debugPinnedFile.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Play.svg",
 					"dark": "resources/godot_icons/dark/Play.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.pinFile",
-				"title": "Pin Scene File",
+				"title": "%command.debugger.pinFile.title%",
 				"icon": "resources/pin_off.svg"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.unpinFile",
-				"title": "Unpin Scene File",
+				"title": "%command.debugger.unpinFile.title%",
 				"icon": "resources/pin_on.svg"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.debugger.openPinnedFile",
-				"title": "Open the currently pinned scene"
+				"title": "%command.debugger.openPinnedFile.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.refresh",
-				"title": "Refresh Scene Preview",
+				"title": "%command.scenePreview.refresh.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Reload.svg",
 					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.openCurrentScene",
-				"title": "Open the Scene Preview's current scene",
+				"title": "%command.scenePreview.openCurrentScene.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/PackedScene.svg",
 					"dark": "resources/godot_icons/dark/PackedScene.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.openMainScript",
-				"title": "Open the main script of the Scene Preview's current scene",
+				"title": "%command.scenePreview.openMainScript.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Script.svg",
 					"dark": "resources/godot_icons/dark/Script.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.lock",
-				"title": "Lock Scene Preview",
+				"title": "%command.scenePreview.lock.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Unlock.svg",
 					"dark": "resources/godot_icons/dark/Unlock.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.unlock",
-				"title": "Unlock Scene Preview",
+				"title": "%command.scenePreview.unlock.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Lock.svg",
 					"dark": "resources/godot_icons/dark/Lock.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.goToDefinition",
-				"title": "Go to Definition"
+				"title": "%command.scenePreview.goToDefinition.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.openDocumentation",
-				"title": "Open Documentation"
+				"title": "%command.scenePreview.openDocumentation.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.copyNodePath",
-				"title": "Copy Node Path"
+				"title": "%command.scenePreview.copyNodePath.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.copyResourcePath",
-				"title": "Copy Resource Path"
+				"title": "%command.scenePreview.copyResourcePath.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.openScene",
-				"title": "Open Scene",
+				"title": "%command.scenePreview.openScene.title%",
 				"icon": {
 					"light": "resources/InstanceOptions.svg",
 					"dark": "resources/InstanceOptions.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.scenePreview.openScript",
-				"title": "Open Script",
+				"title": "%command.scenePreview.openScript.title%",
 				"icon": {
 					"light": "resources/godot_icons/light/Script.svg",
 					"dark": "resources/godot_icons/dark/Script.svg"
 				}
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.switchSceneScript",
-				"title": "Switch Scene/Script"
+				"title": "%command.switchSceneScript.title%"
 			},
 			{
-				"category": "Godot Tools",
+				"category": "%command.category%",
 				"command": "godotTools.copyResourcePath",
-				"title": "Copy Resource Path"
+				"title": "%command.copyResourcePath.title%"
 			}
 		],
 		"keybindings": [
@@ -257,50 +257,50 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Godot Tools",
+			"title": "%config.title%",
 			"properties": {
 				"godotTools.documentation.pageScale": {
 					"type": "integer",
 					"default": 100,
 					"minimum": 50,
 					"maximum": 200,
-					"description": "Scale factor (%) to apply to the Godot documentation viewer."
+					"description": "%config.documentation.pageScale.description%"
 				},
 				"godotTools.documentation.displayMinimap": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether to display the minimap for the Godot documentation viewer."
+					"description": "%config.documentation.displayMinimap.description%"
 				},
 				"godotTools.editorPath.godot3": {
 					"type": "string",
 					"default": "godot3",
-					"description": "Path to the Godot 3 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "%config.editorPath.godot3.description%"
 				},
 				"godotTools.editorPath.godot4": {
 					"type": "string",
 					"default": "godot",
-					"description": "Path to the Godot 4 editor executable. Supports environment variables using '${env:VAR_NAME}'."
+					"description": "%config.editorPath.godot4.description%"
 				},
 				"godotTools.editor.verbose": {
 					"type": "boolean",
 					"default": false,
-					"description": "Whether to launch the Godot Editor with the --verbose flag"
+					"description": "%config.editor.verbose.description%"
 				},
 				"godotTools.editor.revealTerminal": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether to reveal the terminal when launching the Godot Editor"
+					"description": "%config.editor.revealTerminal.description%"
 				},
 				"godotTools.formatter.maxEmptyLines": {
 					"type": "number",
 					"default": 2,
 					"minimum": 0,
-					"description": "Number of empty lines allowed anywhere in the file"
+					"description": "%config.formatter.maxEmptyLines.description%"
 				},
 				"godotTools.formatter.denseFunctionParameters": {
 					"type": "boolean",
 					"default": false,
-					"description": "Whether extra space should be removed from function parameter lists"
+					"description": "%config.formatter.denseFunctionParameters.description%"
 				},
 				"godotTools.formatter.spacesBeforeEndOfLineComment": {
 					"type": "string",
@@ -309,43 +309,43 @@
 						"2"
 					],
 					"enumDescriptions": [
-						"1 space before EOL comments # Like this.",
-						"2 spaces before EOL comments  # Like this."
+						"%config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1%",
+						"%config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2%"
 					],
 					"default": "1",
-					"description": "Number of spaces before an end-of-line comment"
+					"description": "%config.formatter.spacesBeforeEndOfLineComment.description%"
 				},
 				"godotTools.lsp.serverHost": {
 					"type": "string",
 					"default": "127.0.0.1",
-					"description": "The server host of the GDScript language server"
+					"description": "%config.lsp.serverHost.description%"
 				},
 				"godotTools.lsp.serverPort": {
 					"type": "number",
 					"default": 6008,
 					"minimum": 0,
 					"maximum": 65535,
-					"description": "The server port of the GDScript language server"
+					"description": "%config.lsp.serverPort.description%"
 				},
 				"godotTools.lsp.headless": {
 					"type": "boolean",
 					"default": false,
-					"description": "Whether to launch the LSP as a headless child process"
+					"description": "%config.lsp.headless.description%"
 				},
 				"godotTools.lsp.autoReconnect.enabled": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether the plugin should attempt to reconnect to the GDScript language server"
+					"description": "%config.lsp.autoReconnect.enabled.description%"
 				},
 				"godotTools.lsp.autoReconnect.cooldown": {
 					"type": "number",
 					"default": 3000,
-					"description": "The number of milliseconds to wait before attempting to reconnect"
+					"description": "%config.lsp.autoReconnect.cooldown.description%"
 				},
 				"godotTools.lsp.autoReconnect.attempts": {
 					"type": "number",
 					"default": 10,
-					"description": "How many times the client will attempt to reconnect"
+					"description": "%config.lsp.autoReconnect.attempts.description%"
 				},
 				"godotTools.scenePreview.previewRelatedScenes": {
 					"enum": [
@@ -354,22 +354,22 @@
 						"off"
 					],
 					"enumDescriptions": [
-						"Attempt to preview a related scene from anywhere in the workspace.",
-						"Attempt to preview a related scene from the same folder.",
-						"Do not attempt to preview a related scene."
+						"%config.scenePreview.previewRelatedScenes.enumDescriptions.anyFolder%",
+						"%config.scenePreview.previewRelatedScenes.enumDescriptions.sameFolder%",
+						"%config.scenePreview.previewRelatedScenes.enumDescriptions.off%"
 					],
 					"default": "sameFolder",
-					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
+					"description": "%config.scenePreview.previewRelatedScenes.description%"
 				},
 				"godotTools.inlayHints.gdscript": {
 					"type": "boolean",
 					"default": false,
-					"description": "Whether to enable inlay hints in GDScript files (experimental)"
+					"description": "%config.inlayHints.gdscript.description%"
 				},
 				"godotTools.inlayHints.gdresource": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+					"description": "%config.inlayHints.gdresource.description%"
 				}
 			}
 		},
@@ -463,7 +463,7 @@
 		"debuggers": [
 			{
 				"type": "godot",
-				"label": "GDScript Godot Debug",
+				"label": "%debugger.label%",
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
@@ -471,17 +471,17 @@
 						"properties": {
 							"project": {
 								"type": "string",
-								"description": "Absolute path to a directory with a project.godot file.",
+								"description": "%debugger.launch.project.description%",
 								"default": "${workspaceFolder}"
 							},
 							"address": {
 								"type": "string",
-								"description": "The IP address for the Godot remote debugger to use.",
+								"description": "%debugger.launch.address.description%",
 								"default": "127.0.0.1"
 							},
 							"port": {
 								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
+								"description": "%debugger.launch.port.description%",
 								"default": 6007
 							},
 							"scene": {
@@ -492,73 +492,73 @@
 									"pinned"
 								],
 								"enumDescriptions": [
-									"Launch the 'main_scene' specified in project.godot",
-									"Launch the scene (or related scene) in the current editor",
-									"Launch the pinned scene"
+									"%debugger.launch.scene.enumDescriptions.main%",
+									"%debugger.launch.scene.enumDescriptions.current%",
+									"%debugger.launch.scene.enumDescriptions.pinned%"
 								],
-								"description": "Scene file to run when debugging. Choices are 'main', 'current', 'pinned', or providing a custom path to a scene.",
+								"description": "%debugger.launch.scene.description%",
 								"default": ""
 							},
 							"editor_path": {
 								"type": "string",
-								"description": "Absolute path to the Godot executable to be used for this debug profile.",
+								"description": "%debugger.launch.editor_path.description%",
 								"default": false
 							},
 							"profiling": {
 								"type": "boolean",
-								"description": "Enable profiling in the script debugger.",
+								"description": "%debugger.launch.profiling.description%",
 								"default": false
 							},
 							"single_threaded_scene": {
 								"type": "boolean",
-								"description": "Scene tree runs in single-threaded mode. Sub-thread groups are disabled and run on the main thread. (Godot 4 only)",
+								"description": "%debugger.launch.single_threaded_scene.description%",
 								"default": false
 							},
 							"debug_collisions": {
 								"type": "boolean",
-								"description": "Show collision shapes when running the scene.",
+								"description": "%debugger.launch.debug_collisions.description%",
 								"default": false
 							},
 							"debug_paths": {
 								"type": "boolean",
-								"description": "Show navigation polygons when running the scene. (Godot 4 only)",
+								"description": "%debugger.launch.debug_paths.description%",
 								"default": false
 							},
 							"debug_navigation": {
 								"type": "boolean",
-								"description": "Show navigation polygons when running the scene.",
+								"description": "%debugger.launch.debug_navigation.description%",
 								"default": false
 							},
 							"debug_avoidance": {
 								"type": "boolean",
-								"description": "Show navigation avoidance debug visuals when running the scene. (Godot 4 only)",
+								"description": "%debugger.launch.debug_avoidance.description%",
 								"default": false
 							},
 							"debug_stringnames": {
 								"type": "boolean",
-								"description": "Print all StringName allocations to stdout when the engine quits. (Godot 4 only)",
+								"description": "%debugger.launch.debug_stringnames.description%",
 								"default": false
 							},
 							"frame_delay": {
 								"type": "number",
-								"description": "Simulate high CPU load (delay each frame by <ms> milliseconds)."
+								"description": "%debugger.launch.frame_delay.description%"
 							},
 							"time_scale": {
 								"type": "number",
-								"description": "Force time scale (higher values are faster, 1.0 is normal speed)."
+								"description": "%debugger.launch.time_scale.description%"
 							},
 							"disable_vsync": {
 								"type": "boolean",
-								"description": "Forces disabling of vertical synchronization, even if enabled in the project settings. Does not override driver-level V-Sync enforcement. (Godot 4 only)",
+								"description": "%debugger.launch.disable_vsync.description%",
 								"default": false
 							},
 							"fixed_fps": {
 								"type": "number",
-								"description": "Force a fixed number of frames per second. This setting disables real-time synchronization."
+								"description": "%debugger.launch.fixed_fps.description%"
 							},
 							"additional_options": {
 								"type": "string",
-								"description": "Additional command line arguments.",
+								"description": "%debugger.launch.additional_options.description%",
 								"default": ""
 							}
 						}
@@ -568,12 +568,12 @@
 						"properties": {
 							"address": {
 								"type": "string",
-								"description": "The IP address for the Godot remote debugger to use.",
+								"description": "%debugger.attach.address.description%",
 								"default": "127.0.0.1"
 							},
 							"port": {
 								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
+								"description": "%debugger.attach.port.description%",
 								"default": 6007
 							}
 						}
@@ -581,7 +581,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"name": "GDScript: Launch Project",
+						"name": "%debugger.initialConfigurations.launch.name%",
 						"type": "godot",
 						"request": "launch",
 						"project": "${workspaceFolder}",
@@ -593,8 +593,8 @@
 				],
 				"configurationSnippets": [
 					{
-						"label": "GDScript: Launch Project",
-						"description": "A config to launch the current project.",
+						"label": "%debugger.configurationSnippets.launchProject.label%",
+					"description": "%debugger.configurationSnippets.launchProject.description%",
 						"body": {
 							"name": "GDScript: Launch Project",
 							"type": "godot",
@@ -607,8 +607,8 @@
 						}
 					},
 					{
-						"label": "GDScript: Launch Current File",
-						"description": "A config to launch the currently open scene.",
+						"label": "%debugger.configurationSnippets.launchCurrentFile.label%",
+					"description": "%debugger.configurationSnippets.launchCurrentFile.description%",
 						"body": {
 							"name": "GDScript: Launch Current File",
 							"type": "godot",
@@ -619,8 +619,8 @@
 						}
 					},
 					{
-						"label": "GDScript: Launch Pinned File",
-						"description": "A config to launch the currently pinned scene.",
+						"label": "%debugger.configurationSnippets.launchPinnedFile.label%",
+					"description": "%debugger.configurationSnippets.launchPinnedFile.description%",
 						"body": {
 							"name": "GDScript: Launch Pinned File",
 							"type": "godot",
@@ -642,7 +642,7 @@
 			"activitybar": [
 				{
 					"id": "godotTools",
-					"title": "Godot Tools",
+					"title": "%viewsContainers.godotTools.title%",
 					"icon": "resources/godot_icon.svg"
 				}
 			]
@@ -651,19 +651,19 @@
 			"debug": [
 				{
 					"id": "godotTools.activeSceneTree",
-					"name": "Active Scene Tree",
+					"name": "%views.activeSceneTree.name%",
 					"icon": "resources/godot_icon.svg"
 				},
 				{
 					"id": "godotTools.nodeInspector",
-					"name": "Inspector",
+					"name": "%views.nodeInspector.name%",
 					"icon": "resources/godot_icon.svg"
 				}
 			],
 			"godotTools": [
 				{
 					"id": "godotTools.scenePreview",
-					"name": "Scene Preview",
+					"name": "%views.scenePreview.name%",
 					"icon": "resources/godot_icon.svg"
 				}
 			]
@@ -671,15 +671,15 @@
 		"viewsWelcome": [
 			{
 				"view": "godotTools.activeSceneTree",
-				"contents": "Scene Tree data has not been requested"
+				"contents": "%viewsWelcome.activeSceneTree.contents%"
 			},
 			{
 				"view": "godotTools.nodeInspector",
-				"contents": "Node has not been inspected"
+				"contents": "%viewsWelcome.nodeInspector.contents%"
 			},
 			{
 				"view": "godotTools.scenePreview",
-				"contents": "Open a Scene to see a preview of its structure"
+				"contents": "%viewsWelcome.scenePreview.contents%"
 			}
 		],
 		"menus": {
