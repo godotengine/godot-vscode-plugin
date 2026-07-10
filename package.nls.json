@@ -12,8 +12,8 @@
 	"config.formatter.maxEmptyLines.description": "Number of empty lines allowed anywhere in the file",
 	"config.formatter.denseFunctionParameters.description": "Whether extra space should be removed from function parameter lists",
 	"config.formatter.spacesBeforeEndOfLineComment.description": "Number of spaces before an end-of-line comment",
-	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "1 space before EOL comments # Like this.",
-	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "2 spaces before EOL comments  # Like this.",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "1 space before EOL comments\u00A0# Like this.",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "2 spaces before EOL comments\u00A0\u00A0# Like this.",
 
 	"config.lsp.serverHost.description": "The server host of the GDScript language server",
 	"config.lsp.serverPort.description": "The server port of the GDScript language server",
