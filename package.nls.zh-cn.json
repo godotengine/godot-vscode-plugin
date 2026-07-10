@@ -12,8 +12,8 @@
 	"config.formatter.maxEmptyLines.description": "文件中任意位置允许的空行数",
 	"config.formatter.denseFunctionParameters.description": "是否移除函数参数列表中多余的空格",
 	"config.formatter.spacesBeforeEndOfLineComment.description": "行尾注释前的空格数量",
-	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "行尾注释前留 1 个空格 # 像这样。",
-	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "行尾注释前留 2 个空格  # 像这样。",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.1": "行尾注释前留 1 个空格\u00A0# 像这样。",
+	"config.formatter.spacesBeforeEndOfLineComment.enumDescriptions.2": "行尾注释前留 2 个空格\u00A0\u00A0# 像这样。",
 
 	"config.lsp.serverHost.description": "GDScript 语言服务器的地址",
 	"config.lsp.serverPort.description": "GDScript 语言服务器的端口",
