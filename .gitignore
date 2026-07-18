@@ -8,3 +8,4 @@ workspace.code-workspace
 *.tmp
 lode/
 test_projects/*/.vscode/settings.json
+.idea
