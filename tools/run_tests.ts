@@ -10,7 +10,8 @@
  *   ts-node tools/run_tests.ts 4.7 "typed dict"             # Only matching tests
  *   ts-node tools/run_tests.ts 3.6.2 --godot3               # Test against Godot 3.6.2
  *
- * Resolves the Godot binary from fgvm's installation directory,
+ * Resolves the Godot binary through fgvm's `which` command, which honors
+ * FGVM_HOME as fgvm's root (or ~/fgvm when FGVM_HOME is unset),
  * writes a .vscode/settings.json into the test project with the
  * correct editorPath, then runs the existing vscode-test setup.
  */
