@@ -521,62 +521,73 @@ export function format_document(
 			}
 
 			// Detect control flow colon and trigger forced line break
-            if (options.enforceNewlineAfterControlFlow && i < tokens.length - 1) {
-                if (tokens[i].value === ":" && bracketDepth === 0) {
+			if (options.enforceNewlineAfterControlFlow && i < tokens.length - 1) {
+				if (tokens[i].value === ":" && bracketDepth === 0) {
+					// If the current colon is inside a function parameter scope,
+					// skip the newline logic directly.
+					if (tokens[i].param) {
+						continue;
+					}
 
-                    // Search forward for var/const
-                    let hasVarOrConst = false;
-                    for (let j = i - 1; j >= 0; j--) {
-                        if (tokens[j].value === "var" || tokens[j].value === "const") {
-                            hasVarOrConst = true;
-                            break;
-                        }
-                    }
+					// Search forward for var/const
+					let hasVarOrConst = false;
+					for (let j = i - 1; j >= 0; j--) {
+						if (tokens[j].value === "var" || tokens[j].value === "const") {
+							hasVarOrConst = true;
+							break;
+						}
+					}
 
-                    // Check what's after the colon.
-                    let isTypeAnnotation = false;
-                    if (i + 1 < tokens.length) {
-                        const nextToken = tokens[i + 1];
-                        if (nextToken.identifier || nextToken.value === "=") {
-                            isTypeAnnotation = true;
-                        }
-                    }
+					// Check what's after the colon.
+					const hasFollowingToken = i + 1 < tokens.length;
 
-                    if (hasVarOrConst) {
-                        if (isTypeAnnotation) {
-                            // 'var x: int' 或 'var x: = 1' ( Variable definition)
-                            // => No newline
-                        } else {
-                            // 'var y:' ( Match mode variables)
-                            // => Newline
-                            forceNewLine = true;
-                        }
-                    } else {
-                        let hasControlFlow = false;
-                        for (let j = 0; j <= i; j++) {
-                            if (blockKeywords.includes(tokens[j].value)) {
-                                hasControlFlow = true;
-                                break;
-                            }
-                        }
+					if (hasVarOrConst) {
+						//! Case A: Found it, var/const
+						if (hasFollowingToken) {
+							// 'var x: int' 或 'var x: = 1' ( Variable definition)
+							// => No newline
+						} else {
+							// 'var y:' ( Match mode variables)
+							// => Newline
+							forceNewLine = true;
+						}
+					} else {
+						//! Case B: No var/const
+						let hasControlFlow = false;
+						for (let j = 0; j <= i; j++) {
+							if (blockKeywords.includes(tokens[j].value)) {
+								hasControlFlow = true;
+								break;
+							}
+						}
 
-                        if (hasControlFlow) {
-                            // 'if x:', 'match x:', 'func():'
-                            // => Control flow, newline
-                            forceNewLine = true;
-                        } else if (isTypeAnnotation) {
-                            // Function parameter: 'param: Type'
-                            // => Type annotations, no newline
-                        } else if (options.enforceNewlineAfterMatchBranch) {
-                            const isIndented = leadingWhitespace.length > 0;
-                            if (isIndented) {
-                                forceNewLine = true;
-                            }
-                        }
-                    }
-                }
-            }
-
+						if (hasControlFlow) {
+							// 'if x:', 'match x:', 'func():' (Control flow)
+							// => newline
+							forceNewLine = true;
+						} else if (hasFollowingToken) {
+							//! Case C: There are subsequent tokens, but no control flow keywords.
+							// This might be a match branch pattern
+							// (e.g., `StatOverType.EQUAL: str_over_type = "="`)
+							//  If it's indented, force a line break.
+							// Note: Colons in dictionary {key: value}
+							// are protected by bracketDepth and won't enter this branch.
+							const isIndented = leadingWhitespace.length > 0;
+							if (isIndented) {
+								forceNewLine = true;
+							}
+						} else {
+							//! Case D: No follow-up tokens, no control flow keywords either.
+							if (options.enforceNewlineAfterMatchBranch) {
+								const isIndented = leadingWhitespace.length > 0;
+								if (isIndented) {
+									forceNewLine = true;
+								}
+							}
+						}
+					}
+				}
+			}
 
 			if (tokens[i].type !== "comment") {
 				lastToken = tokens[i].value;
