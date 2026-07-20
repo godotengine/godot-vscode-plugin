@@ -4,27 +4,36 @@ import * as fs from "node:fs";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
 import { keywords, symbols } from "./symbols";
-import { get_configuration, get_extension_uri, createLogger, is_debug_mode } from "../utils";
+import {
+	get_configuration,
+	get_extension_uri,
+	createLogger,
+	is_debug_mode,
+} from "../utils";
 import { readFile } from "node:fs/promises";
 
 const log = createLogger("formatter.tm");
 
-const grammarPath = get_extension_uri("syntaxes/GDScript.tmLanguage.json").fsPath;
+const grammarPath = get_extension_uri(
+	"syntaxes/GDScript.tmLanguage.json",
+).fsPath;
 const wasmPath = get_extension_uri("resources/onig.wasm").fsPath;
 const wasmBin = fs.readFileSync(wasmPath).buffer;
 
 // Create a registry that can create a grammar from a scope name.
 const registry = new vsctm.Registry({
-	onigLib: oniguruma.loadWASM(wasmBin as unknown as oniguruma.IOptions).then(() => {
-		return {
-			createOnigScanner(patterns) {
-				return new oniguruma.OnigScanner(patterns);
-			},
-			createOnigString(s) {
-				return new oniguruma.OnigString(s);
-			},
-		};
-	}),
+	onigLib: oniguruma
+		.loadWASM(wasmBin as unknown as oniguruma.IOptions)
+		.then(() => {
+			return {
+				createOnigScanner(patterns) {
+					return new oniguruma.OnigScanner(patterns);
+				},
+				createOnigString(s) {
+					return new oniguruma.OnigString(s);
+				},
+			};
+		}),
 	loadGrammar: async (scopeName) => {
 		if (scopeName === "source.gdscript") {
 			const data = await readFile(grammarPath);
@@ -53,16 +62,36 @@ export interface FormatterOptions {
 	maxEmptyLines: number;
 	denseFunctionParameters: boolean;
 	spacesBeforeEndOfLineComment: 1 | 2;
+	indentSize: number;
+	insertSpaces: boolean;
+	trimEmptyLines: boolean;
+	enforceNewlineAfterControlFlow: boolean;
+	enforceNewlineAfterMatchBranch: boolean;
 }
 
 function get_formatter_options() {
 	const rawMaxEmptyLines = get_configuration("formatter.maxEmptyLines");
-	const maxEmptyLines = typeof rawMaxEmptyLines === "number" ? Math.max(0, Math.round(rawMaxEmptyLines)) : 2;
+	const maxEmptyLines =
+		typeof rawMaxEmptyLines === "number"
+			? Math.max(0, Math.round(rawMaxEmptyLines))
+			: 2;
 
 	const options: FormatterOptions = {
 		maxEmptyLines: maxEmptyLines,
-		denseFunctionParameters: get_configuration("formatter.denseFunctionParameters"),
-		spacesBeforeEndOfLineComment: get_configuration("formatter.spacesBeforeEndOfLineComment") === "1" ? 1 : 2,
+		denseFunctionParameters: get_configuration(
+			"formatter.denseFunctionParameters",
+		),
+		spacesBeforeEndOfLineComment:
+			get_configuration("formatter.spacesBeforeEndOfLineComment") === "1"
+				? 1
+				: 2,
+		indentSize: get_configuration("formatter.indentSize") ?? 4,
+		insertSpaces: get_configuration("formatter.insertSpaces") ?? false,
+		trimEmptyLines: get_configuration("formatter.trimEmptyLines") ?? true,
+		enforceNewlineAfterControlFlow:
+			get_configuration("formatter.enforceNewlineAfterControlFlow") ?? true,
+		enforceNewlineAfterMatchBranch:
+			get_configuration("formatter.enforceNewlineAfterMatchBranch") ?? false,
 	};
 
 	return options;
@@ -132,7 +161,10 @@ function parse_token(token: Token) {
 		token.type = "keyword";
 		return;
 	}
-	if (token.scopes.includes("constant.language.gdscript") || token.scopes.includes("constant.language.literal.gdscript")) {
+	if (
+		token.scopes.includes("constant.language.gdscript") ||
+		token.scopes.includes("constant.language.literal.gdscript")
+	) {
 		token.type = "constant";
 		return;
 	}
@@ -156,8 +188,10 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 
 	if (!prev) return "";
 
-	if (next === "##") return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
-	if (next === "#") return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
+	if (next === "##")
+		return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
+	if (next === "#")
+		return options.spacesBeforeEndOfLineComment === 2 ? "  " : " ";
 	if (prevToken.skip && nextToken.skip) return "";
 
 	if (prev === "(") return "";
@@ -167,7 +201,7 @@ function between(tokens: Token[], current: number, options: FormatterOptions) {
 	}
 	if (next === ".") return "";
 
-	if (nextToken.param && !nextToken.inLambdaBody && !(prevToken?.inLambdaBody)) {
+	if (nextToken.param && !nextToken.inLambdaBody && !prevToken?.inLambdaBody) {
 		if (options.denseFunctionParameters) {
 			if (prev === "-" || prev === "+") {
 				if (tokens[current - 2]?.value === "=") return "";
@@ -270,28 +304,64 @@ function is_comment(line: TextLine): boolean {
 
 function is_merge_conflict_marker(line: TextLine): boolean {
 	const trimmed = line.text.trimStart();
-	return trimmed.startsWith("<<<<<<<") || trimmed.startsWith("=======") || trimmed.startsWith(">>>>>>>");
+	return (
+		trimmed.startsWith("<<<<<<<") ||
+		trimmed.startsWith("=======") ||
+		trimmed.startsWith(">>>>>>>")
+	);
 }
 
-export function format_document(document: TextDocument, _options?: FormatterOptions): TextEdit[] {
+export function format_document(
+	document: TextDocument,
+	_options?: FormatterOptions,
+): TextEdit[] {
 	// quit early if grammar is not loaded
 	if (!grammar) {
 		return [];
 	}
+
 	const edits: TextEdit[] = [];
 
 	const options = _options ?? get_formatter_options();
 
+	const blockKeywords = [
+		"if",
+		"elif",
+		"else",
+		"for",
+		"while",
+		"match",
+		"when",
+		"func",
+	];
+
 	let lastToken = "";
+	let indentLevel = 0;
 	let lineTokens: vsctm.ITokenizeLineResult | undefined = undefined;
 	let onlyEmptyLinesSoFar = true;
 	let emptyLineCount = 0;
 	let inLambdaBody = false;
+
+	// Utility function: Generate indentation string for specified level
+	const make_indent = (level: number): string => {
+		if (options.insertSpaces) {
+			return " ".repeat(level * options.indentSize);
+		} else {
+			return "\t".repeat(level);
+		}
+	};
+
 	for (let lineNum = 0; lineNum < document.lineCount; lineNum++) {
 		const line = document.lineAt(lineNum);
 
 		// skip empty lines
 		if (line.isEmptyOrWhitespace) {
+			// If there are whitespace characters (like spaces or tabs) within the line
+			// and the configuration is set to clean, then clear the content.
+			if (line.text.length > 0 && options.trimEmptyLines) {
+				edits.push(TextEdit.replace(line.range, ""));
+			}
+
 			// delete empty lines at the beginning of the file
 			if (onlyEmptyLinesSoFar) {
 				edits.push(TextEdit.delete(line.rangeIncludingLineBreak));
@@ -301,12 +371,19 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 
 			// delete empty lines at the end of the file
 			if (lineNum === document.lineCount - 1) {
-				for (let i = lineNum - emptyLineCount + 1; i < document.lineCount; i++) {
-					edits.push(TextEdit.delete(document.lineAt(i).rangeIncludingLineBreak));
+				for (
+					let i = lineNum - emptyLineCount + 1;
+					i < document.lineCount;
+					i++
+				) {
+					edits.push(
+						TextEdit.delete(document.lineAt(i).rangeIncludingLineBreak),
+					);
 				}
 			}
 			continue;
 		}
+
 		onlyEmptyLinesSoFar = false;
 
 		// delete consecutive empty lines
@@ -316,7 +393,9 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 				maxEmptyLines = 0;
 			}
 			for (let i = emptyLineCount - maxEmptyLines; i > 0; i--) {
-				edits.push(TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak));
+				edits.push(
+					TextEdit.delete(document.lineAt(lineNum - i).rangeIncludingLineBreak),
+				);
 			}
 			emptyLineCount = 0;
 		}
@@ -332,11 +411,34 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 		}
 
 		let nextLine = "";
-		lineTokens = grammar.tokenizeLine(line.text, lineTokens?.ruleStack ?? vsctm.INITIAL);
+		lineTokens = grammar.tokenizeLine(
+			line.text,
+			lineTokens?.ruleStack ?? vsctm.INITIAL,
+		);
 
-		// TODO: detect whitespace type and automatically convert
-		const leadingWhitespace = line.text.slice(0, line.firstNonWhitespaceCharacterIndex);
-		nextLine += leadingWhitespace;
+		// detect whitespace type and automatically convert
+		const leadingWhitespace = line.text.slice(
+			0,
+			line.firstNonWhitespaceCharacterIndex,
+		);
+
+		// Count tabs and spaces separately, then calculate the actual logical indentation level.
+		let tabs = 0;
+		let spaces = 0;
+		for (const ch of leadingWhitespace) {
+			if (ch === "\t") {
+				tabs++;
+			} else if (ch === " ") {
+				spaces++;
+			}
+		}
+		indentLevel = tabs + Math.floor(spaces / options.indentSize);
+
+		if (indentLevel < 0) indentLevel = 0;
+
+		// Apply the calculated indentation
+		nextLine += make_indent(indentLevel);
+
 		const first = lineTokens.tokens[0];
 		if (line.text.slice(first.startIndex, first.endIndex).trim() === "") {
 			lineTokens.tokens.shift();
@@ -350,6 +452,7 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 				value: line.text.slice(t.startIndex, t.endIndex).trim(),
 			};
 			parse_token(token);
+
 			// skip whitespace tokens
 			if (!token.string && token.value.trim() === "") {
 				continue;
@@ -381,10 +484,19 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 				tokens[i].inLambdaBody = true;
 			}
 		}
+
+		let bracketDepth = 0;
+		let forceNewLine = false;
+
 		for (let i = 0; i < tokens.length; i++) {
 			if (is_debug_mode()) log.debug(i, tokens[i].value, tokens[i]);
 
-			if (i === 0 && tokens[i].string) {
+			if (forceNewLine) {
+				indentLevel++;
+				nextLine += `\n${make_indent(indentLevel)}`;
+				nextLine += tokens[i].value.trim();
+				forceNewLine = false;
+			} else if (i === 0 && tokens[i].string) {
 				// leading whitespace is already accounted for
 				nextLine += tokens[i].original.trimStart();
 			} else if (i > 0 && tokens[i - 1].string && tokens[i].string) {
@@ -392,6 +504,80 @@ export function format_document(document: TextDocument, _options?: FormatterOpti
 			} else {
 				nextLine += between(tokens, i, options) + tokens[i].value.trim();
 			}
+
+			// Track parenthesis depth, skip dictionaries `{"a": 1}` and type annotations `func(a: int)`
+			if (
+				tokens[i].value === "(" ||
+				tokens[i].value === "[" ||
+				tokens[i].value === "{"
+			) {
+				bracketDepth++;
+			} else if (
+				tokens[i].value === ")" ||
+				tokens[i].value === "]" ||
+				tokens[i].value === "}"
+			) {
+				bracketDepth--;
+			}
+
+			// Detect control flow colon and trigger forced line break
+            if (options.enforceNewlineAfterControlFlow && i < tokens.length - 1) {
+                if (tokens[i].value === ":" && bracketDepth === 0) {
+
+                    // Search forward for var/const
+                    let hasVarOrConst = false;
+                    for (let j = i - 1; j >= 0; j--) {
+                        if (tokens[j].value === "var" || tokens[j].value === "const") {
+                            hasVarOrConst = true;
+                            break;
+                        }
+                    }
+
+                    // Check what's after the colon.
+                    let isTypeAnnotation = false;
+                    if (i + 1 < tokens.length) {
+                        const nextToken = tokens[i + 1];
+                        if (nextToken.identifier || nextToken.value === "=") {
+                            isTypeAnnotation = true;
+                        }
+                    }
+
+                    if (hasVarOrConst) {
+                        if (isTypeAnnotation) {
+                            // 'var x: int' 或 'var x: = 1' ( Variable definition)
+                            // => No newline
+                        } else {
+                            // 'var y:' ( Match mode variables)
+                            // => Newline
+                            forceNewLine = true;
+                        }
+                    } else {
+                        let hasControlFlow = false;
+                        for (let j = 0; j <= i; j++) {
+                            if (blockKeywords.includes(tokens[j].value)) {
+                                hasControlFlow = true;
+                                break;
+                            }
+                        }
+
+                        if (hasControlFlow) {
+                            // 'if x:', 'match x:', 'func():'
+                            // => Control flow, newline
+                            forceNewLine = true;
+                        } else if (isTypeAnnotation) {
+                            // Function parameter: 'param: Type'
+                            // => Type annotations, no newline
+                        } else if (options.enforceNewlineAfterMatchBranch) {
+                            const isIndented = leadingWhitespace.length > 0;
+                            if (isIndented) {
+                                forceNewLine = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+
 			if (tokens[i].type !== "comment") {
 				lastToken = tokens[i].value;
 			}

@@ -5,6 +5,7 @@ import * as vscode from "vscode";
 import { format_document, type FormatterOptions } from "./textmate";
 
 import { expect } from "chai";
+import { suite, test, teardown } from "mocha";
 
 const dots = ["..", "..", ".."];
 const basePath = path.join(__filename, ...dots);
@@ -18,6 +19,11 @@ const defaultOptions: FormatterOptions = {
 	maxEmptyLines: 2,
 	denseFunctionParameters: false,
 	spacesBeforeEndOfLineComment: 1,
+    indentSize: 4,
+    insertSpaces: false,
+    trimEmptyLines: true,
+	enforceNewlineAfterControlFlow: true,
+	enforceNewlineAfterMatchBranch: true,
 };
 
 function set_content(content: string) {
@@ -52,7 +58,11 @@ class TestLines {
 	out: string[] = [];
 
 	parse(_config) {
-		const config = { ...defaultOptions, ..._config, ...build_config(this.config) };
+		const config = {
+			...defaultOptions,
+			..._config,
+			...build_config(this.config),
+		};
 
 		const test: Test = {
 			in: this.in.join("\n"),
@@ -127,7 +137,10 @@ function parse_test_file(content: string): Test[] {
 }
 
 suite("GDScript Formatter Tests", () => {
-	const testFiles = fs.readdirSync(snapshotsFolderPath, { withFileTypes: true, recursive: true });
+	const testFiles = fs.readdirSync(snapshotsFolderPath, {
+		withFileTypes: true,
+		recursive: true,
+	});
 
 	teardown(async () => {
 		await vscode.commands.executeCommand("workbench.action.closeAllEditors");
@@ -159,5 +172,4 @@ suite("GDScript Formatter Tests", () => {
 			}
 		});
 	}
-
 });

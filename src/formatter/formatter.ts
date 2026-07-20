@@ -4,7 +4,9 @@ import { createLogger } from "../utils";
 
 const log = createLogger("formatter");
 
-export class FormattingProvider implements vscode.DocumentFormattingEditProvider {
+export class FormattingProvider
+	implements vscode.DocumentFormattingEditProvider
+{
 	constructor(private context: vscode.ExtensionContext) {
 		const selector = { language: "gdscript", scheme: "file" };
 
