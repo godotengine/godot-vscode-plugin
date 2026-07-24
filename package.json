@@ -903,7 +903,7 @@
 		"@typescript-eslint/parser": "^5.57.1",
 		"@vscode/test-cli": "^0.0.10",
 		"@vscode/test-electron": "^2.3.8",
-		"@vscode/vsce": "^2.29.0",
+		"@vscode/vsce": "^3.9.2",
 		"chai": "^4.5.0",
 		"chai-as-promised": "^8.0.1",
 		"chai-subset": "^1.6.0",
