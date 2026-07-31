@@ -60,6 +60,14 @@ export function subProcess(owner: string, command: string, options?: SpawnOption
 
 	children[owner] = children[owner] || [];
 	children[owner].push(childProcess);
+	const remove = () => {
+		const index = children[owner]?.indexOf(childProcess) ?? -1;
+		if (index >= 0) {
+			children[owner].splice(index, 1);
+		}
+	};
+	childProcess.once("exit", remove);
+	childProcess.once("error", remove);
 
 	return childProcess;
 }

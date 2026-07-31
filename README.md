@@ -110,6 +110,10 @@ You can use the following settings to configure Godot Tools:
 
 The path to the Godot editor executable. _Under Mac OS, this is the executable inside of Godot.app._
 
+- `godotTools.editor.reuseTerminal`
+
+Reuse the existing Godot Editor terminal when relaunching the editor, preserving its location and layout.
+
 - `godotTools.lsp.headless`
 
 When using Godot >3.6 or >4.2, Headless LSP mode is available. In Headless mode, the extension will attempt to launch a windowless instance of the Godot editor to use as its Language Server.

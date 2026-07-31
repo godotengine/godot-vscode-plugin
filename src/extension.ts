@@ -54,6 +54,9 @@ interface Extension {
 
 export const globals: Extension = {};
 
+let godotEditorTerminal: vscode.Terminal | undefined;
+let godotEditorPty: GodotEditorTerminal | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
 	attemptSettingsUpdate(context);
 
@@ -192,15 +195,29 @@ async function open_workspace_with_editor() {
 			}
 			const existingTerminal = vscode.window.terminals.find((t) => t.name === "Godot Editor");
 			if (existingTerminal) {
+				if (
+					get_configuration("editor.reuseTerminal") &&
+					existingTerminal === godotEditorTerminal &&
+					godotEditorPty
+				) {
+					godotEditorPty.restart(command);
+					if (get_configuration("editor.revealTerminal")) {
+						existingTerminal.show();
+					}
+					break;
+				}
 				existingTerminal.dispose();
 			}
+			const pty = new GodotEditorTerminal(command);
 			const options: vscode.ExtensionTerminalOptions = {
 				name: "Godot Editor",
 				iconPath: get_extension_uri("resources/godot_icon.svg"),
-				pty: new GodotEditorTerminal(command),
+				pty,
 				isTransient: true,
 			};
 			const terminal = vscode.window.createTerminal(options);
+			godotEditorTerminal = terminal;
+			godotEditorPty = pty;
 			if (get_configuration("editor.revealTerminal")) {
 				terminal.show();
 			}
@@ -297,6 +314,12 @@ class GodotEditorTerminal implements vscode.Pseudoterminal {
 		proc.on("close", (code) => {
 			this.writeEmitter.fire(`Godot Editor stopped with exit code: ${code}\r\n`);
 		});
+	}
+
+	restart(command: string): void {
+		this.command = command;
+		killSubProcesses("GodotEditor");
+		this.open(undefined);
 	}
 
 	close(): void {

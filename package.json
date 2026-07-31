@@ -291,6 +291,11 @@
 					"default": true,
 					"description": "Whether to reveal the terminal when launching the Godot Editor"
 				},
+				"godotTools.editor.reuseTerminal": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to reuse the existing Godot Editor terminal when relaunching the editor"
+				},
 				"godotTools.formatter.maxEmptyLines": {
 					"type": "number",
 					"default": 2,
