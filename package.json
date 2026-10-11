@@ -43,7 +43,11 @@
 		"generate-icons": "ts-node tools/generate_icons.ts",
 		"test": "vscode-test",
 		"test:headless": "WAYLAND_DISPLAY= xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24 -ac +extension GLX' npm test",
-		"test:engine": "ts-node tools/run_tests.ts"
+		"test:engine": "ts-node tools/run_tests.ts",
+		"test:debugger-v2": "npm run compile && mocha --ui tdd out/debugger/godot3/protocol_v2.test.js out/debugger/godot3/session_state_v2.test.js",
+		"test:godot4:v2": "npm run compile && mocha --ui tdd out/debugger/godot4/protocol_v2.test.js out/debugger/godot4/session_state_v2.test.js && ts-node tools/run_godot4_v2_tests.ts",
+		"test:debugger-v2:integration": "npm run compile && ts-node tools/run_debugger_v2_tests.ts",
+		"test:godot4:integration": "npm run compile && ts-node tools/run_godot4_debugger_tests.ts"
 	},
 	"contributes": {
 		"customEditors": [
@@ -469,6 +473,11 @@
 					"launch": {
 						"required": [],
 						"properties": {
+							"debug_protocol_v2": {
+								"type": "boolean",
+								"description": "Use the dual-channel debug protocol v2 with a matching custom Godot 3.6 or 4.6 executable. Disabled for stock Godot builds.",
+								"default": false
+							},
 							"project": {
 								"type": "string",
 								"description": "Absolute path to a directory with a project.godot file.",
@@ -566,6 +575,11 @@
 					"attach": {
 						"required": [],
 						"properties": {
+							"debug_protocol_v2": {
+								"type": "boolean",
+								"description": "Attach to a matching custom Godot 3.6 or 4.6 engine using the dual-channel debug protocol v2.",
+								"default": false
+							},
 							"address": {
 								"type": "string",
 								"description": "The IP address for the Godot remote debugger to use.",

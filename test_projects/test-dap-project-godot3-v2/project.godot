@@ -1,0 +1,5 @@
+[application]
+config/name="Godot 3 Debug Protocol v2 DAP"
+
+[rendering]
+driver/driver_name="GLES2"

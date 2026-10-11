@@ -1,0 +1,9 @@
+config_version=5
+
+[application]
+config/name="Godot 4 debugger protocol v2 fixture"
+run/main_scene=""
+config/features=PackedStringArray("4.6", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
