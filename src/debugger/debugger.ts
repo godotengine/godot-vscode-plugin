@@ -23,7 +23,10 @@ import {
 import { createLogger, get_project_version, register_command, set_context } from "../utils";
 import { GodotVariable } from "./debug_runtime";
 import { GodotDebugSession as Godot3DebugSession } from "./godot3/debug_session";
+import { GodotDebugSessionV2 as Godot3DebugSessionV2 } from "./godot3/debug_session_v2";
 import { GodotDebugSession as Godot4DebugSession } from "./godot4/debug_session";
+import { GodotDebugSessionV2 as Godot4DebugSessionV2 } from "./godot4/debug_session_v2";
+import { select_debugger_mode } from "./debugger_mode";
 import { GodotObject } from "./godot4/variables/godot_object_promise";
 import { InspectorProvider, RemoteProperty } from "./inspector_provider";
 import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
@@ -31,6 +34,7 @@ import { SceneNode, SceneTreeProvider } from "./scene_tree_provider";
 const log = createLogger("debugger", { output: "Godot Debugger" });
 
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+	debug_protocol_v2?: boolean;
 	address: string;
 	port: number;
 	project: string;
@@ -51,6 +55,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
 }
 
 export interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+	debug_protocol_v2?: boolean;
 	address: string;
 	port: number;
 	project: string;
@@ -79,7 +84,7 @@ class GDFileDecorationProvider implements FileDecorationProvider {
 }
 
 export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfigurationProvider {
-	public session?: Godot3DebugSession | Godot4DebugSession;
+	public session?: Godot3DebugSession | Godot3DebugSessionV2 | Godot4DebugSession | Godot4DebugSessionV2;
 	public sceneTree = new SceneTreeProvider();
 	public inspector = new InspectorProvider();
 
@@ -113,10 +118,13 @@ export class GodotDebugger implements DebugAdapterDescriptorFactory, DebugConfig
 		const projectVersion = await get_project_version();
 		log.info(`Project version identified as ${projectVersion}`);
 
-		if (projectVersion?.startsWith("4")) {
-			this.session = new Godot4DebugSession(projectVersion);
-		} else {
-			this.session = new Godot3DebugSession();
+		const mode = select_debugger_mode(projectVersion, session.configuration.debug_protocol_v2);
+		log.info(`Selected ${mode} debugger`);
+		switch (mode) {
+			case "godot3-v2": this.session = new Godot3DebugSessionV2(); break;
+			case "godot4-v2": this.session = new Godot4DebugSessionV2(); break;
+			case "godot4-legacy": this.session = new Godot4DebugSession(projectVersion ?? "4"); break;
+			default: this.session = new Godot3DebugSession();
 		}
 		this.context.subscriptions.push(this.session);
 

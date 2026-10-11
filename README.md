@@ -182,6 +182,23 @@ _Usage_
 
 ![Showing the debugger in action](img/godot-debug.png)
 
+### Dual-channel debugger protocol v2 (opt-in)
+
+The extension selects the Godot 3 or Godot 4 debugger from the project's engine version. Both use the stock protocol by default. Protocol v2 requires a matching custom Godot 3.6 or 4.6 executable; set `debug_protocol_v2` only when using one of those builds:
+
+```json
+{
+	"name": "Godot Debug v2",
+	"type": "godot",
+	"request": "launch",
+	"project": "${workspaceFolder}",
+	"editor_path": "/path/to/custom/godot",
+	"debug_protocol_v2": true
+}
+```
+
+For Godot 4, the v2 launch adapter uses a `debugv2://` endpoint. For attach mode, start the custom Godot 4 engine with `--remote-debug debugv2://127.0.0.1:<port>` and set the same port in the attach configuration. The custom Godot 3 engine uses its normal `--remote-debug 127.0.0.1:<port>` syntax but speaks the new protocol. Do not enable this setting with an unmodified engine; its legacy debugger remains the default.
+
 ## Issues and contributions
 
 The [Godot Tools](https://github.com/godotengine/godot-vscode-plugin) extension
