@@ -8,7 +8,6 @@ import { createLogger, get_extension_uri } from "../utils";
 import yabbcode = require("ya-bbcode");
 
 const log = createLogger("providers.docs_builder");
-const parser = new yabbcode();
 
 //! I do not understand why this is necessary
 //! if you don't touch this csharp object, it's not imported or something, idk
@@ -120,10 +119,7 @@ export function make_html_content(webview: vscode.Webview, symbol: GodotNativeSy
 
 export function make_symbol_document(symbol: GodotNativeSymbol): string {
 	const classlink = make_link(symbol.native_class, undefined);
-
-	function make_symbol_id(name: string) {
-		return name.replace(/[^A-Za-z0-9_-]/g, "_");
-	}
+	const parser = make_documentation_parser(symbol);
 
 	function make_function_signature(s: GodotNativeSymbol, with_class = false) {
 		const parts = /\((.*)?\)\s*\-\>\s*(([A-z0-9]+)?)$/.exec(s.detail ?? "");
@@ -153,7 +149,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				const type = make_link(parts[2], undefined);
 				const name = element("a", s.name, { href: `#${make_symbol_id(s.name)}` });
 				const title = element("h4", `${type} ${with_class ? `${classlink}.` : ""}${s.name}`);
-				const doc = element("p", format_documentation(s.documentation, symbol.native_class));
+				const doc = element("p", format_documentation(parser, s.documentation));
 				const div = element("div", title + doc);
 				return {
 					index: `${type} ${name}`,
@@ -172,7 +168,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 				const value = element("code", parts[4]);
 
 				const title = element("p", `${type} ${with_class ? `${classlink}.` : ""}${name} = ${value}`);
-				const doc = element("p", format_documentation(s.documentation, symbol.native_class));
+				const doc = element("p", format_documentation(parser, s.documentation));
 				const div = element("div", title + doc);
 				return {
 					body: div,
@@ -191,7 +187,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 					"p",
 					`${with_class ? `signal ${with_class ? `${classlink}.` : ""}` : ""}${s.name}( ${args} )`,
 				);
-				const doc = element("p", format_documentation(s.documentation, symbol.native_class));
+				const doc = element("p", format_documentation(parser, s.documentation));
 				const div = element("div", title + doc);
 				return {
 					body: div,
@@ -203,7 +199,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			case SymbolKind.Operator: {
 				const signature = make_function_signature(s, with_class);
 				const title = element("h4", signature);
-				const doc = element("p", format_documentation(s.documentation, symbol.native_class));
+				const doc = element("p", format_documentation(parser, s.documentation));
 				const div = element("div", title + doc);
 				return {
 					index: signature,
@@ -230,7 +226,7 @@ export function make_symbol_document(symbol: GodotNativeSymbol): string {
 			doc += element("p", `Inherited by:${inherited}`);
 		}
 
-		doc += element("p", format_documentation(symbol.documentation, symbol.native_class));
+		doc += element("p", format_documentation(parser, symbol.documentation));
 
 		let constants = "";
 		let signals = "";
@@ -354,53 +350,106 @@ function make_codeblock(code: string, language: string) {
 	return marked.parse(`\`\`\`${language}\n${_code}\n\`\`\``);
 }
 
-function format_documentation(bbcode: string, classname: string) {
-	// ya-bbcode doesn't parse [code skip-lint] as a [code] tag
-	const _bbcode = bbcode.replaceAll("[code skip-lint]", "[code]");
-	let html = parser.parse(_bbcode.trim());
+function make_symbol_id(name: string) {
+	return name.replace(/[^A-Za-z0-9_-]/g, "_");
+}
 
-	html = html.replaceAll(/\[\/?codeblocks\](<br\/>)?/g, "");
-	html = html.replaceAll("&quot;", '"');
+// Godot's references to class members, as in [method add_child] or [member Node.name]
+const reference_tags = [
+	"method",
+	"constructor",
+	"operator",
+	"member",
+	"signal",
+	"enum",
+	"constant",
+	"annotation",
+	"theme_item",
+];
 
-	for (const match of html.matchAll(/\[codeblock].*?\[\/codeblock]/gs)) {
-		let block = match[0];
-		block = block.replaceAll(/\[\/?codeblock\](<br\/>)?/g, "");
-		block = block.replaceAll("<br/>", "\n");
-		html = html.replace(match[0], make_codeblock(block, "gdscript"));
+function make_reference(classname: string, symbol: string, text: string) {
+	return `<a href="" onclick="inspect('${classname}', '${make_symbol_id(symbol)}')">${text}</a>`;
+}
+
+/**
+ * Builds the BBCode parser for one class page. Short references like [constant OK] resolve against that class,
+ * falling back to @GlobalScope for constants and enums the way Godot's editor does.
+ */
+function make_documentation_parser(symbol: GodotNativeSymbol) {
+	const constants = new Set<string>();
+	const enums = new Set<string>();
+	for (const child of (symbol.children ?? []) as GodotNativeSymbol[]) {
+		if (child.kind !== SymbolKind.Constant) {
+			continue;
+		}
+		constants.add(child.name);
+		// const Control.FOCUS_ALL: FocusMode = 2
+		const enumeration = /:\s*([\w.]+)\s*=/.exec(child.detail ?? "")?.[1];
+		if (enumeration) {
+			enums.add(enumeration);
+		}
 	}
-	for (const match of html.matchAll(/\[gdscript].*?\[\/gdscript]/gs)) {
-		let block = match[0];
-		block = block.replaceAll(/\[\/?gdscript\](<br\/>)?/g, "");
-		block = block.replaceAll("<br/>", "\n");
-		html = html.replace(match[0], make_codeblock(block, "gdscript"));
-	}
-	for (const match of html.matchAll(/\[csharp].*?\[\/csharp]/gs)) {
-		let block = match[0];
-		block = block.replaceAll(/\[\/?csharp\](<br\/>)?/g, "");
-		block = block.replaceAll("<br/>", "\n");
-		html = html.replace(match[0], make_codeblock(block, "csharp"));
-	}
 
-	html = html.replaceAll("<br/>		", "");
-	// [param <name>]
-	html = html.replaceAll(/\[param\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g, "<code>$1</code>");
-	// [method <name>]
-	html = html.replaceAll(
-		/\[method\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\]/g,
-		`<a href="" onclick="inspect('${classname}', '$1')">$1</a>`,
-	);
-	// [<reference>]
-	html = html.replaceAll(
-		/\[(\w+)\]/g,
-		`<a href="" onclick="inspect('$1')">$1</a>`, // eslint-disable-line quotes
-	);
-	// [method <class>.<name>]
-	html = html.replaceAll(
-		/\[\w+\s+(@?[A-Z_a-z][A-Z_a-z0-9]*?)\.(\w+)\]/g,
-		`<a href="" onclick="inspect('$1', '$2')">$1.$2</a>`, // eslint-disable-line quotes
-	);
+	// Godot's tags are lowercase and its classes are not, so [signal x] is a tag while [Signal] links a class
+	const parser = new yabbcode({ caseSensitive: true });
+	const code_languages = { codeblock: "gdscript", gdscript: "gdscript", csharp: "csharp" };
+	for (const [tag, language] of Object.entries(code_languages)) {
+		parser.registerTag(tag, {
+			type: "content",
+			// Code keeps its own brackets and line breaks
+			raw: true,
+			block: true,
+			replace: (_attr, code, attrs) => {
+				// [codeblock lang=text] names its own language
+				const lang = typeof attrs.lang === "string" ? attrs.lang : language;
+				return make_codeblock(parser.unescapeHtml(code), lang);
+			},
+		});
+	}
+	// Holds the GDScript and C# versions of one example
+	parser.registerTag("codeblocks", { type: "replace", open: "", close: "", block: true });
+	parser.registerTag("kbd", { type: "replace", open: "<kbd>", close: "</kbd>" });
+	// Escaped brackets, as in [lb]b[rb], written as entities so they never read as a class reference
+	parser.registerTag("lb", { type: "replace", open: "&#91;", close: null });
+	parser.registerTag("rb", { type: "replace", open: "&#93;", close: null });
+	// A reference like [param name] reads as a tag with one flag, which is its target
+	parser.registerTag("param", {
+		type: "replace",
+		open: (_attr, attrs) => `<code>${Object.keys(attrs)[0] ?? ""}</code>`,
+		close: null,
+	});
+	for (const tag of reference_tags) {
+		parser.registerTag(tag, {
+			type: "replace",
+			open: (_attr, attrs) => {
+				const target = Object.keys(attrs)[0] ?? "";
+				const dot = target.lastIndexOf(".");
+				if (dot !== -1) {
+					return make_reference(target.slice(0, dot), target.slice(dot + 1), target);
+				}
+				if ((tag === "constant" && !constants.has(target)) || (tag === "enum" && !enums.has(target))) {
+					return make_reference("@GlobalScope", target, target);
+				}
+				return make_reference(symbol.native_class, target, target);
+			},
+			close: null,
+		});
+	}
+	return parser;
+}
 
-	return html;
+function format_documentation(parser: yabbcode, bbcode: string) {
+	const html = parser.parse(bbcode.trim()).replaceAll("<br/>\t\t", "");
+	// [ClassName] has no tag to register; class names start with a letter, and code blocks are skipped as brackets there index
+	return html
+		.split(/(<pre[\s\S]*?<\/pre>)/)
+		.map((part) => {
+			if (part.startsWith("<pre")) {
+				return part;
+			}
+			return part.replaceAll(/\[([A-Za-z_]\w*)\]/g, `<a href="" onclick="inspect('$1')">$1</a>`);
+		})
+		.join("");
 }
 
 const GDScriptGrammar = {
