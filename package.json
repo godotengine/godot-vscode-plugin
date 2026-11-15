@@ -930,6 +930,6 @@
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.0.0",
 		"ws": "^8.17.1",
-		"ya-bbcode": "^4.0.0"
+		"ya-bbcode": "^7.1.0"
 	}
 }
