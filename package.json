@@ -370,6 +370,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
+				},
+				"godotTools.terminal.detached": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to run Godot in a detached process, allowing it to continue running after VS Code closes."
 				}
 			}
 		},

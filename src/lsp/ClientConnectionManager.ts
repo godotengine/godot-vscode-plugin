@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import {
 	createLogger,
 	get_configuration,
+	get_extension_uri,
 	get_free_port,
 	get_project_dir,
 	get_project_version,
@@ -15,6 +16,7 @@ import { prompt_for_godot_executable, prompt_for_reload, select_godot_executable
 import { killSubProcesses, subProcess } from "../utils/subspawn";
 import GDScriptLanguageClient, { ClientStatus, TargetLSP } from "./GDScriptLanguageClient";
 import { EventEmitter } from "vscode";
+import GodotTerminal from "../utils/godot_terminal";
 
 const log = createLogger("lsp.manager", { output: "Godot LSP" });
 
@@ -118,12 +120,52 @@ export class ClientConnectionManager {
 			targetVersion = "4.2";
 		}
 		const settingName = `editorPath.godot${projectVersion?.[0] || ""}`;
-		let godotPath = get_configuration(settingName);
-
-		const result = verify_godot_version(godotPath, projectVersion?.[0] || "");
-		godotPath = result.godotPath;
+		const result = verify_godot_version(get_configuration(settingName), projectVersion?.[0] || "");
+		const godotPath = result.godotPath;
 
 		switch (result.status) {
+			case "SUCCESS": {
+				this.connectedVersion = result.version || "";
+				if (result.version && result.version[2] < minimumVersion) {
+					const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;
+					vscode.window
+						.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore")
+						.then((item) => {
+							if (item === "Select Godot executable") {
+								select_godot_executable(settingName);
+							} else if (item === "Open Settings") {
+								vscode.commands.executeCommand("workbench.action.openSettings", settingName);
+							} else if (item === "Disable Headless LSP") {
+								set_configuration("lsp.headless", false);
+								prompt_for_reload();
+							}
+						});
+					return;
+				}
+
+				this.client.port = await get_free_port();
+
+				log.info(`Starting headless LSP on port ${this.client.port}`);
+
+				const headlessFlags = "--headless --no-window";
+				const command = `"${godotPath}" --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
+
+				const existingTerminal = vscode.window.terminals.find((t) => t.name === "GodotLSP");
+				if (existingTerminal) {
+					existingTerminal.dispose();
+				}
+				const options: vscode.ExtensionTerminalOptions = {
+					name: "GodotLSP",
+					iconPath: get_extension_uri("resources/godot_icon.svg"),
+					pty: new GodotTerminal("GodotLSP", command),
+					isTransient: true,
+				};
+				const terminal = vscode.window.createTerminal(options);
+				if (get_configuration("editor.revealTerminal")) {
+					terminal.show();
+				}
+				break;
+			}
 			case "WRONG_VERSION": {
 				const message = `Cannot launch headless LSP: The current project uses Godot v${projectVersion}, but the specified Godot executable is v${result.version}`;
 				prompt_for_godot_executable(message, settingName);
@@ -135,52 +177,6 @@ export class ClientConnectionManager {
 				return;
 			}
 		}
-		this.connectedVersion = result.version || "";
-
-		if (result.version && result.version[2] < minimumVersion) {
-			const message = `Cannot launch headless LSP: Headless LSP mode is only available on v${targetVersion} or newer, but the specified Godot executable is v${result.version}.`;
-			vscode.window
-				.showErrorMessage(message, "Select Godot executable", "Open Settings", "Disable Headless LSP", "Ignore")
-				.then((item) => {
-					if (item === "Select Godot executable") {
-						select_godot_executable(settingName);
-					} else if (item === "Open Settings") {
-						vscode.commands.executeCommand("workbench.action.openSettings", settingName);
-					} else if (item === "Disable Headless LSP") {
-						set_configuration("lsp.headless", false);
-						prompt_for_reload();
-					}
-				});
-			return;
-		}
-
-		this.client.port = await get_free_port();
-
-		log.info(`starting headless LSP on port ${this.client.port}`);
-
-		const headlessFlags = "--headless --no-window";
-		const command = `"${godotPath}" --path "${projectDir}" --editor ${headlessFlags} --lsp-port ${this.client.port}`;
-		const lspProcess = subProcess("LSP", command, { shell: true, detached: true });
-
-		const lspStdout = createLogger("lsp.stdout");
-		lspProcess.stdout.on("data", (data) => {
-			const out = data.toString().trim();
-			if (out) {
-				lspStdout.debug(out);
-			}
-		});
-
-		// const lspStderr = createLogger("lsp.stderr");
-		lspProcess.stderr.on("data", (data) => {
-			// const out = data.toString().trim();
-			// if (out) {
-			// 	lspStderr.debug(out);
-			// }
-		});
-
-		lspProcess.on("close", (code) => {
-			log.info(`LSP process exited with code ${code}`);
-		});
 	}
 
 	private get_lsp_connection_string() {

@@ -58,8 +58,9 @@ process.on("SIGQUIT", gracefulExitHandler);
 export function subProcess(owner: string, command: string, options?: SpawnOptionsWithoutStdio) {
 	const childProcess = spawn(command, options);
 
-	children[owner] = children[owner] || [];
-	children[owner].push(childProcess);
-
+	if(!options?.detached){
+		children[owner] = children[owner] || [];
+		children[owner].push(childProcess);
+	}
 	return childProcess;
 }
