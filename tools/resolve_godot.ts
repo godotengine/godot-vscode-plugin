@@ -20,35 +20,31 @@ import * as os from "node:os";
 
 function get_fgvm_home(): string {
 	const env = process.env.FGVM_HOME;
-	if (env) {
-		// fgvm creates a "fgvm" subdirectory inside FGVM_HOME
-		return path.join(env, "fgvm");
-	}
-	return path.join(os.homedir(), "fgvm");
+	return env? env : path.join(os.homedir(), "fgvm");
 }
 
 /**
- * The platform-specific subdirectory and executable glob pattern.
+ * The platform-specific subdirectory and executable regex pattern.
  * fgvm uses different directory names and executable patterns per OS.
  */
-function get_platform_pattern(): { dir: string; glob: string } {
+function get_platform_pattern(): { dir: string; pattern: RegExp } {
 	const platform = process.platform;
 	const arch = process.arch;
 
 	if (platform === "win32" && arch === "x64") {
-		return { dir: "win64.exe", glob: "Godot_v*_win64.exe" };
+		return { dir: "win64.exe", pattern: /^Godot_v.*_win64\.exe$/ };
 	}
 	if (platform === "darwin" && arch === "arm64") {
-		return { dir: "osx.arm64", glob: "Godot_v*osx.universal" };
+		return { dir: "osx.arm64", pattern: /^Godot_v.*osx\.universal$/ };
 	}
 	if (platform === "darwin" && arch === "x64") {
-		return { dir: "osx.x86_64", glob: "Godot_v*osx.universal" };
+		return { dir: "osx.x86_64", pattern: /^Godot_v.*osx\.universal$/ };
 	}
 	if (platform === "linux" && arch === "x64") {
-		return { dir: "linux.x86_64", glob: "Godot_v*_linux.x86_64" };
+		return { dir: "linux.x86_64", pattern: /^Godot_v.*_linux\.x86_64$/ };
 	}
 	if (platform === "linux" && arch === "arm64") {
-		return { dir: "linux.arm64", glob: "Godot_v*_linux.arm64" };
+		return { dir: "linux.arm64", pattern: /^Godot_v.*_linux\.arm64$/ };
 	}
 
 	throw new Error(`Unsupported platform: ${platform}-${arch}`);
@@ -72,11 +68,13 @@ export function resolve_godot_binary(version: string): string {
 	// Match version against installation dir names.
 	// fgvm names: "4.7-stable-standard", "3.6.2-stable-standard", etc.
 	// We match "<version>-stable-*" to avoid pre-release builds.
-	const prefix = `${version}-stable-`;
+	const versionPattern = new RegExp(
+		`^${version.replaceAll(".", "\\.")}(?:\\.\\d+)*-stable-*`,
+	);
 
 	const candidates = fs
 		.readdirSync(installationsDir)
-		.filter((name) => name.startsWith(prefix));
+		.filter((name) => versionPattern.test(name));
 
 	if (candidates.length === 0) {
 		throw new Error(
@@ -92,7 +90,7 @@ export function resolve_godot_binary(version: string): string {
 	}
 
 	const installDir = path.join(installationsDir, candidates[0]);
-	const { dir: platformDir, glob } = get_platform_pattern();
+	const { dir: platformDir, pattern } = get_platform_pattern();
 	const platformPath = path.join(installDir, platformDir);
 
 	if (!fs.existsSync(platformPath)) {
@@ -102,7 +100,7 @@ export function resolve_godot_binary(version: string): string {
 	// Find the Godot executable (exclude console/debug variants on Windows)
 	const executables = fs
 		.readdirSync(platformPath)
-		.filter((f) => f.match(/^Godot_v.*(_win64\.exe|osx\.universal|linux\.x86_64|linux\.arm64)$/))
+		.filter((f) => pattern.test(f))
 		.filter((f) => !f.includes("_console."));
 
 	if (executables.length === 0) {
