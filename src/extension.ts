@@ -32,7 +32,7 @@ import {
 	is_debug_mode,
 } from "./utils";
 import { prompt_for_godot_executable } from "./utils/prompts";
-import { killSubProcesses, subProcess } from "./utils/subspawn";
+import GodotTerminal from "./utils/godot_terminal";
 
 interface Extension {
 	context?: vscode.ExtensionContext;
@@ -197,7 +197,7 @@ async function open_workspace_with_editor() {
 			const options: vscode.ExtensionTerminalOptions = {
 				name: "Godot Editor",
 				iconPath: get_extension_uri("resources/godot_icon.svg"),
-				pty: new GodotEditorTerminal(command),
+				pty: new GodotTerminal("GodotEditor", command),
 				isTransient: true,
 			};
 			const terminal = vscode.window.createTerminal(options);
@@ -266,40 +266,4 @@ async function get_godot_path(): Promise<string | undefined> {
 	}
 	const settingName = `editorPath.godot${projectVersion[0]}`;
 	return clean_godot_path(get_configuration(settingName));
-}
-
-class GodotEditorTerminal implements vscode.Pseudoterminal {
-	private writeEmitter = new vscode.EventEmitter<string>();
-	onDidWrite: vscode.Event<string> = this.writeEmitter.event;
-	private closeEmitter = new vscode.EventEmitter<number>();
-	onDidClose?: vscode.Event<number> = this.closeEmitter.event;
-
-	constructor(private command: string) {}
-
-	open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-		const proc = subProcess("GodotEditor", this.command, { shell: true, detached: true });
-		this.writeEmitter.fire("Starting Godot Editor process...\r\n");
-
-		proc.stdout.on("data", (data) => {
-			const out = data.toString().trim();
-			if (out) {
-				this.writeEmitter.fire(`${data}\r\n`);
-			}
-		});
-
-		proc.stderr.on("data", (data) => {
-			const out = data.toString().trim();
-			if (out) {
-				this.writeEmitter.fire(`${data}\r\n`);
-			}
-		});
-
-		proc.on("close", (code) => {
-			this.writeEmitter.fire(`Godot Editor stopped with exit code: ${code}\r\n`);
-		});
-	}
-
-	close(): void {
-		killSubProcesses("GodotEditor");
-	}
 }
