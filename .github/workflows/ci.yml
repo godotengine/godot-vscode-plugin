@@ -37,7 +37,7 @@ jobs:
       - name: Cache Godot installations
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/fgvm/fgvm/installations
+          path: ${{ runner.temp }}/fgvm/installations
           key: fgvm-${{ matrix.os }}-${{ matrix.godot_version }}
 
       - name: Install Godot ${{ matrix.godot_version }}
